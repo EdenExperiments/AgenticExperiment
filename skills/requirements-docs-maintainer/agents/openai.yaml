@@ -1,0 +1,4 @@
+interface:
+  display_name: "Requirements Docs Maintainer"
+  short_description: "Maintain product and planning docs"
+  default_prompt: "Use $requirements-docs-maintainer to update the product requirements, planning handoff, and feature tracker for this repo."
