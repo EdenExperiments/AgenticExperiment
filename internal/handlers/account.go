@@ -49,6 +49,10 @@ func (h *UserHandler) HandlePostAccount(w http.ResponseWriter, r *http.Request) 
 	}
 
 	displayName := r.FormValue("display_name")
+	if len(displayName) > 100 {
+		http.Error(w, "display name too long", http.StatusBadRequest)
+		return
+	}
 	if err := users.UpdateDisplayName(r.Context(), h.db, userID, displayName); err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
