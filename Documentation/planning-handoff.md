@@ -1,6 +1,6 @@
 # Planning Handoff
 
-Last updated: 2026-03-15 (planning-agent second pass: full Phase 1 and Phase 2 implementation backlog added; all task slices defined with dependencies and acceptance criteria; feature-tracker.md updated to in-progress-ready state; review-agent unblocked; prior update by ux-agent: UX step 4 complete; F-001, F-005, F-009 UX dependencies cleared; D-017 through D-022 added; ux-spec.md created; prior update by planning-agent v1: delivery slice confirmed, phase exit criteria made explicit, epic-to-feature mapping finalized, deferred list locked, schema-churn ordering applied)
+Last updated: 2026-03-16 (review-agent quality pass: 12 issues fixed — Phase 1 exit criterion 8 added (Supabase auth trigger verified); TASK-106 auth trigger AC added; TASK-116 password change handlers added; TASK-113 #modal-container added to shell and AC; TASK-210 TASK-203 dependency added; TASK-209 gate+tier edge case AC added; TASK-210 custom XP validation ACs added; TASK-213 tap-outside AC added; TASK-211 TASK-203 dependency added; TASK-213 TASK-203+TASK-210 dependencies added; TASK-212 TASK-202 dependency added; TASK-210 /skills/{id}/log route clarification added; TASK-215 real dashboard added; dependency graph corrected for TASK-209; prior update: planning-agent second pass: full Phase 1 and Phase 2 implementation backlog added; all task slices defined with dependencies and acceptance criteria; feature-tracker.md updated to in-progress-ready state; review-agent unblocked; prior update by ux-agent: UX step 4 complete; F-001, F-005, F-009 UX dependencies cleared; D-017 through D-022 added; ux-spec.md created; prior update by planning-agent v1: delivery slice confirmed, phase exit criteria made explicit, epic-to-feature mapping finalized, deferred list locked, schema-churn ordering applied)
 
 ## Planning Intent
 
@@ -145,6 +145,7 @@ Deferred. Includes F-019, F-020, F-021, F-022.
 5. The database schema has at minimum: `users`, `user_ai_keys`, and migration tooling is operational.
 6. The local development environment can be stood up from a single documented command.
 7. Architecture-agent has confirmed the XP curve shape (DONE: D-014 confirmed; `xpcurve` package spec is complete).
+8. A new Supabase user registration results in a corresponding row in public.users within 1 second (the auth trigger has been created in Supabase and verified to fire).
 
 ### Phase 2: LifeQuest Core
 
@@ -474,6 +475,9 @@ Acceptance criteria:
   - The trigger SQL is NOT in any migration file (it is documented as a
     manual step only)
   - No migration file references the auth schema
+  - After creating a new user via Supabase Auth, a row exists in public.users
+    with the matching id — verified by manual test in the Supabase SQL editor
+    or integration test
 ```
 
 ---
@@ -641,6 +645,44 @@ Acceptance criteria:
 
 ---
 
+---
+
+**TASK-116: Password change handlers (F-002)**
+
+```
+Feature:    F-002
+Phase step: 1c
+Depends on: TASK-110, TASK-108
+Enables:    Complete account section
+
+What it builds:
+  internal/auth/handler.go additions:
+  - GET /account/password: renders the password change form
+      Fields: current password, new password, confirm new password
+      Email/password auth only (D-012)
+  - POST /account/password: submits new password via Supabase Auth API
+      Calls Supabase Auth Admin API to verify current password and update
+      On success: redirects to GET /account with confirmation message
+      On wrong current password: returns form with inline validation error
+      On any other error: returns form with generic error message
+  Middleware: route is accessible only to authenticated users (401 if not)
+
+  internal/templates/pages/password_change.templ:
+    Password change form with current password, new password, confirm fields
+
+Acceptance criteria:
+  - GET /account/password returns the password change form for authenticated users
+  - GET /account/password returns HTTP 401 for unauthenticated requests
+  - POST /account/password with valid current password and matching new passwords
+    returns success and redirects to GET /account
+  - POST /account/password with wrong current password returns the form with
+    a validation error (does not update the password)
+  - POST /account/password returns HTTP 401 for unauthenticated requests
+  - No OAuth or social auth UI elements are present (D-012)
+```
+
+---
+
 #### Step 1d — AES-256-GCM key storage
 
 ---
@@ -690,7 +732,7 @@ Acceptance criteria:
 Feature:    F-003
 Phase step: 1d
 Depends on: TASK-107, TASK-108, TASK-111
-Enables:    Phase 2 AI calibration (TASK-205)
+Enables:    Phase 2 AI calibration (TASK-212)
 
 What it builds:
   internal/keys/service.go:
@@ -762,6 +804,9 @@ What it builds:
     Unified app shell with:
     - <header>: app name/logo (top bar on mobile, top of sidebar on desktop)
     - <main id="main-content">: swap target for HTMX partial loads
+    - <div id="modal-container"></div>: placed at the end of the body, outside
+      the main content area; used as the HTMX swap target for bottom sheets
+      and modals from any page
     - Mobile bottom tab bar (< 768px):
         Four items: Dashboard, LifeQuest, NutriLog, Account
         Icons: home, sword, leaf, person
@@ -801,6 +846,8 @@ Acceptance criteria:
   - The shell renders without any LifeQuest content in Phase 1
   - No JavaScript files other than HTMX CDN are loaded
   - Safe-area-inset padding is applied to the bottom nav on notched devices
+  - The shell HTML includes <div id="modal-container"></div> (or equivalent)
+    that is accessible as an HTMX hx-target from any page
 ```
 
 ---
@@ -927,7 +974,7 @@ All Phase 2 tasks depend on Phase 1 complete (all TASK-1xx done and passing).
 Feature:    F-004, F-006, F-008, F-009 (schema prerequisite for all)
 Phase step: 2a
 Depends on: TASK-106 (users table), TASK-115 (xpcurve confirmed)
-Enables:    TASK-202, TASK-203, TASK-206
+Enables:    TASK-202, TASK-203
 
 What it builds:
   db/migrations/000003_create_skills.up.sql:
@@ -1019,7 +1066,7 @@ Acceptance criteria:
 Feature:    F-004
 Phase step: 2b
 Depends on: TASK-201
-Enables:    TASK-203, TASK-204, TASK-205, TASK-206
+Enables:    TASK-203, TASK-204, TASK-209
 
 What it builds:
   internal/skills/repository.go:
@@ -1067,7 +1114,7 @@ Acceptance criteria:
 Feature:    F-004
 Phase step: 2b
 Depends on: TASK-202, TASK-113
-Enables:    TASK-204 (display), TASK-205 (AI calibration)
+Enables:    TASK-204 (creation flow), TASK-212 (AI calibration)
 
 What it builds:
   internal/skills/handler.go:
@@ -1115,10 +1162,10 @@ Acceptance criteria:
 **TASK-204: Three-step skill creation flow with level picker (F-005 manual path)**
 
 ```
-Feature:    F-005 (manual path; AI path handled in TASK-205)
+Feature:    F-005 (manual path; AI path handled in TASK-212)
 Phase step: 2b
 Depends on: TASK-203
-Enables:    TASK-205 (AI path extends this flow)
+Enables:    TASK-212 (AI path extends this flow)
 
 What it builds:
   The three-step creation flow (ux-spec.md Section 3.2) using HTMX step progression:
@@ -1183,13 +1230,13 @@ Acceptance criteria:
 
 ---
 
-**TASK-203b: XP write service (transactional)**
+**TASK-209: XP write service (transactional)**
 
 ```
 Feature:    F-006
 Phase step: 2c
 Depends on: TASK-201, TASK-202, TASK-115
-Enables:    TASK-204 (display after log), TASK-206 (gate visibility)
+Enables:    TASK-210 (quick-log UI), TASK-211 (display after log), TASK-213 (gate visibility)
 
 What it builds:
   internal/xp/service.go:
@@ -1239,17 +1286,21 @@ Acceptance criteria:
   - Unit test: after LogXP with 9000 XP on a skill at level 8, effective_level = 9
     (gate at level 9 caps progression)
   - TierCrossed is true when going from level 9 to level 10
+  - If a single LogXP call causes both a gate hit (effective_level capped) and
+    a tier crossing (raw level crosses a tier boundary), the LogResult sets
+    GateHit=true and TierCrossed=false; gate state takes precedence — the tier
+    transition modal does NOT fire while a gate is active
 ```
 
 ---
 
-**TASK-204: Quick-log bottom sheet UI (F-006)**
+**TASK-210: Quick-log bottom sheet UI (F-006)**
 
 ```
 Feature:    F-006
 Phase step: 2c
-Depends on: TASK-203b, TASK-113
-Enables:    TASK-205 (post-log display), TASK-206 (gate notification)
+Depends on: TASK-209, TASK-203, TASK-113
+Enables:    TASK-211 (progression display), TASK-213 (gate notification)
 
 What it builds:
   internal/xp/handler.go:
@@ -1283,6 +1334,12 @@ What it builds:
     via hx-get="/skills/{id}/log-sheet" hx-target="#modal-container"
     No navigation change (D-019: bottom sheet, not a new route)
 
+  Route clarification: /skills/{id}/log is not a standalone navigable page.
+    GET /skills/{id}/log-sheet returns the bottom sheet HTMX fragment;
+    POST /skills/{id}/log processes the submission. There is no full-page
+    fallback route for this path in release 1 — the IA route listing is a
+    conceptual label, not a distinct server route.
+
   GET /skills/{id}/log-sheet: returns the bottom sheet HTML fragment
 
   internal/templates/partials/toast.templ: standard post-log toast
@@ -1311,6 +1368,48 @@ Acceptance criteria:
     reached (D-021); sets first_notified_at in DB in the same transaction
   - Subsequent logs on the same gate return the standard toast (not the gate modal)
   - The keyboard does not cover the [Log XP] button when the note field is focused
+  - Custom XP input: submitting 0 or a negative value returns a validation error
+    without logging
+  - Custom XP input: submitting a value > 50,000 returns a validation error
+    without logging
+  - Custom XP input: valid custom values (1–50,000) log correctly
+```
+
+---
+
+**TASK-215: Real dashboard with skill summary cards (F-001, F-004, F-006)**
+
+```
+Feature:    F-001 (dashboard route), F-004 (skill display), F-006 (fast-log path)
+Phase step: 2c (follows TASK-210)
+Depends on: TASK-203 (skill_card.templ), TASK-210 (log bottom sheet), TASK-113 (app shell)
+Enables:    TASK-214 (integration tests can now test the dashboard fast-log path)
+
+What it builds:
+  internal/templates/pages/dashboard.templ (replaces Phase 1 placeholder):
+    Real dashboard at GET /dashboard showing the user's skills as summary cards.
+    Each card uses skill_card.templ (TASK-203) with its + Log icon (TASK-210).
+    The log bottom sheet (TASK-210) opens from dashboard cards via the same
+    hx-get="/skills/{id}/log-sheet" hx-target="#modal-container" path used
+    from the /skills list — no separate dashboard-specific log path.
+    Empty state: if the user has no skills, shows a "Create your first skill" CTA
+    linking to /skills/new.
+    Replaces the Phase 1 placeholder content ("LifeQuest — skills coming soon").
+
+  internal/dashboard/handler.go:
+  - GET /dashboard: loads all active skills via ListSkills(ctx, userID);
+    renders dashboard.templ with skill cards
+
+Acceptance criteria:
+  - GET /dashboard returns a page with one skill_card per active skill
+    for the authenticated user
+  - Each skill card on the dashboard has a + Log icon
+  - Tapping the + Log icon from the dashboard opens the quick-log bottom sheet
+    (same HTMX path as from /skills list; no separate route)
+  - Empty state: when the user has no skills, a "Create your first skill" CTA
+    is shown on the dashboard
+  - The Phase 1 placeholder text ("skills coming soon") no longer appears
+  - GET /dashboard returns HTTP 401 for unauthenticated requests
 ```
 
 ---
@@ -1319,13 +1418,13 @@ Acceptance criteria:
 
 ---
 
-**TASK-205: Skill detail progression display (F-008)**
+**TASK-211: Skill detail progression display (F-008)**
 
 ```
 Feature:    F-008
 Phase step: 2d
-Depends on: TASK-203b, TASK-204, TASK-115
-Enables:    TASK-206 (gate section sits within the detail screen)
+Depends on: TASK-209, TASK-210, TASK-203, TASK-115
+Enables:    TASK-213 (gate section sits within the detail screen)
 
 What it builds:
   Updates to internal/templates/pages/skill_detail.templ:
@@ -1404,12 +1503,12 @@ Acceptance criteria:
 
 ---
 
-**TASK-206: AI calibration handler (F-005 AI path)**
+**TASK-212: AI calibration handler (F-005 AI path)**
 
 ```
 Feature:    F-005 (AI path; manual path is TASK-204)
 Phase step: 2e
-Depends on: TASK-204 (creation flow), TASK-112 (key retrieval)
+Depends on: TASK-204 (creation flow), TASK-112 (key retrieval), TASK-202 (skill service)
 Enables:    Nothing additional in Phase 2; Phase 3 features will build on this
 
 What it builds:
@@ -1488,12 +1587,12 @@ Acceptance criteria:
 
 ---
 
-**TASK-207: Blocker gate visibility and first-hit notification (F-009)**
+**TASK-213: Blocker gate visibility and first-hit notification (F-009)**
 
 ```
 Feature:    F-009
 Phase step: 2f
-Depends on: TASK-201, TASK-205, TASK-203b
+Depends on: TASK-201, TASK-211, TASK-209, TASK-203, TASK-210
 Enables:    Phase 2 complete
 
 What it builds:
@@ -1520,7 +1619,7 @@ What it builds:
     🔒 lock icon + "Gate at Level [N]" in the card
 
   First-hit gate notification modal:
-    Rendered by TASK-203b LogXP when GateFirstHit = true
+    Rendered by TASK-209 LogXP when GateFirstHit = true
     Full-screen modal per ux-spec.md Section 6.3:
     - "[🔒 You've hit a gate!]" header
     - "Level [gate_level] Gate: [title]"
@@ -1534,7 +1633,7 @@ What it builds:
 
   First-hit tracking:
     blocker_gates.first_notified_at IS NULL check is performed in LogXP
-    service (TASK-203b) in the same transaction that returns the modal
+    service (TASK-209) in the same transaction that returns the modal
     Once first_notified_at is set, subsequent LogXP calls return standard toast
     No client-side state used for this check (server-authoritative per ux-spec 6.3)
 
@@ -1566,6 +1665,9 @@ Acceptance criteria:
   - The "XP Accruing" number updates in real-time after each log
     (same HTMX partial swap as regular XP display)
   - Skill list card shows lock indicator when a gate is active
+  - Tapping outside the first-hit gate notification modal does NOT dismiss it;
+    the user must tap the acknowledgement button; no backdrop-click-to-close
+    behavior is present
 ```
 
 ---
@@ -1574,12 +1676,12 @@ Acceptance criteria:
 
 These tests verify the end-to-end core loop and are the final gate before Phase 2 is marked complete.
 
-**TASK-208: Phase 2 integration acceptance tests**
+**TASK-214: Phase 2 integration acceptance tests**
 
 ```
 Feature:    All Phase 2 features
 Phase step: After 2f (final task)
-Depends on: TASK-201 through TASK-207
+Depends on: TASK-201 through TASK-213, TASK-215
 Enables:    Phase 2 sign-off; delivery-agent can hand off to review-agent
 
 What it builds:
@@ -1649,51 +1751,57 @@ Acceptance criteria:
 - **Schema churn**: Skills, XP logs, blocker gates, and (later) NutriLog data are interrelated. Architecture-agent has designed the skill-domain schema before Phase 2 implementation begins. Any schema change after coding starts is expensive.
 - **XP curve dependency**: RESOLVED. D-014 confirmed. xpcurve package (TASK-115) must be built in Phase 1 and fully tested before any XP write or display work begins.
 - **Cross-app ambition creep**: NutriLog and cross-app features must remain genuinely deferred. Any feature addition to release 1 requires a new decision-log entry.
-- **AI calibration graceful degradation**: F-005 has a hard requirement that onboarding never blocks on a missing or invalid Claude key. This constraint is explicitly tested in TASK-208 EC-2.
-- **Mobile UX drift**: All Phase 2 features require mobile sign-off on a 375px viewport. TASK-208 EC-9 is the explicit test gate.
-- **R-003 XP aggregate drift**: Mitigated by TASK-203b LogXP using a single transaction for all three writes (xp_events insert + current_xp update + current_level update).
-- **R-004 Level gate bypass**: Mitigated by explicit acceptance criteria on TASK-202, TASK-205, and TASK-207 requiring EffectiveLevel computation in Go handlers, not templates.
+- **AI calibration graceful degradation**: F-005 has a hard requirement that onboarding never blocks on a missing or invalid Claude key. This constraint is explicitly tested in TASK-214 EC-2.
+- **Mobile UX drift**: All Phase 2 features require mobile sign-off on a 375px viewport. TASK-214 EC-9 is the explicit test gate.
+- **R-003 XP aggregate drift**: Mitigated by TASK-209 LogXP using a single transaction for all three writes (xp_events insert + current_xp update + current_level update).
+- **R-004 Level gate bypass**: Mitigated by explicit acceptance criteria on TASK-202, TASK-211, and TASK-213 requiring EffectiveLevel computation in Go handlers, not templates.
 
 ---
 
 ## Summary: Task Dependency Graph
 
 ```
+Phase 1 (all TASK-1xx):
+
 TASK-101 (scaffold)
-  └── TASK-102 (Templ/HTMX)
-      └── TASK-103 (Tailwind)
-          └── TASK-113 (shell) ─────────────────────────┐
-  └── TASK-104 (local dev)                               │
-      └── TASK-105 (migration tooling)                   │
-          └── TASK-106 (users table)                     │
-              └── TASK-107 (user_ai_keys table)          │
-              └── TASK-108 (JWT middleware)              │
-                  └── TASK-109 (user profile handler)    │
-                  └── TASK-110 (login/register)          │
-                  └── TASK-111 (encryption service) ─────┤
-                      └── TASK-112 (key storage) ────────┤
-  └── TASK-115 (xpcurve package) [parallel]              │
-                                                         ▼
-                              PHASE 1 COMPLETE ──► TASK-201 (skill schema)
-                                                         │
-                                              TASK-202 (skill service)
-                                                         │
-                                              TASK-203 (skill CRUD handlers)
-                                                         │
-                                              TASK-204 (creation flow)
-                                                         │
-                              ┌──────────────────────────┤
-                         TASK-203b (XP service)          TASK-206 (AI calibration)
-                              │
-                         TASK-204* (quick-log UI)
-                              │
-                         TASK-205 (progression display)
-                              │
-                         TASK-207 (blocker gate UI)
-                              │
-                         TASK-208 (integration tests)
-                              │
-                         PHASE 2 COMPLETE
+  ├── TASK-102 (Templ/HTMX)
+  │   └── TASK-103 (Tailwind)
+  │       └── TASK-113 (app shell + nav) ─────────────────┐
+  ├── TASK-104 (local dev setup)                          │
+  │   └── TASK-105 (migration tooling)                    │
+  │       └── TASK-106 (users table migration)            │
+  │           ├── TASK-107 (user_ai_keys migration)       │
+  │           └── TASK-108 (JWT middleware)               │
+  │               ├── TASK-109 (user profile handler)     │
+  │               ├── TASK-110 (login/register handlers)  │
+  │               └── TASK-111 (encryption service) ──────┤
+  │                   └── TASK-112 (key storage handler)  │
+  ├── TASK-115 (xpcurve package) [parallel]               │
+  └── TASK-114 (error/loading states) [depends on 113]   │
+                                                          ▼
+                          PHASE 1 COMPLETE (all 1xx done + passing)
+
+Phase 2 (all TASK-2xx):
+
+TASK-201 (skills/xp_events/blocker_gates schema)
+  └── TASK-202 (skill service + repository)
+      └── TASK-203 (skill CRUD handlers + templates)
+          ├── TASK-204 (3-step creation flow + level picker)  ──► TASK-212 (AI calibration)
+          │                                                        [TASK-212 also depends on TASK-202]
+          │
+          └── [TASK-209 depends on TASK-201, TASK-202, TASK-115 — parallel track with TASK-204]
+              Note: TASK-209 and TASK-204 are parallel tracks, both depending on TASK-202.
+              TASK-209 does NOT depend on TASK-203.
+
+TASK-201 + TASK-202 + TASK-115
+  └── TASK-209 (XP write service — transactional)
+      └── TASK-210 (quick-log bottom sheet UI) [also depends on TASK-203, TASK-113]
+          ├── TASK-215 (real dashboard)
+          └── TASK-211 (skill detail progression display) [also depends on TASK-203, TASK-115]
+              └── TASK-213 (blocker gate visibility + first-hit modal) [also depends on TASK-203, TASK-210]
+                  └── TASK-214 (Phase 2 integration acceptance tests)
+                      │
+                  PHASE 2 COMPLETE
 ```
 
 ---
@@ -1703,17 +1811,17 @@ TASK-101 (scaffold)
 ### What changed in this pass
 
 - Full Phase 1 backlog defined: 15 task slices (TASK-101 through TASK-115)
-- Full Phase 2 backlog defined: 8 task slices (TASK-201 through TASK-208)
+- Full Phase 2 backlog defined: 14 task slices (TASK-201 through TASK-214; includes TASK-209 through TASK-214 for XP service, quick-log UI, progression display, AI calibration, gate UI, integration tests)
 - Every task includes: what it builds, what it depends on, what it enables, and explicit acceptance criteria
 - All key acceptance criteria from architecture.md and ux-spec.md are carried forward explicitly:
-  - D-019 three-tap path: explicit AC on TASK-204 and TASK-208 EC-3
+  - D-019 three-tap path: explicit AC on TASK-210 and TASK-214 EC-3
   - D-018 starting_level <= 99 server-side validation: explicit AC on TASK-203, TASK-204
-  - D-020 tier color system applied consistently: explicit AC on TASK-205
-  - D-022 tier transition modal fires on every tier-boundary crossing: explicit AC on TASK-205
-  - D-021 gate section replaces XP bar: explicit AC on TASK-207
-  - first_notified_at IS NULL check: explicit AC on TASK-207
-  - R-003 three-way transactional XP write: explicit AC on TASK-203b
-  - R-004 EffectiveLevel in handler not template: explicit AC on TASK-202, TASK-205, TASK-207
+  - D-020 tier color system applied consistently: explicit AC on TASK-211
+  - D-022 tier transition modal fires on every tier-boundary crossing: explicit AC on TASK-211
+  - D-021 gate section replaces XP bar: explicit AC on TASK-213
+  - first_notified_at IS NULL check: explicit AC on TASK-213
+  - R-003 three-way transactional XP write: explicit AC on TASK-209
+  - R-004 EffectiveLevel in handler not template: explicit AC on TASK-202, TASK-211, TASK-213
   - D-012 email/password only: explicit AC on TASK-109, TASK-110
   - D-015 encryption constraints: explicit AC on TASK-111, TASK-112
 - Supabase Auth trigger manual setup documented in TASK-106 (not a migration file)
@@ -1724,7 +1832,7 @@ TASK-101 (scaffold)
 | Item | Owner | Priority |
 |---|---|---|
 | Production secrets-manager selection | delivery-agent / ops | Medium — must be resolved before production deployment of F-003; does not block Phase 1 build |
-| Phase 2 TASK numbering collision (TASK-203 and TASK-203b) | delivery-agent | Low — rename TASK-203b to TASK-203x or TASK-209 when creating tickets in a tracker |
+| Phase 2 task numbering | delivery-agent | Resolved — tasks are TASK-201 through TASK-214; all IDs are unique |
 | Phase 3+ planning | planning-agent (future pass) | Low — fully deferred; do not plan until Phase 2 is in production |
 | NutriLog entity detail | architecture-agent (Phase 4) | Low — fully deferred; boundary is reserved |
 
@@ -1734,28 +1842,27 @@ The review-agent is unblocked and should:
 
 1. **Verify backlog completeness**: confirm that every Phase 2 exit criterion maps to at least one task's acceptance criteria. The mapping is:
    - EC-1 → TASK-203, TASK-204
-   - EC-2 → TASK-206 (AI degradation ACs)
-   - EC-3 → TASK-204 (3-tap path AC)
-   - EC-4 → TASK-203b (transactional write ACs)
-   - EC-5 → TASK-115 (xpcurve ACs), TASK-205 (display ACs)
-   - EC-6, EC-7 → TASK-207 (gate visibility ACs)
+   - EC-2 → TASK-212 (AI degradation ACs)
+   - EC-3 → TASK-210 (3-tap path AC)
+   - EC-4 → TASK-209 (transactional write ACs)
+   - EC-5 → TASK-115 (xpcurve ACs), TASK-211 (display ACs)
+   - EC-6, EC-7 → TASK-213 (gate visibility ACs)
    - EC-8 → TASK-203 (CRUD ACs)
-   - EC-9 → TASK-208 (mobile integration test)
-   - EC-10 → TASK-208 (no completion UI audit)
+   - EC-9 → TASK-214 (mobile integration test)
+   - EC-10 → TASK-214 (no completion UI audit)
 
 2. **Check for scope creep**: confirm that no task in this backlog builds a deferred feature (F-007, F-009b, F-010, F-011, F-012, any NutriLog feature).
 
 3. **Verify constraint carry-forward**: confirm that each of the following has an explicit AC in the backlog:
-   - D-019 three-tap primary path (TASK-204, TASK-208)
+   - D-019 three-tap primary path (TASK-210, TASK-214)
    - D-018 starting_level <= 99 server-side (TASK-203, TASK-204)
-   - D-020 tier color consistency (TASK-205)
-   - D-022 tier transition modal on every tier crossing (TASK-205)
-   - D-021 gate section replaces XP bar (TASK-207)
-   - first_notified_at IS NULL gate check (TASK-207)
-   - R-003 three-way XP transaction (TASK-203b)
+   - D-020 tier color consistency (TASK-211)
+   - D-022 tier transition modal on every tier crossing (TASK-211)
+   - D-021 gate section replaces XP bar (TASK-213)
+   - first_notified_at IS NULL gate check (TASK-213)
+   - R-003 three-way XP transaction (TASK-209)
    - D-012 email/password only (TASK-110)
 
 4. **Flag any gaps or conflicts** between the backlog and the architecture.md / ux-spec.md source documents.
 
 5. **Confirm the delivery-agent can start Phase 1 with TASK-101**: no further planning input is needed to begin.
-```

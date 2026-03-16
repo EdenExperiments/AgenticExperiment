@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-03-15 (updated by ux-agent: F-001, F-005, F-009 advanced to ready-for-build; UX dependency on all three cleared; D-017 through D-022 logged; prior update by architecture-agent: F-003 and F-008 unblocked; arch dependencies on D-013/A-001 resolved via D-014/D-015; new technical dependencies and risk notes added; NutriLog schema boundary reserved)
+Last updated: 2026-03-15 (planning-agent second pass: all release-1 features advanced to ready-for-build; task-slice mapping added for each feature; review-agent unblocked; prior update by ux-agent: F-001, F-005, F-009 advanced to ready-for-build; UX dependency on all three cleared; D-017 through D-022 logged; prior update by architecture-agent: F-003 and F-008 unblocked; arch dependencies on D-013/A-001 resolved via D-014/D-015; new technical dependencies and risk notes added; NutriLog schema boundary reserved)
 
 Status values:
 
@@ -17,14 +17,14 @@ Status values:
 
 | ID | Feature | Area | Phase | Status | Owner | Dependencies | Open Questions | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| F-001 | Shared app shell and navigation | Platform | 1 | ready-for-build | delivery-agent (build) | F-002 for auth state | None | Unified shell confirmed for release 1 (D-005). UX dependency cleared: IA defined in ux-spec.md. Navigation: bottom tab bar on mobile (D-017), left sidebar on desktop. Four sections: Dashboard, LifeQuest, NutriLog (Coming Soon placeholder), Account. See ux-spec.md Sections 1 and 2. |
-| F-002 | Supabase auth and user profile | Platform | 1 | ready-for-planning | architecture-agent | Supabase project setup; schema baseline (users table) | None | Email/password auth only (D-012). Social auth (OAuth) deferred. Schema baseline must exist before auth integration. |
-| F-003 | User Claude API key storage | Platform | 1 | ready-for-planning | delivery-agent (build) | Schema baseline (user_ai_keys table); master key in secrets manager (D-015); Phase 1 complete | None — A-001 upgraded to D-015 (confirmed decision). Production secrets-manager selection is the only remaining pre-deploy open item (not a build blocker for Phase 1). | AES-256-GCM envelope encryption at Go app layer confirmed by D-015. Per-user DEK. master_key from secrets manager in prod, env var in dev. Validate at save time. Key never in client. Rotation via DEK re-encryption. Schema: `user_ai_keys` table with `encrypted_dek`, `encrypted_key`, `key_hint`. See architecture.md section 2. |
-| F-004 | Skill CRUD | LifeQuest | 2 | ready-for-planning | architecture-agent (schema), delivery-agent (build) | Phase 1 complete; skill domain schema from architecture-agent (2a) | None | Core MVP feature. Blocked on skill domain schema from architecture-agent. |
-| F-005 | AI skill calibration (optional) with manual starting-level fallback | LifeQuest | 2 | ready-for-build | delivery-agent (build) | F-003 (Claude key access); F-004 (skill creation flow) | None | D-011: optional path, never blocking. Manual selection is required and must ship alongside AI path. UX dependency cleared: three-step creation flow defined in ux-spec.md Section 3. Level picker is a scrollable list (not a dropdown). Starting level max is 99 (D-018: Master tier excluded from picker). AI path degrades to manual if key absent or call fails. See ux-spec.md Section 3. |
-| F-006 | Quick XP logging | LifeQuest | 2 | ready-for-planning | delivery-agent | F-004 (skill must exist); XP schema from architecture-agent (2a); skill domain schema | None | Lowest-friction MVP loop. Three taps or fewer on mobile is the acceptance bar. |
-| F-008 | XP and level progression display | LifeQuest | 2 | ready-for-build | delivery-agent (build) | XP schema (2a — Phase 2 start); F-006 (log entries to display) | None — XP curve confirmed as D-014; tier colors confirmed as D-020; tier transition modal confirmed as D-022. | D-014: quadratic curve with tier multipliers confirmed. Tier names: Novice (1–9), Apprentice (10–19), Journeyman (20–29), Expert (30–59), Veteran (60–99), Master (100–200). Level computation is a pure Go function in `xpcurve` package (see architecture.md section 2). D-020: tier color system binding — see ux-spec.md Section 5.3. D-022: tier transitions use full-screen modal overlay (not toast) with XP jump explainer — see ux-spec.md Section 5.4. Master tier: gold palette, aspirational copy, enhanced modal at level 100. Schema work (2a) is unblocked. |
-| F-009 | Blocker gate visibility and locked progression state | LifeQuest | 2 | ready-for-build | delivery-agent (build) | F-008 (XP and level display); blocker gate schema from architecture-agent | None | D-010: release 1 scope is gate visibility and locked state only. UX dependency cleared: gate section design defined in ux-spec.md Section 6. Gate section replaces XP bar when active (D-021). Shows: gate title, description, gate_level, current_xp (accruing), display level capped at gate, raw XP-computed level, explanatory text. First-hit notification modal defined. No completion action in release 1. |
+| F-001 | Shared app shell and navigation | Platform | 1 | ready-for-build | delivery-agent | None remaining | None | Unified shell confirmed (D-005). IA: four sections (Dashboard, LifeQuest, NutriLog placeholder, Account). Mobile: bottom tab bar (D-017). Desktop: left sidebar. Implemented by: TASK-101, TASK-102, TASK-103, TASK-113, TASK-114. See ux-spec.md Sections 1 and 2. |
+| F-002 | Supabase auth and user profile | Platform | 1 | ready-for-build | delivery-agent | None remaining | None | Email/password auth only (D-012). Supabase Auth trigger is a manual setup step (not a migration). Implemented by: TASK-106, TASK-108, TASK-109, TASK-110. Auth trigger SQL documented in TASK-106 runbook. |
+| F-003 | User Claude API key storage | Platform | 1 | ready-for-build | delivery-agent | None remaining | None. Production secrets-manager selection is the only pre-deploy item; not a build blocker. | AES-256-GCM envelope encryption confirmed (D-015). Per-user DEK. Key never in client. Implemented by: TASK-107, TASK-111, TASK-112. See architecture.md section 2. |
+| F-004 | Skill CRUD | LifeQuest | 2 | ready-for-build | delivery-agent | Phase 1 complete; TASK-201 (schema) | None | Core MVP feature. Implemented by: TASK-201, TASK-202, TASK-203. Skill soft-delete preserves XP history. |
+| F-005 | AI skill calibration (optional) with manual starting-level fallback | LifeQuest | 2 | ready-for-build | delivery-agent | F-003 (Claude key access); F-004 (skill creation flow) | None | D-011: optional path, never blocking. Manual selection always available. Starting level max 99 (D-018). Three-step creation flow. Implemented by: TASK-204 (manual path), TASK-212 (AI path). AI degrades on 401/429/other with specific messages per ux-spec.md Section 3.4. |
+| F-006 | Quick XP logging | LifeQuest | 2 | ready-for-build | delivery-agent | F-004; TASK-201 (schema) | None | Three taps or fewer primary path (D-019): `+ Log` icon → chip → submit. Bottom sheet pattern. HTMX double-submission guard + server-side 1-second dedup. Implemented by: TASK-209, TASK-210. |
+| F-008 | XP and level progression display | LifeQuest | 2 | ready-for-build | delivery-agent | TASK-201 (schema); F-006 (log entries) | None | D-014: quadratic curve with tier multipliers. Six tiers: Novice(1-9), Apprentice(10-19), Journeyman(20-29), Expert(30-59), Veteran(60-99), Master(100-200). Tier color system (D-020). Tier transition modal on every boundary crossing (D-022). EffectiveLevel in Go handler not template (R-004). Implemented by: TASK-115, TASK-211. |
+| F-009 | Blocker gate visibility and locked progression state | LifeQuest | 2 | ready-for-build | delivery-agent | F-008; TASK-201 (schema) | None | D-010: gate visibility and locked state only. Gate section replaces XP bar (D-021). First-hit notification uses first_notified_at IS NULL check (schema column required). XP accrues behind gate (D-007). No completion action in release 1. Implemented by: TASK-213. |
 
 ---
 
@@ -32,12 +32,12 @@ Status values:
 
 | ID | Feature | Area | Status | Owner | Dependencies | Open Questions | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| F-007 | Detailed natural-language logs | LifeQuest | deferred | unassigned | Claude integration; log parsing contract | How much parsing should be automatic? | Post-release-1. Keep out of first implementation pass. |
-| F-009b | Blocker completion UI flow | LifeQuest | deferred | unassigned | F-009; progression model | Evidence submission format; unlock ceremony design | Deferred from release 1 per D-010. Full completion flow (evidence submission, confirmation, unlock animation) ships in a later release. |
+| F-007 | Detailed natural-language logs | LifeQuest | deferred | unassigned | Claude integration; log parsing contract | How much parsing should be automatic? | Post-release-1. Keep out of first implementation pass. log_note column exists in xp_events and is nullable; no schema change needed when this ships. |
+| F-009b | Blocker completion UI flow | LifeQuest | deferred | unassigned | F-009; progression model | Evidence submission format; unlock ceremony design | Deferred from release 1 per D-010. Schema hook (is_cleared, cleared_at) already present in blocker_gates. No code for this exists in release 1. |
 | F-010 | Reward moments and titles | LifeQuest | deferred | unassigned | Blocker system (F-009b) | Exact reward surface not defined | Post-release-1 polish. Valuable but not core MVP. |
 | F-011 | Meta-skills and dependencies | LifeQuest | deferred | unassigned | Child skill progression model | Should this exist before or after NutriLog? | A-003: treat as post-MVP. Revisit after core loop is in production. |
 | F-012 | AI coaching feedback | LifeQuest | deferred | unassigned | Log history; Claude integration | Trigger timing not finalized | Post-release-1 depth. Requires log history to be meaningful. |
-| F-013 | Weight logging and trend chart | NutriLog | deferred | unassigned | Platform foundation; NutriLog schema | None | NutriLog fully deferred. Architecture should reserve schema space. |
+| F-013 | Weight logging and trend chart | NutriLog | deferred | unassigned | Platform foundation; NutriLog schema | None | NutriLog fully deferred. Schema namespace reserved (nl_ prefix). |
 | F-014 | Calorie and macro logging | NutriLog | deferred | unassigned | NutriLog schema; food data source | Food source fallback beyond Open Food Facts? | NutriLog fully deferred. |
 | F-015 | Barcode scanning | NutriLog | deferred | unassigned | Mobile browser camera flow; F-014 | Needed in MVP or not? | NutriLog fully deferred. Later mobile enhancement. |
 | F-016 | Saved meals and templates | NutriLog | deferred | unassigned | F-014 | None | NutriLog fully deferred. Quality-of-life feature. |
@@ -52,6 +52,15 @@ Status values:
 
 ## Readiness Summary
 
+### Planning-agent second pass complete (2026-03-15)
+
+Planning-agent has delivered (see planning-handoff.md Implementation Backlog):
+- 15 Phase 1 task slices (TASK-101 through TASK-115) with full acceptance criteria
+- 14 Phase 2 task slices (TASK-201 through TASK-214, with gap at 205-208 from renaming) with full acceptance criteria
+- All acceptance criteria from architecture.md and ux-spec.md carried forward explicitly
+- Task dependency graph confirmed; Phase 1 starts at TASK-101 with no blockers
+- feature-tracker.md: all release-1 features are now ready-for-build
+
 ### Architecture-agent pass complete (2026-03-15)
 
 Architecture-agent has delivered:
@@ -61,7 +70,7 @@ Architecture-agent has delivered:
 - NutriLog schema namespace reserved (nl_ prefix); FK anchor pattern defined
 - Integration contracts for Supabase Auth, PostgreSQL, Claude API, and food data provider
 - Migration tooling approach confirmed (golang-migrate)
-- Four implementation risks identified (R-001 through R-004 in decision-log.md)
+- Five implementation risks identified (R-001 through R-005 in decision-log.md)
 
 ### UX-agent pass complete (2026-03-15)
 
@@ -76,33 +85,52 @@ UX-agent has delivered (see ux-spec.md):
 - Account screen layout and API key entry flow
 - Mobile minimum requirements for all release-1 journeys
 
-### Release 1 features unblocked for Phase 1 build
+### Release 1 feature readiness: all features are ready-for-build
 
-- F-001: App shell — UX dependency cleared; IA and navigation defined in ux-spec.md (D-017)
-- F-002: Supabase auth — schema and integration contract defined in architecture.md
-- F-003: Key storage — D-015 confirmed; schema defined; ready for delivery-agent after Phase 1 scaffold
+| ID | Feature | Status | Delivery Task(s) |
+| --- | --- | --- | --- |
+| F-001 | Shared app shell and navigation | ready-for-build | TASK-101, 102, 103, 113, 114 |
+| F-002 | Supabase auth and user profile | ready-for-build | TASK-106, 108, 109, 110 |
+| F-003 | User Claude API key storage | ready-for-build | TASK-107, 111, 112 |
+| F-004 | Skill CRUD | ready-for-build | TASK-201, 202, 203 |
+| F-005 | AI skill calibration (manual + AI paths) | ready-for-build | TASK-204, 206 |
+| F-006 | Quick XP logging | ready-for-build | TASK-209, TASK-210 |
+| F-008 | XP and level progression display | ready-for-build | TASK-115, 205 |
+| F-009 | Blocker gate visibility and locked state | ready-for-build | TASK-213 |
 
-### Release 1 features unblocked for Phase 2 build (after Phase 1 complete)
+No release-1 feature is in `needs-clarification`. No release-1 feature is in `ready-for-planning`. All open product and architecture questions are resolved.
 
-- F-004: Skill domain schema defined in architecture.md — ready for delivery-agent in Phase 2
-- F-005: Skill creation UX defined in ux-spec.md Section 3 — UX dependency cleared
-- F-006: XP schema defined; quick-log interaction defined (D-019); unblocked after Phase 1
-- F-008: XP curve confirmed (D-014); tier colors (D-020) and tier transition modal (D-022) defined; unblocked after Phase 1
-- F-009: Blocker gate schema defined; gate visibility screen defined in ux-spec.md Section 6 (D-021) — UX dependency cleared
+### Key constraints carried into backlog (mandatory in every implementation)
 
-### Nothing in release 1 is blocked on UX output
+| Constraint | Source | Enforced in Task |
+| --- | --- | --- |
+| Primary quick-log path: 3 taps or fewer (+ Log → chip → submit) | D-019, ux-spec 4.1 | TASK-210 AC, TASK-214 EC-3 |
+| starting_level <= 99 server-side validation (Master excluded) | D-018, ux-spec 3.2 | TASK-203 AC, TASK-204 AC |
+| Tier color system applied consistently (D-020) to bar, badge, accent | D-020, ux-spec 5.3 | TASK-211 AC |
+| Tier transition modal on every tier-boundary crossing (not just first) | D-022, ux-spec 5.4 | TASK-211 AC |
+| Gate section replaces XP bar (D-021); same vertical position, above fold | D-021, ux-spec 6.2 | TASK-213 AC |
+| first_notified_at IS NULL check for first-hit gate modal | architecture.md, ux-spec 6.3 | TASK-213 AC |
+| XP write = xp_events insert + skills.current_xp + skills.current_level in one transaction | R-003, architecture.md | TASK-209 AC |
+| HTMX double-submission guard: hx-disabled-elt + 1-second server-side dedup | architecture.md | TASK-210 AC |
+| EffectiveLevel computed in Go handler, not template | R-004, architecture.md | TASK-202 AC, TASK-211 AC, TASK-213 AC |
+| Email/password auth only; no OAuth UI | D-012 | TASK-110 AC |
+| Plaintext Claude key never in HTML, cookies, logs, or DB | D-015, D-009 | TASK-112 AC |
+| Supabase Auth trigger created manually (not in migration files) | architecture.md 4.1.1 | TASK-106 runbook |
+| AI calibration degrades on 401/429/other with specific error messages | F-005, ux-spec 3.4 | TASK-212 AC |
+| MaxLevel = 200; no infinite loop in LevelForXP | R-005, architecture.md | TASK-115 AC |
 
-All three previously-blocked items are cleared. The dependency table in planning-handoff.md should be updated by the planning-agent to reflect this.
-
-### Technical dependencies added by architecture-agent
+### Technical dependencies confirmed
 
 | Dependency | Purpose | Notes |
 |---|---|---|
-| `pgx/v5` | Primary PostgreSQL driver (Go) | Replace `database/sql` if not already chosen |
+| `pgx/v5` | Primary PostgreSQL driver (Go) | Required; do not use database/sql |
 | `golang-migrate/migrate` | Schema migration management | Plain SQL up/down files; runs at app startup |
 | Supabase JWKS endpoint | JWT validation in Go middleware | Must be cached with 1h TTL; see R-001 |
 | Go stdlib `crypto/aes`, `crypto/cipher` | AES-256-GCM encryption | No external dependency; see R-002 for nonce discipline |
+| `github.com/a-h/templ` | HTML templating | Required; no other template engine |
+| HTMX (CDN or vendored) | Client-side interaction | No JavaScript frameworks |
+| Tailwind CSS | Styling | Tier color CSS variables defined in TASK-103 |
 
 ### Nothing in release 1 is in `needs-clarification`
 
-All product questions for release-1 features are resolved. The decision log has no open questions.
+All product questions for release-1 features are resolved. The decision log has no open questions. The delivery-agent can begin at TASK-101 immediately.
