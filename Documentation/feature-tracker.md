@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-03-16 (review-agent fix pass: TASK-116 added to F-002 entry and readiness table; TASK-215 added to F-001 entry and readiness table; TASK-206 corrected to TASK-212 for F-005; TASK-205 corrected to TASK-211 for F-008; prior update by planning-agent second pass: all release-1 features advanced to ready-for-build; task-slice mapping added for each feature; review-agent unblocked; prior update by ux-agent: F-001, F-005, F-009 advanced to ready-for-build; UX dependency on all three cleared; D-017 through D-022 logged; prior update by architecture-agent: F-003 and F-008 unblocked; arch dependencies on D-013/A-001 resolved via D-014/D-015; new technical dependencies and risk notes added; NutriLog schema boundary reserved)
+Last updated: 2026-03-16 (Phase 1 implementation complete and verified running: F-001, F-002, F-003 marked done; prior: review-agent fix pass: TASK-116 added to F-002 entry and readiness table; TASK-215 added to F-001 entry and readiness table; TASK-206 corrected to TASK-212 for F-005; TASK-205 corrected to TASK-211 for F-008; prior update by planning-agent second pass: all release-1 features advanced to ready-for-build; task-slice mapping added for each feature; review-agent unblocked; prior update by ux-agent: F-001, F-005, F-009 advanced to ready-for-build; UX dependency on all three cleared; D-017 through D-022 logged; prior update by architecture-agent: F-003 and F-008 unblocked; arch dependencies on D-013/A-001 resolved via D-014/D-015; new technical dependencies and risk notes added; NutriLog schema boundary reserved)
 
 Status values:
 
@@ -17,9 +17,9 @@ Status values:
 
 | ID | Feature | Area | Phase | Status | Owner | Dependencies | Open Questions | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| F-001 | Shared app shell and navigation | Platform | 1 | ready-for-build | delivery-agent | None remaining | None | Unified shell confirmed (D-005). IA: four sections (Dashboard, LifeQuest, NutriLog placeholder, Account). Mobile: bottom tab bar (D-017). Desktop: left sidebar. Implemented by: TASK-101, TASK-102, TASK-103, TASK-113, TASK-114, TASK-215. See ux-spec.md Sections 1 and 2. TASK-215 (real dashboard, Phase 2) replaces the Phase 1 placeholder dashboard. |
-| F-002 | Supabase auth and user profile | Platform | 1 | ready-for-build | delivery-agent | None remaining | None | Email/password auth only (D-012). Supabase Auth trigger is a manual setup step (not a migration). Implemented by: TASK-106, TASK-108, TASK-109, TASK-110, TASK-116. Auth trigger SQL documented in TASK-106 runbook. TASK-116 implements password change flow (GET/POST /account/password). |
-| F-003 | User Claude API key storage | Platform | 1 | ready-for-build | delivery-agent | None remaining | None. Production secrets-manager selection is the only pre-deploy item; not a build blocker. | AES-256-GCM envelope encryption confirmed (D-015). Per-user DEK. Key never in client. Implemented by: TASK-107, TASK-111, TASK-112. See architecture.md section 2. |
+| F-001 | Shared app shell and navigation | Platform | 1 | done | delivery-agent | None remaining | None | Unified shell confirmed (D-005). IA: four sections (Dashboard, LifeQuest, NutriLog placeholder, Account). Mobile: bottom tab bar (D-017). Desktop: left sidebar. Implemented by: TASK-101, TASK-102, TASK-103, TASK-113, TASK-114, TASK-215. See ux-spec.md Sections 1 and 2. TASK-215 (real dashboard, Phase 2) replaces the Phase 1 placeholder dashboard. |
+| F-002 | Supabase auth and user profile | Platform | 1 | done | delivery-agent | None remaining | None | Email/password auth only (D-012). Supabase Auth trigger is a manual setup step (not a migration). Implemented by: TASK-106, TASK-108, TASK-109, TASK-110, TASK-116. Auth trigger SQL documented in TASK-106 runbook. TASK-116 implements password change flow (GET/POST /account/password). ES256 (ECDSA) JWT support added post-implementation for newer Supabase projects. |
+| F-003 | User Claude API key storage | Platform | 1 | done | delivery-agent | None remaining | None. Production secrets-manager selection is the only pre-deploy item; not a build blocker. | AES-256-GCM envelope encryption confirmed (D-015). Per-user DEK. Key never in client. Implemented by: TASK-107, TASK-111, TASK-112. See architecture.md section 2. |
 | F-004 | Skill CRUD | LifeQuest | 2 | ready-for-build | delivery-agent | Phase 1 complete; TASK-201 (schema) | None | Core MVP feature. Implemented by: TASK-201, TASK-202, TASK-203. Skill soft-delete preserves XP history. |
 | F-005 | AI skill calibration (optional) with manual starting-level fallback | LifeQuest | 2 | ready-for-build | delivery-agent | F-003 (Claude key access); F-004 (skill creation flow) | None | D-011: optional path, never blocking. Manual selection always available. Starting level max 99 (D-018). Three-step creation flow. Implemented by: TASK-204 (manual path), TASK-212 (AI path). AI degrades on 401/429/other with specific messages per ux-spec.md Section 3.4. |
 | F-006 | Quick XP logging | LifeQuest | 2 | ready-for-build | delivery-agent | F-004; TASK-201 (schema) | None | Three taps or fewer primary path (D-019): `+ Log` icon → chip → submit. Bottom sheet pattern. HTMX double-submission guard + server-side 1-second dedup. Implemented by: TASK-209, TASK-210. |
@@ -89,9 +89,9 @@ UX-agent has delivered (see ux-spec.md):
 
 | ID | Feature | Status | Delivery Task(s) |
 | --- | --- | --- | --- |
-| F-001 | Shared app shell and navigation | ready-for-build | TASK-101, 102, 103, 113, 114, 215 |
-| F-002 | Supabase auth and user profile | ready-for-build | TASK-106, 108, 109, 110, 116 |
-| F-003 | User Claude API key storage | ready-for-build | TASK-107, 111, 112 |
+| F-001 | Shared app shell and navigation | **done** | TASK-101, 102, 103, 113, 114, 215 |
+| F-002 | Supabase auth and user profile | **done** | TASK-106, 108, 109, 110, 116 |
+| F-003 | User Claude API key storage | **done** | TASK-107, 111, 112 |
 | F-004 | Skill CRUD | ready-for-build | TASK-201, 202, 203 |
 | F-005 | AI skill calibration (manual + AI paths) | ready-for-build | TASK-204, TASK-212 |
 | F-006 | Quick XP logging | ready-for-build | TASK-209, TASK-210 |
