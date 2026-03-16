@@ -1,4 +1,4 @@
-.PHONY: run build generate test db-up db-down db-reset migrate-up
+.PHONY: run build generate test db-up db-down db-reset migrate-up migrate-down migrate-status
 
 run: generate
 	go run ./cmd/server/...
@@ -25,6 +25,20 @@ db-reset:
 	@sleep 3
 	$(MAKE) migrate-up
 
-# Placeholder — replaced by TASK-105 with golang-migrate invocation
 migrate-up:
-	@echo "No migrations defined yet (TASK-105)"
+	go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.2 \
+		-database "$(DATABASE_URL)" \
+		-path db/migrations \
+		up
+
+migrate-down:
+	go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.2 \
+		-database "$(DATABASE_URL)" \
+		-path db/migrations \
+		down 1
+
+migrate-status:
+	go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.2 \
+		-database "$(DATABASE_URL)" \
+		-path db/migrations \
+		version
