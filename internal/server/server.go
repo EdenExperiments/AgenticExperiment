@@ -1,0 +1,43 @@
+package server
+
+import (
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/meden/rpgtracker/internal/config"
+)
+
+// Server wraps the standard http.Server and holds application dependencies.
+type Server struct {
+	httpServer *http.Server
+	cfg        *config.Config
+}
+
+// NewServer creates a new Server wired with a chi router and basic routes.
+func NewServer(cfg *config.Config) *Server {
+	r := chi.NewRouter()
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("OK"))
+	})
+
+	httpServer := &http.Server{
+		Addr:    ":" + cfg.Port,
+		Handler: r,
+	}
+
+	return &Server{
+		httpServer: httpServer,
+		cfg:        cfg,
+	}
+}
+
+// Start begins listening and serving HTTP requests. It blocks until the server
+// encounters an error or is shut down.
+func (s *Server) Start() error {
+	return s.httpServer.ListenAndServe()
+}
