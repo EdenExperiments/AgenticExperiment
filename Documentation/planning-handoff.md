@@ -976,7 +976,7 @@ Acceptance criteria:
   - LevelForXP(6000000) == 100 (first Legend level; XPToReachLevel(100)=600×10000)
   - LevelForXP(24000000) == 200 (MaxLevel; XPToReachLevel(200)=600×40000)
   - LevelForXP(math.MaxInt) == 200 (MaxLevel cap; no infinite loop)
-  - TierName returns the correct string for a level in each of the six tiers
+  - TierName returns the correct string for a level in each of the eleven tiers
   - No floating-point arithmetic anywhere in this package
 ```
 
