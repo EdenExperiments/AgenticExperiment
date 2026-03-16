@@ -77,6 +77,11 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Get("/account", userHandler.HandleGetAccount)
 		r.Post("/account", userHandler.HandlePostAccount)
 
+		keyHandler := handlers.NewKeyHandler(db, []byte(cfg.MasterKey))
+		r.Get("/account/api-key", keyHandler.HandleGetAPIKey)
+		r.Post("/account/api-key", keyHandler.HandlePostAPIKey)
+		r.Post("/account/api-key/delete", keyHandler.HandleDeleteAPIKey)
+
 		r.Post("/auth/signout", authHandler.HandlePostSignout)
 	})
 

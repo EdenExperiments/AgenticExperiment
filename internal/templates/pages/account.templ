@@ -55,6 +55,17 @@ templ AccountContent(u *users.User) {
 			</a>
 		</section>
 
+		<!-- AI Integration -->
+		<section class="bg-gray-900 rounded-lg p-6 space-y-4">
+			<h2 class="text-lg font-semibold text-gray-200">AI Integration</h2>
+			<a
+				href="/account/api-key"
+				class="inline-block text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+			>
+				Manage API Key
+			</a>
+		</section>
+
 		<!-- Sign Out -->
 		<section class="bg-gray-900 rounded-lg p-6">
 			<form method="POST" action="/auth/signout">
