@@ -61,11 +61,13 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 			}
 		})
 
+		presetHandler := handlers.NewPresetHandler(db)
 		r.Get("/skills", func(w http.ResponseWriter, r *http.Request) {
-			if err := templates.RenderPage(w, r, http.StatusOK, pages.Dashboard(), pages.DashboardContent()); err != nil {
-				http.Error(w, "render error", http.StatusInternalServerError)
-			}
+			http.Redirect(w, r, "/skills/new", http.StatusFound)
 		})
+		r.Get("/skills/new", presetHandler.HandleGetPresetBrowse)
+		r.Get("/skills/new/from-preset/{id}", presetHandler.HandleGetFromPreset)
+		// /skills/new/custom is wired in Task 10
 
 		r.Get("/nutri", func(w http.ResponseWriter, r *http.Request) {
 			if err := templates.RenderPage(w, r, http.StatusOK, pages.NutriComing(), pages.NutriContent()); err != nil {
