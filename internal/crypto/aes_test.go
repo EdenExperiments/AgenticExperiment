@@ -86,6 +86,26 @@ func TestDecryptTruncatedFails(t *testing.T) {
 	}
 }
 
+// TestGenerateDEK verifies that GenerateDEK returns a 32-byte key and that
+// two consecutive calls produce distinct keys.
+func TestGenerateDEK(t *testing.T) {
+	key1, err := GenerateDEK()
+	if err != nil {
+		t.Fatalf("GenerateDEK() error: %v", err)
+	}
+	if len(key1) != 32 {
+		t.Errorf("GenerateDEK() length = %d, want 32", len(key1))
+	}
+
+	key2, err := GenerateDEK()
+	if err != nil {
+		t.Fatalf("GenerateDEK() second call error: %v", err)
+	}
+	if string(key1) == string(key2) {
+		t.Error("GenerateDEK() produced identical keys on two calls")
+	}
+}
+
 // TestDecryptTamperedFails verifies that flipping a byte in the ciphertext body
 // causes the GCM authentication tag to fail.
 func TestDecryptTamperedFails(t *testing.T) {

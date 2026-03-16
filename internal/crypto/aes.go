@@ -38,10 +38,6 @@ func Encrypt(masterKey []byte, plaintext []byte) ([]byte, error) {
 // Expects [nonce || ciphertext] format; returns an error if the message is
 // tampered, truncated, or encrypted with a different key.
 func Decrypt(masterKey []byte, ciphertext []byte) ([]byte, error) {
-	if len(ciphertext) < nonceSize {
-		return nil, errors.New("crypto: ciphertext too short")
-	}
-
 	block, err := aes.NewCipher(masterKey)
 	if err != nil {
 		return nil, fmt.Errorf("crypto: create cipher: %w", err)
@@ -50,6 +46,10 @@ func Decrypt(masterKey []byte, ciphertext []byte) ([]byte, error) {
 	gcm, err := cipher.NewGCM(block)
 	if err != nil {
 		return nil, fmt.Errorf("crypto: create GCM: %w", err)
+	}
+
+	if len(ciphertext) < nonceSize+gcm.Overhead() {
+		return nil, errors.New("crypto: ciphertext too short")
 	}
 
 	nonce := ciphertext[:nonceSize]
