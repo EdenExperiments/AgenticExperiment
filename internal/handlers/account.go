@@ -35,7 +35,7 @@ func (h *UserHandler) HandleGetAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := templates.Render(w, r, http.StatusOK, pages.Account(u)); err != nil {
+	if err := templates.RenderPage(w, r, http.StatusOK, pages.Account(u), pages.AccountContent(u)); err != nil {
 		http.Error(w, "render error", http.StatusInternalServerError)
 	}
 }

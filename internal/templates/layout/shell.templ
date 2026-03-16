@@ -3,12 +3,13 @@ package layout
 templ Shell(activePage string) {
 	@Base("RpgTracker") {
 		<div class="flex min-h-screen bg-gray-950">
-			<!-- Desktop sidebar (md+) -->
-			<aside class="hidden md:flex flex-col w-64 bg-gray-900 border-r border-gray-800">
-				<div class="p-4 text-xl font-bold text-gray-100">RpgTracker</div>
-				<nav class="flex flex-col gap-1 p-2">
+			<!-- Desktop sidebar (md+): icon-only rail at md, full sidebar at lg -->
+			<aside class="hidden md:flex flex-col md:w-16 lg:w-64 bg-gray-900 border-r border-gray-800">
+				<div class="p-4 text-xl font-bold text-gray-100 hidden lg:block">RpgTracker</div>
+				<nav class="flex flex-col gap-1 p-2" aria-label="Main navigation">
 					@NavItem("/dashboard", "Dashboard", dashboardIcon, activePage, "dashboard")
-					@NavItem("/skills", "Skills", skillsIcon, activePage, "skills")
+					// TODO(TASK-203): When Skills CRUD routes exist, expand LifeQuest to show Skills sub-item and "+ Add Skill" when active
+					@NavItem("/skills", "LifeQuest", skillsIcon, activePage, "skills")
 					@NavItem("/nutri", "NutriLog", nutriIcon, activePage, "nutri")
 					@NavItem("/account", "Account", accountIcon, activePage, "account")
 				</nav>
@@ -24,9 +25,9 @@ templ Shell(activePage string) {
 				</main>
 				<div id="modal-container"></div>
 				<!-- Mobile bottom nav -->
-				<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around pb-[env(safe-area-inset-bottom)]">
+				<nav class="md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around pb-[env(safe-area-inset-bottom)]" aria-label="Main navigation">
 					@NavItem("/dashboard", "Dashboard", dashboardIcon, activePage, "dashboard")
-					@NavItem("/skills", "Skills", skillsIcon, activePage, "skills")
+					@NavItem("/skills", "LifeQuest", skillsIcon, activePage, "skills")
 					@NavItem("/nutri", "NutriLog", nutriIcon, activePage, "nutri")
 					@NavItem("/account", "Account", accountIcon, activePage, "account")
 				</nav>

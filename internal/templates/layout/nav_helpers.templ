@@ -23,8 +23,12 @@ templ NavItem(href, label, icon, activePage, thisPage string) {
 		hx-target="#main-content"
 		hx-push-url="true"
 		class={ navItemClass(activePage, thisPage) }
+		if activePage == thisPage {
+			aria-current="page"
+		}
 	>
 		@templ.Raw(icon)
-		<span class="text-xs mt-1">{ label }</span>
+		// Label: visible on mobile (below md), hidden on md icon-only rail, visible again at lg full sidebar.
+		<span class="text-xs mt-1 md:hidden lg:inline">{ label }</span>
 	</a>
 }

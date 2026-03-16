@@ -41,7 +41,7 @@ func Shell(activePage string) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex min-h-screen bg-gray-950\"><!-- Desktop sidebar (md+) --><aside class=\"hidden md:flex flex-col w-64 bg-gray-900 border-r border-gray-800\"><div class=\"p-4 text-xl font-bold text-gray-100\">RpgTracker</div><nav class=\"flex flex-col gap-1 p-2\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"flex min-h-screen bg-gray-950\"><!-- Desktop sidebar (md+): icon-only rail at md, full sidebar at lg --><aside class=\"hidden md:flex flex-col md:w-16 lg:w-64 bg-gray-900 border-r border-gray-800\"><div class=\"p-4 text-xl font-bold text-gray-100 hidden lg:block\">RpgTracker</div><nav class=\"flex flex-col gap-1 p-2\" aria-label=\"Main navigation\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -49,7 +49,7 @@ func Shell(activePage string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = NavItem("/skills", "Skills", skillsIcon, activePage, "skills").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = NavItem("/skills", "LifeQuest", skillsIcon, activePage, "skills").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -69,7 +69,7 @@ func Shell(activePage string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</main><div id=\"modal-container\"></div><!-- Mobile bottom nav --><nav class=\"md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around pb-[env(safe-area-inset-bottom)]\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</main><div id=\"modal-container\"></div><!-- Mobile bottom nav --><nav class=\"md:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 flex justify-around pb-[env(safe-area-inset-bottom)]\" aria-label=\"Main navigation\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -77,7 +77,7 @@ func Shell(activePage string) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = NavItem("/skills", "Skills", skillsIcon, activePage, "skills").Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = NavItem("/skills", "LifeQuest", skillsIcon, activePage, "skills").Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
