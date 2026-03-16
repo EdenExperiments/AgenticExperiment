@@ -1,4 +1,4 @@
-.PHONY: run build generate test db-up db-down db-reset migrate-up migrate-down migrate-status
+.PHONY: run build generate test build-css db-up db-down db-reset migrate-up migrate-down migrate-status
 
 run: generate
 	go run ./cmd/server/...
@@ -11,6 +11,9 @@ build: generate
 
 test:
 	go test ./...
+
+build-css:
+	npx tailwindcss -i static/css/input.css -o static/css/app.css --minify
 
 db-up:
 	docker compose up -d db

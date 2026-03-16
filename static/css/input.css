@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 11-tier color system (D-020) — cold → warm → gold arc */
+    --color-tier-novice:       #9ca3af; /* gray-400 */
+    --color-tier-apprentice:   #3b82f6; /* blue-500 */
+    --color-tier-adept:        #14b8a6; /* teal-500 */
+    --color-tier-journeyman:   #22c55e; /* green-500 */
+    --color-tier-practitioner: #84cc16; /* lime-500 */
+    --color-tier-expert:       #9333ea; /* purple-600 */
+    --color-tier-veteran:      #c026d3; /* fuchsia-600 */
+    --color-tier-elite:        #d97706; /* amber-600 */
+    --color-tier-master:       #ea580c; /* orange-600 */
+    --color-tier-grandmaster:  #dc2626; /* red-600 */
+    --color-tier-legend:       #eab308; /* yellow-500 — gradient fill */
+  }
+}
