@@ -228,6 +228,10 @@ func (h *AuthHandler) HandlePostPasswordChange(w http.ResponseWriter, r *http.Re
 	}
 
 	email := EmailFromContext(r.Context())
+	if email == "" {
+		http.Error(w, "Unable to verify identity. Please sign out and back in.", http.StatusInternalServerError)
+		return
+	}
 	tokenResp, err := h.supabaseTokenRequest(r, email, currentPassword)
 	if err != nil {
 		if renderErr := templates.RenderPage(w, r, http.StatusUnprocessableEntity,
