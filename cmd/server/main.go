@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/config"
 	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/server"
@@ -17,7 +18,11 @@ func main() {
 		log.Fatalf("migrations failed: %v", err)
 	}
 
-	srv := server.NewServer(cfg)
+	authMiddleware, err := auth.NewJWTMiddleware(cfg.SupabaseProjectURL)
+	if err != nil {
+		log.Fatalf("auth middleware init failed: %v", err)
+	}
+	srv := server.NewServer(cfg, authMiddleware)
 
 	log.Printf("starting server on port %s", cfg.Port)
 

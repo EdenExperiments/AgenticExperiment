@@ -18,15 +18,25 @@ type Server struct {
 }
 
 // NewServer creates a new Server wired with a chi router and basic routes.
-func NewServer(cfg *config.Config) *Server {
+func NewServer(cfg *config.Config, authMiddleware func(http.Handler) http.Handler) *Server {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
+	// Public routes
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		if err := templates.Render(w, r, http.StatusOK, pages.Home()); err != nil {
 			http.Error(w, "render error", http.StatusInternalServerError)
 		}
+	})
+
+	// Protected routes
+	r.Group(func(r chi.Router) {
+		r.Use(authMiddleware)
+		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("dashboard"))
+		})
 	})
 
 	httpServer := &http.Server{
