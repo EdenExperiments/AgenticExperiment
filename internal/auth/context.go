@@ -20,3 +20,10 @@ func UserIDFromContext(ctx context.Context) (uuid.UUID, bool) {
 	}
 	return id, true
 }
+
+// EmailFromContext extracts the authenticated user's email from the request context.
+// Returns the email string stored by the JWT middleware, or an empty string if absent.
+func EmailFromContext(ctx context.Context) string {
+	email, _ := ctx.Value(emailKey).(string)
+	return email
+}

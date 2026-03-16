@@ -18,7 +18,10 @@ import (
 // contextKey is an unexported type for context keys in this package.
 type contextKey int
 
-const userIDKey contextKey = iota
+const (
+	userIDKey contextKey = iota
+	emailKey
+)
 
 // jwksCache caches the fetched JWKS keys with a TTL.
 type jwksCache struct {
@@ -54,20 +57,22 @@ func (c *jwksCache) middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		userID, err := c.validateToken(tokenStr)
+		userID, email, err := c.validateToken(tokenStr)
 		if err != nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
 
 		ctx := context.WithValue(r.Context(), userIDKey, userID)
+		ctx = context.WithValue(ctx, emailKey, email)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-// validateToken parses and validates the JWT, returning the sub claim as a string UUID.
+// validateToken parses and validates the JWT, returning the sub claim as a string UUID
+// and the email claim (which may be empty if absent from the token).
 // On unknown key ID, re-fetches JWKS once before rejecting (R-001 mitigation).
-func (c *jwksCache) validateToken(tokenStr string) (string, error) {
+func (c *jwksCache) validateToken(tokenStr string) (string, string, error) {
 	keyFunc := func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -93,20 +98,22 @@ func (c *jwksCache) validateToken(tokenStr string) (string, error) {
 		jwt.WithIssuer(c.issuer),
 	)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
-		return "", fmt.Errorf("invalid claims")
+		return "", "", fmt.Errorf("invalid claims")
 	}
 
 	sub, ok := claims["sub"].(string)
 	if !ok || sub == "" {
-		return "", fmt.Errorf("missing sub claim")
+		return "", "", fmt.Errorf("missing sub claim")
 	}
 
-	return sub, nil
+	email, _ := claims["email"].(string)
+
+	return sub, email, nil
 }
 
 // getKey returns the cached RSA public key for the given kid, or nil if not found.

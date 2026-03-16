@@ -28,8 +28,8 @@ func (h *UserHandler) HandleGetAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Use an empty email on upsert — if the row already exists the email is already set.
-	u, err := users.GetOrCreateUser(r.Context(), h.db, userID, "")
+	email := auth.EmailFromContext(r.Context())
+	u, err := users.GetOrCreateUser(r.Context(), h.db, userID, email)
 	if err != nil {
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
