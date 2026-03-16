@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/config"
 	"github.com/meden/rpgtracker/internal/handlers"
 	"github.com/meden/rpgtracker/internal/templates"
@@ -20,10 +21,12 @@ type Server struct {
 }
 
 // NewServer creates a new Server wired with a chi router and basic routes.
-func NewServer(cfg *config.Config, authMiddleware func(http.Handler) http.Handler, db *pgxpool.Pool) *Server {
+func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Handler, db *pgxpool.Pool) *Server {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+
+	authHandler := auth.NewAuthHandler(cfg.SupabaseProjectURL, cfg.SupabaseAnonKey)
 
 	// Public routes
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
@@ -31,10 +34,14 @@ func NewServer(cfg *config.Config, authMiddleware func(http.Handler) http.Handle
 			http.Error(w, "render error", http.StatusInternalServerError)
 		}
 	})
+	r.Get("/login", authHandler.HandleGetLogin)
+	r.Post("/login", authHandler.HandlePostLogin)
+	r.Get("/register", authHandler.HandleGetRegister)
+	r.Post("/register", authHandler.HandlePostRegister)
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
-		r.Use(authMiddleware)
+		r.Use(sessionMiddleware)
 
 		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
@@ -44,6 +51,8 @@ func NewServer(cfg *config.Config, authMiddleware func(http.Handler) http.Handle
 		userHandler := handlers.NewUserHandler(db)
 		r.Get("/account", userHandler.HandleGetAccount)
 		r.Post("/account", userHandler.HandlePostAccount)
+
+		r.Post("/auth/signout", authHandler.HandlePostSignout)
 	})
 
 	httpServer := &http.Server{

@@ -197,3 +197,40 @@ func extractBearerToken(r *http.Request) string {
 	}
 	return ""
 }
+
+// NewSessionMiddleware creates a chi-compatible middleware that validates Supabase JWTs
+// from the access_token cookie (not the Authorization header).
+// On missing or invalid token it redirects to /login with 302 instead of returning 401.
+func NewSessionMiddleware(supabaseProjectURL string) (func(http.Handler) http.Handler, error) {
+	cache := &jwksCache{
+		keys:    make(map[string]*rsa.PublicKey),
+		ttl:     time.Hour,
+		jwksURL: supabaseProjectURL + "/.well-known/jwks.json",
+		issuer:  supabaseProjectURL + "/auth/v1",
+	}
+	if err := cache.fetch(); err != nil {
+		return nil, fmt.Errorf("auth: initial JWKS fetch failed: %w", err)
+	}
+	return cache.sessionMiddleware, nil
+}
+
+// sessionMiddleware is the cookie-based session middleware function.
+func (c *jwksCache) sessionMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookie, err := r.Cookie("access_token")
+		if err != nil || cookie.Value == "" {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+
+		userID, email, err := c.validateToken(cookie.Value)
+		if err != nil {
+			http.Redirect(w, r, "/login", http.StatusFound)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), userIDKey, userID)
+		ctx = context.WithValue(ctx, emailKey, email)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}

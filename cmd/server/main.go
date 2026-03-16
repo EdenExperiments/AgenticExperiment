@@ -26,12 +26,12 @@ func main() {
 	}
 	defer pool.Close()
 
-	authMiddleware, err := auth.NewJWTMiddleware(cfg.SupabaseProjectURL)
+	sessionMiddleware, err := auth.NewSessionMiddleware(cfg.SupabaseProjectURL)
 	if err != nil {
 		log.Fatalf("auth middleware init failed: %v", err)
 	}
 
-	srv := server.NewServer(cfg, authMiddleware, pool)
+	srv := server.NewServer(cfg, sessionMiddleware, pool)
 
 	log.Printf("starting server on port %s", cfg.Port)
 
