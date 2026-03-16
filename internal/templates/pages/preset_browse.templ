@@ -59,7 +59,7 @@ templ PresetBrowseContent(allCats []skills.Category, cats []skills.CategoryWithP
 
 		<!-- Results list (HTMX swap target) -->
 		<div id="preset-results">
-			@partials.PresetResults(cats)
+			@partials.PresetResults(cats, filter)
 		</div>
 
 		<!-- Escape hatch -->

@@ -148,7 +148,7 @@ func PresetBrowseContent(allCats []skills.Category, cats []skills.CategoryWithPr
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = partials.PresetResults(cats).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = partials.PresetResults(cats, filter).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

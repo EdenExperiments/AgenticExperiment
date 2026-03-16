@@ -75,7 +75,7 @@ func (h *PresetHandler) HandleGetPresetBrowse(w http.ResponseWriter, r *http.Req
 
 	// Results-only partial (HTMX chip/search filter swap)
 	if r.Header.Get("HX-Target") == "preset-results" {
-		if err := templates.Render(w, r, http.StatusOK, partials.PresetResults(cats)); err != nil {
+		if err := templates.Render(w, r, http.StatusOK, partials.PresetResults(cats, filter)); err != nil {
 			log.Printf("preset browse: render partial: %v", err)
 		}
 		return
