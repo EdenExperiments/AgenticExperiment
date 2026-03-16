@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/config"
 	"github.com/meden/rpgtracker/internal/database"
@@ -18,11 +19,19 @@ func main() {
 		log.Fatalf("migrations failed: %v", err)
 	}
 
+	// Establish a connection pool for use across all handlers.
+	pool, err := pgxpool.New(context.Background(), cfg.DatabaseURL)
+	if err != nil {
+		log.Fatalf("failed to create database pool: %v", err)
+	}
+	defer pool.Close()
+
 	authMiddleware, err := auth.NewJWTMiddleware(cfg.SupabaseProjectURL)
 	if err != nil {
 		log.Fatalf("auth middleware init failed: %v", err)
 	}
-	srv := server.NewServer(cfg, authMiddleware)
+
+	srv := server.NewServer(cfg, authMiddleware, pool)
 
 	log.Printf("starting server on port %s", cfg.Port)
 

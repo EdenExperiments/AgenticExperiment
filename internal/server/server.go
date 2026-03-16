@@ -6,7 +6,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/config"
+	"github.com/meden/rpgtracker/internal/handlers"
 	"github.com/meden/rpgtracker/internal/templates"
 	"github.com/meden/rpgtracker/internal/templates/pages"
 )
@@ -18,7 +20,7 @@ type Server struct {
 }
 
 // NewServer creates a new Server wired with a chi router and basic routes.
-func NewServer(cfg *config.Config, authMiddleware func(http.Handler) http.Handler) *Server {
+func NewServer(cfg *config.Config, authMiddleware func(http.Handler) http.Handler, db *pgxpool.Pool) *Server {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
@@ -33,10 +35,15 @@ func NewServer(cfg *config.Config, authMiddleware func(http.Handler) http.Handle
 	// Protected routes
 	r.Group(func(r chi.Router) {
 		r.Use(authMiddleware)
+
 		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte("dashboard"))
 		})
+
+		userHandler := handlers.NewUserHandler(db)
+		r.Get("/account", userHandler.HandleGetAccount)
+		r.Post("/account", userHandler.HandlePostAccount)
 	})
 
 	httpServer := &http.Server{
