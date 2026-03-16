@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/meden/rpgtracker/internal/templates"
 	"github.com/meden/rpgtracker/internal/templates/pages"
@@ -13,6 +14,7 @@ import (
 type AuthHandler struct {
 	supabaseProjectURL string
 	supabaseAnonKey    string
+	httpClient         *http.Client
 }
 
 // NewAuthHandler creates an AuthHandler configured with the given Supabase credentials.
@@ -20,6 +22,7 @@ func NewAuthHandler(supabaseProjectURL, supabaseAnonKey string) *AuthHandler {
 	return &AuthHandler{
 		supabaseProjectURL: supabaseProjectURL,
 		supabaseAnonKey:    supabaseAnonKey,
+		httpClient:         &http.Client{Timeout: 15 * time.Second},
 	}
 }
 
@@ -66,7 +69,7 @@ func (h *AuthHandler) HandlePostLogin(w http.ResponseWriter, r *http.Request) {
 
 	tokenResp, err := h.supabaseTokenRequest(r, email, password)
 	if err != nil {
-		if renderErr := templates.Render(w, r, http.StatusOK, pages.Login("Invalid email or password", "")); renderErr != nil {
+		if renderErr := templates.Render(w, r, http.StatusUnprocessableEntity, pages.Login("Invalid email or password", "")); renderErr != nil {
 			http.Error(w, "render error", http.StatusInternalServerError)
 		}
 		return
@@ -96,8 +99,14 @@ func (h *AuthHandler) HandlePostLogin(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
 
-// HandleGetRegister renders the registration page.
+// HandleGetRegister renders the registration page, or redirects to /dashboard if already authenticated.
 func (h *AuthHandler) HandleGetRegister(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("access_token")
+	if err == nil && cookie.Value != "" {
+		http.Redirect(w, r, "/dashboard", http.StatusFound)
+		return
+	}
+
 	if err := templates.Render(w, r, http.StatusOK, pages.Register("")); err != nil {
 		http.Error(w, "render error", http.StatusInternalServerError)
 	}
@@ -114,11 +123,18 @@ func (h *AuthHandler) HandlePostRegister(w http.ResponseWriter, r *http.Request)
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
+	if r.FormValue("password") != r.FormValue("confirm_password") {
+		if renderErr := templates.Render(w, r, http.StatusUnprocessableEntity, pages.Register("Passwords do not match")); renderErr != nil {
+			http.Error(w, "render error", http.StatusInternalServerError)
+		}
+		return
+	}
+
 	body, _ := json.Marshal(loginRequest{Email: email, Password: password})
 	req, err := http.NewRequestWithContext(r.Context(), http.MethodPost,
 		h.supabaseProjectURL+"/auth/v1/signup", bytes.NewReader(body))
 	if err != nil {
-		if renderErr := templates.Render(w, r, http.StatusOK, pages.Register("Registration failed. Please try again.")); renderErr != nil {
+		if renderErr := templates.Render(w, r, http.StatusUnprocessableEntity, pages.Register("Registration failed. Please try again.")); renderErr != nil {
 			http.Error(w, "render error", http.StatusInternalServerError)
 		}
 		return
@@ -126,12 +142,12 @@ func (h *AuthHandler) HandlePostRegister(w http.ResponseWriter, r *http.Request)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("apikey", h.supabaseAnonKey)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := h.httpClient.Do(req)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		if resp != nil {
 			resp.Body.Close()
 		}
-		if renderErr := templates.Render(w, r, http.StatusOK, pages.Register("Registration failed. Please try again.")); renderErr != nil {
+		if renderErr := templates.Render(w, r, http.StatusUnprocessableEntity, pages.Register("Registration failed. Please try again.")); renderErr != nil {
 			http.Error(w, "render error", http.StatusInternalServerError)
 		}
 		return
@@ -178,7 +194,7 @@ func (h *AuthHandler) supabaseTokenRequest(r *http.Request, email, password stri
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("apikey", h.supabaseAnonKey)
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := h.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
