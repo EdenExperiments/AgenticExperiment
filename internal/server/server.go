@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -12,6 +13,7 @@ import (
 	"github.com/meden/rpgtracker/internal/handlers"
 	"github.com/meden/rpgtracker/internal/templates"
 	"github.com/meden/rpgtracker/internal/templates/pages"
+	"github.com/meden/rpgtracker/internal/templates/partials"
 )
 
 // Server wraps the standard http.Server and holds application dependencies.
@@ -24,7 +26,17 @@ type Server struct {
 func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Handler, db *pgxpool.Pool) *Server {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
+	r.Use(panicRecoveryMiddleware)
+
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.WriteHeader(http.StatusNotFound)
+		if r.Header.Get("HX-Request") == "true" {
+			_ = partials.ErrorPartial("Page not found", "The page you're looking for doesn't exist.", "").Render(r.Context(), w)
+		} else {
+			_ = pages.Error404().Render(r.Context(), w)
+		}
+	})
 
 	authHandler := auth.NewAuthHandler(cfg.SupabaseProjectURL, cfg.SupabaseAnonKey)
 
@@ -86,4 +98,25 @@ func (s *Server) Start() error {
 		return err
 	}
 	return nil
+}
+
+// panicRecoveryMiddleware recovers from panics, logs them, and returns an
+// appropriate error response. HTMX requests receive an error partial fragment;
+// full-page requests receive the Error500 page.
+func panicRecoveryMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				log.Printf("panic recovered: %v", rec)
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
+				w.WriteHeader(http.StatusInternalServerError)
+				if r.Header.Get("HX-Request") == "true" {
+					_ = partials.ErrorPartial("Something went wrong", "An unexpected error occurred.", "").Render(r.Context(), w)
+				} else {
+					_ = pages.Error500().Render(r.Context(), w)
+				}
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
 }

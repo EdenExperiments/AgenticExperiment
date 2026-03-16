@@ -1,0 +1,13 @@
+package partials
+
+// ErrorPartial renders an error message fragment.
+// If retryURL is non-empty, a "Try again" link is shown.
+templ ErrorPartial(title, message, retryURL string) {
+	<div class="flex flex-col items-center justify-center py-16 px-4 text-center">
+		<h1 class="text-2xl font-bold text-gray-100 mb-3">{ title }</h1>
+		<p class="text-gray-400 mb-6">{ message }</p>
+		if retryURL != "" {
+			<a href={ templ.SafeURL(retryURL) } class="inline-block px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-gray-100 rounded-md text-sm font-medium transition-colors">Try again</a>
+		}
+	</div>
+}
