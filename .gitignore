@@ -35,6 +35,9 @@ go.work.sum
 .DS_Store
 Thumbs.db
 
+# Node
+node_modules/
+
 # Tailwind production build output
 static/css/app.css
 

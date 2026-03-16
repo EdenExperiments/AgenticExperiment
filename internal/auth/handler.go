@@ -3,6 +3,8 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
+	"io"
+	"log"
 	"net/http"
 	"time"
 
@@ -145,7 +147,9 @@ func (h *AuthHandler) HandlePostRegister(w http.ResponseWriter, r *http.Request)
 	resp, err := h.httpClient.Do(req)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		if resp != nil {
+			body, _ := io.ReadAll(resp.Body)
 			resp.Body.Close()
+			log.Printf("supabase signup error: status=%d body=%s", resp.StatusCode, body)
 		}
 		if renderErr := templates.Render(w, r, http.StatusUnprocessableEntity, pages.Register("Registration failed. Please try again.")); renderErr != nil {
 			http.Error(w, "render error", http.StatusInternalServerError)
