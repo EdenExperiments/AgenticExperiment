@@ -183,6 +183,93 @@ func (h *AuthHandler) HandlePostSignout(w http.ResponseWriter, r *http.Request) 
 	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
+// updatePasswordRequest is the JSON body sent to the Supabase user-update endpoint.
+type updatePasswordRequest struct {
+	Password string `json:"password"`
+}
+
+// HandleGetPasswordChange renders the password change form for an authenticated user.
+func (h *AuthHandler) HandleGetPasswordChange(w http.ResponseWriter, r *http.Request) {
+	_, ok := UserIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := templates.RenderPage(w, r, http.StatusOK, pages.PasswordChange("", ""), pages.PasswordChangeContent("", "")); err != nil {
+		http.Error(w, "render error", http.StatusInternalServerError)
+	}
+}
+
+// HandlePostPasswordChange processes a password change request for an authenticated user.
+func (h *AuthHandler) HandlePostPasswordChange(w http.ResponseWriter, r *http.Request) {
+	_, ok := UserIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+
+	currentPassword := r.FormValue("current_password")
+	newPassword := r.FormValue("new_password")
+	confirmNewPassword := r.FormValue("confirm_new_password")
+
+	if newPassword != confirmNewPassword {
+		if renderErr := templates.RenderPage(w, r, http.StatusUnprocessableEntity,
+			pages.PasswordChange("New passwords do not match", ""),
+			pages.PasswordChangeContent("New passwords do not match", "")); renderErr != nil {
+			http.Error(w, "render error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	email := EmailFromContext(r.Context())
+	tokenResp, err := h.supabaseTokenRequest(r, email, currentPassword)
+	if err != nil {
+		if renderErr := templates.RenderPage(w, r, http.StatusUnprocessableEntity,
+			pages.PasswordChange("Current password is incorrect", ""),
+			pages.PasswordChangeContent("Current password is incorrect", "")); renderErr != nil {
+			http.Error(w, "render error", http.StatusInternalServerError)
+		}
+		return
+	}
+
+	body, _ := json.Marshal(updatePasswordRequest{Password: newPassword})
+	req, err := http.NewRequestWithContext(r.Context(), http.MethodPut,
+		h.supabaseProjectURL+"/auth/v1/user", bytes.NewReader(body))
+	if err != nil {
+		if renderErr := templates.RenderPage(w, r, http.StatusUnprocessableEntity,
+			pages.PasswordChange("Failed to update password. Please try again.", ""),
+			pages.PasswordChangeContent("Failed to update password. Please try again.", "")); renderErr != nil {
+			http.Error(w, "render error", http.StatusInternalServerError)
+		}
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("apikey", h.supabaseAnonKey)
+	req.Header.Set("Authorization", "Bearer "+tokenResp.AccessToken)
+
+	resp, err := h.httpClient.Do(req)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		if resp != nil {
+			resp.Body.Close()
+		}
+		if renderErr := templates.RenderPage(w, r, http.StatusUnprocessableEntity,
+			pages.PasswordChange("Failed to update password. Please try again.", ""),
+			pages.PasswordChangeContent("Failed to update password. Please try again.", "")); renderErr != nil {
+			http.Error(w, "render error", http.StatusInternalServerError)
+		}
+		return
+	}
+	resp.Body.Close()
+
+	http.Redirect(w, r, "/account?msg=password_changed", http.StatusSeeOther)
+}
+
 // supabaseTokenRequest calls the Supabase token endpoint and returns the token response.
 func (h *AuthHandler) supabaseTokenRequest(r *http.Request, email, password string) (*loginResponse, error) {
 	body, _ := json.Marshal(loginRequest{Email: email, Password: password})

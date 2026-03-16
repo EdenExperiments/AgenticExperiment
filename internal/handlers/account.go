@@ -35,7 +35,12 @@ func (h *UserHandler) HandleGetAccount(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := templates.RenderPage(w, r, http.StatusOK, pages.Account(u), pages.AccountContent(u)); err != nil {
+	successMsg := ""
+	if r.URL.Query().Get("msg") == "password_changed" {
+		successMsg = "Password changed successfully."
+	}
+
+	if err := templates.RenderPage(w, r, http.StatusOK, pages.Account(u, successMsg), pages.AccountContent(u, successMsg)); err != nil {
 		http.Error(w, "render error", http.StatusInternalServerError)
 	}
 }

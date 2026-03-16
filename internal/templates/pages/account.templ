@@ -13,9 +13,13 @@ func displayNameValue(u *users.User) string {
 }
 
 // AccountContent renders the inner account settings content fragment (for HTMX swaps).
-templ AccountContent(u *users.User) {
+templ AccountContent(u *users.User, successMsg string) {
 	<div class="max-w-lg mx-auto py-8 space-y-8">
 		<h1 class="text-2xl font-bold text-gray-100">Account Settings</h1>
+
+		if successMsg != "" {
+			<div class="bg-green-900 text-green-200 px-4 py-3 rounded mb-4">{ successMsg }</div>
+		}
 
 		<!-- Display Name Form -->
 		<section class="bg-gray-900 rounded-lg p-6 space-y-4">
@@ -81,8 +85,8 @@ templ AccountContent(u *users.User) {
 }
 
 // Account renders the full page (for direct browser navigation).
-templ Account(u *users.User) {
+templ Account(u *users.User, successMsg string) {
 	@layout.Shell("account") {
-		@AccountContent(u)
+		@AccountContent(u, successMsg)
 	}
 }
