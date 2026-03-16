@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
@@ -29,7 +30,7 @@ func generateTestKey(t *testing.T) *rsa.PrivateKey {
 func makeTestCache(t *testing.T, kid string, key *rsa.PrivateKey, issuer string) *jwksCache {
 	t.Helper()
 	c := &jwksCache{
-		keys:      map[string]*rsa.PublicKey{kid: &key.PublicKey},
+		keys:      map[string]crypto.PublicKey{kid: &key.PublicKey},
 		fetchedAt: time.Now(),
 		ttl:       time.Hour,
 		issuer:    issuer,
@@ -212,7 +213,7 @@ func TestJWTMiddleware_UnknownKidRefetchSuccess(t *testing.T) {
 
 	// Cache starts empty (simulates stale/cold cache)
 	cache := &jwksCache{
-		keys:      make(map[string]*rsa.PublicKey),
+		keys:      make(map[string]crypto.PublicKey),
 		fetchedAt: time.Now().Add(-2 * time.Hour), // expired TTL
 		ttl:       time.Hour,
 		jwksURL:   srv.URL,
@@ -253,7 +254,7 @@ func TestJWTMiddleware_UnknownKidRefetchStillMissing(t *testing.T) {
 	defer srv.Close()
 
 	cache := &jwksCache{
-		keys:      make(map[string]*rsa.PublicKey),
+		keys:      make(map[string]crypto.PublicKey),
 		fetchedAt: time.Now().Add(-2 * time.Hour),
 		ttl:       time.Hour,
 		jwksURL:   srv.URL,
