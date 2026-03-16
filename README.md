@@ -12,3 +12,8 @@ cp .env.example .env
 make db-up
 make run
 ```
+
+## Deployment
+
+See [docs/setup.md](docs/setup.md) for required one-time manual setup steps,
+including the Supabase Auth trigger that must be created via the Supabase dashboard.
