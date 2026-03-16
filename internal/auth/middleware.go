@@ -44,7 +44,7 @@ func NewJWTMiddleware(supabaseProjectURL string) (func(http.Handler) http.Handle
 	cache := &jwksCache{
 		keys:    make(map[string]*rsa.PublicKey),
 		ttl:     time.Hour,
-		jwksURL: supabaseProjectURL + "/.well-known/jwks.json",
+		jwksURL: supabaseProjectURL + "/auth/v1/.well-known/jwks.json",
 		issuer:  supabaseProjectURL + "/auth/v1",
 	}
 	if err := cache.fetch(); err != nil {
@@ -212,7 +212,7 @@ func NewSessionMiddleware(supabaseProjectURL string) (func(http.Handler) http.Ha
 	cache := &jwksCache{
 		keys:    make(map[string]*rsa.PublicKey),
 		ttl:     time.Hour,
-		jwksURL: supabaseProjectURL + "/.well-known/jwks.json",
+		jwksURL: supabaseProjectURL + "/auth/v1/.well-known/jwks.json",
 		issuer:  supabaseProjectURL + "/auth/v1",
 	}
 	if err := cache.fetch(); err != nil {
