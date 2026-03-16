@@ -7,6 +7,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/meden/rpgtracker/internal/config"
+	"github.com/meden/rpgtracker/internal/templates"
+	"github.com/meden/rpgtracker/internal/templates/pages"
 )
 
 // Server wraps the standard http.Server and holds application dependencies.
@@ -22,8 +24,9 @@ func NewServer(cfg *config.Config) *Server {
 	r.Use(middleware.Recoverer)
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("OK"))
+		if err := templates.Render(w, r, http.StatusOK, pages.Home()); err != nil {
+			http.Error(w, "render error", http.StatusInternalServerError)
+		}
 	})
 
 	httpServer := &http.Server{

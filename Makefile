@@ -1,9 +1,12 @@
-.PHONY: run build test db-up db-down db-reset migrate-up
+.PHONY: run build generate test db-up db-down db-reset migrate-up
 
 run:
 	go run ./cmd/server/...
 
-build:
+generate:
+	templ generate ./...
+
+build: generate
 	go build -o bin/server ./cmd/server/...
 
 test:

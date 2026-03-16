@@ -1,0 +1,12 @@
+package layout
+
+templ Shell(title string) {
+	@Base(title) {
+		<div id="main-content" class="flex flex-col min-h-screen">
+			<nav id="nav-placeholder" class="h-16 bg-gray-900 border-b border-gray-800"></nav>
+			<main class="flex-1 p-4">
+				{ children... }
+			</main>
+		</div>
+	}
+}
