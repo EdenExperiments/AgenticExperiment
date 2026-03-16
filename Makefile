@@ -1,3 +1,8 @@
+ifneq (,$(wildcard .env))
+include .env
+export
+endif
+
 .PHONY: run build generate test build-css db-up db-down db-reset migrate-up migrate-down migrate-status
 
 run: generate
