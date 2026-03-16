@@ -71,6 +71,11 @@ Add a curated library of preset skills so new users can get started immediately 
 Add nullable `preset_id uuid REFERENCES skill_presets(id) ON DELETE SET NULL`.
 Null = created from scratch. Non-null = spawned from a preset (for analytics/future use).
 
+### RLS notes
+
+- `user_category_interests`: apply the project's RLS scaffold (see note above).
+- `skill_categories` and `skill_presets`: these are global read-only system tables with no `user_id` column. RLS is not required; a permissive `SELECT` grant to the app role is sufficient. Do not apply user-scoped policies.
+
 ---
 
 ## Seed Data
@@ -105,6 +110,8 @@ Seed delivered via a SQL migration file (`db/migrations/NNNNNN+1_seed_skill_pres
 | GET    | `/skills/new/preset/{id}` | `HandleGetPresetDetail`    | (Phase 2+) detail/confirm step — not in this MVP  |
 
 **All existing template links and HTMX actions that previously targeted `/skills/new` for direct scratch creation must be updated to `/skills/new/custom`. The FAB and sidebar "+ Add Skill" action should continue to target `/skills/new` (the browse screen) as the new primary entry point.**
+
+**Route registration:** All four routes are registered in `internal/server/server.go` inside the protected route group (`r.Group`), following the pattern of existing handler wiring.
 
 `HandleGetPresetBrowse` accepts optional query params:
 - `?q=` — search filter (server-side, case-insensitive substring match on name + description)
@@ -159,9 +166,10 @@ internal/
     preset_handler.go      # HandleGetPresetBrowse, HandleGetFromPreset
     preset_repository.go   # DB queries: ListCategories, ListPresets(filter), GetPreset(id)
   templates/
-    skills/
-      preset_browse.templ  # Full browse page
-      preset_results.templ # HTMX partial: just the results list (for live search/filter)
+    pages/
+      preset_browse.templ    # Full browse page (follows pages/ convention)
+    partials/
+      preset_results.templ   # HTMX partial: results list only (follows partials/ convention)
 db/migrations/
   NNNNNN_add_skill_presets.up.sql    # schema: skill_categories, skill_presets, user_category_interests, alter skills
   NNNNNN_add_skill_presets.down.sql  # rollback: drop tables, drop preset_id column
