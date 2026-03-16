@@ -226,13 +226,13 @@ func (c *jwksCache) sessionMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("access_token")
 		if err != nil || cookie.Value == "" {
-			http.Redirect(w, r, "/login", http.StatusFound)
+			redirectToLogin(w, r)
 			return
 		}
 
 		userID, email, err := c.validateToken(cookie.Value)
 		if err != nil {
-			http.Redirect(w, r, "/login", http.StatusFound)
+			redirectToLogin(w, r)
 			return
 		}
 
@@ -240,4 +240,16 @@ func (c *jwksCache) sessionMiddleware(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, emailKey, email)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+// redirectToLogin redirects unauthenticated requests to /login.
+// For HTMX requests it returns HX-Redirect so the client does a full-page
+// navigation rather than injecting the login page into the current swap target.
+func redirectToLogin(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("HX-Request") == "true" {
+		w.Header().Set("HX-Redirect", "/login")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+	http.Redirect(w, r, "/login", http.StatusFound)
 }
