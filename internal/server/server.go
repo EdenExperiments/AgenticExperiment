@@ -67,7 +67,10 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		})
 		r.Get("/skills/new", presetHandler.HandleGetPresetBrowse)
 		r.Get("/skills/new/from-preset/{id}", presetHandler.HandleGetFromPreset)
-		// /skills/new/custom is wired in Task 10
+
+		skillHandler := handlers.NewSkillHandler(db)
+		r.Get("/skills/new/custom", skillHandler.HandleGetNewSkill)
+		r.Post("/skills/new/custom", skillHandler.HandlePostNewSkill)
 
 		r.Get("/nutri", func(w http.ResponseWriter, r *http.Request) {
 			if err := templates.RenderPage(w, r, http.StatusOK, pages.NutriComing(), pages.NutriContent()); err != nil {
