@@ -22,20 +22,22 @@ const userIDKey contextKey = iota
 
 // jwksCache caches the fetched JWKS keys with a TTL.
 type jwksCache struct {
-	mu         sync.RWMutex
-	keys       map[string]*rsa.PublicKey // kid → public key
-	fetchedAt  time.Time
-	ttl        time.Duration
-	projectURL string
+	mu        sync.RWMutex
+	keys      map[string]*rsa.PublicKey // kid → public key
+	fetchedAt time.Time
+	ttl       time.Duration
+	jwksURL   string
+	issuer    string
 }
 
 // NewJWTMiddleware creates a chi-compatible middleware that validates Supabase JWTs.
 // It fetches the JWKS at creation time and caches them with a 1-hour TTL.
 func NewJWTMiddleware(supabaseProjectURL string) (func(http.Handler) http.Handler, error) {
 	cache := &jwksCache{
-		keys:       make(map[string]*rsa.PublicKey),
-		ttl:        time.Hour,
-		projectURL: supabaseProjectURL,
+		keys:    make(map[string]*rsa.PublicKey),
+		ttl:     time.Hour,
+		jwksURL: supabaseProjectURL + "/.well-known/jwks.json",
+		issuer:  supabaseProjectURL + "/auth/v1",
 	}
 	if err := cache.fetch(); err != nil {
 		return nil, fmt.Errorf("auth: initial JWKS fetch failed: %w", err)
@@ -88,6 +90,7 @@ func (c *jwksCache) validateToken(tokenStr string) (string, error) {
 	token, err := jwt.Parse(tokenStr, keyFunc,
 		jwt.WithExpirationRequired(),
 		jwt.WithIssuedAt(),
+		jwt.WithIssuer(c.issuer),
 	)
 	if err != nil {
 		return "", err
@@ -118,8 +121,7 @@ func (c *jwksCache) getKey(kid string) *rsa.PublicKey {
 
 // fetch retrieves the JWKS from Supabase and updates the cache.
 func (c *jwksCache) fetch() error {
-	url := c.projectURL + "/.well-known/jwks.json"
-	resp, err := http.Get(url) //nolint:noctx
+	resp, err := http.Get(c.jwksURL) //nolint:noctx
 	if err != nil {
 		return fmt.Errorf("fetch JWKS: %w", err)
 	}

@@ -3,6 +3,9 @@ package auth
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"encoding/base64"
+	"encoding/binary"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -23,12 +26,13 @@ func generateTestKey(t *testing.T) *rsa.PrivateKey {
 }
 
 // makeTestCache creates a jwksCache pre-loaded with the given key.
-func makeTestCache(t *testing.T, kid string, key *rsa.PrivateKey) *jwksCache {
+func makeTestCache(t *testing.T, kid string, key *rsa.PrivateKey, issuer string) *jwksCache {
 	t.Helper()
 	c := &jwksCache{
 		keys:      map[string]*rsa.PublicKey{kid: &key.PublicKey},
 		fetchedAt: time.Now(),
 		ttl:       time.Hour,
+		issuer:    issuer,
 	}
 	return c
 }
@@ -45,16 +49,54 @@ func signTestJWT(t *testing.T, key *rsa.PrivateKey, kid string, claims jwt.MapCl
 	return str
 }
 
+// serveJWKS starts an httptest server that returns a JWKS containing the given key.
+func serveJWKS(t *testing.T, kid string, key *rsa.PublicKey) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		nBytes := key.N.Bytes()
+		eBytes := make([]byte, 4)
+		binary.BigEndian.PutUint32(eBytes, uint32(key.E))
+		// Trim leading zeros from e
+		for len(eBytes) > 1 && eBytes[0] == 0 {
+			eBytes = eBytes[1:]
+		}
+		resp := map[string]interface{}{
+			"keys": []map[string]interface{}{
+				{
+					"kid": kid,
+					"kty": "RSA",
+					"n":   base64.RawURLEncoding.EncodeToString(nBytes),
+					"e":   base64.RawURLEncoding.EncodeToString(eBytes),
+				},
+			},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(resp) //nolint:errcheck
+	}))
+}
+
+// serveEmptyJWKS starts an httptest server that returns an empty JWKS.
+func serveEmptyJWKS(t *testing.T) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"keys":[]}`)) //nolint:errcheck
+	}))
+}
+
+const testIssuer = "https://test.supabase.co/auth/v1"
+
 func TestJWTMiddleware_ValidToken(t *testing.T) {
 	key := generateTestKey(t)
 	kid := "test-key-1"
-	cache := makeTestCache(t, kid, key)
+	cache := makeTestCache(t, kid, key, testIssuer)
 
 	userID := "550e8400-e29b-41d4-a716-446655440000"
 	tokenStr := signTestJWT(t, key, kid, jwt.MapClaims{
 		"sub": userID,
 		"exp": time.Now().Add(time.Hour).Unix(),
 		"iat": time.Now().Unix(),
+		"iss": testIssuer,
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -84,7 +126,7 @@ func TestJWTMiddleware_ValidToken(t *testing.T) {
 
 func TestJWTMiddleware_NoToken(t *testing.T) {
 	key := generateTestKey(t)
-	cache := makeTestCache(t, "kid1", key)
+	cache := makeTestCache(t, "kid1", key, testIssuer)
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	w := httptest.NewRecorder()
@@ -101,12 +143,13 @@ func TestJWTMiddleware_NoToken(t *testing.T) {
 func TestJWTMiddleware_ExpiredToken(t *testing.T) {
 	key := generateTestKey(t)
 	kid := "test-key-exp"
-	cache := makeTestCache(t, kid, key)
+	cache := makeTestCache(t, kid, key, testIssuer)
 
 	tokenStr := signTestJWT(t, key, kid, jwt.MapClaims{
 		"sub": "550e8400-e29b-41d4-a716-446655440001",
 		"exp": time.Now().Add(-time.Hour).Unix(), // expired
 		"iat": time.Now().Add(-2 * time.Hour).Unix(),
+		"iss": testIssuer,
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
@@ -125,12 +168,13 @@ func TestJWTMiddleware_ExpiredToken(t *testing.T) {
 func TestJWTMiddleware_TamperedToken(t *testing.T) {
 	key := generateTestKey(t)
 	kid := "test-key-tamper"
-	cache := makeTestCache(t, kid, key)
+	cache := makeTestCache(t, kid, key, testIssuer)
 
 	tokenStr := signTestJWT(t, key, kid, jwt.MapClaims{
 		"sub": "550e8400-e29b-41d4-a716-446655440002",
 		"exp": time.Now().Add(time.Hour).Unix(),
 		"iat": time.Now().Unix(),
+		"iss": testIssuer,
 	})
 	// Tamper: modify a character in the middle of the payload segment so the
 	// signature covers different bytes and cannot match.
@@ -151,6 +195,84 @@ func TestJWTMiddleware_TamperedToken(t *testing.T) {
 
 	cache.middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		t.Error("next handler should not be called for tampered token")
+	})).ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("status = %d, want 401", w.Code)
+	}
+}
+
+func TestJWTMiddleware_UnknownKidRefetchSuccess(t *testing.T) {
+	key := generateTestKey(t)
+	kid := "refetch-key"
+
+	// Start a mock JWKS server that serves the correct key
+	srv := serveJWKS(t, kid, &key.PublicKey)
+	defer srv.Close()
+
+	// Cache starts empty (simulates stale/cold cache)
+	cache := &jwksCache{
+		keys:      make(map[string]*rsa.PublicKey),
+		fetchedAt: time.Now().Add(-2 * time.Hour), // expired TTL
+		ttl:       time.Hour,
+		jwksURL:   srv.URL,
+		issuer:    testIssuer,
+	}
+
+	tokenStr := signTestJWT(t, key, kid, jwt.MapClaims{
+		"sub": "550e8400-e29b-41d4-a716-446655440003",
+		"exp": time.Now().Add(time.Hour).Unix(),
+		"iat": time.Now().Unix(),
+		"iss": testIssuer,
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Authorization", "Bearer "+tokenStr)
+	w := httptest.NewRecorder()
+
+	called := false
+	cache.middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		called = true
+		w.WriteHeader(http.StatusOK)
+	})).ServeHTTP(w, req)
+
+	if !called {
+		t.Error("next handler should be called after successful JWKS re-fetch")
+	}
+	if w.Code != http.StatusOK {
+		t.Errorf("status = %d, want 200", w.Code)
+	}
+}
+
+func TestJWTMiddleware_UnknownKidRefetchStillMissing(t *testing.T) {
+	key := generateTestKey(t)
+	kid := "missing-key"
+
+	// Mock server returns empty JWKS (key never found)
+	srv := serveEmptyJWKS(t)
+	defer srv.Close()
+
+	cache := &jwksCache{
+		keys:      make(map[string]*rsa.PublicKey),
+		fetchedAt: time.Now().Add(-2 * time.Hour),
+		ttl:       time.Hour,
+		jwksURL:   srv.URL,
+		issuer:    testIssuer,
+	}
+
+	tokenStr := signTestJWT(t, key, kid, jwt.MapClaims{
+		"sub": "550e8400-e29b-41d4-a716-446655440004",
+		"exp": time.Now().Add(time.Hour).Unix(),
+		"iat": time.Now().Unix(),
+		"iss": testIssuer,
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Authorization", "Bearer "+tokenStr)
+	w := httptest.NewRecorder()
+
+	cache.middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Error("next handler should not be called when kid not found after re-fetch")
 	})).ServeHTTP(w, req)
 
 	if w.Code != http.StatusUnauthorized {
