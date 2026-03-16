@@ -968,14 +968,15 @@ What it builds:
 Acceptance criteria:
   - All unit tests pass: go test ./internal/xpcurve/...
   - LevelForXP(100) == 1
-  - LevelForXP(12000) == 10 (first Apprentice level)
-  - LevelForXP(60000) == 20 (first Journeyman level)
-  - LevelForXP(180000) == 30 (first Expert level)
-  - LevelForXP(936000) == 60 (first Veteran level)
-  - LevelForXP(3500000) == 100 (first Master level)
-  - LevelForXP(14000000) == 200 (MaxLevel)
+  - LevelForXP(12500) == 10 (first Apprentice level; XPToReachLevel(10)=125×100)
+  - LevelForXP(62000) == 20 (first Adept level; XPToReachLevel(20)=155×400)
+  - LevelForXP(171000) == 30 (first Journeyman level; XPToReachLevel(30)=190×900)
+  - LevelForXP(687500) == 50 (first Expert level; XPToReachLevel(50)=275×2500)
+  - LevelForXP(1170000) == 60 (first Veteran level; XPToReachLevel(60)=325×3600)
+  - LevelForXP(6000000) == 100 (first Legend level; XPToReachLevel(100)=600×10000)
+  - LevelForXP(24000000) == 200 (MaxLevel; XPToReachLevel(200)=600×40000)
   - LevelForXP(math.MaxInt) == 200 (MaxLevel cap; no infinite loop)
-  - TierName returns the correct string for a level in each of the six tiers
+  - TierName returns the correct string for a level in each of the eleven tiers
   - No floating-point arithmetic anywhere in this package
 ```
 

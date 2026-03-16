@@ -1,1 +1,10 @@
-{}
+{
+  "name": "rpgtracker",
+  "private": true,
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  },
+  "scripts": {
+    "build-css": "tailwindcss -i static/css/input.css -o static/css/app.css --minify"
+  }
+}

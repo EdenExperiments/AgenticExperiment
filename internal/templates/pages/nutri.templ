@@ -1,0 +1,18 @@
+package pages
+
+import "github.com/meden/rpgtracker/internal/templates/layout"
+
+// NutriContent renders the inner NutriLog content fragment (for HTMX swaps).
+templ NutriContent() {
+	<div class="max-w-2xl mx-auto py-8">
+		<h1 class="text-3xl font-bold text-gray-100">NutriLog</h1>
+		<p class="mt-2 text-gray-400">NutriLog — Coming Soon</p>
+	</div>
+}
+
+// NutriComing renders the full page (for direct browser navigation).
+templ NutriComing() {
+	@layout.Shell("nutri") {
+		@NutriContent()
+	}
+}

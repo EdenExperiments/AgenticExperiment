@@ -1,0 +1,92 @@
+package pages
+
+import (
+	"github.com/meden/rpgtracker/internal/templates/layout"
+	"github.com/meden/rpgtracker/internal/users"
+)
+
+func displayNameValue(u *users.User) string {
+	if u.DisplayName != nil {
+		return *u.DisplayName
+	}
+	return ""
+}
+
+// AccountContent renders the inner account settings content fragment (for HTMX swaps).
+templ AccountContent(u *users.User, successMsg string) {
+	<div class="max-w-lg mx-auto py-8 space-y-8">
+		<h1 class="text-2xl font-bold text-gray-100">Account Settings</h1>
+
+		if successMsg != "" {
+			<div class="bg-green-900 text-green-200 px-4 py-3 rounded mb-4">{ successMsg }</div>
+		}
+
+		<!-- Display Name Form -->
+		<section class="bg-gray-900 rounded-lg p-6 space-y-4">
+			<h2 class="text-lg font-semibold text-gray-200">Profile</h2>
+			<form method="POST" action="/account" class="space-y-4">
+				<div>
+					<label for="display_name" class="block text-sm font-medium text-gray-300 mb-1">Display Name</label>
+					<input
+						type="text"
+						id="display_name"
+						name="display_name"
+						value={ displayNameValue(u) }
+						class="w-full rounded-md bg-gray-800 border border-gray-700 text-gray-100 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+					/>
+				</div>
+				<div>
+					<label class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+					<p class="text-gray-400">{ u.Email }</p>
+				</div>
+				<button
+					type="submit"
+					class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md transition-colors"
+				>
+					Save Changes
+				</button>
+			</form>
+		</section>
+
+		<!-- Security Section -->
+		<section class="bg-gray-900 rounded-lg p-6 space-y-4">
+			<h2 class="text-lg font-semibold text-gray-200">Security</h2>
+			<a
+				href="/account/password"
+				class="inline-block text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+			>
+				Change Password
+			</a>
+		</section>
+
+		<!-- AI Integration -->
+		<section class="bg-gray-900 rounded-lg p-6 space-y-4">
+			<h2 class="text-lg font-semibold text-gray-200">AI Integration</h2>
+			<a
+				href="/account/api-key"
+				class="inline-block text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+			>
+				Manage API Key
+			</a>
+		</section>
+
+		<!-- Sign Out -->
+		<section class="bg-gray-900 rounded-lg p-6">
+			<form method="POST" action="/auth/signout">
+				<button
+					type="submit"
+					class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white font-medium rounded-md transition-colors"
+				>
+					Sign Out
+				</button>
+			</form>
+		</section>
+	</div>
+}
+
+// Account renders the full page (for direct browser navigation).
+templ Account(u *users.User, successMsg string) {
+	@layout.Shell("account") {
+		@AccountContent(u, successMsg)
+	}
+}
