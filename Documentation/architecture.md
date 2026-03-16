@@ -1,6 +1,6 @@
-# Architecture — Domain Model, Schema Design, and Integration Contracts
+Well# Architecture — Domain Model, Schema Design, and Integration Contracts
 
-Last updated: 2026-03-15 (architecture-agent: initial pass — XP curve confirmed as D-014, A-001 confirmed as D-015, full domain model defined, NutriLog boundary reserved, integration contracts established)
+Last updated: 2026-03-15 (architecture-agent: initial pass — XP curve confirmed as D-014, A-001 confirmed as D-015, full domain model defined, NutriLog boundary reserved, integration contracts established; revised 2026-03-15 — D-014 tier structure updated: Master tier now starts at level 100, Veteran tier added at levels 60–99, Expert extended to levels 30–59, MaxLevel raised to 200, D-016 added)
 
 ---
 
@@ -61,11 +61,12 @@ Pure polynomial curves at exponent 2.5 produce very large numbers at high levels
 XP_to_reach_level(N) = base_multiplier(tier(N)) × N²
 
 Where tier(N):
-  - Levels 1–9:   base_multiplier = 100   (Tier 1: Novice)
-  - Levels 10–19: base_multiplier = 120   (Tier 2: Apprentice)
-  - Levels 20–29: base_multiplier = 150   (Tier 3: Journeyman)
-  - Levels 30–49: base_multiplier = 180   (Tier 4: Expert)
-  - Levels 50+:   base_multiplier = 220   (Tier 5: Master)
+  - Levels 1–9:    base_multiplier = 100   (Tier 1: Novice)
+  - Levels 10–19:  base_multiplier = 120   (Tier 2: Apprentice)
+  - Levels 20–29:  base_multiplier = 150   (Tier 3: Journeyman)
+  - Levels 30–59:  base_multiplier = 200   (Tier 4: Expert)
+  - Levels 60–99:  base_multiplier = 260   (Tier 5: Veteran)
+  - Levels 100+:   base_multiplier = 350   (Tier 6: Master)
 ```
 
 Representative thresholds under the confirmed formula:
@@ -76,16 +77,17 @@ Representative thresholds under the confirmed formula:
 | 5     | 2 500             | 900                       | Novice      |
 | 9     | 8 100             | 1 700                     | Novice      |
 | 10    | 12 000            | 3 900 (tier jump)         | Apprentice  |
-| 15    | 27 000            | 3 000                     | Apprentice  |
-| 19    | 43 320            | 4 200                     | Apprentice  |
 | 20    | 60 000            | 16 680 (tier jump)        | Journeyman  |
-| 25    | 93 750            | 7 500                     | Journeyman  |
 | 29    | 126 150           | 8 700                     | Journeyman  |
-| 30    | 162 000           | 35 850 (tier jump)        | Expert      |
-| 40    | 288 000           | 14 400                    | Expert      |
-| 50    | 550 000           | 19 800                    | Master      |
+| 30    | 180 000           | 53 850 (tier jump)        | Expert      |
+| 60    | 936 000           | 239 800 (tier jump)       | Veteran     |
+| 100   | 3 500 000         | 951 740 (tier jump)       | Master      |
+| 150   | 7 875 000         | 787 500                   | Master      |
+| 200   | 14 000 000        | 1 400 000                 | Master      |
 
-Tier transition jumps are intentional. They represent milestone gates and correspond to the blocker gate levels (9, 19, 29) defined in the product requirements. The blocker gates gate these tier transitions, so a user cannot advance from Novice to Apprentice without completing the level-9 blocker challenge.
+Tier transition jumps are intentional. They represent milestone gates and correspond to the blocker gate levels (9, 19, 29) defined in the product requirements. The blocker gates gate these tier transitions, so a user cannot advance from Novice to Apprentice without completing the level-9 blocker challenge. The Expert→Veteran jump at level 60 and the Veteran→Master jump at level 100 are the largest in the system and reflect the intentional design that Master is an elite long-term achievement.
+
+**Known UX risk — tier-boundary XP jump:** The XP gap at tier boundaries is noticeably larger than the gaps within a tier. The most significant jumps occur at levels 10, 20, 30, 60, and 100. The jump into Master tier at level 100 (~951,740 XP above level 99) is by far the largest in the system and is intentional — Master is meant to represent years of consistent daily use, not a reachable short-term goal. The ux-agent should design visual affordances — for example, tier name displays, upcoming tier previews, and contextual callouts when a user enters the Veteran tier — so users understand these jumps are intentional and tied to the tier progression model. The Master tier threshold in particular should be presented to users as an aspirational milestone rather than a near-term target.
 
 **This recommendation is confirmed as decision D-014.** D-013 is considered resolved by this entry. See decision-log.md.
 
@@ -139,13 +141,14 @@ Rationale: Supabase Vault tightly couples key management to Supabase as an infra
 
 ### Entity Overview
 
-The LifeQuest MVP requires five core entity families:
+The LifeQuest MVP requires four core entity families:
 
 1. **users** — identity and profile, owned by Supabase Auth with a mirror row in PostgreSQL
 2. **skills** — the user-created skill objects
-3. **skill_levels** — configuration table defining what each level means for a skill
-4. **xp_events** — the append-only log of XP-granting activities
-5. **blocker_gates** — the gate definitions attached to specific level thresholds
+3. **xp_events** — the append-only log of XP-granting activities
+4. **blocker_gates** — the gate definitions attached to specific level thresholds
+
+Note: there is no `skill_levels` table. Levels are derived at runtime by the Go `LevelForXP` function in the `xpcurve` package (see the Level computation helper section below). No persistent level configuration is stored.
 
 ---
 
@@ -185,7 +188,7 @@ CREATE TABLE public.user_ai_keys (
     encrypted_dek   BYTEA NOT NULL,    -- per-user DEK encrypted under master key (AES-256-GCM)
     encrypted_key   BYTEA NOT NULL,    -- Claude API key encrypted under the per-user DEK (AES-256-GCM)
     key_hint        TEXT,              -- last 4 characters of key, plaintext, for UI display only
-    validated_at    TIMESTAMPTZ,       -- timestamp of last successful test-decrypt + format validation
+    validated_at    TIMESTAMPTZ,       -- timestamp of last successful test-decrypt + format validation at save time
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT uq_user_ai_keys_user UNIQUE (user_id)  -- one key per user
@@ -203,6 +206,7 @@ master_key (env/secrets-manager, in-memory only)
 **Constraints:**
 - `encrypted_dek` and `encrypted_key` store `[nonce || ciphertext]` concatenated; the Go layer splits them by the known nonce size (12 bytes for AES-256-GCM).
 - `key_hint` is derived from the plaintext at save time and stored as the only visible identifier; never more than the last 4 characters.
+- `validated_at` is updated on save only; it is not a real-time validity indicator. Do not use it to gate API calls — always attempt decryption at call time.
 - RLS: only the owning user can read their row; the Go service role can write.
 - Validation at save time: decrypt both layers in the Go process; confirm the result matches `^sk-ant-[A-Za-z0-9-_]+$`; reject with an error if not.
 
@@ -231,7 +235,7 @@ CREATE INDEX idx_skills_user_id ON public.skills(user_id);
 ```
 
 **Fields:**
-- `current_level`: the level actually displayed. Does not advance past a blocker gate threshold until the gate is cleared (application logic, not DB constraint).
+- `current_level`: the level actually displayed. Does not advance past a blocker gate threshold until the gate is cleared (application logic, not DB constraint). **`current_level` is a denormalised cache of the computed level.** It must be updated in the same transaction as every `xp_events` insert: the service layer must call `LevelForXP(current_xp)` and write both `current_xp` and `current_level` atomically. See R-003 in decision-log.md for the three-way sync requirement.
 - `current_xp`: total cumulative XP. Derived from the sum of `xp_events` but stored as a denormalised aggregate for fast reads. Must be kept consistent with `xp_events` — updated atomically in the same transaction as each new `xp_event` row.
 - `is_active`: soft-delete flag; deleted skills are set inactive rather than hard-deleted, preserving log history.
 
@@ -272,6 +276,8 @@ CREATE INDEX idx_xp_events_logged_at ON public.xp_events(skill_id, logged_at DES
 
 **Invariant:** `skills.current_xp` must always equal `SUM(xp_events.xp_delta) WHERE skill_id = ?`. The application must update both in a single transaction.
 
+**Idempotency / double-submission guard (Phase 2):** The Phase 2 XP log handler must implement idempotency protection against double-POST on slow connections (common in HTMX apps). Recommended approach: use HTMX `hx-disabled-elt` on the submit button to disable it on the first click, plus a server-side 1-second dedup window per `(skill_id, user_id)` — reject a new `xp_events` insert if a row with the same `(skill_id, user_id)` was inserted within the last second.
+
 ---
 
 ### Entity: `blocker_gates`
@@ -292,6 +298,11 @@ CREATE TABLE public.blocker_gates (
     -- FALSE in release 1 for all gates (no completion flow, D-010).
     -- The column exists so Phase 3 (F-009b) can flip it without a schema migration.
     cleared_at          TIMESTAMPTZ,
+    first_notified_at   TIMESTAMPTZ,
+    -- NULL until the first-hit gate notification modal has been shown to the user.
+    -- Set to NOW() by the XP log handler in the same transaction that returns the
+    -- full-screen notification fragment. Once set, subsequent XP log events for this
+    -- gate return the standard post-log toast instead. Never reset after being set.
     created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT uq_blocker_per_skill_level UNIQUE (skill_id, gate_level)
@@ -304,8 +315,11 @@ CREATE INDEX idx_blocker_gates_skill_id ON public.blocker_gates(skill_id);
 - `gate_level`: the threshold at which the gate activates. When `skills.current_xp` is sufficient to advance to `gate_level + 1` but `is_cleared = FALSE`, the level display caps at `gate_level`.
 - `description`: the challenge the user must complete. Set during skill creation (optionally AI-suggested, D-011).
 - `is_cleared` / `cleared_at`: both false/null in release 1 for all gates. Schema includes them so Phase 3 (blocker completion flow, F-009b) requires no migration.
+- `first_notified_at`: NULL until the first-hit gate notification modal has been shown. The Go XP log handler checks `first_notified_at IS NULL` when a gate threshold is first reached, returns the full-screen notification fragment, and sets this column to `NOW()` in the same transaction. Subsequent log events for the same gate find a non-null value and return the standard toast. This avoids any client-side or session-based tracking for the one-time notification. See ux-spec.md Section 6.3.
 
 **Default gate levels per product requirements:** 9, 19, 29 (and equivalents at higher tier transitions). These are created as rows in `blocker_gates` when a skill is created. The gate description is populated by the user or AI-suggested during skill creation.
+
+**Non-AI creation defaults:** When a skill is created without AI calibration (or when AI calibration is skipped/unavailable), the delivery-agent must insert gate rows with standard placeholder values: `title = "Level {gate_level} Gate"` and `description = "Reach this level to unlock the next stage of your skill journey."` (where `{gate_level}` is substituted with the actual gate level number, e.g. 9, 19, 29). These values can be overridden by AI calibration output if the user opts in to AI assistance.
 
 **Application logic for level advancement:**
 
@@ -335,10 +349,12 @@ func TierMultiplier(level int) int {
         return 120
     case level < 30:
         return 150
-    case level < 50:
-        return 180
+    case level < 60:
+        return 200
+    case level < 100:
+        return 260
     default:
-        return 220
+        return 350
     }
 }
 
@@ -347,12 +363,19 @@ func XPToReachLevel(level int) int {
     return TierMultiplier(level) * level * level
 }
 
-// LevelForXP returns the highest level whose XP threshold is <= totalXP.
+// MaxLevel is the hard upper bound for level computation. The LevelForXP loop
+// will not advance beyond this value regardless of accumulated XP.
+// Master tier starts at level 100; MaxLevel is set to 200 to give Master-tier
+// users continued progression headroom. The top 100 levels are all Master tier.
+const MaxLevel = 200
+
+// LevelForXP returns the highest level whose XP threshold is <= totalXP,
+// capped at MaxLevel.
 // This is O(level_count) but level counts are small; a binary search can be
 // substituted if profiling shows it matters.
 func LevelForXP(totalXP int) int {
     level := 1
-    for XPToReachLevel(level+1) <= totalXP {
+    for level < MaxLevel && XPToReachLevel(level+1) <= totalXP {
         level++
     }
     return level
@@ -427,6 +450,45 @@ This boundary is documented here to avoid designing NutriLog now while ensuring 
 - Encryption of Claude API keys (Go application layer only, per D-015)
 - Game progression logic
 - Any cross-app business logic
+
+#### 4.1.1 Trigger: `auth.users` → `public.users` mirror row
+
+The `public.users` mirror row must be created automatically when a new user registers. This is implemented as a PostgreSQL trigger function on `auth.users`.
+
+**Important migration note:** `golang-migrate` (used for all other schema changes) cannot access the `auth` schema — it runs with a role that is restricted to the `public` schema. This trigger **must be created manually** via the Supabase dashboard (SQL Editor) or the Supabase Management API. It is not a file-based migration. The delivery-agent must document this as a one-time manual setup step in the deployment runbook.
+
+The required SQL:
+
+```sql
+-- Step 1: Create the trigger function in the public schema.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    INSERT INTO public.users (id, email, created_at, updated_at)
+    VALUES (
+        NEW.id,
+        NEW.email,
+        NOW(),
+        NOW()
+    )
+    ON CONFLICT (id) DO NOTHING;
+    RETURN NEW;
+END;
+$$;
+
+-- Step 2: Attach the trigger to auth.users.
+-- Must be run in the Supabase SQL Editor (requires access to the auth schema).
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW
+    EXECUTE FUNCTION public.handle_new_user();
+```
+
+This trigger fires after every `INSERT` on `auth.users` and inserts the corresponding row into `public.users`. The `ON CONFLICT (id) DO NOTHING` guard prevents failures if the row somehow already exists. The `SECURITY DEFINER` attribute ensures the function executes with the privileges of its owner (the Supabase `postgres` superuser), not the calling role.
 
 ### 4.2 PostgreSQL (via Supabase-hosted PostgreSQL)
 
@@ -595,10 +657,11 @@ If the level-cap logic is implemented only in the UI layer (template), a client 
 
 ## 8. Decisions Produced by This Document
 
-Two new confirmed decisions are added to decision-log.md:
+The following confirmed decisions are added to decision-log.md:
 
-- **D-014**: XP curve shape confirmed as quadratic with tier-based base multipliers. (Resolves D-013.)
+- **D-014**: XP curve shape confirmed as quadratic with tier-based base multipliers. (Resolves D-013.) Revised 2026-03-15: tier structure updated — Master now starts at level 100, Veteran tier added at levels 60–99, Expert extended to levels 30–59, MaxLevel raised to 200.
 - **D-015**: Claude API key encryption confirmed as AES-256-GCM Go-layer envelope encryption with a production secrets-manager requirement for the master key. (Supersedes A-001.)
+- **D-016**: Master tier starts at level 100. Reaching Master requires years of consistent daily use and is intended as an elite aspirational milestone. MaxLevel is set to 200.
 
 ---
 
@@ -639,7 +702,7 @@ The ux-agent is unblocked and should now deliver:
 
 3. **Quick XP log interaction** — three taps or fewer on mobile is the acceptance bar (Phase 2 exit criterion 3). Define what those three taps are.
 
-4. **XP and level progression display** — define what the level/XP bar looks like; the tier names (Novice, Apprentice, Journeyman, Expert, Master) are confirmed by D-014 and should be surfaced in the UI.
+4. **XP and level progression display** — define what the level/XP bar looks like; the tier names (Novice, Apprentice, Journeyman, Expert, Veteran, Master) are confirmed by D-014 / D-016 and should be surfaced in the UI. Master tier begins at level 100 and is an elite aspirational milestone; the UX should communicate this aspiration clearly.
 
 5. **Blocker gate visibility screen** — define the information hierarchy: gate level, blocker description, locked progression indicator, accrued-but-locked XP indicator. The schema confirms `title`, `description`, and `is_cleared` are the available fields.
 
