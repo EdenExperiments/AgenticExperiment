@@ -44,8 +44,19 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Use(sessionMiddleware)
 
 		r.Get("/dashboard", func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte("dashboard"))
+			if err := templates.Render(w, r, http.StatusOK, pages.Dashboard()); err != nil {
+				http.Error(w, "render error", http.StatusInternalServerError)
+			}
+		})
+
+		r.Get("/skills", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "/dashboard", http.StatusFound)
+		})
+
+		r.Get("/nutri", func(w http.ResponseWriter, r *http.Request) {
+			if err := templates.Render(w, r, http.StatusOK, pages.NutriComing()); err != nil {
+				http.Error(w, "render error", http.StatusInternalServerError)
+			}
 		})
 
 		userHandler := handlers.NewUserHandler(db)
