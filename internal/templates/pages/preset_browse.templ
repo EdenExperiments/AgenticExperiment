@@ -11,20 +11,29 @@ templ PresetBrowseContent(allCats []skills.Category, cats []skills.CategoryWithP
 	<div class="max-w-lg mx-auto py-4 px-4">
 		<h1 class="text-lg font-semibold text-gray-100 mb-4">Choose a Skill</h1>
 
-		<!-- Search bar -->
-		<div class="relative mb-3">
+		<!-- Search bar with inline clear button (Alpine x-model drives x-show on × button) -->
+		<div class="relative mb-3" x-data={ "{ query: '" + filter.Query + "' }" }>
 			<input
 				type="search"
 				name="q"
 				value={ filter.Query }
 				placeholder="Search skills…"
-				class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 pl-10 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+				class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 pl-10 pr-8 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:border-indigo-500"
 				hx-get="/skills/new"
 				hx-trigger="input changed delay:300ms"
 				hx-target="#preset-results"
 				hx-include="[name='category']"
+				x-model="query"
+				x-ref="searchInput"
 			/>
 			<span class="absolute left-3 top-2.5 text-gray-500 text-sm">🔍</span>
+			<button
+				type="button"
+				class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors p-1"
+				x-show="query.length > 0"
+				@click="query = ''; $refs.searchInput.value = ''; $refs.searchInput.dispatchEvent(new Event('input'))"
+				aria-label="Clear search"
+			>✕</button>
 		</div>
 
 		<!-- Category chips: scrollbar hidden cross-browser via Tailwind arbitrary variants (no plugin needed) -->
