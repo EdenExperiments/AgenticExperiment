@@ -25,8 +25,8 @@ type Server struct {
 // NewServer creates a new Server wired with a chi router and basic routes.
 func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Handler, db *pgxpool.Pool) *Server {
 	r := chi.NewRouter()
+	r.Use(panicRecoveryMiddleware) // outermost: catches panics from any downstream middleware
 	r.Use(middleware.Logger)
-	r.Use(panicRecoveryMiddleware)
 
 	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -103,6 +103,12 @@ func (s *Server) Start() error {
 // panicRecoveryMiddleware recovers from panics, logs them, and returns an
 // appropriate error response. HTMX requests receive an error partial fragment;
 // full-page requests receive the Error500 page.
+//
+// Known limitation: if a handler has already written partial bytes to w before
+// panicking, the WriteHeader(500) call below is a no-op and the error template
+// is appended to the partial content, producing a malformed page. This is an
+// inherent Go http.ResponseWriter constraint; a buffered ResponseWriter would
+// mitigate it but is out of scope for Phase 1.
 func panicRecoveryMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
