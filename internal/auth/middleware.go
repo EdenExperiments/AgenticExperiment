@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/sync/singleflight"
 )
 
 // contextKey is an unexported type for context keys in this package.
@@ -24,6 +25,9 @@ const (
 )
 
 // jwksCache caches the fetched JWKS keys with a TTL.
+// The singleflight group ensures that concurrent re-fetch triggers (TTL expiry
+// or R-001 unknown-kid) collapse into a single in-flight HTTP request rather
+// than stampeding the Supabase JWKS endpoint.
 type jwksCache struct {
 	mu        sync.RWMutex
 	keys      map[string]*rsa.PublicKey // kid → public key
@@ -31,6 +35,7 @@ type jwksCache struct {
 	ttl       time.Duration
 	jwksURL   string
 	issuer    string
+	sf        singleflight.Group
 }
 
 // NewJWTMiddleware creates a chi-compatible middleware that validates Supabase JWTs.
@@ -80,8 +85,10 @@ func (c *jwksCache) validateToken(tokenStr string) (string, string, error) {
 		kid, _ := token.Header["kid"].(string)
 		key := c.getKey(kid)
 		if key == nil {
-			// R-001: unknown kid — re-fetch once
-			if err := c.fetch(); err != nil {
+			// R-001: unknown kid — re-fetch once, deduplicated via singleflight
+			if _, err, _ := c.sf.Do("fetch", func() (interface{}, error) {
+				return nil, c.fetch()
+			}); err != nil {
 				return nil, err
 			}
 			key = c.getKey(kid)
