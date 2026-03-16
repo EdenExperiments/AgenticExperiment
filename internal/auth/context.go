@@ -27,3 +27,10 @@ func EmailFromContext(ctx context.Context) string {
 	email, _ := ctx.Value(emailKey).(string)
 	return email
 }
+
+// WithUserID returns a copy of ctx with the user ID set.
+// Used in tests to inject authentication state without a real JWT.
+// Must store the ID as a string to match the type assertion in UserIDFromContext.
+func WithUserID(ctx context.Context, id uuid.UUID) context.Context {
+	return context.WithValue(ctx, userIDKey, id.String())
+}
