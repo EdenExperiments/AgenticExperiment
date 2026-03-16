@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -39,5 +40,8 @@ func NewServer(cfg *config.Config) *Server {
 // Start begins listening and serving HTTP requests. It blocks until the server
 // encounters an error or is shut down.
 func (s *Server) Start() error {
-	return s.httpServer.ListenAndServe()
+	if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+	return nil
 }
