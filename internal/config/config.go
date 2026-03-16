@@ -24,6 +24,9 @@ func Load() *Config {
 		MasterKey:          requireEnv("MASTER_KEY"),
 		Port:               optionalEnv("PORT", "8080"),
 	}
+	if len(cfg.MasterKey) < 32 {
+		panic("MASTER_KEY must be at least 32 bytes for AES-256-GCM")
+	}
 	return cfg
 }
 
