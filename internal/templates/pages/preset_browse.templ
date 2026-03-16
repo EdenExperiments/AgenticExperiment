@@ -1,0 +1,79 @@
+package pages
+
+import (
+	"github.com/meden/rpgtracker/internal/skills"
+	"github.com/meden/rpgtracker/internal/templates/layout"
+	"github.com/meden/rpgtracker/internal/templates/partials"
+)
+
+// PresetBrowseContent renders the browse UI fragment (used for HTMX nav swaps and as inner content for full page).
+templ PresetBrowseContent(allCats []skills.Category, cats []skills.CategoryWithPresets, filter skills.PresetFilter) {
+	<div class="max-w-lg mx-auto py-4">
+		<h1 class="text-lg font-semibold text-gray-100 mb-4">Choose a Skill</h1>
+
+		<!-- Search bar -->
+		<div class="relative mb-3">
+			<input
+				type="search"
+				name="q"
+				value={ filter.Query }
+				placeholder="Search skills…"
+				class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 pl-10 text-gray-100 text-sm placeholder-gray-500 focus:outline-none focus:border-indigo-500"
+				hx-get="/skills/new"
+				hx-trigger="input changed delay:300ms"
+				hx-target="#preset-results"
+				hx-include="[name='category']"
+			/>
+			<span class="absolute left-3 top-2.5 text-gray-500 text-sm">🔍</span>
+		</div>
+
+		<!-- Category chips -->
+		<div class="flex gap-2 overflow-x-auto pb-1 mb-4 scrollbar-none">
+			<button
+				name="category"
+				value=""
+				class={
+					"flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors",
+					templ.KV("bg-indigo-700 text-indigo-100", filter.Category == ""),
+					templ.KV("bg-gray-800 text-gray-400 hover:bg-gray-700", filter.Category != ""),
+				}
+				hx-get="/skills/new"
+				hx-target="#preset-results"
+				hx-include="[name='q']"
+			>All</button>
+			for _, cat := range allCats {
+				<button
+					name="category"
+					value={ cat.Slug }
+					class={
+						"flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors",
+						templ.KV("bg-indigo-700 text-indigo-100", filter.Category == cat.Slug),
+						templ.KV("bg-gray-800 text-gray-400 hover:bg-gray-700", filter.Category != cat.Slug),
+					}
+					hx-get="/skills/new"
+					hx-target="#preset-results"
+					hx-include="[name='q']"
+				>{ cat.Emoji } { cat.Name }</button>
+			}
+		</div>
+
+		<!-- Results list (HTMX swap target) -->
+		<div id="preset-results">
+			@partials.PresetResults(cats)
+		</div>
+
+		<!-- Escape hatch -->
+		<div class="mt-6 pt-4 border-t border-gray-800 text-center">
+			<a href="/skills/new/custom" class="text-indigo-400 text-sm hover:text-indigo-300 transition-colors">
+				+ Create a custom skill instead
+			</a>
+		</div>
+	</div>
+}
+
+// PresetBrowse renders the full page (direct browser navigation).
+templ PresetBrowse(allCats []skills.Category, cats []skills.CategoryWithPresets, filter skills.PresetFilter) {
+	@layout.Shell("skills") {
+		@PresetBrowseContent(allCats, cats, filter)
+	}
+}
