@@ -12,6 +12,16 @@ import (
 	"github.com/meden/rpgtracker/internal/crypto"
 )
 
+// ErrInvalidKeyFormat is returned by SaveKey when the provided key fails format validation.
+var ErrInvalidKeyFormat = errors.New("invalid key format")
+
+// zeroBytes overwrites a byte slice with zeroes to clear sensitive data from memory.
+func zeroBytes(b []byte) {
+	for i := range b {
+		b[i] = 0
+	}
+}
+
 // KeyStatus holds the status of a user's stored Claude API key.
 type KeyStatus struct {
 	Exists      bool
@@ -23,13 +33,14 @@ type KeyStatus struct {
 // Returns an error with message "invalid key format" if the key fails format validation.
 func SaveKey(ctx context.Context, db *pgxpool.Pool, masterKey []byte, userID uuid.UUID, plaintextKey string) error {
 	if !crypto.ValidateClaudeKeyFormat(plaintextKey) {
-		return errors.New("invalid key format")
+		return ErrInvalidKeyFormat
 	}
 
 	dek, err := crypto.GenerateDEK()
 	if err != nil {
 		return err
 	}
+	defer zeroBytes(dek)
 
 	encryptedDEK, err := crypto.Encrypt(masterKey, dek)
 	if err != nil {
@@ -75,11 +86,13 @@ func GetDecryptedKey(ctx context.Context, db *pgxpool.Pool, masterKey []byte, us
 	if err != nil {
 		return "", err
 	}
+	defer zeroBytes(dek)
 
 	plaintext, err := crypto.Decrypt(dek, encKey)
 	if err != nil {
 		return "", err
 	}
+	defer zeroBytes(plaintext)
 
 	return string(plaintext), nil
 }

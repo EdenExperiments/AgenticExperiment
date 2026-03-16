@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -51,13 +52,13 @@ func (h *KeyHandler) HandlePostAPIKey(w http.ResponseWriter, r *http.Request) {
 	apiKey := r.FormValue("api_key")
 	err := keys.SaveKey(r.Context(), h.db, h.masterKey, userID, apiKey)
 	if err != nil {
-		if err.Error() == "invalid key format" {
+		if errors.Is(err, keys.ErrInvalidKeyFormat) {
 			status, statusErr := keys.GetKeyStatus(r.Context(), h.db, userID)
 			if statusErr != nil {
 				status = &keys.KeyStatus{Exists: false}
 			}
 			errMsg := "This doesn't look like a valid Claude API key."
-			if renderErr := templates.RenderPage(w, r, http.StatusOK, pages.APIKey(status, errMsg), pages.APIKeyContent(status, errMsg)); renderErr != nil {
+			if renderErr := templates.RenderPage(w, r, http.StatusUnprocessableEntity, pages.APIKey(status, errMsg), pages.APIKeyContent(status, errMsg)); renderErr != nil {
 				http.Error(w, "render error", http.StatusInternalServerError)
 			}
 			return
