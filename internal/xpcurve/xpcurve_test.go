@@ -161,3 +161,78 @@ func TestTierName(t *testing.T) {
 		}
 	}
 }
+
+func TestXPForCurrentLevel(t *testing.T) {
+	cases := []struct {
+		totalXP  int
+		expected int
+	}{
+		// Sub-threshold edge cases (XP < XPToReachLevel(1)=100): return totalXP directly.
+		{0, 0},
+		{50, 50},
+		// At exact threshold for level 1 (XPToReachLevel(1)=100): 0 progress within band.
+		{100, 0},
+		// Within level 1 band.
+		{150, 50},
+		// At exact threshold for level 10 (XPToReachLevel(10)=12500): 0 progress within band.
+		{12500, 0},
+		// Within level 10 band.
+		{13000, 500},
+		// At exact threshold for level 200/MaxLevel (XPToReachLevel(200)=24000000): 0 progress.
+		{24000000, 0},
+	}
+
+	for _, tc := range cases {
+		got := XPForCurrentLevel(tc.totalXP)
+		if got != tc.expected {
+			t.Errorf("XPForCurrentLevel(%d) = %d, want %d", tc.totalXP, got, tc.expected)
+		}
+	}
+}
+
+func TestXPToNextLevel(t *testing.T) {
+	cases := []struct {
+		totalXP  int
+		expected int
+	}{
+		// totalXP=100 → level 1; XPToReachLevel(2)=100*4=400; 400-100=300.
+		{100, 300},
+		// totalXP=12500 → level 10; XPToReachLevel(11)=125*121=15125; 15125-12500=2625.
+		{12500, 2625},
+		// At MaxLevel: always 0.
+		{24000000, 0},
+	}
+
+	for _, tc := range cases {
+		got := XPToNextLevel(tc.totalXP)
+		if got != tc.expected {
+			t.Errorf("XPToNextLevel(%d) = %d, want %d", tc.totalXP, got, tc.expected)
+		}
+	}
+}
+
+func TestTierColorClass(t *testing.T) {
+	cases := []struct {
+		level    int
+		expected string
+	}{
+		{1, "tier-novice"},
+		{10, "tier-apprentice"},
+		{20, "tier-adept"},
+		{30, "tier-journeyman"},
+		{40, "tier-practitioner"},
+		{50, "tier-expert"},
+		{60, "tier-veteran"},
+		{70, "tier-elite"},
+		{80, "tier-master"},
+		{90, "tier-grandmaster"},
+		{100, "tier-legend"},
+	}
+
+	for _, tc := range cases {
+		got := TierColorClass(tc.level)
+		if got != tc.expected {
+			t.Errorf("TierColorClass(%d) = %q, want %q", tc.level, got, tc.expected)
+		}
+	}
+}

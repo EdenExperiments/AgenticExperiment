@@ -1,3 +1,6 @@
+// Package xpcurve implements the XP progression formula for RpgTracker.
+// It is the single source of truth for level computation and is used by
+// every handler that writes or displays XP. All arithmetic is pure integer math.
 package xpcurve
 
 const MaxLevel = 200
@@ -54,7 +57,11 @@ func LevelForXP(totalXP int) int {
 
 // XPForCurrentLevel returns XP accumulated within the current level band.
 func XPForCurrentLevel(totalXP int) int {
-	return totalXP - XPToReachLevel(LevelForXP(totalXP))
+	threshold := XPToReachLevel(LevelForXP(totalXP))
+	if totalXP < threshold {
+		return totalXP
+	}
+	return totalXP - threshold
 }
 
 // XPToNextLevel returns XP remaining to reach the next level; 0 if at MaxLevel.
