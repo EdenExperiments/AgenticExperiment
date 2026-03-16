@@ -1,7 +1,6 @@
 package templates
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/a-h/templ"
@@ -13,5 +12,5 @@ import (
 func Render(w http.ResponseWriter, r *http.Request, status int, component templ.Component) error {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(status)
-	return component.Render(context.Background(), w)
+	return component.Render(r.Context(), w)
 }

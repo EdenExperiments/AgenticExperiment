@@ -1,6 +1,6 @@
 .PHONY: run build generate test db-up db-down db-reset migrate-up
 
-run:
+run: generate
 	go run ./cmd/server/...
 
 generate:
