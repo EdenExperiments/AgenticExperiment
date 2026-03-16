@@ -64,7 +64,7 @@ The planning baseline for release 1 is a `LifeQuest`-first MVP built on a shared
 - Support AI-assisted skill creation and calibration.
 - Support both quick logs and detailed natural-language logs. (deferred: post-release-1 for detailed logs; quick logs are in release 1)
 - Track XP, current level, milestone descriptions, and progress history.
-- Support blocker challenges at level gates such as 9, 19, 29, and later equivalents.
+- Support blocker challenges at level gates at every tier boundary: 9, 19, 29, 39, 49, 59, 69, 79, 89, 99 (10 gates total — one per tier transition).
 - Show blocker state clearly in the UI before completion.
 - Support reward moments for blocker completion. (deferred: post-release-1)
 - Support optional meta-skills powered by weighted child-skill relationships. (deferred: post-release-1)

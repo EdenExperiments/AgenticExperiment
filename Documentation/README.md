@@ -33,4 +33,4 @@ This folder turns the rough project brief into a maintained set of planning docu
 
 ## Current State
 
-The project is still pre-implementation. Several product decisions remain open, especially around blocker progression rules, product boundaries between the two apps, and the first release scope.
+The project has completed its full planning pass and is ready for implementation. All release-1 product decisions are confirmed (decision-log has no open questions). The complete Phase 1 and Phase 2 implementation backlog is defined in `planning-handoff.md`. All 8 release-1 features are `ready-for-build`. The delivery-agent can begin at TASK-101.

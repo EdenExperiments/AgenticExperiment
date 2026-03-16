@@ -1,6 +1,6 @@
 # UX Specification — Information Architecture, Navigation, and Core Journeys
 
-Last updated: 2026-03-15 (ux-agent: initial pass — shell IA defined, navigation model confirmed, core journeys specified for skill creation, quick XP logging, and progress display; blocker gate visibility screen defined; mobile-first expectations established; D-017 through D-022 added to decision-log)
+Last updated: 2026-03-16 (user direction: 10-tier structure applied — tier color table expanded to 11 tiers; gates updated to 9–99 (10 total); chip amounts updated to tier-scaled presets; Legend replaces Master as top tier; Grandmaster is tier 10; level picker marks all 10 tier boundaries; prior: review fix /account/password; ux-agent initial pass)
 
 ---
 
@@ -52,9 +52,10 @@ Skill deletion is handled via a destructive confirm action on the skill detail o
 ```
 /account                        — Account overview (display name, email)
   /account/api-key              — Claude API key management (add, update, delete)
+  /account/password             — Password change form (GET renders form; POST handles submission)
 ```
 
-Auth-level actions (password change, sign out) live on the account screen. They are not sub-pages — they are actions surfaced directly on the account view.
+Sign out is an action surfaced directly on the account view (no sub-route). Password change routes to `/account/password` because it requires a dedicated form with current-password confirmation — not suitable as an inline action on the account overview.
 
 ### 1.4 NutriLog Placeholder Section
 
@@ -181,7 +182,8 @@ Step 2: Starting Level
 
 Step 3: Confirm and Create
   - Summary card: skill name, description (if provided), selected starting level, tier name
-  - Blocker gates: informational display of the three default gates at levels 9, 19, 29
+  - Blocker gates: informational display of the first three default gates at levels 9, 19, 29
+    with a note "…and 7 more gates at levels 39–99" (10 gates total, one per tier)
     — Shown as a collapsed "What are Blocker Gates?" section; not mandatory reading
     — Gate descriptions at this point are the default placeholder values set by the system
     — Users cannot edit gate descriptions during creation in release 1
@@ -205,8 +207,8 @@ Step 1b: AI Calibration
   - Prompt to Claude (server-side): the skill name and description are sent to Claude
     with a prompt asking it to:
     a. Suggest a starting level with reasoning
-    b. Generate tier-appropriate milestone descriptions for gates at 9, 19, 29
-    c. Generate a mastery description for what "Master" looks like in this skill
+    b. Generate tier-appropriate milestone descriptions for gates at 9, 19, 29, 39, 49, 59, 69, 79, 89, 99
+    c. Generate a mastery description for what "Legend" looks like in this skill
   - UI during generation: the calibration step shows a loading indicator:
     "Calibrating your skill with AI..." with a spinner or skeleton
   - Response display (streamed): Claude's suggestion appears as:
@@ -269,7 +271,7 @@ The hard acceptance criterion from planning (Phase 2 exit criterion 3) is: a use
 Tap 1: Tap the `+ Log` icon on a skill card (skill list or dashboard card)
          → Opens the quick-log bottom sheet directly; no skill detail navigation
 
-Tap 2: Tap an XP amount chip (preset XP values: 50, 100, 250, 500)
+Tap 2: Tap an XP amount chip (preset XP values scale by tier; Tier 1 Novice: 50, 100, 250, 500)
          → Selects the XP amount
 
 Tap 3: Tap [Log XP] confirm button
@@ -309,9 +311,12 @@ Header: [Skill Name] — Quick Log
 Close: × (top right of sheet header)
 
 XP Amount (required):
-  [ 50 XP ]  [ 100 XP ]  [ 250 XP ]  [ 500 XP ]
+  [ X XP ]  [ X XP ]  [ X XP ]  [ X XP ]  [ Custom ]
+  — Four tier-scaled preset amounts computed by QuickLogChips(skill.current_level)
+  — Tier 1 (Novice, L1–9) example: [50] [100] [250] [500]
+  — Tier 10 (Grandmaster, L90–99) example: [225] [450] [1150] [2300]
   — Tap-selectable chip buttons; one must be selected before submitting
-  — Default selection on every open: the middle preset (100 XP)
+  — Default selection on every open: the second chip (100 XP equivalent for Tier 1)
   — Custom amount: a "Custom" chip opens a number input field inline
 
 Note (optional):
@@ -325,7 +330,7 @@ Note (optional):
 [Log XP]  ← Full-width primary button at the bottom of the sheet
 ```
 
-XP amounts visible without any interaction: 50, 100, 250, 500. A user who wants an XP amount not in this list taps "Custom" (a fifth chip) and enters a number.
+XP amounts visible without any interaction: four tier-scaled presets. A user who wants an XP amount not in this list taps "Custom" (a fifth chip) and enters a number.
 
 ### 4.3 Where the Log XP Entry Point Lives
 
@@ -429,12 +434,17 @@ XP in current level: 2,400 / 7,950 XP to level 24
 |---|---|---|---|---|
 | Novice | 1–9 | Gray-400 | Gray-100 | Starting out |
 | Apprentice | 10–19 | Blue-500 | Blue-50 | Building |
-| Journeyman | 20–29 | Green-500 | Green-50 | Developing |
-| Expert | 30–59 | Purple-600 | Purple-50 | Advanced |
-| Veteran | 60–99 | Amber-600 | Amber-50 | Elite |
-| Master | 100–200 | Gold / Yellow-500 | Yellow-50 | Exceptional |
+| Adept | 20–29 | Teal-500 | Teal-50 | Developing |
+| Journeyman | 30–39 | Green-500 | Green-50 | Consistent |
+| Practitioner | 40–49 | Lime-500 | Lime-50 | Focused |
+| Expert | 50–59 | Purple-600 | Purple-50 | Advanced |
+| Veteran | 60–69 | Fuchsia-600 | Fuchsia-50 | Skilled |
+| Elite | 70–79 | Amber-600 | Amber-50 | Elite |
+| Master | 80–89 | Orange-600 | Orange-50 | Mastering |
+| Grandmaster | 90–99 | Red-600 | Red-50 | Near-peak |
+| Legend | 100–200 | Gold / Yellow-500 | Yellow-50 | Exceptional |
 
-The Master tier uses a gold/yellow palette to visually distinguish it from all other tiers. The tier color is applied to the progress bar fill, the tier badge, and the skill card accent element.
+The color arc moves cold (gray → blue → teal → green) through neutral (lime → purple) to warm (fuchsia → amber → orange → red) and culminates in gold for Legend. Legend uses a gold/yellow palette with gradient fill to visually distinguish it from all other tiers. The tier color is applied to the progress bar fill, the tier badge, and the skill card accent element.
 
 ### 5.4 Tier Boundary Visual Affordance (XP Jump Design)
 
@@ -452,23 +462,23 @@ The known UX risk from the architecture pass: the XP gap at tier boundaries is n
    "Next tier: Apprentice. The XP cost will increase when you cross this boundary — this is intentional. Tier transitions represent a meaningful step up in mastery."
    This callout persists until the tier is crossed.
 
-3. **Tier boundary level picker marker:** In the skill creation level picker (Step 2), tier boundaries at levels 10, 20, and 30 are visually marked with a divider and label: "— Apprentice tier starts here —"
+3. **Tier boundary level picker marker:** In the skill creation level picker (Step 2), each tier boundary (levels 10, 20, 30, 40, 50, 60, 70, 80, 90) is visually marked with a thin divider and a tier label: "— Apprentice tier starts here —", etc. The picker caps at level 99 (D-018); level 100+ is not selectable.
 
-4. **Master tier aspirational treatment:** When a user is in the Veteran tier (levels 60–99), the skill detail screen shows an aspirational callout in the tier section:
-   "Master tier begins at Level 100. Only the most dedicated practitioners reach it. Keep going."
-   This callout is styled as an inspirational pull-quote, not a warning or error. It uses the Master tier gold color as an accent.
+4. **Legend tier aspirational treatment:** When a user is in the Grandmaster tier (levels 90–99), the skill detail screen shows an aspirational callout in the tier section:
+   "Legend tier begins at Level 100. Only the most dedicated practitioners ever reach it. Keep going."
+   This callout is styled as an inspirational pull-quote, not a warning or error. It uses the Legend tier gold color as an accent.
 
 5. **XP jump explainer on tier transition screen:** The tier transition overlay (item 1 above) includes a secondary note: "The next tier requires more XP per level. This reflects the reality that advanced mastery takes greater effort." Shown in small text below the tier description.
 
 ### 5.5 Master Tier Treatment
 
-Master tier (levels 100–200) receives distinct UI treatment to reinforce its elite status (D-016):
+Legend tier (levels 100–200) receives distinct UI treatment to reinforce its elite status (D-016):
 
 - The tier name badge uses gold/amber coloring, not the standard tier color for any other tier
-- The skill detail screen header for a Master-tier skill shows the tier name first, prominently: "MASTER — Level 147"
+- The skill detail screen header for a Legend-tier skill shows the tier name first, prominently: "LEGEND — Level 147"
 - The XP progress bar uses a gradient fill (gold to amber) instead of a flat color, to signal ongoing achievement within the highest tier
-- Reaching level 100 (entering Master tier) triggers the tier transition overlay with enhanced copy:
-  "You've reached Master. This is exceptional. Fewer than a fraction of practitioners ever reach this level. The journey continues — there are 100 more levels ahead."
+- Reaching level 100 (entering Legend tier) triggers the tier transition overlay with enhanced copy:
+  "You've reached Legend. This is exceptional. Fewer than a fraction of practitioners ever reach this level. The journey continues — there are 100 more levels ahead."
 - There is no "Max Level approaching" UI until level 200; at level 200, the progress bar is shown as full and a "Maximum Level Reached" indicator replaces the XP-to-next-level text
 
 ### 5.6 Skill List and Dashboard Card Design
@@ -660,7 +670,7 @@ The quick-log interaction is a bottom sheet that appears over the current screen
 
 ### D-020: Tier color system defined
 
-Each tier has a distinct color applied to XP progress bars, tier badges, and skill card accents. Master tier uses gold/amber to distinguish it as exceptional. The tier color system is defined in Section 5.3. This is a confirmed visual language decision binding for all implementation.
+Eleven tiers each have a distinct color applied to XP progress bars, tier badges, and skill card accents. Colors arc cold → warm → gold. Legend tier uses gold/amber with gradient to distinguish it as exceptional. The tier color system is defined in Section 5.3. This is a confirmed visual language decision binding for all implementation.
 
 ### D-021: Blocker gate section replaces XP bar (not appended below it)
 
@@ -707,9 +717,9 @@ The following items are not designed in this document. They are noted here so th
 - Specified the three-step skill creation flow for both manual path and AI-assisted path, including level picker interaction and AI degradation behavior
 - Defined the exact three-tap quick-log sequence and bottom sheet contents
 - Defined the skill detail screen layout with tier name, XP bar, and Log XP button
-- Defined the tier color system (D-020) across six tiers
+- Defined the tier color system (D-020) across eleven tiers (cold→warm→gold arc)
 - Defined tier boundary affordances: upcoming-tier preview callout, tier transition modal overlay, XP jump explainer
-- Defined Master tier special visual treatment (gold palette, aspirational copy, enhanced tier-transition modal)
+- Defined Legend tier special visual treatment (gold palette, aspirational copy, enhanced tier-transition modal)
 - Defined the blocker gate section layout mapping to schema fields (title, description, gate_level, current_xp, current_level capped at gate)
 - Defined the first-hit gate notification modal
 - Established mobile minimum requirements for all release-1 journeys

@@ -1,6 +1,6 @@
 Well# Architecture — Domain Model, Schema Design, and Integration Contracts
 
-Last updated: 2026-03-15 (architecture-agent: initial pass — XP curve confirmed as D-014, A-001 confirmed as D-015, full domain model defined, NutriLog boundary reserved, integration contracts established; revised 2026-03-15 — D-014 tier structure updated: Master tier now starts at level 100, Veteran tier added at levels 60–99, Expert extended to levels 30–59, MaxLevel raised to 200, D-016 added)
+Last updated: 2026-03-16 (user direction: 10-tier structure with gates at every 10 levels (9–99); tier names Novice→Apprentice→Adept→Journeyman→Practitioner→Expert→Veteran→Elite→Master→Grandmaster→Legend; multipliers updated; QuickLogChips function added; prior fix: RLS clarification; prior: architecture-agent initial pass)
 
 ---
 
@@ -61,33 +61,51 @@ Pure polynomial curves at exponent 2.5 produce very large numbers at high levels
 XP_to_reach_level(N) = base_multiplier(tier(N)) × N²
 
 Where tier(N):
-  - Levels 1–9:    base_multiplier = 100   (Tier 1: Novice)
-  - Levels 10–19:  base_multiplier = 120   (Tier 2: Apprentice)
-  - Levels 20–29:  base_multiplier = 150   (Tier 3: Journeyman)
-  - Levels 30–59:  base_multiplier = 200   (Tier 4: Expert)
-  - Levels 60–99:  base_multiplier = 260   (Tier 5: Veteran)
-  - Levels 100+:   base_multiplier = 350   (Tier 6: Master)
+  - Levels 1–9:    base_multiplier = 100   (Tier 1:  Novice)
+  - Levels 10–19:  base_multiplier = 125   (Tier 2:  Apprentice)
+  - Levels 20–29:  base_multiplier = 155   (Tier 3:  Adept)
+  - Levels 30–39:  base_multiplier = 190   (Tier 4:  Journeyman)
+  - Levels 40–49:  base_multiplier = 230   (Tier 5:  Practitioner)
+  - Levels 50–59:  base_multiplier = 275   (Tier 6:  Expert)
+  - Levels 60–69:  base_multiplier = 325   (Tier 7:  Veteran)
+  - Levels 70–79:  base_multiplier = 380   (Tier 8:  Elite)
+  - Levels 80–89:  base_multiplier = 440   (Tier 9:  Master)
+  - Levels 90–99:  base_multiplier = 510   (Tier 10: Grandmaster)
+  - Levels 100+:   base_multiplier = 600   (Tier 11: Legend)
 ```
 
 Representative thresholds under the confirmed formula:
 
-| Level | XP to reach level | XP gap from previous level | Tier        |
-|-------|-------------------|---------------------------|-------------|
-| 1     | 100               | 100                       | Novice      |
-| 5     | 2 500             | 900                       | Novice      |
-| 9     | 8 100             | 1 700                     | Novice      |
-| 10    | 12 000            | 3 900 (tier jump)         | Apprentice  |
-| 20    | 60 000            | 16 680 (tier jump)        | Journeyman  |
-| 29    | 126 150           | 8 700                     | Journeyman  |
-| 30    | 180 000           | 53 850 (tier jump)        | Expert      |
-| 60    | 936 000           | 239 800 (tier jump)       | Veteran     |
-| 100   | 3 500 000         | 951 740 (tier jump)       | Master      |
-| 150   | 7 875 000         | 787 500                   | Master      |
-| 200   | 14 000 000        | 1 400 000                 | Master      |
+| Level | XP to reach level | XP gap from previous level | Tier         |
+|-------|-------------------|---------------------------|--------------|
+| 1     | 100               | 100                       | Novice       |
+| 5     | 2 500             | 900                       | Novice       |
+| 9     | 8 100             | 1 700                     | Novice (gate)|
+| 10    | 12 500            | 4 400 (tier jump)         | Apprentice   |
+| 19    | 45 125            | 4 625                     | Apprentice (gate)|
+| 20    | 62 000            | 16 875 (tier jump)        | Adept        |
+| 29    | 130 355           | 8 835                     | Adept (gate) |
+| 30    | 171 000           | 40 645 (tier jump)        | Journeyman   |
+| 39    | 288 990           | 14 630                    | Journeyman (gate)|
+| 40    | 368 000           | 79 010 (tier jump)        | Practitioner |
+| 49    | 552 230           | 22 310                    | Practitioner (gate)|
+| 50    | 687 500           | 135 270 (tier jump)       | Expert       |
+| 59    | 957 275           | 32 175                    | Expert (gate)|
+| 60    | 1 170 000         | 212 725 (tier jump)       | Veteran      |
+| 69    | 1 547 325         | 44 525                    | Veteran (gate)|
+| 70    | 1 862 000         | 314 675 (tier jump)       | Elite        |
+| 79    | 2 371 580         | 59 660                    | Elite (gate) |
+| 80    | 2 816 000         | 444 420 (tier jump)       | Master       |
+| 89    | 3 485 240         | 77 880                    | Master (gate)|
+| 90    | 4 131 000         | 645 760 (tier jump)       | Grandmaster  |
+| 99    | 4 998 510         | 100 470                   | Grandmaster (gate)|
+| 100   | 6 000 000         | 1 001 490 (tier jump)     | Legend       |
+| 150   | 13 500 000        | 750 000                   | Legend       |
+| 200   | 24 000 000        | 1 500 000                 | Legend       |
 
 Tier transition jumps are intentional. They represent milestone gates and correspond to the blocker gate levels (9, 19, 29) defined in the product requirements. The blocker gates gate these tier transitions, so a user cannot advance from Novice to Apprentice without completing the level-9 blocker challenge. The Expert→Veteran jump at level 60 and the Veteran→Master jump at level 100 are the largest in the system and reflect the intentional design that Master is an elite long-term achievement.
 
-**Known UX risk — tier-boundary XP jump:** The XP gap at tier boundaries is noticeably larger than the gaps within a tier. The most significant jumps occur at levels 10, 20, 30, 60, and 100. The jump into Master tier at level 100 (~951,740 XP above level 99) is by far the largest in the system and is intentional — Master is meant to represent years of consistent daily use, not a reachable short-term goal. The ux-agent should design visual affordances — for example, tier name displays, upcoming tier previews, and contextual callouts when a user enters the Veteran tier — so users understand these jumps are intentional and tied to the tier progression model. The Master tier threshold in particular should be presented to users as an aspirational milestone rather than a near-term target.
+**Known UX risk — tier-boundary XP jump:** The XP gap at tier boundaries is noticeably larger than the gaps within a tier. Every decade transition (level 10, 20, 30, ..., 100) has a tier-jump gap driven both by the new tier multiplier and the level² quadratic. The jump into Legend tier at level 100 (~1,001,490 XP above level 99) is by far the largest and is intentional — Legend is meant to represent years of consistent daily use. The ux-agent should design visual affordances — tier name displays, upcoming-tier previews, tier transition modals — so users understand these jumps are intentional and tied to the tier progression model. The Legend tier threshold in particular should be presented as an aspirational milestone. Note that every gate (levels 9, 19, 29, ..., 99) sits just before a tier jump, so completing a blocker gate is both a progression requirement and the gating moment before the largest XP gap ahead.
 
 **This recommendation is confirmed as decision D-014.** D-013 is considered resolved by this entry. See decision-log.md.
 
@@ -317,7 +335,7 @@ CREATE INDEX idx_blocker_gates_skill_id ON public.blocker_gates(skill_id);
 - `is_cleared` / `cleared_at`: both false/null in release 1 for all gates. Schema includes them so Phase 3 (blocker completion flow, F-009b) requires no migration.
 - `first_notified_at`: NULL until the first-hit gate notification modal has been shown. The Go XP log handler checks `first_notified_at IS NULL` when a gate threshold is first reached, returns the full-screen notification fragment, and sets this column to `NOW()` in the same transaction. Subsequent log events for the same gate find a non-null value and return the standard toast. This avoids any client-side or session-based tracking for the one-time notification. See ux-spec.md Section 6.3.
 
-**Default gate levels per product requirements:** 9, 19, 29 (and equivalents at higher tier transitions). These are created as rows in `blocker_gates` when a skill is created. The gate description is populated by the user or AI-suggested during skill creation.
+**Default gate levels per product requirements:** 9, 19, 29, 39, 49, 59, 69, 79, 89, 99 — one gate per tier transition, 10 gates total. These are created as rows in `blocker_gates` when a skill is created. The gate description is populated by the user or AI-suggested during skill creation.
 
 **Non-AI creation defaults:** When a skill is created without AI calibration (or when AI calibration is skipped/unavailable), the delivery-agent must insert gate rows with standard placeholder values: `title = "Level {gate_level} Gate"` and `description = "Reach this level to unlock the next stage of your skill journey."` (where `{gate_level}` is substituted with the actual gate level number, e.g. 9, 19, 29). These values can be overridden by AI calibration output if the user opts in to AI assistance.
 
@@ -344,19 +362,60 @@ The XP curve (D-014) is implemented as a pure function in Go. No table is needed
 func TierMultiplier(level int) int {
     switch {
     case level < 10:
-        return 100
+        return 100  // Tier 1:  Novice
     case level < 20:
-        return 120
+        return 125  // Tier 2:  Apprentice
     case level < 30:
-        return 150
+        return 155  // Tier 3:  Adept
+    case level < 40:
+        return 190  // Tier 4:  Journeyman
+    case level < 50:
+        return 230  // Tier 5:  Practitioner
     case level < 60:
-        return 200
+        return 275  // Tier 6:  Expert
+    case level < 70:
+        return 325  // Tier 7:  Veteran
+    case level < 80:
+        return 380  // Tier 8:  Elite
+    case level < 90:
+        return 440  // Tier 9:  Master
     case level < 100:
-        return 260
+        return 510  // Tier 10: Grandmaster
     default:
-        return 350
+        return 600  // Tier 11: Legend
     }
 }
+
+// TierNumber returns the 1-based tier number for a given level (1 = Novice … 11 = Legend).
+func TierNumber(level int) int {
+    if level >= 100 {
+        return 11
+    }
+    return level/10 + 1
+}
+
+// QuickLogChips returns the four preset XP chip amounts for the given level.
+// Base amounts [50, 100, 250, 500] scale by 40% per tier, rounded to the
+// nearest 25 XP for UI cleanliness.
+// Chip growth (~4.6× from Tier 1 to Tier 10) is intentionally slower than
+// XP cost growth (quadratic + tier multiplier), so progress slows at higher tiers.
+func QuickLogChips(level int) [4]int {
+    tier := TierNumber(level)
+    scale := 1.0 + 0.4*float64(tier-1)
+    base := [4]int{50, 100, 250, 500}
+    var result [4]int
+    for i, b := range base {
+        raw := float64(b) * scale
+        result[i] = int(math.Round(raw/25)) * 25
+    }
+    return result
+}
+// Representative chip amounts by tier:
+//   Tier 1  (Novice,       L1–9):   [50,  100,  250,  500]
+//   Tier 2  (Apprentice,  L10–19):  [75,  150,  350,  700]
+//   Tier 5  (Practitioner,L40–49):  [125, 250,  650, 1300]
+//   Tier 10 (Grandmaster, L90–99):  [225, 450, 1150, 2300]
+//   Tier 11 (Legend,      L100+):   [250, 500, 1250, 2500]
 
 // XPToReachLevel returns the cumulative XP required to reach a given level.
 func XPToReachLevel(level int) int {
@@ -510,6 +569,7 @@ This trigger fires after every `INSERT` on `auth.users` and inserts the correspo
 - All queries use parameterized statements; no string concatenation in SQL.
 - The application connects with the `service_role` key only in the Go process (server-side); the `anon` key is never used server-side.
 - RLS is enabled on all user-data tables. The Go application connects as the `service_role` but explicitly passes `user_id` via application logic, not via Supabase's RLS auto-injection (which relies on JWT context in direct client connections). RLS is a defence-in-depth layer, not the primary authorisation mechanism in the Go server path.
+- **Release 1 access control approach:** Primary access control in release 1 is enforced exclusively by application-layer `WHERE user_id = $userID` clauses in every query handler. The Go `service_role` connection does not set the `app.current_user_id` PostgreSQL session variable before queries, so the RLS policies that reference `current_setting('app.current_user_id', TRUE)` are **aspirational scaffolding** in release 1 — they are present in migration files to model the intended long-term access pattern and to support future direct-client or self-hosted scenarios, but they are not the active enforcement mechanism in the release 1 Go server path. The delivery-agent must not rely on these RLS policies for security; all queries must include `WHERE user_id = $userID` where applicable.
 
 **Connection string management:**
 - Database URL is loaded from environment at startup.
@@ -659,9 +719,9 @@ If the level-cap logic is implemented only in the UI layer (template), a client 
 
 The following confirmed decisions are added to decision-log.md:
 
-- **D-014**: XP curve shape confirmed as quadratic with tier-based base multipliers. (Resolves D-013.) Revised 2026-03-15: tier structure updated — Master now starts at level 100, Veteran tier added at levels 60–99, Expert extended to levels 30–59, MaxLevel raised to 200.
+- **D-014**: XP curve shape confirmed as quadratic with tier-based base multipliers. (Resolves D-013.) Revised 2026-03-16: full 10-tier structure with blocker gates at every 10 levels (9, 19, …, 99). Tier 1 Novice through Tier 10 Grandmaster each span 10 levels; Tier 11 Legend covers 100–200. Quick-log XP chips scale by tier. MaxLevel remains 200.
 - **D-015**: Claude API key encryption confirmed as AES-256-GCM Go-layer envelope encryption with a production secrets-manager requirement for the master key. (Supersedes A-001.)
-- **D-016**: Master tier starts at level 100. Reaching Master requires years of consistent daily use and is intended as an elite aspirational milestone. MaxLevel is set to 200.
+- **D-016**: Revised 2026-03-16 — Legend tier starts at level 100 (previously "Master" at 100 is now renamed Legend). Master tier is levels 80–89; Grandmaster is levels 90–99. MaxLevel is 200. A potential final status at level 200 (MaxLevel) is noted as a future decision.
 
 ---
 

@@ -23,7 +23,7 @@ These decisions are the locked planning baseline for release 1. Nothing below ma
 - XP accrues behind blocker gates; gate level advancement remains locked until blocker completion (D-007). Gate completion flow is deferred; release 1 ships gate visibility and locked progression state only (D-010).
 - AI skill calibration is optional; manual starting-level selection is always available (D-011).
 - Auth is email/password only for release 1; social auth is deferred (D-012).
-- XP curve is non-linear with increasing cost per level; confirmed as D-014 (quadratic with tier multipliers).
+- XP curve is non-linear with increasing cost per level; confirmed as D-014 (quadratic with tier multipliers, 10 tiers + Legend, gates at every tier boundary 9–99).
 - User Claude API keys are encrypted using AES-256-GCM envelope encryption at the Go app layer; confirmed as D-015.
 - Decision log has no remaining open questions.
 
@@ -346,13 +346,18 @@ What it builds:
   - Tailwind CSS integrated:
       Development: Tailwind Play CDN via script tag in base.templ
       Production: Tailwind CLI build step producing static/css/app.css
-  - Base CSS variables for tier colors (D-020):
-      --color-tier-novice:      gray-400 (#9ca3af)
-      --color-tier-apprentice:  blue-500 (#3b82f6)
-      --color-tier-journeyman:  green-500 (#22c55e)
-      --color-tier-expert:      purple-600 (#9333ea)
-      --color-tier-veteran:     amber-600 (#d97706)
-      --color-tier-master:      yellow-500 (#eab308)
+  - Base CSS variables for tier colors (D-020, 11-tier cold→warm→gold arc):
+      --color-tier-novice:        gray-400    (#9ca3af)
+      --color-tier-apprentice:    blue-500    (#3b82f6)
+      --color-tier-adept:         teal-500    (#14b8a6)
+      --color-tier-journeyman:    green-500   (#22c55e)
+      --color-tier-practitioner:  lime-500    (#84cc16)
+      --color-tier-expert:        purple-600  (#9333ea)
+      --color-tier-veteran:       fuchsia-600 (#c026d3)
+      --color-tier-elite:         amber-600   (#d97706)
+      --color-tier-master:        orange-600  (#ea580c)
+      --color-tier-grandmaster:   red-600     (#dc2626)
+      --color-tier-legend:        yellow-500  (#eab308)  /* gradient fill */
   - Tailwind config (tailwind.config.js) with content paths set to scan
     all .templ files
   - Responsive breakpoints confirmed:
@@ -904,33 +909,51 @@ What it builds:
     Exactly as specified in architecture.md Section 2:
     - TierMultiplier(level int) int
         < 10:  100 (Novice)
-        < 20:  120 (Apprentice)
-        < 30:  150 (Journeyman)
-        < 60:  200 (Expert)
-        < 100: 260 (Veteran)
-        default: 350 (Master)
+        < 20:  125 (Apprentice)
+        < 30:  155 (Adept)
+        < 40:  190 (Journeyman)
+        < 50:  230 (Practitioner)
+        < 60:  275 (Expert)
+        < 70:  325 (Veteran)
+        < 80:  380 (Elite)
+        < 90:  440 (Master)
+        < 100: 510 (Grandmaster)
+        default: 600 (Legend)
+    - TierNumber(level int) int
+        Returns 1-based tier number: level/10+1 capped at 11
+    - QuickLogChips(level int) [4]int
+        Base [50,100,250,500] × (1 + 0.4*(TierNumber(level)-1)), rounded to nearest 25
+        See architecture.md section 2 for full code and representative chip values
     - XPToReachLevel(level int) int
         Returns TierMultiplier(level) * level * level
     - MaxLevel = 200
     - LevelForXP(totalXP int) int
         Iterates from 1 to MaxLevel; returns highest level whose threshold <= totalXP
     - TierName(level int) string
-        Returns: "Novice", "Apprentice", "Journeyman", "Expert", "Veteran", "Master"
+        Returns: "Novice", "Apprentice", "Adept", "Journeyman", "Practitioner",
+                 "Expert", "Veteran", "Elite", "Master", "Grandmaster", "Legend"
     - TierColorClass(level int) string
         Returns a Tailwind color class token for the tier (used by templates):
-        Novice: "tier-novice", Apprentice: "tier-apprentice", etc.
+        Novice: "tier-novice", Apprentice: "tier-apprentice", Adept: "tier-adept",
+        Journeyman: "tier-journeyman", Practitioner: "tier-practitioner",
+        Expert: "tier-expert", Veteran: "tier-veteran", Elite: "tier-elite",
+        Master: "tier-master", Grandmaster: "tier-grandmaster", Legend: "tier-legend"
         (Actual CSS class names match the custom classes defined in TASK-103)
 
   internal/xpcurve/xpcurve_test.go:
     - TestLevelForXP: asserts exact levels for XP thresholds from architecture.md
-        XP=100 → Level 1, XP=12000 → Level 10, XP=60000 → Level 20,
-        XP=180000 → Level 30, XP=936000 → Level 60, XP=3500000 → Level 100
-        XP=14000000 → Level 200, XP=99999999 → Level 200 (MaxLevel cap)
+        XP=100 → Level 1, XP=12500 → Level 10, XP=62000 → Level 20,
+        XP=171000 → Level 30, XP=368000 → Level 40, XP=687500 → Level 50,
+        XP=1170000 → Level 60, XP=1862000 → Level 70, XP=2816000 → Level 80,
+        XP=4131000 → Level 90, XP=6000000 → Level 100,
+        XP=24000000 → Level 200, XP=99999999 → Level 200 (MaxLevel cap)
     - TestXPToReachLevel: spot-checks the representative threshold table
-    - TestTierMultiplier: all six tier boundaries
+    - TestTierMultiplier: all eleven tier boundaries
+    - TestTierNumber: spot-checks tier number for representative levels
+    - TestQuickLogChips: Tier 1 returns [50,100,250,500]; Tier 11 returns [250,500,1250,2500]
     - TestLevelForXP_NoInfiniteLoop: calls LevelForXP(MaxInt) and asserts it
         returns MaxLevel without hanging
-    - TestTierName: all six tiers return correct string
+    - TestTierName: all eleven tiers return correct string
     - All tests must pass: go test ./internal/xpcurve/...
 
   Also defines:
@@ -1074,10 +1097,10 @@ What it builds:
     (*Skill, error)
     Inserts into skills; sets current_level = startingLevel;
     sets current_xp = XPToReachLevel(startingLevel)  [so XP reflects starting point]
-    Also inserts three default blocker_gates rows at levels 9, 19, 29 with
-    title = "Level {N} Gate" and description = "Reach this level to unlock
-    the next stage of your skill journey." (architecture.md non-AI defaults)
-    All four inserts in one transaction.
+    Also inserts ten default blocker_gates rows at levels 9, 19, 29, 39, 49,
+    59, 69, 79, 89, 99 with title = "Level {N} Gate" and description =
+    "Reach this level to unlock the next stage of your skill journey."
+    (architecture.md non-AI defaults). All eleven inserts in one transaction.
   - GetSkill(ctx, userID UUID, skillID UUID) (*Skill, error)
     Loads skill + active blocker gates; verifies user ownership
   - ListSkills(ctx, userID UUID) ([]*Skill, error)
@@ -1200,7 +1223,8 @@ What it builds:
 
   Step 3: Confirm and Create
     - Summary card: name, description, starting level, tier name
-    - Collapsed "What are Blocker Gates?" section showing default gates at 9, 19, 29
+    - Collapsed "What are Blocker Gates?" section showing the first three default gates
+      at levels 9, 19, 29 with a note "…and 7 more gates at levels 39–99"
     - [Create Skill] primary button (full-width, bottom of viewport)
     - [Back] link (top-left, secondary)
     - Step indicator: "Step 3 of 3"
@@ -1319,8 +1343,10 @@ What it builds:
   internal/templates/partials/quick_log_sheet.templ:
     Bottom sheet (mobile) / modal dialog (desktop) per ux-spec.md Section 4.2:
     - Header: "[Skill Name] — Quick Log"
-    - XP chip buttons: [50 XP] [100 XP] [250 XP] [500 XP] [Custom]
-      Default selection on every open: 100 XP chip (D-019)
+    - XP chip buttons: four tier-scaled preset amounts + [Custom]
+      Amounts are computed by QuickLogChips(skill.current_level) from the xpcurve package.
+      Tier 1 (Novice, L1–9): [50 XP] [100 XP] [250 XP] [500 XP]
+      Default selection on every open: second chip (100 XP equivalent) (D-019)
       Chips are ≥ 44×44px touch targets
     - Optional note field (visible, marked "(optional)", single-line)
     - [Log XP] submit button: full-width, ≥ 48px tall, at bottom of sheet
@@ -1711,12 +1737,12 @@ What it builds:
     - Verify current_level in DB matches effective level shown
 
   EC-5: Non-linear XP curve is applied correctly
-    - Create skill at level 1; log enough XP to reach level 10 (need 12,000 total)
+    - Create skill at level 1; log enough XP to reach level 10 (need 12,500 total — XPToReachLevel(10)=125×100)
     - Verify tier name changes from "Novice" to "Apprentice"
     - Verify tier transition modal appears at level 10 crossing
 
   EC-6: Blocker gate shows when reached
-    - Create skill at level 8; log 3,900 XP (reaches level 9 gate)
+    - Create skill at level 8; log 1,700 XP (reaches level 9 gate — XPToReachLevel(9)=8,100 minus XPToReachLevel(8)=6,400 = 1,700 needed)
     - First-hit gate modal appears; dismiss it
     - Skill detail shows gate section instead of XP bar
     - Gate section shows title, description, current_xp, gate_level
