@@ -74,15 +74,29 @@ func TestDecryptWrongKeyFails(t *testing.T) {
 	}
 }
 
-// TestDecryptTruncatedFails verifies that a ciphertext shorter than nonceSize
-// returns an error without panicking.
+// TestDecryptTruncatedFails verifies that a ciphertext shorter than
+// nonceSize + gcm.Overhead() (28 bytes) returns an error without panicking.
+// Two cases are tested: below the nonce threshold (8 bytes) and in the
+// nonce-present-but-body-too-short range (20 bytes, which the old guard would
+// have passed but the current guard correctly rejects).
 func TestDecryptTruncatedFails(t *testing.T) {
 	key := makeKey(0x03)
-	short := []byte("tooshort") // 8 bytes < nonceSize (12)
 
-	_, err := Decrypt(key, short)
-	if err == nil {
-		t.Error("Decrypt on truncated ciphertext should have returned an error, but did not")
+	cases := []struct {
+		name  string
+		input []byte
+	}{
+		{"below_nonce_size", []byte("tooshort")},          // 8 bytes < 12
+		{"between_nonce_and_min", make([]byte, 20)},       // 20 bytes: nonce ok, body too short for GCM tag
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := Decrypt(key, tc.input)
+			if err == nil {
+				t.Errorf("Decrypt(%d-byte input) should have returned an error, but did not", len(tc.input))
+			}
+		})
 	}
 }
 
