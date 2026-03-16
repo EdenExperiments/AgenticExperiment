@@ -8,7 +8,7 @@ import (
 
 // PresetBrowseContent renders the browse UI fragment (used for HTMX nav swaps and as inner content for full page).
 templ PresetBrowseContent(allCats []skills.Category, cats []skills.CategoryWithPresets, filter skills.PresetFilter) {
-	<div class="max-w-lg mx-auto py-4">
+	<div class="max-w-lg mx-auto py-4 px-4">
 		<h1 class="text-lg font-semibold text-gray-100 mb-4">Choose a Skill</h1>
 
 		<!-- Search bar -->
@@ -33,7 +33,7 @@ templ PresetBrowseContent(allCats []skills.Category, cats []skills.CategoryWithP
 				name="category"
 				value=""
 				class={
-					"flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors",
+					"flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[44px] flex items-center",
 					templ.KV("bg-indigo-700 text-indigo-100", filter.Category == ""),
 					templ.KV("bg-gray-800 text-gray-400 hover:bg-gray-700", filter.Category != ""),
 				}
@@ -46,7 +46,7 @@ templ PresetBrowseContent(allCats []skills.Category, cats []skills.CategoryWithP
 					name="category"
 					value={ cat.Slug }
 					class={
-						"flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors",
+						"flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[44px] flex items-center",
 						templ.KV("bg-indigo-700 text-indigo-100", filter.Category == cat.Slug),
 						templ.KV("bg-gray-800 text-gray-400 hover:bg-gray-700", filter.Category != cat.Slug),
 					}

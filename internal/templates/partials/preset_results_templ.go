@@ -84,7 +84,7 @@ func PresetResults(cats []skills.CategoryWithPresets) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" class=\"flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 mb-1 hover:bg-gray-700 transition-colors\"><div><div class=\"text-gray-100 text-sm font-medium\">")
+					templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "\" class=\"flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 mb-1 hover:bg-gray-700 transition-colors min-h-[44px]\"><div><div class=\"text-gray-100 text-sm font-medium\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}

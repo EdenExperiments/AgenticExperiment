@@ -36,7 +36,7 @@ func PresetBrowseContent(allCats []skills.Category, cats []skills.CategoryWithPr
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-lg mx-auto py-4\"><h1 class=\"text-lg font-semibold text-gray-100 mb-4\">Choose a Skill</h1><!-- Search bar --><div class=\"relative mb-3\"><input type=\"search\" name=\"q\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-lg mx-auto py-4 px-4\"><h1 class=\"text-lg font-semibold text-gray-100 mb-4\">Choose a Skill</h1><!-- Search bar --><div class=\"relative mb-3\"><input type=\"search\" name=\"q\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -53,7 +53,7 @@ func PresetBrowseContent(allCats []skills.Category, cats []skills.CategoryWithPr
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var3 = []any{"flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors",
+		var templ_7745c5c3_Var3 = []any{"flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[44px] flex items-center",
 			templ.KV("bg-indigo-700 text-indigo-100", filter.Category == ""),
 			templ.KV("bg-gray-800 text-gray-400 hover:bg-gray-700", filter.Category != ""),
 		}
@@ -79,7 +79,7 @@ func PresetBrowseContent(allCats []skills.Category, cats []skills.CategoryWithPr
 			return templ_7745c5c3_Err
 		}
 		for _, cat := range allCats {
-			var templ_7745c5c3_Var5 = []any{"flex-shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors",
+			var templ_7745c5c3_Var5 = []any{"flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[44px] flex items-center",
 				templ.KV("bg-indigo-700 text-indigo-100", filter.Category == cat.Slug),
 				templ.KV("bg-gray-800 text-gray-400 hover:bg-gray-700", filter.Category != cat.Slug),
 			}

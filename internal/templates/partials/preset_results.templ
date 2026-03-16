@@ -16,7 +16,7 @@ templ PresetResults(cats []skills.CategoryWithPresets) {
 				for _, p := range cat.Presets {
 					<a
 						href={ templ.URL("/skills/new/from-preset/" + p.ID.String()) }
-						class="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 mb-1 hover:bg-gray-700 transition-colors"
+						class="flex items-center justify-between bg-gray-800 rounded-lg px-4 py-3 mb-1 hover:bg-gray-700 transition-colors min-h-[44px]"
 					>
 						<div>
 							<div class="text-gray-100 text-sm font-medium">{ p.Name }</div>
