@@ -127,6 +127,10 @@ func (c *jwksCache) fetch() error {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("fetch JWKS: unexpected status %d", resp.StatusCode)
+	}
+
 	var jwks struct {
 		Keys []struct {
 			Kid string `json:"kid"`

@@ -279,3 +279,30 @@ func TestJWTMiddleware_UnknownKidRefetchStillMissing(t *testing.T) {
 		t.Errorf("status = %d, want 401", w.Code)
 	}
 }
+
+func TestJWTMiddleware_WrongIssuer(t *testing.T) {
+	key := generateTestKey(t)
+	kid := "test-key-issuer"
+	testIssuer := "https://test.supabase.co/auth/v1"
+	cache := makeTestCache(t, kid, key, testIssuer)
+
+	// Token signed with correct key but wrong issuer
+	tokenStr := signTestJWT(t, key, kid, jwt.MapClaims{
+		"sub": "550e8400-e29b-41d4-a716-446655440005",
+		"exp": time.Now().Add(time.Hour).Unix(),
+		"iat": time.Now().Unix(),
+		"iss": "https://attacker.supabase.co/auth/v1", // wrong issuer
+	})
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	req.Header.Set("Authorization", "Bearer "+tokenStr)
+	w := httptest.NewRecorder()
+
+	cache.middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Error("next handler should not be called with wrong issuer")
+	})).ServeHTTP(w, req)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Errorf("status = %d, want 401", w.Code)
+	}
+}
