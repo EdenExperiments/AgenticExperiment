@@ -48,6 +48,16 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 
 		skillHandler := handlers.NewSkillHandler(db)
 		r.Post("/skills", skillHandler.HandlePostSkill)
+		r.Get("/skills", skillHandler.HandleGetSkills)
+		r.Get("/skills/{id}", skillHandler.HandleGetSkill)
+		r.Put("/skills/{id}", skillHandler.HandlePutSkill)
+		r.Delete("/skills/{id}", skillHandler.HandleDeleteSkill)
+
+		xpHandler := handlers.NewXPHandler(db)
+		r.Post("/skills/{id}/xp", xpHandler.HandlePostXP)
+
+		calibrateHandler := handlers.NewCalibrateHandler(db, []byte(cfg.MasterKey))
+		r.Post("/calibrate", calibrateHandler.HandlePostCalibrate)
 
 		userHandler := handlers.NewUserHandler(db)
 		r.Get("/account", userHandler.HandleGetAccount)

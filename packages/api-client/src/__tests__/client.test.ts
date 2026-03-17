@@ -9,7 +9,7 @@ beforeEach(() => {
 })
 
 describe('createSkill', () => {
-  it('POST to /api/skills with correct body and returns skill', async () => {
+  it('POST to /api/v1/skills with correct body and returns skill', async () => {
     const skill = { id: 'abc', name: 'Piano', unit: 'session', current_xp: 0, current_level: 1 }
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -18,7 +18,7 @@ describe('createSkill', () => {
 
     const result = await createSkill({ name: 'Piano', unit: 'session' })
 
-    expect(mockFetch).toHaveBeenCalledWith('/api/skills', expect.objectContaining({
+    expect(mockFetch).toHaveBeenCalledWith('/api/v1/skills', expect.objectContaining({
       method: 'POST',
     }))
     expect(result).toEqual(skill)
