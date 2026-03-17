@@ -38,11 +38,6 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		api.RespondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 	})
 
-	r.Get("/login", authHandler.HandleGetLogin)
-	r.Post("/login", authHandler.HandlePostLogin)
-	r.Get("/register", authHandler.HandleGetRegister)
-	r.Post("/register", authHandler.HandlePostRegister)
-
 	// Protected API routes
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Use(sessionMiddleware)

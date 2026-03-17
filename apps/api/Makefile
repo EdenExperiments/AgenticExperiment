@@ -3,15 +3,12 @@ include .env
 export
 endif
 
-.PHONY: run build generate test build-css db-up db-down db-reset migrate-up migrate-down migrate-status
+.PHONY: run build test build-css db-up db-down db-reset migrate-up migrate-down migrate-status
 
-run: generate
+run:
 	go run ./cmd/server/...
 
-generate:
-	templ generate ./...
-
-build: generate
+build:
 	go build -o bin/server ./cmd/server/...
 
 test:
