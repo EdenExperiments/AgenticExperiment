@@ -136,6 +136,8 @@ func LogXP(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, xpD
 }
 
 // GetRecentLogs returns the last N xp_events for a skill (most recent first).
+// The caller is responsible for verifying that the skill belongs to the
+// authenticated user before calling this function.
 func GetRecentLogs(ctx context.Context, db *pgxpool.Pool, skillID uuid.UUID, limit int) ([]XPEvent, error) {
 	if limit <= 0 {
 		limit = 10
@@ -148,7 +150,7 @@ func GetRecentLogs(ctx context.Context, db *pgxpool.Pool, skillID uuid.UUID, lim
 		LIMIT $2
 	`, skillID, limit)
 	if err != nil {
-		return nil, fmt.Errorf("logxp: recent logs: %w", err)
+		return nil, fmt.Errorf("getrecentlogs: %w", err)
 	}
 	defer rows.Close()
 

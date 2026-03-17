@@ -71,3 +71,13 @@ func TestLogXP_RejectsNegativeDelta(t *testing.T) {
 		t.Fatal("expected error for negative xp_delta, got nil")
 	}
 }
+
+func TestLogXP_RejectsZeroDelta(t *testing.T) {
+	db := testDB(t)
+	skill, _ := skills.CreateSkill(context.Background(), db, seedUserID,
+		"Zero Delta", "", "session", nil, 1, [10]string{})
+	_, err := skills.LogXP(context.Background(), db, seedUserID, skill.ID, 0, "")
+	if err == nil {
+		t.Fatal("expected error for zero xp_delta, got nil")
+	}
+}
