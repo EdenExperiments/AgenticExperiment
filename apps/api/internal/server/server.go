@@ -81,6 +81,11 @@ func (s *Server) Start() error {
 	return nil
 }
 
+// ServeHTTP allows Server to be used as an http.Handler in tests.
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.httpServer.Handler.ServeHTTP(w, r)
+}
+
 // panicRecoveryMiddleware recovers from panics, logs them, and returns a
 // plain JSON 500 error response.
 func panicRecoveryMiddleware(next http.Handler) http.Handler {
