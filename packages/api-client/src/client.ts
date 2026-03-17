@@ -43,7 +43,8 @@ export function getAPIKeyStatus(): Promise<APIKeyStatus> {
 export function saveAPIKey(key: string): Promise<void> {
   return request('/api/account/api-key', {
     method: 'PUT',
-    body: JSON.stringify({ api_key: key }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ api_key: key }).toString(),
   })
 }
 
