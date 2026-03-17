@@ -85,16 +85,22 @@ type httpClaudeCaller struct {
 }
 
 func (c *httpClaudeCaller) Call(ctx context.Context, apiKey, prompt string) (*CalibrateResponse, int, error) {
-	body, _ := json.Marshal(map[string]any{
+	body, err := json.Marshal(map[string]any{
 		"model":      "claude-haiku-4-5-20251001",
 		"max_tokens": 1024,
 		"messages": []map[string]string{
 			{"role": "user", "content": prompt},
 		},
 	})
+	if err != nil {
+		return nil, 0, fmt.Errorf("callclaude: marshal: %w", err)
+	}
 
-	req, _ := http.NewRequestWithContext(ctx, http.MethodPost,
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
 		"https://api.anthropic.com/v1/messages", bytes.NewReader(body))
+	if err != nil {
+		return nil, 0, fmt.Errorf("callclaude: new request: %w", err)
+	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("x-api-key", apiKey)
 	req.Header.Set("anthropic-version", "2023-06-01")
