@@ -36,7 +36,9 @@ func TestRespondError(t *testing.T) {
 		t.Fatalf("expected 400, got %d", w.Code)
 	}
 	var body map[string]string
-	json.NewDecoder(w.Body).Decode(&body)
+	if err := json.NewDecoder(w.Body).Decode(&body); err != nil {
+		t.Fatal(err)
+	}
 	if body["error"] != "bad input" {
 		t.Fatalf("unexpected body: %v", body)
 	}

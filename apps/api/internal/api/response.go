@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -10,8 +11,8 @@ func RespondJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(data); err != nil {
-		// At this point headers are sent; log only.
-		_ = err
+		// Headers already sent; cannot change status. Log for observability.
+		log.Printf("RespondJSON: encode error: %v", err)
 	}
 }
 
