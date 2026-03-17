@@ -35,7 +35,7 @@ func NewSkillHandlerWithStore(s SkillStore) *SkillHandler {
 type dbSkillStore struct{ db *pgxpool.Pool }
 
 func (s *dbSkillStore) CreateSkill(ctx context.Context, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID) (*skills.Skill, error) {
-	return skills.CreateSkill(ctx, s.db, userID, name, description, unit, presetID)
+	return skills.CreateSkill(ctx, s.db, userID, name, description, unit, presetID, 1, [10]string{})
 }
 
 // HandlePostSkill processes POST /api/v1/skills.
