@@ -36,34 +36,88 @@ templ PresetBrowseContent(allCats []skills.Category, cats []skills.CategoryWithP
 			>✕</button>
 		</div>
 
-		<!-- Category chips: scrollbar hidden cross-browser via Tailwind arbitrary variants (no plugin needed) -->
-		<div class="flex gap-2 overflow-x-auto pb-1 mb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-			<button
-				name="category"
-				value=""
-				class={
-					"flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[44px] flex items-center",
-					templ.KV("bg-indigo-700 text-indigo-100", filter.Category == ""),
-					templ.KV("bg-gray-800 text-gray-400 hover:bg-gray-700", filter.Category != ""),
+		<!--
+			Category chips: scrollbar hidden on all sizes; desktop gets fade+arrow affordance instead.
+			Alpine scope tracks atStart/atEnd to show/hide arrows and gradients.
+			@scroll.passive lets the browser continue scrolling without waiting for the JS handler (60fps).
+			pointer-events-none on fade overlays keeps chips clickable through the gradient.
+		-->
+		<div
+			class="relative mb-4"
+			x-data="{
+				atStart: true,
+				atEnd: false,
+				init() { this.$nextTick(() => this.checkScroll()) },
+				checkScroll() {
+					const el = this.$refs.chipStrip;
+					this.atStart = el.scrollLeft <= 0;
+					this.atEnd = el.scrollLeft >= el.scrollWidth - el.clientWidth - 1;
 				}
-				hx-get="/skills/new"
-				hx-target="#preset-results"
-				hx-include="[name='q']"
-			>All</button>
-			for _, cat := range allCats {
+			}"
+		>
+			<!-- Left fade + arrow (md+ only, hidden when at start) -->
+			<div class="hidden md:block absolute left-0 top-0 bottom-1 z-10 pointer-events-none">
+				<div
+					x-show="!atStart"
+					class="flex items-center h-full bg-gradient-to-r from-gray-900 via-gray-900/70 to-transparent pr-5 pointer-events-auto"
+				>
+					<button
+						type="button"
+						@click="$refs.chipStrip.scrollBy({ left: -180, behavior: 'smooth' })"
+						class="text-gray-300 hover:text-gray-100 transition-colors text-lg leading-none"
+						aria-label="Scroll categories left"
+					>‹</button>
+				</div>
+			</div>
+
+			<!-- Scrollable chip strip -->
+			<div
+				x-ref="chipStrip"
+				@scroll.passive="checkScroll()"
+				class="flex gap-2 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+			>
 				<button
 					name="category"
-					value={ cat.Slug }
+					value=""
 					class={
 						"flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[44px] flex items-center",
-						templ.KV("bg-indigo-700 text-indigo-100", filter.Category == cat.Slug),
-						templ.KV("bg-gray-800 text-gray-400 hover:bg-gray-700", filter.Category != cat.Slug),
+						templ.KV("bg-indigo-700 text-indigo-100", filter.Category == ""),
+						templ.KV("bg-gray-800 text-gray-400 hover:bg-gray-700", filter.Category != ""),
 					}
 					hx-get="/skills/new"
 					hx-target="#preset-results"
 					hx-include="[name='q']"
-				>{ cat.Emoji } { cat.Name }</button>
-			}
+				>All</button>
+				for _, cat := range allCats {
+					<button
+						name="category"
+						value={ cat.Slug }
+						class={
+							"flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors min-h-[44px] flex items-center",
+							templ.KV("bg-indigo-700 text-indigo-100", filter.Category == cat.Slug),
+							templ.KV("bg-gray-800 text-gray-400 hover:bg-gray-700", filter.Category != cat.Slug),
+						}
+						hx-get="/skills/new"
+						hx-target="#preset-results"
+						hx-include="[name='q']"
+					>{ cat.Emoji } { cat.Name }</button>
+				}
+			</div>
+
+			<!-- Right fade + arrow (md+ only, hidden when at end) -->
+			<div class="hidden md:block absolute right-0 top-0 bottom-1 z-10 pointer-events-none">
+				<div
+					x-show="!atEnd"
+					class="flex items-center h-full bg-gradient-to-l from-gray-900 via-gray-900/70 to-transparent pl-5 pointer-events-auto"
+				>
+					<button
+						type="button"
+						@click="$refs.chipStrip.scrollBy({ left: 180, behavior: 'smooth' })"
+						class="text-gray-300 hover:text-gray-100 transition-colors text-lg leading-none"
+						aria-label="Scroll categories right"
+					>›</button>
+				</div>
+			</div>
 		</div>
 
 		<!-- Results list (HTMX swap target) -->
