@@ -1,0 +1,35 @@
+/* packages/ui/tokens/rpg-clean.css */
+/* Same structure as rpg-game, neutral palette, minimal animation */
+:root[data-theme="rpg-clean"] {
+  --color-bg: #111827;
+  --color-bg-surface: #1f2937;
+  --color-bg-elevated: #374151;
+  --color-bg-overlay: rgba(17, 24, 39, 0.9);
+
+  --color-text-primary: #f9fafb;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+  --color-text-inverse: #111827;
+
+  --color-accent: #6366f1;
+  --color-accent-hover: #818cf8;
+  --color-accent-muted: rgba(99, 102, 241, 0.15);
+
+  --color-border: rgba(75, 85, 99, 0.5);
+  --color-border-strong: rgba(107, 114, 128, 0.8);
+
+  --color-success: #4ade80;
+  --color-warning: #facc15;
+  --color-error: #f87171;
+  --color-info: #60a5fa;
+
+  --font-display: 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-xp-fill: linear-gradient(90deg, #4f46e5, #6366f1);
+  --color-xp-bg: rgba(99, 102, 241, 0.1);
+
+  /* Animation budget — minimal */
+  --motion-scale: 0;
+}
