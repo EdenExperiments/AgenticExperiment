@@ -42,4 +42,10 @@ node_modules/
 static/css/app.css
 
 # Migration tool state (do not commit local migration lock)
-*.lock
+*.lock#
+
+# SuperPower Skill brainstorming
+.superpowers/
+
+# Turbo Cache
+.turbo/cache/
