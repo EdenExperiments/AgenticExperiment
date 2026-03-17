@@ -1,6 +1,8 @@
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieMethodsServer } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import { type Theme } from '@rpgtracker/ui'
+
+type CookieToSet = Parameters<NonNullable<CookieMethodsServer['setAll']>>[0][number]
 
 interface MiddlewareOptions {
   /** Routes that are public (no auth redirect). Default: /login, /register */
@@ -26,7 +28,7 @@ export function createAuthMiddleware(options: MiddlewareOptions) {
       {
         cookies: {
           getAll() { return request.cookies.getAll() },
-          setAll(cookiesToSet) {
+          setAll(cookiesToSet: CookieToSet[]) {
             cookiesToSet.forEach(({ name, value, options }) => {
               response.cookies.set(name, value, options)
             })
