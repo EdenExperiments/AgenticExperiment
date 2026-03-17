@@ -39,7 +39,10 @@ CREATE TABLE public.blocker_gates (
     UNIQUE (skill_id, gate_level)
 );
 
-CREATE INDEX blocker_gates_skill ON public.blocker_gates (skill_id, gate_level);
-
 ALTER TABLE public.blocker_gates ENABLE ROW LEVEL SECURITY;
+CREATE POLICY blocker_gates_self_rw ON public.blocker_gates
+    USING (skill_id IN (
+        SELECT id FROM public.skills
+        WHERE user_id = current_setting('app.current_user_id', TRUE)::UUID
+    ));
 -- Gates belong to skills which belong to users; access via skill ownership enforced in Go.
