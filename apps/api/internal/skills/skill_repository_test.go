@@ -7,6 +7,7 @@ package skills_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/google/uuid"
@@ -65,8 +66,8 @@ func TestCreateSkill_RejectsLevelAbove99(t *testing.T) {
 	db := testDB(t)
 	_, err := skills.CreateSkill(context.Background(), db, seedUserID,
 		"Too High", "", "session", nil, 100, [10]string{})
-	if err != skills.ErrStartingLevelTooHigh {
-		t.Fatalf("expected ErrStartingLevelTooHigh, got %v", err)
+	if !errors.Is(err, skills.ErrInvalidStartingLevel) {
+		t.Fatalf("expected ErrInvalidStartingLevel, got %v", err)
 	}
 }
 

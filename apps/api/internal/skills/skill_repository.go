@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/xpcurve"
 )
@@ -39,8 +40,8 @@ type BlockerGate struct {
 	ClearedAt       *time.Time `json:"cleared_at"`
 }
 
-// ErrStartingLevelTooHigh is returned when startingLevel is outside the valid 1–99 range (D-018).
-var ErrStartingLevelTooHigh = errors.New("starting_level must be 99 or below (D-018)")
+// ErrInvalidStartingLevel is returned when startingLevel is outside the valid 1–99 range (D-018).
+var ErrInvalidStartingLevel = errors.New("starting_level must be between 1 and 99 (D-018)")
 
 // ErrNotFound is returned when a requested record does not exist or is not owned by the user.
 var ErrNotFound = errors.New("not found")
@@ -69,7 +70,7 @@ func defaultGateDescription(gateLevel int) string {
 // when non-empty; pass [10]string{} to use all defaults.
 func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID, startingLevel int, gateDescs [10]string) (*Skill, error) {
 	if startingLevel < 1 || startingLevel > 99 {
-		return nil, ErrStartingLevelTooHigh
+		return nil, ErrInvalidStartingLevel
 	}
 	startXP := xpcurve.XPToReachLevel(startingLevel)
 
@@ -159,6 +160,9 @@ func GetSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID) 
 		&s.ID, &s.UserID, &s.Name, &s.Description, &s.Unit, &s.PresetID,
 		&s.StartingLevel, &s.CurrentXP, &s.CurrentLevel, &s.CreatedAt, &s.UpdatedAt,
 	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	}
 	if err != nil {
 		return nil, fmt.Errorf("skills: get: %w", err)
 	}
@@ -177,6 +181,9 @@ func UpdateSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUI
 		&s.ID, &s.UserID, &s.Name, &s.Description, &s.Unit, &s.PresetID,
 		&s.StartingLevel, &s.CurrentXP, &s.CurrentLevel, &s.CreatedAt, &s.UpdatedAt,
 	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, ErrNotFound
+	}
 	if err != nil {
 		return nil, fmt.Errorf("skills: update: %w", err)
 	}
@@ -199,6 +206,8 @@ func SoftDeleteSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid
 }
 
 // GetBlockerGates returns all gates for a skill, ordered by gate_level.
+// The caller is responsible for verifying that the skill belongs to the
+// authenticated user before calling this function.
 func GetBlockerGates(ctx context.Context, db *pgxpool.Pool, skillID uuid.UUID) ([]BlockerGate, error) {
 	rows, err := db.Query(ctx, `
 		SELECT id, skill_id, gate_level, title, description, first_notified_at, is_cleared, cleared_at
