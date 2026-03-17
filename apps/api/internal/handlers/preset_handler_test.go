@@ -2,10 +2,10 @@ package handlers_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -14,20 +14,24 @@ import (
 	"github.com/meden/rpgtracker/internal/skills"
 )
 
-// stubStore is an in-memory implementation of handlers.PresetStore for handler tests.
-type stubStore struct {
-	categories []skills.Category
-	grouped    []skills.CategoryWithPresets
-	preset     *skills.Preset
+// stubPresetStore is an in-memory implementation of handlers.PresetStore for handler tests.
+type stubPresetStore struct {
+	presets []skills.Preset
+	preset  *skills.Preset
+	err     error
 }
 
-func (s *stubStore) ListCategories(_ context.Context) ([]skills.Category, error) {
-	return s.categories, nil
+func (s *stubPresetStore) ListPresets(_ context.Context, _, _ string) ([]skills.Preset, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
+	return s.presets, nil
 }
-func (s *stubStore) ListCategoriesWithPresets(_ context.Context, _ skills.PresetFilter) ([]skills.CategoryWithPresets, error) {
-	return s.grouped, nil
-}
-func (s *stubStore) GetPreset(_ context.Context, _ uuid.UUID) (*skills.Preset, error) {
+
+func (s *stubPresetStore) GetPreset(_ context.Context, _ uuid.UUID) (*skills.Preset, error) {
+	if s.err != nil {
+		return nil, s.err
+	}
 	if s.preset == nil {
 		return nil, fmt.Errorf("not found")
 	}
@@ -36,85 +40,132 @@ func (s *stubStore) GetPreset(_ context.Context, _ uuid.UUID) (*skills.Preset, e
 
 var testPresetID = uuid.MustParse("11111111-1111-1111-1111-111111111111")
 
-func newStubStore() *stubStore {
-	cat := skills.Category{ID: uuid.New(), Name: "Fitness & Movement", Slug: "fitness", Emoji: "🏃", SortOrder: 1}
-	preset := skills.Preset{
-		ID:          testPresetID,
-		CategoryID:  cat.ID,
-		Name:        "Running",
-		Description: "Build aerobic endurance",
-		DefaultUnit: "km",
-	}
-	return &stubStore{
-		categories: []skills.Category{cat},
-		grouped:    []skills.CategoryWithPresets{{Category: cat, Presets: []skills.Preset{preset}}},
-		preset:     &preset,
+func newStubPresetStore() *stubPresetStore {
+	catID := uuid.New()
+	return &stubPresetStore{
+		presets: []skills.Preset{
+			{
+				ID:           testPresetID,
+				CategoryID:   catID,
+				Name:         "Running",
+				Description:  "Build aerobic endurance",
+				DefaultUnit:  "km",
+				CategoryName: "Fitness & Movement",
+				CategorySlug: "fitness",
+			},
+		},
+		preset: &skills.Preset{
+			ID:           testPresetID,
+			CategoryID:   catID,
+			Name:         "Running",
+			Description:  "Build aerobic endurance",
+			DefaultUnit:  "km",
+			CategoryName: "Fitness & Movement",
+			CategorySlug: "fitness",
+		},
 	}
 }
 
-func TestHandleGetPresetBrowse_FullPage(t *testing.T) {
-	h := handlers.NewPresetHandlerWithStore(newStubStore())
-	req := httptest.NewRequest(http.MethodGet, "/skills/new", nil)
+func TestHandleGetPresets_ReturnsJSON(t *testing.T) {
+	h := handlers.NewPresetHandlerWithStore(newStubPresetStore())
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/presets", nil)
 	rec := httptest.NewRecorder()
 
-	h.HandleGetPresetBrowse(rec, req)
+	h.HandleGetPresets(rec, req)
 
 	if rec.Code != http.StatusOK {
 		t.Errorf("status = %d, want 200", rec.Code)
 	}
-	body := rec.Body.String()
-	if !strings.Contains(body, "Choose a Skill") {
-		t.Error("full page should contain page title")
+	if ct := rec.Header().Get("Content-Type"); ct != "application/json" {
+		t.Errorf("Content-Type = %q, want application/json", ct)
 	}
-	if !strings.Contains(body, "Running") {
-		t.Error("full page should contain preset name")
+
+	var presets []skills.Preset
+	if err := json.NewDecoder(rec.Body).Decode(&presets); err != nil {
+		t.Fatalf("decode JSON: %v", err)
+	}
+	if len(presets) != 1 {
+		t.Fatalf("expected 1 preset, got %d", len(presets))
+	}
+	if presets[0].Name != "Running" {
+		t.Errorf("preset name = %q, want Running", presets[0].Name)
 	}
 }
 
-func TestHandleGetPresetBrowse_HTMXPartial(t *testing.T) {
-	h := handlers.NewPresetHandlerWithStore(newStubStore())
-	req := httptest.NewRequest(http.MethodGet, "/skills/new?category=fitness", nil)
-	req.Header.Set("HX-Request", "true")
-	req.Header.Set("HX-Target", "preset-results")
+func TestHandleGetPresets_EmptyList(t *testing.T) {
+	h := handlers.NewPresetHandlerWithStore(&stubPresetStore{presets: []skills.Preset{}})
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/presets", nil)
 	rec := httptest.NewRecorder()
 
-	h.HandleGetPresetBrowse(rec, req)
+	h.HandleGetPresets(rec, req)
 
 	if rec.Code != http.StatusOK {
 		t.Errorf("status = %d, want 200", rec.Code)
 	}
-	body := rec.Body.String()
-	// Results partial should NOT contain the Shell wrapper or page chrome
-	if strings.Contains(body, "<html") {
-		t.Error("HTMX partial should not contain <html> tag")
+	var presets []skills.Preset
+	if err := json.NewDecoder(rec.Body).Decode(&presets); err != nil {
+		t.Fatalf("decode JSON: %v", err)
 	}
-	if !strings.Contains(body, "Running") {
-		t.Error("partial should contain the preset name")
+	if presets == nil {
+		t.Error("expected non-nil empty slice, got nil")
+	}
+	if len(presets) != 0 {
+		t.Errorf("expected 0 presets, got %d", len(presets))
 	}
 }
 
-func TestHandleGetFromPreset_Redirects(t *testing.T) {
-	h := handlers.NewPresetHandlerWithStore(newStubStore())
+func TestHandleGetPreset_ReturnsJSON(t *testing.T) {
+	h := handlers.NewPresetHandlerWithStore(newStubPresetStore())
 
 	r := chi.NewRouter()
-	r.Get("/skills/new/from-preset/{id}", h.HandleGetFromPreset)
+	r.Get("/api/v1/presets/{id}", h.HandleGetPreset)
 
-	req := httptest.NewRequest(http.MethodGet, "/skills/new/from-preset/"+testPresetID.String(), nil)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/presets/"+testPresetID.String(), nil)
 	rec := httptest.NewRecorder()
 
 	r.ServeHTTP(rec, req)
 
-	if rec.Code != http.StatusSeeOther {
-		t.Errorf("status = %d, want 303", rec.Code)
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want 200", rec.Code)
 	}
-	loc := rec.Header().Get("Location")
-	if !strings.HasPrefix(loc, "/skills/new/custom") {
-		t.Errorf("redirect location = %q, want prefix /skills/new/custom", loc)
+
+	var preset skills.Preset
+	if err := json.NewDecoder(rec.Body).Decode(&preset); err != nil {
+		t.Fatalf("decode JSON: %v", err)
 	}
-	if !strings.Contains(loc, "name=Running") {
-		t.Errorf("redirect should include name param, got %q", loc)
+	if preset.Name != "Running" {
+		t.Errorf("preset name = %q, want Running", preset.Name)
 	}
-	if !strings.Contains(loc, "preset_id="+testPresetID.String()) {
-		t.Errorf("redirect should include preset_id param, got %q", loc)
+}
+
+func TestHandleGetPreset_NotFound(t *testing.T) {
+	h := handlers.NewPresetHandlerWithStore(&stubPresetStore{preset: nil})
+
+	r := chi.NewRouter()
+	r.Get("/api/v1/presets/{id}", h.HandleGetPreset)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/presets/"+testPresetID.String(), nil)
+	rec := httptest.NewRecorder()
+
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("status = %d, want 404", rec.Code)
+	}
+}
+
+func TestHandleGetPreset_InvalidID(t *testing.T) {
+	h := handlers.NewPresetHandlerWithStore(newStubPresetStore())
+
+	r := chi.NewRouter()
+	r.Get("/api/v1/presets/{id}", h.HandleGetPreset)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/presets/not-a-uuid", nil)
+	rec := httptest.NewRecorder()
+
+	r.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want 400", rec.Code)
 	}
 }

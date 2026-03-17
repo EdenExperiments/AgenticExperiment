@@ -5,10 +5,9 @@ import (
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/meden/rpgtracker/internal/api"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/keys"
-	"github.com/meden/rpgtracker/internal/templates"
-	"github.com/meden/rpgtracker/internal/templates/pages"
 )
 
 // KeyHandler handles HTTP requests for Claude API key management.
@@ -22,30 +21,29 @@ func NewKeyHandler(db *pgxpool.Pool, masterKey []byte) *KeyHandler {
 	return &KeyHandler{db: db, masterKey: masterKey}
 }
 
-// HandleGetAPIKey renders the API key management page for the authenticated user.
+// HandleGetAPIKey returns whether the authenticated user has a stored API key.
+// The key itself is never returned.
 func (h *KeyHandler) HandleGetAPIKey(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 
 	status, err := keys.GetKeyStatus(r.Context(), h.db, userID)
 	if err != nil {
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		api.RespondError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
-	if err := templates.RenderPage(w, r, http.StatusOK, pages.APIKey(status, ""), pages.APIKeyContent(status, "")); err != nil {
-		http.Error(w, "render error", http.StatusInternalServerError)
-	}
+	api.RespondJSON(w, http.StatusOK, map[string]bool{"has_key": status.Exists})
 }
 
-// HandlePostAPIKey processes a Claude API key submission for the authenticated user.
+// HandlePostAPIKey stores a Claude API key for the authenticated user.
 func (h *KeyHandler) HandlePostAPIKey(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 
@@ -53,35 +51,28 @@ func (h *KeyHandler) HandlePostAPIKey(w http.ResponseWriter, r *http.Request) {
 	err := keys.SaveKey(r.Context(), h.db, h.masterKey, userID, apiKey)
 	if err != nil {
 		if errors.Is(err, keys.ErrInvalidKeyFormat) {
-			status, statusErr := keys.GetKeyStatus(r.Context(), h.db, userID)
-			if statusErr != nil {
-				status = &keys.KeyStatus{Exists: false}
-			}
-			errMsg := "This doesn't look like a valid Claude API key."
-			if renderErr := templates.RenderPage(w, r, http.StatusUnprocessableEntity, pages.APIKey(status, errMsg), pages.APIKeyContent(status, errMsg)); renderErr != nil {
-				http.Error(w, "render error", http.StatusInternalServerError)
-			}
+			api.RespondError(w, http.StatusUnprocessableEntity, "This doesn't look like a valid Claude API key.")
 			return
 		}
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		api.RespondError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
-	http.Redirect(w, r, "/account", http.StatusSeeOther)
+	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "saved"})
 }
 
 // HandleDeleteAPIKey removes the stored API key for the authenticated user.
 func (h *KeyHandler) HandleDeleteAPIKey(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 
 	if err := keys.DeleteKey(r.Context(), h.db, userID); err != nil {
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		api.RespondError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
-	http.Redirect(w, r, "/account/api-key", http.StatusSeeOther)
+	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "deleted"})
 }

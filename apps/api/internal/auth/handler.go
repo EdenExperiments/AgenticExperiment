@@ -8,8 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/meden/rpgtracker/internal/templates"
-	"github.com/meden/rpgtracker/internal/templates/pages"
+	"github.com/meden/rpgtracker/internal/api"
 )
 
 // AuthHandler handles Supabase-backed authentication routes.
@@ -40,30 +39,22 @@ type loginResponse struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
-// HandleGetLogin renders the login page, or redirects to /dashboard if already authenticated.
+// HandleGetLogin returns 200 if not authenticated, or 302 redirect if already logged in.
 func (h *AuthHandler) HandleGetLogin(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access_token")
 	if err == nil && cookie.Value != "" {
-		http.Redirect(w, r, "/dashboard", http.StatusFound)
+		api.RespondJSON(w, http.StatusOK, map[string]string{"redirect": "/api/v1/account"})
 		return
 	}
-
-	successMsg := ""
-	if r.URL.Query().Get("msg") == "check_email" {
-		successMsg = "Check your email to confirm your account"
-	}
-
-	if err := templates.Render(w, r, http.StatusOK, pages.Login("", successMsg)); err != nil {
-		http.Error(w, "render error", http.StatusInternalServerError)
-	}
+	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "unauthenticated"})
 }
 
 // HandlePostLogin authenticates the user against the Supabase Auth REST API.
-// On success it sets HttpOnly cookies and redirects to /dashboard (303).
-// On failure it re-renders the login form with an error message.
+// On success it sets HttpOnly cookies and returns JSON confirmation.
+// On failure it returns a JSON error.
 func (h *AuthHandler) HandlePostLogin(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
+		api.RespondError(w, http.StatusBadRequest, "bad request")
 		return
 	}
 	email := r.FormValue("email")
@@ -71,9 +62,7 @@ func (h *AuthHandler) HandlePostLogin(w http.ResponseWriter, r *http.Request) {
 
 	tokenResp, err := h.supabaseTokenRequest(r, email, password)
 	if err != nil {
-		if renderErr := templates.Render(w, r, http.StatusUnprocessableEntity, pages.Login("Invalid email or password", "")); renderErr != nil {
-			http.Error(w, "render error", http.StatusInternalServerError)
-		}
+		api.RespondError(w, http.StatusUnauthorized, "invalid email or password")
 		return
 	}
 
@@ -98,37 +87,31 @@ func (h *AuthHandler) HandlePostLogin(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   60 * 60 * 24 * 30, // 30 days
 	})
 
-	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
-// HandleGetRegister renders the registration page, or redirects to /dashboard if already authenticated.
+// HandleGetRegister returns 200 (or redirect if already logged in).
 func (h *AuthHandler) HandleGetRegister(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("access_token")
 	if err == nil && cookie.Value != "" {
-		http.Redirect(w, r, "/dashboard", http.StatusFound)
+		api.RespondJSON(w, http.StatusOK, map[string]string{"redirect": "/api/v1/account"})
 		return
 	}
-
-	if err := templates.Render(w, r, http.StatusOK, pages.Register("")); err != nil {
-		http.Error(w, "render error", http.StatusInternalServerError)
-	}
+	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "unauthenticated"})
 }
 
 // HandlePostRegister registers a new user via the Supabase Auth REST API.
-// On success it redirects to /login?msg=check_email (303).
-// On failure it re-renders the registration form with an error message.
+// On success returns JSON confirmation. On failure returns a JSON error.
 func (h *AuthHandler) HandlePostRegister(w http.ResponseWriter, r *http.Request) {
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
+		api.RespondError(w, http.StatusBadRequest, "bad request")
 		return
 	}
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
 	if r.FormValue("password") != r.FormValue("confirm_password") {
-		if renderErr := templates.Render(w, r, http.StatusUnprocessableEntity, pages.Register("Passwords do not match")); renderErr != nil {
-			http.Error(w, "render error", http.StatusInternalServerError)
-		}
+		api.RespondError(w, http.StatusUnprocessableEntity, "passwords do not match")
 		return
 	}
 
@@ -136,9 +119,7 @@ func (h *AuthHandler) HandlePostRegister(w http.ResponseWriter, r *http.Request)
 	req, err := http.NewRequestWithContext(r.Context(), http.MethodPost,
 		h.supabaseProjectURL+"/auth/v1/signup", bytes.NewReader(body))
 	if err != nil {
-		if renderErr := templates.Render(w, r, http.StatusUnprocessableEntity, pages.Register("Registration failed. Please try again.")); renderErr != nil {
-			http.Error(w, "render error", http.StatusInternalServerError)
-		}
+		api.RespondError(w, http.StatusInternalServerError, "registration failed")
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -151,17 +132,15 @@ func (h *AuthHandler) HandlePostRegister(w http.ResponseWriter, r *http.Request)
 			resp.Body.Close()
 			log.Printf("supabase signup error: status=%d body=%s", resp.StatusCode, body)
 		}
-		if renderErr := templates.Render(w, r, http.StatusUnprocessableEntity, pages.Register("Registration failed. Please try again.")); renderErr != nil {
-			http.Error(w, "render error", http.StatusInternalServerError)
-		}
+		api.RespondError(w, http.StatusUnprocessableEntity, "registration failed")
 		return
 	}
 	resp.Body.Close()
 
-	http.Redirect(w, r, "/login?msg=check_email", http.StatusSeeOther)
+	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "check_email"})
 }
 
-// HandlePostSignout clears the auth cookies and redirects to /login (303).
+// HandlePostSignout clears the auth cookies and returns JSON confirmation.
 func (h *AuthHandler) HandlePostSignout(w http.ResponseWriter, r *http.Request) {
 	secure := r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"
 
@@ -184,7 +163,7 @@ func (h *AuthHandler) HandlePostSignout(w http.ResponseWriter, r *http.Request) 
 		MaxAge:   -1,
 	})
 
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "signed_out"})
 }
 
 // updatePasswordRequest is the JSON body sent to the Supabase user-update endpoint.
@@ -192,29 +171,26 @@ type updatePasswordRequest struct {
 	Password string `json:"password"`
 }
 
-// HandleGetPasswordChange renders the password change form for an authenticated user.
+// HandleGetPasswordChange returns 200 for authenticated users, 401 otherwise.
 func (h *AuthHandler) HandleGetPasswordChange(w http.ResponseWriter, r *http.Request) {
 	_, ok := UserIDFromContext(r.Context())
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
-
-	if err := templates.RenderPage(w, r, http.StatusOK, pages.PasswordChange("", ""), pages.PasswordChangeContent("", "")); err != nil {
-		http.Error(w, "render error", http.StatusInternalServerError)
-	}
+	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 
 // HandlePostPasswordChange processes a password change request for an authenticated user.
 func (h *AuthHandler) HandlePostPasswordChange(w http.ResponseWriter, r *http.Request) {
 	_, ok := UserIDFromContext(r.Context())
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 
 	if err := r.ParseForm(); err != nil {
-		http.Error(w, "bad request", http.StatusBadRequest)
+		api.RespondError(w, http.StatusBadRequest, "bad request")
 		return
 	}
 
@@ -223,26 +199,18 @@ func (h *AuthHandler) HandlePostPasswordChange(w http.ResponseWriter, r *http.Re
 	confirmNewPassword := r.FormValue("confirm_new_password")
 
 	if newPassword != confirmNewPassword {
-		if renderErr := templates.RenderPage(w, r, http.StatusUnprocessableEntity,
-			pages.PasswordChange("New passwords do not match", ""),
-			pages.PasswordChangeContent("New passwords do not match", "")); renderErr != nil {
-			http.Error(w, "render error", http.StatusInternalServerError)
-		}
+		api.RespondError(w, http.StatusUnprocessableEntity, "new passwords do not match")
 		return
 	}
 
 	email := EmailFromContext(r.Context())
 	if email == "" {
-		http.Error(w, "Unable to verify identity. Please sign out and back in.", http.StatusInternalServerError)
+		api.RespondError(w, http.StatusInternalServerError, "unable to verify identity")
 		return
 	}
 	tokenResp, err := h.supabaseTokenRequest(r, email, currentPassword)
 	if err != nil {
-		if renderErr := templates.RenderPage(w, r, http.StatusUnprocessableEntity,
-			pages.PasswordChange("Current password is incorrect", ""),
-			pages.PasswordChangeContent("Current password is incorrect", "")); renderErr != nil {
-			http.Error(w, "render error", http.StatusInternalServerError)
-		}
+		api.RespondError(w, http.StatusUnprocessableEntity, "current password is incorrect")
 		return
 	}
 
@@ -250,11 +218,7 @@ func (h *AuthHandler) HandlePostPasswordChange(w http.ResponseWriter, r *http.Re
 	req, err := http.NewRequestWithContext(r.Context(), http.MethodPut,
 		h.supabaseProjectURL+"/auth/v1/user", bytes.NewReader(body))
 	if err != nil {
-		if renderErr := templates.RenderPage(w, r, http.StatusUnprocessableEntity,
-			pages.PasswordChange("Failed to update password. Please try again.", ""),
-			pages.PasswordChangeContent("Failed to update password. Please try again.", "")); renderErr != nil {
-			http.Error(w, "render error", http.StatusInternalServerError)
-		}
+		api.RespondError(w, http.StatusInternalServerError, "failed to update password")
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -266,16 +230,12 @@ func (h *AuthHandler) HandlePostPasswordChange(w http.ResponseWriter, r *http.Re
 		if resp != nil {
 			resp.Body.Close()
 		}
-		if renderErr := templates.RenderPage(w, r, http.StatusUnprocessableEntity,
-			pages.PasswordChange("Failed to update password. Please try again.", ""),
-			pages.PasswordChangeContent("Failed to update password. Please try again.", "")); renderErr != nil {
-			http.Error(w, "render error", http.StatusInternalServerError)
-		}
+		api.RespondError(w, http.StatusUnprocessableEntity, "failed to update password")
 		return
 	}
 	resp.Body.Close()
 
-	http.Redirect(w, r, "/account?msg=password_changed", http.StatusSeeOther)
+	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "password_changed"})
 }
 
 // supabaseTokenRequest calls the Supabase token endpoint and returns the token response.

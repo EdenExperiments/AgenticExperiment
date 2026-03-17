@@ -4,9 +4,8 @@ import (
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/meden/rpgtracker/internal/api"
 	"github.com/meden/rpgtracker/internal/auth"
-	"github.com/meden/rpgtracker/internal/templates"
-	"github.com/meden/rpgtracker/internal/templates/pages"
 	"github.com/meden/rpgtracker/internal/users"
 )
 
@@ -20,48 +19,41 @@ func NewUserHandler(db *pgxpool.Pool) *UserHandler {
 	return &UserHandler{db: db}
 }
 
-// HandleGetAccount renders the account settings page for the authenticated user.
+// HandleGetAccount returns the authenticated user's account data as JSON.
 func (h *UserHandler) HandleGetAccount(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 
 	email := auth.EmailFromContext(r.Context())
 	u, err := users.GetOrCreateUser(r.Context(), h.db, userID, email)
 	if err != nil {
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		api.RespondError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
-	successMsg := ""
-	if r.URL.Query().Get("msg") == "password_changed" {
-		successMsg = "Password changed successfully."
-	}
-
-	if err := templates.RenderPage(w, r, http.StatusOK, pages.Account(u, successMsg), pages.AccountContent(u, successMsg)); err != nil {
-		http.Error(w, "render error", http.StatusInternalServerError)
-	}
+	api.RespondJSON(w, http.StatusOK, u)
 }
 
-// HandlePostAccount processes a display-name update and redirects back to GET /account.
+// HandlePostAccount processes a display-name update and returns JSON confirmation.
 func (h *UserHandler) HandlePostAccount(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
-		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
 
 	displayName := r.FormValue("display_name")
 	if len(displayName) > 100 {
-		http.Error(w, "display name too long", http.StatusBadRequest)
+		api.RespondError(w, http.StatusBadRequest, "display name too long")
 		return
 	}
 	if err := users.UpdateDisplayName(r.Context(), h.db, userID, displayName); err != nil {
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		api.RespondError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
 
-	http.Redirect(w, r, "/account", http.StatusSeeOther)
+	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "updated"})
 }
