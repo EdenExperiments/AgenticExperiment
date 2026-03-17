@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/go-chi/chi/v5"
@@ -170,10 +172,20 @@ func (h *SkillHandler) HandleGetSkill(w http.ResponseWriter, r *http.Request) {
 	}
 	skill, err := h.store.GetSkill(r.Context(), userID, skillID)
 	if err != nil {
-		api.RespondError(w, http.StatusNotFound, "skill not found")
+		if errors.Is(err, skills.ErrNotFound) {
+			api.RespondError(w, http.StatusNotFound, "skill not found")
+			return
+		}
+		api.RespondError(w, http.StatusInternalServerError, "failed to fetch skill")
 		return
 	}
-	gates, _ := h.store.GetBlockerGates(r.Context(), skillID)
+	gates, err := h.store.GetBlockerGates(r.Context(), skillID)
+	if err != nil {
+		// Non-fatal: return skill without gates rather than failing the whole request.
+		// Log for observability.
+		log.Printf("WARN: GetBlockerGates for skill %s: %v", skillID, err)
+		gates = []skills.BlockerGate{}
+	}
 	api.RespondJSON(w, http.StatusOK, toSkillDetail(skill, gates, nil))
 }
 
@@ -201,7 +213,11 @@ func (h *SkillHandler) HandlePutSkill(w http.ResponseWriter, r *http.Request) {
 	description := strings.TrimSpace(r.FormValue("description"))
 	skill, err := h.store.UpdateSkill(r.Context(), userID, skillID, name, description)
 	if err != nil {
-		api.RespondError(w, http.StatusNotFound, "skill not found")
+		if errors.Is(err, skills.ErrNotFound) {
+			api.RespondError(w, http.StatusNotFound, "skill not found")
+			return
+		}
+		api.RespondError(w, http.StatusInternalServerError, "failed to update skill")
 		return
 	}
 	api.RespondJSON(w, http.StatusOK, toSkillDetail(skill, nil, nil))
@@ -250,8 +266,7 @@ func toSkillDetail(s *skills.Skill, gates []skills.BlockerGate, recentLogs []ski
 }
 
 func parsePositiveInt(s string) (int, error) {
-	var n int
-	_, err := fmt.Sscanf(s, "%d", &n)
+	n, err := strconv.Atoi(s)
 	if err != nil || n <= 0 {
 		return 0, fmt.Errorf("not a positive int: %s", s)
 	}
