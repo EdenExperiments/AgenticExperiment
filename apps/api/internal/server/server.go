@@ -1,0 +1,103 @@
+package server
+
+import (
+	"encoding/json"
+	"errors"
+	"log"
+	"net/http"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/meden/rpgtracker/internal/api"
+	"github.com/meden/rpgtracker/internal/auth"
+	"github.com/meden/rpgtracker/internal/config"
+	"github.com/meden/rpgtracker/internal/handlers"
+)
+
+// Server wraps the standard http.Server and holds application dependencies.
+type Server struct {
+	httpServer *http.Server
+	cfg        *config.Config
+}
+
+// NewServer creates a new Server wired with a chi router and basic routes.
+func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Handler, db *pgxpool.Pool) *Server {
+	r := chi.NewRouter()
+	r.Use(panicRecoveryMiddleware) // outermost: catches panics from any downstream middleware
+	r.Use(middleware.Logger)
+
+	r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		api.RespondError(w, http.StatusNotFound, "not found")
+	})
+
+	authHandler := auth.NewAuthHandler(cfg.SupabaseProjectURL, cfg.SupabaseAnonKey)
+
+	// Public routes
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		api.RespondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	})
+
+	// Protected API routes
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(sessionMiddleware)
+
+		presetHandler := handlers.NewPresetHandler(db)
+		r.Get("/presets", presetHandler.HandleGetPresets)
+		r.Get("/presets/{id}", presetHandler.HandleGetPreset)
+
+		skillHandler := handlers.NewSkillHandler(db)
+		r.Post("/skills", skillHandler.HandlePostSkill)
+
+		userHandler := handlers.NewUserHandler(db)
+		r.Get("/account", userHandler.HandleGetAccount)
+		r.Put("/account", userHandler.HandlePostAccount)
+
+		keyHandler := handlers.NewKeyHandler(db, []byte(cfg.MasterKey))
+		r.Get("/account/api-key", keyHandler.HandleGetAPIKey)
+		r.Put("/account/api-key", keyHandler.HandlePostAPIKey)
+		r.Delete("/account/api-key", keyHandler.HandleDeleteAPIKey)
+
+		r.Post("/auth/signout", authHandler.HandlePostSignout)
+	})
+
+	httpServer := &http.Server{
+		Addr:    ":" + cfg.Port,
+		Handler: r,
+	}
+
+	return &Server{
+		httpServer: httpServer,
+		cfg:        cfg,
+	}
+}
+
+// Start begins listening and serving HTTP requests. It blocks until the server
+// encounters an error or is shut down.
+func (s *Server) Start() error {
+	if err := s.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+	return nil
+}
+
+// ServeHTTP allows Server to be used as an http.Handler in tests.
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	s.httpServer.Handler.ServeHTTP(w, r)
+}
+
+// panicRecoveryMiddleware recovers from panics, logs them, and returns a
+// plain JSON 500 error response.
+func panicRecoveryMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				log.Printf("panic recovered: %v", rec)
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": "internal server error"})
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}

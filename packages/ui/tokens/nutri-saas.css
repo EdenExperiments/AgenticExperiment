@@ -1,0 +1,34 @@
+/* packages/ui/tokens/nutri-saas.css */
+/* Light, professional, clinical greens */
+:root[data-theme="nutri-saas"] {
+  --color-bg: #f8fafc;
+  --color-bg-surface: #ffffff;
+  --color-bg-elevated: #f1f5f9;
+  --color-bg-overlay: rgba(248, 250, 252, 0.95);
+
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+  --color-text-inverse: #f8fafc;
+
+  --color-accent: #059669;
+  --color-accent-hover: #047857;
+  --color-accent-muted: rgba(5, 150, 105, 0.1);
+
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  --font-display: 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-xp-fill: linear-gradient(90deg, #047857, #059669);
+  --color-xp-bg: rgba(5, 150, 105, 0.08);
+
+  --motion-scale: 1;
+}

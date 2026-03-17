@@ -1,0 +1,4 @@
+@import '@rpgtracker/ui/tokens/base.css';
+@import '@rpgtracker/ui/tokens/rpg-game.css';
+@import '@rpgtracker/ui/tokens/rpg-clean.css';
+@import "tailwindcss";
