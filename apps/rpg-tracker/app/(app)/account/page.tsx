@@ -1,12 +1,22 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getAccount, getAPIKeyStatus, signOut } from '@rpgtracker/api-client'
+import { getAccount, getAPIKeyStatus } from '@rpgtracker/api-client'
+import { createBrowserClient } from '@rpgtracker/auth/client'
 
 export default function AccountPage() {
+  const router = useRouter()
   const { data: account } = useQuery({ queryKey: ['account'], queryFn: getAccount })
   const { data: keyStatus } = useQuery({ queryKey: ['api-key-status'], queryFn: getAPIKeyStatus })
+
+  async function handleSignOut() {
+    const supabase = createBrowserClient()
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8 space-y-6">
@@ -42,7 +52,7 @@ export default function AccountPage() {
           Change Password
         </Link>
         <button
-          onClick={() => signOut().then(() => { window.location.href = '/login' })}
+          onClick={handleSignOut}
           className="text-sm text-red-500 hover:text-red-600 font-medium"
         >
           Sign Out

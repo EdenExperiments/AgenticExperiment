@@ -59,7 +59,7 @@ export default function SkillCreatePage() {
   })
 
   // Gate levels for display in Step 3
-  const gateLevels = [9, 19, 29, 39, 49, 59, 69, 79, 89, 99]
+  const gateLevels = [9, 19, 29, 39, 49]
 
   return (
     <div className="max-w-lg mx-auto p-4 md:p-8 min-h-screen">
@@ -153,15 +153,12 @@ export default function SkillCreatePage() {
             </div>
           )}
 
-          {/* Level picker: scrollable list 1–99 (D-018: max 99) */}
+          {/* Level picker: scrollable list 1–50 (max starting level is 50) */}
           <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-y-auto max-h-64">
-            {Array.from({ length: 99 }, (_, i) => i + 1).map((level) => {
+            {Array.from({ length: 50 }, (_, i) => i + 1).map((level) => {
               const tierBoundaries: Record<number, string> = {
                 10: 'Apprentice tier starts here', 20: 'Adept tier starts here',
                 30: 'Journeyman tier starts here', 40: 'Practitioner tier starts here',
-                50: 'Expert tier starts here', 60: 'Veteran tier starts here',
-                70: 'Elite tier starts here', 80: 'Master tier starts here',
-                90: 'Grandmaster tier starts here',
               }
               const boundary = tierBoundaries[level]
               return (
@@ -218,7 +215,7 @@ export default function SkillCreatePage() {
                   {draft.gateDescriptions[i] || `Default gate — ${gl === 9 ? 'Novice' : gl === 19 ? 'Apprentice' : 'Adept'} completion challenge`}
                 </div>
               ))}
-              <p className="text-xs text-gray-400">…and 7 more gates at levels 39–99</p>
+              <p className="text-xs text-gray-400">…and 2 more gates at levels 39 and 49</p>
             </div>
           </details>
 

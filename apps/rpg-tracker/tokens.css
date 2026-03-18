@@ -3,6 +3,18 @@
 @import '@rpgtracker/ui/tokens/rpg-clean.css';
 @import "tailwindcss";
 
+/* Tell Tailwind v4 to scan shared UI package for utility classes */
+@source "../../packages/ui/src";
+
+/* Ensure form inputs are always readable in all themes / dark mode */
+@layer base {
+  input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
+  textarea,
+  select {
+    @apply text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400;
+  }
+}
+
 /* Tier accent bar colors — used in SkillCard left-edge accent */
 .tier-accent-1  { background-color: theme(colors.gray.400); }
 .tier-accent-2  { background-color: theme(colors.blue.500); }
