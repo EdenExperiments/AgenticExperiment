@@ -49,3 +49,27 @@ test('shows lock icon when gate is active', () => {
   render(<SkillCard skill={skillWithGate} onLogXP={vi.fn()} onClick={vi.fn()} />)
   expect(screen.getByRole('img', { name: /gate locked/i })).toBeInTheDocument()
 })
+
+test('calls onClick when card is clicked', () => {
+  const onClick = vi.fn()
+  render(<SkillCard skill={mockSkill} onLogXP={vi.fn()} onClick={onClick} />)
+  fireEvent.click(screen.getByRole('button', { name: 'Running' }))
+  expect(onClick).toHaveBeenCalledWith('abc-123')
+})
+
+test('does not call onClick when + Log button is clicked', () => {
+  const onClick = vi.fn()
+  render(<SkillCard skill={mockSkill} onLogXP={vi.fn()} onClick={onClick} />)
+  fireEvent.click(screen.getByRole('button', { name: /log/i }))
+  expect(onClick).not.toHaveBeenCalled()
+})
+
+test('does not show lock icon when gate is cleared', () => {
+  const skillWithClearedGate = {
+    ...mockSkill,
+    gates: [{ id: 'g1', skill_id: 'abc-123', gate_level: 2, title: 'Test Gate',
+               description: '', first_notified_at: '2026-01-01', is_cleared: true, cleared_at: '2026-01-02' }],
+  }
+  render(<SkillCard skill={skillWithClearedGate} onLogXP={vi.fn()} onClick={vi.fn()} />)
+  expect(screen.queryByRole('img', { name: /gate locked/i })).not.toBeInTheDocument()
+})

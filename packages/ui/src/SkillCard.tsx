@@ -9,7 +9,9 @@ interface SkillCardProps {
 }
 
 function activeGate(skill: SkillDetail): BlockerGate | undefined {
-  return skill.gates.find(g => !g.is_cleared && skill.current_level >= g.gate_level)
+  return skill.gates
+    .filter(g => !g.is_cleared && skill.current_level >= g.gate_level)
+    .sort((a, b) => a.gate_level - b.gate_level)[0]
 }
 
 export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
@@ -17,8 +19,12 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
 
   return (
     <div
-      className="relative bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 cursor-pointer hover:shadow-md transition-shadow"
+      role="button"
+      tabIndex={0}
+      aria-label={skill.name}
+      className="relative bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 cursor-pointer hover:shadow-md transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
       onClick={() => onClick(skill.id)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(skill.id) } }}
     >
       {/* Tier color accent bar — left edge */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl tier-accent-${skill.tier_number}`} />
