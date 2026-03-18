@@ -1,6 +1,8 @@
 # Agent Operating Model
 
-Last updated: 2026-03-15
+Last updated: 2026-03-18
+
+> **Current status (2026-03-18):** The first planning pass (requirements → planning → architecture → UX → review) is **complete**. Phase 1 is shipped. The active phase is **Phase 2 implementation**, which runs through the agentic team system documented in the root `CLAUDE.md`. The planning-phase agent roles below (requirements-agent, planning-agent, architecture-agent, ux-agent, review-agent) remain available for scope changes or new product decisions. Implementation work uses orchestrator → backend/frontend/tester specialists via `plan-feature` + `execute-plan` skills.
 
 ## Purpose
 

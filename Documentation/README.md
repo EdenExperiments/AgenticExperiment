@@ -29,8 +29,12 @@ This folder turns the rough project brief into a maintained set of planning docu
 - `feature-tracker.md`: feature inventory with owners, dependencies, and readiness
 - `decision-log.md`: accepted decisions and open questions requiring user input
 - `agent-operating-model.md`: coordination standards for teams of agents
-- `claude-agent-team.md`: Claude Code team briefs and starter prompts
+- `archived/claude-agent-team-planning-pass.md`: Claude Code team briefs from the first planning pass (archived — planning complete)
 
 ## Current State
 
-The project has completed its full planning pass and is ready for implementation. All release-1 product decisions are confirmed (decision-log has no open questions). The complete Phase 1 and Phase 2 implementation backlog is defined in `planning-handoff.md`. All 8 release-1 features are `ready-for-build`. The delivery-agent can begin at TASK-101.
+**Phase 1 complete (2026-03-16).** F-001 (app shell/navigation), F-002 (Supabase auth), and F-003 (Claude API key storage) are shipped and verified running.
+
+**Phase 2 is the active work slice** — F-004 through F-009 (Skill CRUD, XP logging, progression display, blocker gates, AI calibration). Implementation runs through the agentic team system: use the orchestrator agent with `plan-feature` to start a feature. See root `CLAUDE.md` for the agent roster and zone map.
+
+All release-1 product decisions are confirmed (decision-log has no open questions). The Phase 2 task backlog in `planning-handoff.md` remains valid as spec reference.
