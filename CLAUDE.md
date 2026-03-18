@@ -46,12 +46,14 @@ Use these agents for documentation-level planning (operate on `Documentation/`):
 
 ## Skills (global, from `~/.claude/skills/`)
 
-- `plan-feature` — 5-phase pipeline: spec → arch review → UX review → gateway → plan
+- `plan-feature` — Phase 0 scale check, then quick path (bug fixes) or full 5-phase pipeline
 - `execute-plan` — Agent Teams execution with TDD gate
 - `tdd-first` — TDD discipline for the tester agent
 - `use-context7` — Context7 library doc lookup
 - `parallel-session` — Zone registration and worktree creation
 - `abandon-feature` — Clean up cancelled/interrupted features
+- `what-next` — Resume after interruption; reads session state and reports exact next action
+- `correct-course` — Mid-implementation correction when spec, plan, or approach is wrong
 - `new-project-bootstrap` — (for new projects) sets up agents + docs from templates
 
 ## Key Files
