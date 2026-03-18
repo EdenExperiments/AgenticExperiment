@@ -2,3 +2,16 @@
 @import '@rpgtracker/ui/tokens/rpg-game.css';
 @import '@rpgtracker/ui/tokens/rpg-clean.css';
 @import "tailwindcss";
+
+/* Tier accent bar colors — used in SkillCard left-edge accent */
+.tier-accent-1  { background-color: theme(colors.gray.400); }
+.tier-accent-2  { background-color: theme(colors.blue.500); }
+.tier-accent-3  { background-color: theme(colors.teal.500); }
+.tier-accent-4  { background-color: theme(colors.green.500); }
+.tier-accent-5  { background-color: theme(colors.lime.500); }
+.tier-accent-6  { background-color: theme(colors.purple.600); }
+.tier-accent-7  { background-color: theme(colors.fuchsia.600); }
+.tier-accent-8  { background-color: theme(colors.amber.600); }
+.tier-accent-9  { background-color: theme(colors.orange.600); }
+.tier-accent-10 { background-color: theme(colors.red.600); }
+.tier-accent-11 { background: linear-gradient(to bottom, theme(colors.yellow.400), theme(colors.amber.500)); }
