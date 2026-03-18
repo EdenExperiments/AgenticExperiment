@@ -36,7 +36,7 @@ export function BottomTabBar({ currentPath }: BottomTabBarProps) {
               <div
                 key={tab.label}
                 className="flex-1 flex flex-col items-center justify-center gap-0.5 opacity-40 select-none"
-                aria-disabled="true"
+                role="presentation"
               >
                 <span className="text-xl">{tab.icon}</span>
                 <span className="text-[10px] font-medium text-gray-500">{tab.label}</span>
