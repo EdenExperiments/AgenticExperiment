@@ -1,18 +1,26 @@
 
-> rpg-tracker@0.1.0 test /home/meden/GolandProjects/RpgTracker/.worktrees/plan-b2-react-ui/apps/rpg-tracker
+> rpg-tracker@0.1.0 test /home/meden/GolandProjects/RpgTracker/apps/rpg-tracker
 > vitest run
 
 [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
 
- RUN  v2.1.9 /home/meden/GolandProjects/RpgTracker/.worktrees/plan-b2-react-ui/apps/rpg-tracker
+ RUN  v2.1.9 /home/meden/GolandProjects/RpgTracker/apps/rpg-tracker
 
- ✓ app/__tests__/dashboard.test.tsx (1 test) 69ms
-(node:496067) Warning: `--localstorage-file` was provided without a valid path
+ ✓ app/__tests__/providers.test.tsx (1 test) 15ms
+(node:520426) Warning: `--localstorage-file` was provided without a valid path
 (Use `node --trace-warnings ...` to show where the warning was created)
- ✓ app/__tests__/login.test.tsx (2 tests) 79ms
+(node:520428) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ app/__tests__/dashboard.test.tsx (1 test) 47ms
+ ✓ app/__tests__/app-layout.test.tsx (1 test) 50ms
+ ✓ app/__tests__/login.test.tsx (2 tests) 65ms
+ ✓ app/__tests__/skills-list.test.tsx (1 test) 60ms
+ ✓ app/__tests__/skill-create.test.tsx (3 tests) 92ms
+ ✓ app/__tests__/account.test.tsx (1 test) 61ms
+ ✓ app/__tests__/skill-detail.test.tsx (2 tests) 85ms
 
- Test Files  2 passed (2)
-      Tests  3 passed (3)
-   Start at  23:59:07
-   Duration  1.41s (transform 99ms, setup 161ms, collect 361ms, tests 148ms, environment 587ms, prepare 694ms)
+ Test Files  8 passed (8)
+      Tests  12 passed (12)
+   Start at  21:54:31
+   Duration  718ms (transform 253ms, setup 256ms, collect 1.14s, tests 474ms, environment 2.00s, prepare 343ms)
 

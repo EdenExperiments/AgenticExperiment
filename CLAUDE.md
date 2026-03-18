@@ -1,4 +1,4 @@
-# Claude Code Guide — RpgTracker
+Can# Claude Code Guide — RpgTracker
 
 This project is in active development. Planning docs are under `Documentation/`. The agentic team system is under `docs/`.
 
