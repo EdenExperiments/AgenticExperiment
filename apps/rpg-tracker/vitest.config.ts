@@ -17,6 +17,7 @@ export default defineConfig({
       'next/headers': path.resolve(__dirname, './__mocks__/next/headers.ts'),
       'next/navigation': path.resolve(__dirname, './__mocks__/next/navigation.ts'),
       'next/server': path.resolve(__dirname, './__mocks__/next/server.ts'),
+      'next/link': path.resolve(__dirname, './__mocks__/next/link.tsx'),
     },
   },
 })
