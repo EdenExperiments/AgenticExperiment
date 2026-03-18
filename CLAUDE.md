@@ -1,38 +1,75 @@
-# Claude Code Guide
+# Claude Code Guide — RpgTracker
 
-This repository is in the requirements and planning stage. The authoritative working set is under `Documentation/`.
+This project is in active development. Planning docs are under `Documentation/`. The agentic team system is under `docs/`.
 
-## Start Here
+## Quick Start
 
-1. Read `Documentation/README.md`.
-2. Read `Documentation/planning-handoff.md`.
-3. Read `Documentation/feature-tracker.md`.
-4. Read `Documentation/decision-log.md`.
+**Starting a new feature:** Use the orchestrator agent → it runs `plan-feature` then `execute-plan`.
 
-If you are joining as part of a multi-agent team, also read `Documentation/claude-agent-team.md`.
+**Reviewing planning docs:** Use `requirements-agent`, `planning-agent`, `architecture-agent`, `ux-agent`, `review-agent` in `.claude/agents/` (planning-phase agents, operate on `Documentation/`).
 
-This `CLAUDE.md` is intentionally kept concise. Project-specific agents live in `.claude/agents/`, project slash commands live in `.claude/commands/`, and subtree-specific guidance can live in nested `CLAUDE.md` files such as `Documentation/CLAUDE.md`.
+**Implementation:** Use the orchestrator. It dispatches backend, frontend, tester, architect, reviewer.
 
-## Repository Rules
+## Repository Zones
 
-- Keep `Documentation/product-requirements.md`, `Documentation/planning-handoff.md`, `Documentation/feature-tracker.md`, and `Documentation/decision-log.md` synchronized when changes affect them.
-- Preserve the distinction between confirmed requirements, assumptions, and open questions.
-- Record enough context that another Claude Code agent can resume without rereading the full brief.
+| Zone | Paths | Agent |
+|------|-------|-------|
+| Go API | `apps/api/` | backend |
+| Next.js UI | `apps/rpg-tracker/` | frontend |
+| Shared UI components | `packages/ui/src/` | frontend (shared — coordinate) |
+| API client | `packages/api-client/src/` | backend or frontend (shared — coordinate) |
+| Auth package | `packages/auth/src/` | backend (shared — coordinate) |
 
-## Claude Team Expectations
+**Shared packages** (`packages/*`) require coordination — see `parallel-session` skill.
 
-- Each meaningful feature should map to an entry in `Documentation/feature-tracker.md`.
-- Each unresolved product decision should map to an entry in `Documentation/decision-log.md`.
-- Do not start implementation work if core product assumptions are still undefined.
-- If you make a planning or product change, state which docs were updated and why.
+## Agentic Team — Implementation Phase
 
-## Recommended First-Pass Order
+Global agents (loaded from `~/.claude/agents/` via `~/claude-config`):
+- `orchestrator` — Opus 4.6. Plans features, dispatches team, merges work.
+- `architect` — Reviews specs for schema/service impact. Produces Parallelisation Map.
+- `reviewer` — Spec gateway (Phase 4) and code quality gate.
+- `ux` — Reviews specs for UX correctness and mobile viability.
 
-1. requirements-agent
-2. planning-agent
-3. architecture-agent
-4. ux-agent
-5. planning-agent
-6. review-agent
+Project agents (in `.claude/agents/`):
+- `backend` — Go API: chi handlers, pgx repositories, auth middleware.
+- `frontend` — Next.js App Router, React, Tailwind v4, TanStack Query, @rpgtracker/ui.
+- `tester` — Writes failing tests from spec ACs before any implementation.
 
-Use the role briefs and prompts in `Documentation/claude-agent-team.md`.
+## Agentic Team — Planning Phase
+
+Use these agents for documentation-level planning (operate on `Documentation/`):
+- `requirements-agent` — resolves product ambiguity, tightens MVP scope
+- `planning-agent` — converts decisions into backlog slices
+- `architecture-agent` — produces schema and service boundary design
+- `ux-agent` — defines IA and core journeys
+- `review-agent` — reviews planning package for gaps
+
+## Skills (global, from `~/.claude/skills/`)
+
+- `plan-feature` — 5-phase pipeline: spec → arch review → UX review → gateway → plan
+- `execute-plan` — Agent Teams execution with TDD gate
+- `tdd-first` — TDD discipline for the tester agent
+- `use-context7` — Context7 library doc lookup
+- `parallel-session` — Zone registration and worktree creation
+- `abandon-feature` — Clean up cancelled/interrupted features
+- `new-project-bootstrap` — (for new projects) sets up agents + docs from templates
+
+## Key Files
+
+- `docs/sessions/` — active session zone files + abandoned log
+- `docs/specs/` — feature specs (DRAFT → APPROVED → archived)
+- `docs/plans/` — implementation plans
+- `Documentation/` — product requirements, decisions, feature tracker (planning phase)
+- `apps/api/` — Go REST API (chi, pgx, Supabase JWT)
+- `apps/rpg-tracker/` — Next.js 15 App Router frontend
+- `packages/ui/` — shared React component library
+- `packages/api-client/` — typed API client (used by frontend)
+- `packages/auth/` — Supabase auth helpers (browser + server)
+
+## On a New Machine
+
+```bash
+git clone git@github.com:EdenExperiments/claude-config.git ~/claude-config
+cd ~/claude-config && ./install.sh
+# Then clone any project repo — its .claude/ agents are already tuned
+```
