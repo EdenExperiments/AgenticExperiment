@@ -7,7 +7,8 @@ test('renders tier name', () => {
 })
 
 test('applies legend gold styling for tier 11', () => {
-  const { container } = render(<TierBadge tierName="Legend" tierNumber={11} />)
-  const badge = container.firstChild as HTMLElement
-  expect(badge.className).toMatch(/yellow|amber|gold/)
+  render(<TierBadge tierName="Legend" tierNumber={11} />)
+  const badge = screen.getByText('Legend')
+  expect(badge).toHaveClass('text-yellow-700')
+  expect(badge).toHaveClass('bg-yellow-100')
 })
