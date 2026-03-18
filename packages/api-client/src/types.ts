@@ -30,6 +30,7 @@ export interface Account {
 
 export interface APIKeyStatus {
   has_key: boolean
+  key_hint?: string
 }
 
 export interface APIError {

@@ -101,3 +101,7 @@ export function saveAPIKey(key: string): Promise<void> {
 export function deleteAPIKey(): Promise<void> {
   return request('/api/v1/account/api-key', { method: 'DELETE' })
 }
+
+export function signOut(): Promise<void> {
+  return request('/api/v1/auth/signout', { method: 'POST' })
+}

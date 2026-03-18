@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { ThemeProvider } from '@rpgtracker/ui'
 import { cookies } from 'next/headers'
 import type { Theme } from '@rpgtracker/ui'
+import { Providers } from './providers'
 import '../tokens.css'
 
 export const metadata: Metadata = {
@@ -17,7 +18,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="en" data-theme={theme} suppressHydrationWarning>
       <body>
         <ThemeProvider theme={theme}>
-          {children}
+          <Providers>
+            {children}
+          </Providers>
         </ThemeProvider>
       </body>
     </html>
