@@ -508,3 +508,178 @@ git add README.md
 git commit -m "docs: add improve skill to README"
 git push
 ```
+
+---
+
+### Task 7: Reviewer spec-draft and plan review modes — reviewer.md
+
+**Files:**
+- Modify: `~/claude-config/agents/reviewer.md`
+
+Add two new review mode sections and broaden the file-read exemption note to cover all modes.
+
+- [ ] **Step 1: Verify new modes are currently absent**
+
+```bash
+grep -n "Spec-Draft\|Plan Review\|Phase 1.5\|Phase 5.5" ~/claude-config/agents/reviewer.md
+```
+
+Expected: no output
+
+- [ ] **Step 2: Insert spec-draft review mode section (before Code Gate)**
+
+After the existing `## Spec Gate (Phase 4 of plan-feature)` section and before `## Code Gate`, insert:
+
+```markdown
+## Spec-Draft Review (Phase 1.5 of plan-feature)
+
+Input: `spec.md` only
+Output: Inline findings returned to orchestrator — no file written.
+
+Check for:
+- Every acceptance criterion is a verifiable code assertion (no "should feel fast", no subjective language). Phase 4 remains the authoritative AC gate; this is a pre-flight on the draft only.
+- All zones (directory paths) that will be touched are explicitly named
+- No hidden assumptions stated as facts (e.g. "the auth middleware already handles X" without citing source)
+- Scope is bounded — no open-ended "and any related changes"
+
+Output format:
+```
+## Spec-Draft Review Findings
+[list issues, or "none — proceed to Phase 2"]
+```
+
+Max 2 iterations. If issues remain after 2 fixes, surface to the user.
+```
+
+- [ ] **Step 3: Append plan review mode section**
+
+After the `## Code Gate` section and before the final Note line, insert:
+
+```markdown
+## Plan Review (Phase 5.5 of plan-feature)
+
+Input: `plan.md` + `spec.md`
+Output: Inline findings returned to orchestrator — no file written.
+
+Check for:
+- Every spec AC maps to at least one task in the plan
+- Every task references exact file paths (no "update the handler", no relative paths without a base)
+- Every implementation step has a corresponding verification step (grep, test command, or compile check)
+- Every task has an explicit Done condition
+
+Output format:
+```
+## Plan Review Findings
+[list issues, or "none — proceed to parallel-session"]
+```
+
+Max 2 iterations. If issues remain after 2 fixes, surface to the user.
+```
+
+- [ ] **Step 4: Update the file-read exemption note**
+
+First confirm the old Note line exists:
+```bash
+grep -n "4-file read limit for the code gate" ~/claude-config/agents/reviewer.md
+```
+Expected: 1 line found (pre-flight — confirms the edit target is present before attempting replacement)
+
+Old:
+```
+Note: You are NOT bound by the 4-file read limit for the code gate. Read all changed files.
+```
+
+New:
+```
+Note: You are NOT bound by the 4-file read limit for any review mode. Read all files required for the review.
+```
+
+- [ ] **Step 5: Verify all edits applied**
+
+```bash
+grep -n "Spec-Draft\|Plan Review\|any review mode" ~/claude-config/agents/reviewer.md
+```
+
+Expected: lines for `Spec-Draft Review`, `Plan Review`, and `any review mode` found
+
+- [ ] **Step 6: Commit**
+
+```bash
+cd ~/claude-config
+git add agents/reviewer.md
+git commit -m "feat: reviewer spec-draft and plan review modes"
+git push
+```
+
+---
+
+### Task 8: Wire Phase 1.5 and Phase 5.5 into pipeline — plan-feature.md
+
+**Files:**
+- Modify: `~/claude-config/skills/plan-feature.md`
+
+Add Phase 1.5 (spec-draft review) after Phase 1 and Phase 5.5 (plan review) after Phase 5.
+
+- [ ] **Step 1: Verify new phases are currently absent**
+
+```bash
+grep -n "Phase 1.5\|Phase 5.5\|spec-draft mode\|plan-review mode" ~/claude-config/skills/plan-feature.md
+```
+
+Expected: no output
+
+- [ ] **Step 2: Add Phase 1.5 after Phase 1**
+
+After the Phase 1 section (the block ending with `5. Write spec.md to \`docs/specs/YYYY-MM-DD-{feature}/spec.md\``), insert:
+
+```markdown
+## Phase 1.5 — Spec-Draft Review (dispatch Reviewer in spec-draft mode)
+
+Input: spec.md (draft)
+Output: Inline findings
+
+Dispatch the reviewer agent in spec-draft mode. Wait for findings.
+
+If issues found: fix spec.md, re-dispatch. Max 2 iterations — if still failing after 2 fixes, surface to user.
+If clean ("none — proceed to Phase 2"): continue to Phase 2.
+```
+
+- [ ] **Step 3: Add Phase 5.5 after Phase 5**
+
+In Phase 5, replace:
+```
+5. After writing plan.md: run the `parallel-session` skill to register zone + create worktree
+6. Then run the `execute-plan` skill
+```
+
+With:
+```
+5. After writing plan.md: dispatch reviewer in plan-review mode (Phase 5.5)
+   - If issues found: fix plan.md, re-dispatch. Max 2 iterations — if still failing, surface to user.
+   - If clean ("none — proceed to parallel-session"): continue
+6. Run the `parallel-session` skill to register zone + create worktree
+7. Then run the `execute-plan` skill
+```
+
+- [ ] **Step 4: Verify both phases are present**
+
+```bash
+grep -n "Phase 1.5\|Phase 5.5\|spec-draft mode\|plan-review mode" ~/claude-config/skills/plan-feature.md
+```
+
+Expected: lines for Phase 1.5 and Phase 5.5 found
+
+```bash
+grep -n "parallel-session" ~/claude-config/skills/plan-feature.md
+```
+
+Expected: parallel-session still referenced (confirm it wasn't accidentally removed)
+
+- [ ] **Step 5: Commit**
+
+```bash
+cd ~/claude-config
+git add skills/plan-feature.md
+git commit -m "feat: Phase 1.5 spec-draft review + Phase 5.5 plan review in pipeline"
+git push
+```
