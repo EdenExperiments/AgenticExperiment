@@ -1,12 +1,10 @@
-Can# Claude Code Guide — RpgTracker
+# Claude Code Guide — RpgTracker
 
 This project is in active development. Planning docs are under `Documentation/`. The agentic team system is under `docs/`.
 
 ## Quick Start
 
 **Starting a new feature:** Use the orchestrator agent → it runs `plan-feature` then `execute-plan`.
-
-**Reviewing planning docs:** Use `requirements-agent`, `planning-agent`, `architecture-agent`, `ux-agent`, `review-agent` in `.claude/agents/` (planning-phase agents, operate on `Documentation/`).
 
 **Implementation:** Use the orchestrator. It dispatches backend, frontend, tester, architect, reviewer.
 
@@ -16,13 +14,15 @@ This project is in active development. Planning docs are under `Documentation/`.
 |------|-------|-------|
 | Go API | `apps/api/` | backend |
 | Next.js UI | `apps/rpg-tracker/` | frontend |
+| NutriLog UI | `apps/nutri-log/` | frontend |
+| Mental Health UI | `apps/mental-health/` | frontend |
 | Shared UI components | `packages/ui/src/` | frontend (shared — coordinate) |
 | API client | `packages/api-client/src/` | backend or frontend (shared — coordinate) |
 | Auth package | `packages/auth/src/` | backend (shared — coordinate) |
 
 **Shared packages** (`packages/*`) require coordination — see `parallel-session` skill.
 
-## Agentic Team — Implementation Phase
+## Agentic Team
 
 Global agents (loaded from `~/.claude/agents/` via `~/claude-config`):
 - `orchestrator` — Opus 4.6. Plans features, dispatches team, merges work.
@@ -34,15 +34,6 @@ Project agents (in `.claude/agents/`):
 - `backend` — Go API: chi handlers, pgx repositories, auth middleware.
 - `frontend` — Next.js App Router, React, Tailwind v4, TanStack Query, @rpgtracker/ui.
 - `tester` — Writes failing tests from spec ACs before any implementation.
-
-## Agentic Team — Planning Phase
-
-Use these agents for documentation-level planning (operate on `Documentation/`):
-- `requirements-agent` — resolves product ambiguity, tightens MVP scope
-- `planning-agent` — converts decisions into backlog slices
-- `architecture-agent` — produces schema and service boundary design
-- `ux-agent` — defines IA and core journeys
-- `review-agent` — reviews planning package for gaps
 
 ## Skills (global, from `~/.claude/skills/`)
 
@@ -59,13 +50,20 @@ Use these agents for documentation-level planning (operate on `Documentation/`):
 ## Key Files
 
 - `docs/sessions/` — active session zone files + abandoned log
+- `docs/sessions/retros/` — post-merge retro notes
 - `docs/specs/` — feature specs (DRAFT → APPROVED → archived)
 - `docs/plans/` — implementation plans
-- `Documentation/` — product requirements, decisions, feature tracker (planning phase)
+- `docs/AGENTIC-SYSTEM.md` — agent roles, zone rules, session protocol, self-improvement
+- `Documentation/PLATFORM-DECISIONS.md` — why monorepo, BFF, design tokens, theme system
+- `Documentation/` — product requirements, decisions, feature tracker, architecture, UX spec
+
+> **For the orchestrator / architect agent:** When planning any feature that touches XP, levels, tiers, or the DB schema, read `Documentation/decision-log.md` (binding constants: XP curve D-014, tier structure D-016, color system D-020, security constraints D-015) and `Documentation/architecture.md` (current schema, integration contracts). These are not optional — they contain decisions that cannot be reopened without a new decision-log entry.
 - `apps/api/` — Go REST API (chi, pgx, Supabase JWT)
-- `apps/rpg-tracker/` — Next.js 15 App Router frontend
+- `apps/rpg-tracker/` — Next.js 15 App Router — LifeQuest (fully implemented)
+- `apps/nutri-log/` — Next.js 15 App Router — NutriLog (scaffolded)
+- `apps/mental-health/` — Next.js 15 App Router — MindTrack (scaffolded)
 - `packages/ui/` — shared React component library
-- `packages/api-client/` — typed API client (used by frontend)
+- `packages/api-client/` — typed API client (used by all frontends)
 - `packages/auth/` — Supabase auth helpers (browser + server)
 
 ## On a New Machine

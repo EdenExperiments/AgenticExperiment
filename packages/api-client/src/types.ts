@@ -88,3 +88,12 @@ export interface CalibrateResponse {
   rationale: string
   gate_descriptions: string[]
 }
+
+export interface ActivityEvent {
+  id: string
+  skill_id: string
+  skill_name: string
+  xp_delta: number
+  log_note: string
+  created_at: string
+}

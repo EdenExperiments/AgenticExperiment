@@ -1,4 +1,4 @@
-import type { Skill, SkillDetail, Preset, Account, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse } from './types'
+import type { Skill, SkillDetail, Preset, Account, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent } from './types'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -104,4 +104,13 @@ export function deleteAPIKey(): Promise<void> {
 
 export function signOut(): Promise<void> {
   return request('/api/v1/auth/signout', { method: 'POST' })
+}
+
+// Activity
+export function getActivity(limit?: number, skillId?: string): Promise<ActivityEvent[]> {
+  const params = new URLSearchParams()
+  if (limit) params.set('limit', String(limit))
+  if (skillId) params.set('skill_id', skillId)
+  const qs = params.toString()
+  return request<ActivityEvent[]>(`/api/v1/activity${qs ? `?${qs}` : ''}`)
 }

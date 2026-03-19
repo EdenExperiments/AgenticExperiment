@@ -1,0 +1,23 @@
+
+> @rpgtracker/ui@0.0.1 test /home/meden/GolandProjects/RpgTracker/packages/ui
+> vitest run
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /home/meden/GolandProjects/RpgTracker/packages/ui
+
+ ✓ src/__tests__/ThemeProvider.test.tsx (3 tests) 46ms
+ ✓ src/TierBadge.test.tsx (2 tests) 42ms
+ ✓ src/BlockerGateSection.test.tsx (2 tests) 58ms
+ ✓ src/TierTransitionModal.test.tsx (2 tests) 98ms
+ ✓ src/XPProgressBar.test.tsx (4 tests) 62ms
+ ✓ src/Sidebar.test.tsx (2 tests) 109ms
+ ✓ src/BottomTabBar.test.tsx (3 tests) 103ms
+ ✓ src/QuickLogSheet.test.tsx (4 tests) 189ms
+ ✓ src/SkillCard.test.tsx (6 tests) 200ms
+
+ Test Files  9 passed (9)
+      Tests  28 passed (28)
+   Start at  21:53:23
+   Duration  1.44s (transform 316ms, setup 556ms, collect 1.38s, tests 907ms, environment 3.97s, prepare 965ms)
+

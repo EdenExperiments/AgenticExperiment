@@ -4,9 +4,44 @@ import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { getSkill, logXP, deleteSkill } from '@rpgtracker/api-client'
-import type { BlockerGate } from '@rpgtracker/api-client'
+import { getSkill, logXP, deleteSkill, getActivity } from '@rpgtracker/api-client'
+import type { BlockerGate, ActivityEvent } from '@rpgtracker/api-client'
 import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal } from '@rpgtracker/ui'
+import { XPGainAnimation } from '@/components/XPGainAnimation'
+
+/** Group activity events by date buckets */
+function groupByDate(events: ActivityEvent[]): { label: string; items: ActivityEvent[] }[] {
+  const now = new Date()
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  const yesterdayStart = new Date(todayStart.getTime() - 86400000)
+  const weekStart = new Date(todayStart.getTime() - 7 * 86400000)
+
+  const groups: Record<string, ActivityEvent[]> = {}
+  const order: string[] = []
+
+  for (const event of events) {
+    const date = new Date(event.created_at)
+    let label: string
+
+    if (date >= todayStart) {
+      label = 'Today'
+    } else if (date >= yesterdayStart) {
+      label = 'Yesterday'
+    } else if (date >= weekStart) {
+      label = 'This Week'
+    } else {
+      label = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    }
+
+    if (!groups[label]) {
+      groups[label] = []
+      order.push(label)
+    }
+    groups[label].push(event)
+  }
+
+  return order.map((label) => ({ label, items: groups[label] }))
+}
 
 export default function SkillDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -18,9 +53,16 @@ export default function SkillDetailPage() {
     queryFn: () => getSkill(id),
   })
 
+  const { data: skillActivity = [] } = useQuery({
+    queryKey: ['activity', id],
+    queryFn: () => getActivity(20, id),
+    enabled: !!id,
+  })
+
   const [logSheetOpen, setLogSheetOpen] = useState(false)
   const [tierTransition, setTierTransition] = useState<{ tierName: string; tierNumber: number } | null>(null)
   const [gateFirstHit, setGateFirstHit] = useState<BlockerGate | null>(null)
+  const [xpGain, setXpGain] = useState<{ amount: number; key: number }>({ amount: 0, key: 0 })
 
   const logMutation = useMutation({
     mutationFn: ({ xpDelta, logNote }: { xpDelta: number; logNote: string }) =>
@@ -28,7 +70,9 @@ export default function SkillDetailPage() {
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['skill', id] })
       qc.invalidateQueries({ queryKey: ['skills'] })
+      qc.invalidateQueries({ queryKey: ['activity'] })
       setLogSheetOpen(false)
+      setXpGain({ amount: result.xp_added, key: Date.now() })
       if (result.gate_first_hit) setGateFirstHit(result.gate_first_hit)
       else if (result.tier_crossed) setTierTransition({ tierName: result.tier_name, tierNumber: result.tier_number })
     },
@@ -39,33 +83,52 @@ export default function SkillDetailPage() {
     onSuccess: () => router.push('/skills'),
   })
 
-  if (isLoading || !skill) return <div className="p-8 text-gray-400">Loading…</div>
+  if (isLoading || !skill) return <div className="p-8 text-gray-400">Loading...</div>
 
   const activeGate = skill.gates.find(g => !g.is_cleared && skill.current_level >= g.gate_level)
   const isMaxLevel = skill.xp_to_next_level === 0
+  const dateGroups = groupByDate(skillActivity)
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Link href="/skills" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
-          ← Skills
+        <Link href="/skills" className="text-sm hover:opacity-80 flex items-center gap-1"
+          style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+          &larr; Skills
         </Link>
-        <Link href={`/skills/${id}/edit`} className="text-sm text-gray-500 hover:text-gray-700">
+        <Link href={`/skills/${id}/edit`} className="text-sm hover:opacity-80"
+          style={{ color: 'var(--color-text-muted, #6b7280)' }}>
           Edit
         </Link>
       </div>
 
-      {/* Skill name + tier */}
+      {/* Hero Stats — skill name + tier/level as prominent display */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{skill.name}</h1>
-        <div className="flex items-center gap-3 mt-1">
+        <h1
+          className="text-3xl font-bold"
+          style={{
+            fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+            color: 'var(--color-text-primary, #f9fafb)',
+          }}
+        >
+          {skill.name}
+        </h1>
+        <div className="flex items-center gap-3 mt-2">
           <TierBadge tierName={skill.tier_name} tierNumber={skill.tier_number} />
-          <span className="text-lg text-gray-600 dark:text-gray-300">Level {skill.effective_level}</span>
+          <span
+            className="text-2xl font-bold"
+            style={{
+              fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+              color: 'var(--color-accent, #6366f1)',
+            }}
+          >
+            Level {skill.effective_level}
+          </span>
         </div>
       </div>
 
-      {/* XP bar OR blocker gate section (D-021: gate replaces bar) */}
+      {/* XP bar OR blocker gate section */}
       {activeGate ? (
         <BlockerGateSection
           gateLevel={activeGate.gate_level}
@@ -84,49 +147,95 @@ export default function SkillDetailPage() {
             className="h-3"
           />
           {isMaxLevel ? (
-            <p className="text-sm text-gray-500 text-center">Maximum Level Reached</p>
+            <p className="text-sm text-center" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+              Maximum Level Reached
+            </p>
           ) : (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
               {skill.xp_for_current_level.toLocaleString()} / {(skill.xp_for_current_level + skill.xp_to_next_level).toLocaleString()} XP to level {skill.effective_level + 1}
             </p>
           )}
         </div>
       )}
 
-      {/* Log XP button */}
-      <button
-        onClick={() => setLogSheetOpen(true)}
-        className="w-full py-4 rounded-xl font-semibold text-white bg-[var(--color-accent,theme(colors.blue.600))] min-h-[48px] hover:opacity-90 transition-opacity"
-      >
-        Log XP
-      </button>
+      {/* Log XP button with animation */}
+      <div className="relative">
+        <button
+          onClick={() => setLogSheetOpen(true)}
+          className="w-full py-4 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity"
+          style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
+        >
+          Log XP
+        </button>
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2">
+          <XPGainAnimation xpAmount={xpGain.amount} animationKey={xpGain.key} />
+        </div>
+      </div>
 
       {/* Description */}
       {skill.description && (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4">
-          <p className="text-sm text-gray-600 dark:text-gray-300">{skill.description}</p>
+        <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-surface, #1f2937)' }}>
+          <p className="text-sm" style={{ color: 'var(--color-text-secondary, #9ca3af)' }}>
+            {skill.description}
+          </p>
         </div>
       )}
 
-      {/* Recent logs */}
-      {skill.recent_logs.length > 0 && (
-        <div>
-          <h2 className="font-semibold text-gray-900 dark:text-white mb-3">Recent Logs</h2>
-          <div className="space-y-2">
-            {skill.recent_logs.map((log) => (
-              <div key={log.id} className="flex justify-between text-sm text-gray-600 dark:text-gray-400 py-2 border-b border-gray-100 dark:border-gray-800">
-                <span>{log.log_note || 'Session'}</span>
-                <span className="font-medium text-gray-900 dark:text-white">+{log.xp_delta} XP</span>
+      {/* XP History — date grouped */}
+      <section>
+        <h2
+          className="font-semibold mb-3"
+          style={{
+            fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+            color: 'var(--color-text-primary, #f9fafb)',
+          }}
+        >
+          XP History
+        </h2>
+        {dateGroups.length === 0 ? (
+          <p className="text-sm py-4 text-center" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+            No activity yet. Log some XP to start building your history.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {dateGroups.map((group) => (
+              <div key={group.label}>
+                <h3
+                  className="text-xs uppercase tracking-wider mb-2"
+                  style={{ color: 'var(--color-text-muted, #6b7280)' }}
+                >
+                  {group.label}
+                </h3>
+                <div className="space-y-1">
+                  {group.items.map((log) => (
+                    <div
+                      key={log.id}
+                      className="flex justify-between text-sm py-2 px-3 rounded-lg"
+                      style={{ backgroundColor: 'var(--color-bg-surface, #1f2937)' }}
+                    >
+                      <span style={{ color: 'var(--color-text-secondary, #9ca3af)' }}>
+                        {log.log_note || 'Session'}
+                      </span>
+                      <span
+                        className="font-semibold"
+                        style={{ color: 'var(--color-accent, #6366f1)' }}
+                      >
+                        +{log.xp_delta} XP
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </section>
 
       {/* Delete */}
       <button
         onClick={() => { if (confirm('Delete this skill? This cannot be undone.')) deleteMutation.mutate() }}
-        className="text-sm text-red-500 hover:text-red-600 w-full text-center py-2"
+        className="text-sm w-full text-center py-2 hover:opacity-80 transition-opacity"
+        style={{ color: 'var(--color-error, #f87171)' }}
       >
         Delete skill
       </button>
@@ -155,19 +264,31 @@ export default function SkillDetailPage() {
       {gateFirstHit && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
           <div className="absolute inset-0 bg-black/60" />
-          <div className="relative w-full md:max-w-md bg-white dark:bg-gray-900 rounded-t-3xl md:rounded-3xl p-8 space-y-4">
+          <div
+            className="relative w-full md:max-w-md rounded-t-3xl md:rounded-3xl p-8 space-y-4"
+            style={{ backgroundColor: 'var(--color-bg-elevated, #1a1a2e)' }}
+          >
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🔒</span>
-              <h2 className="font-bold text-lg text-gray-900 dark:text-white">You've hit a gate!</h2>
+              <span className="text-2xl" role="img" aria-label="locked">&#x1F512;</span>
+              <h2 className="font-bold text-lg" style={{ color: 'var(--color-text-primary, #f9fafb)' }}>
+                You have hit a gate!
+              </h2>
             </div>
-            <p className="font-semibold text-gray-800 dark:text-white">Level {gateFirstHit.gate_level} Gate: "{gateFirstHit.title}"</p>
-            <p className="text-sm text-gray-600 dark:text-gray-300">{gateFirstHit.description}</p>
-            <p className="text-sm text-gray-500">Your XP keeps growing, but your level display is paused here until you complete this challenge.</p>
+            <p className="font-semibold" style={{ color: 'var(--color-text-primary, #f9fafb)' }}>
+              Level {gateFirstHit.gate_level} Gate: &quot;{gateFirstHit.title}&quot;
+            </p>
+            <p className="text-sm" style={{ color: 'var(--color-text-secondary, #9ca3af)' }}>
+              {gateFirstHit.description}
+            </p>
+            <p className="text-sm" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+              Your XP keeps growing, but your level display is paused here until you complete this challenge.
+            </p>
             <button
               onClick={() => setGateFirstHit(null)}
-              className="w-full py-4 rounded-xl font-semibold text-white bg-amber-500 min-h-[48px]"
+              className="w-full py-4 rounded-xl font-semibold text-white min-h-[48px]"
+              style={{ backgroundColor: 'var(--color-warning, #facc15)', color: 'var(--color-text-inverse, #0a0a0f)' }}
             >
-              Got it — see gate details
+              Got it -- see gate details
             </button>
           </div>
         </div>

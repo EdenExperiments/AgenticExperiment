@@ -22,7 +22,12 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
       role="button"
       tabIndex={0}
       aria-label={skill.name}
-      className="relative bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 cursor-pointer hover:shadow-md transition-shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      className="skill-card relative rounded-xl p-4 shadow-sm border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      style={{
+        backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
+        borderColor: 'var(--color-border, rgba(75, 85, 99, 0.5))',
+        transition: 'transform calc(var(--duration-fast, 150ms) * var(--motion-scale, 0)), box-shadow calc(var(--duration-fast, 150ms) * var(--motion-scale, 0))',
+      }}
       onClick={() => onClick(skill.id)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(skill.id) } }}
     >
@@ -32,14 +37,21 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
       <div className="flex items-start justify-between gap-2 pl-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-semibold text-gray-900 dark:text-white truncate">{skill.name}</h3>
+            <h3
+              className="font-semibold truncate"
+              style={{ color: 'var(--color-text-primary, #f9fafb)' }}
+            >
+              {skill.name}
+            </h3>
             <TierBadge tierName={skill.tier_name} tierNumber={skill.tier_number} />
           </div>
-          <p className="text-sm text-gray-500 mt-0.5">Level {skill.effective_level}</p>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+            Level {skill.effective_level}
+          </p>
         </div>
 
         {gate && (
-          <span role="img" aria-label="gate locked" className="text-amber-500 text-lg flex-shrink-0">🔒</span>
+          <span role="img" aria-label="gate locked" className="text-amber-500 text-lg flex-shrink-0">&#x1F512;</span>
         )}
       </div>
 
@@ -50,7 +62,7 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
           xpToNextLevel={skill.xp_to_next_level}
           className="mb-1"
         />
-        <p className="text-xs text-gray-400">
+        <p className="text-xs" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
           {skill.xp_for_current_level.toLocaleString()} / {(skill.xp_for_current_level + skill.xp_to_next_level).toLocaleString()} XP to next level
         </p>
       </div>
@@ -59,11 +71,26 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
         <button
           aria-label="Log XP"
           onClick={(e) => { e.stopPropagation(); onLogXP(skill.id) }}
-          className="flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors min-h-[44px]"
+          className="flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors min-h-[44px]"
+          style={{
+            backgroundColor: 'var(--color-bg-surface, #1f2937)',
+            color: 'var(--color-text-secondary, #9ca3af)',
+          }}
         >
           + Log
         </button>
       </div>
+
+      {/* Micro-interaction CSS — motion-scale gates the hover/press transforms */}
+      <style>{`
+        .skill-card:hover {
+          transform: scale(calc(1 + 0.02 * var(--motion-scale, 0)));
+          box-shadow: 0 0 calc(12px * var(--motion-scale, 0)) var(--color-border, rgba(75, 85, 99, 0.5));
+        }
+        .skill-card:active {
+          transform: scale(calc(1 - 0.02 * var(--motion-scale, 0)));
+        }
+      `}</style>
     </div>
   )
 }

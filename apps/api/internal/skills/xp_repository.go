@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -18,6 +19,16 @@ type XPEvent struct {
 	SkillID uuid.UUID `json:"skill_id"`
 	XPDelta int       `json:"xp_delta"`
 	LogNote string    `json:"log_note,omitempty"`
+}
+
+// ActivityEvent is an XP event enriched with skill name and timestamp for the activity feed.
+type ActivityEvent struct {
+	ID        uuid.UUID `json:"id"`
+	SkillID   uuid.UUID `json:"skill_id"`
+	SkillName string    `json:"skill_name"`
+	XPDelta   int       `json:"xp_delta"`
+	LogNote   string    `json:"log_note,omitempty"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 // LogXPResult is returned from LogXP.
@@ -161,6 +172,62 @@ func GetRecentLogs(ctx context.Context, db *pgxpool.Pool, skillID uuid.UUID, lim
 			return nil, err
 		}
 		out = append(out, e)
+	}
+	return out, rows.Err()
+}
+
+// GetRecentActivity returns the last N xp_events across all skills for a user,
+// enriched with skill_name and created_at. Results are ordered most recent first.
+// If skillID is non-nil, results are filtered to that specific skill.
+func GetRecentActivity(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, skillID *uuid.UUID, limit int) ([]ActivityEvent, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+	if limit > 50 {
+		limit = 50
+	}
+
+	var query string
+	var args []interface{}
+
+	if skillID != nil {
+		query = `
+			SELECT e.id, e.skill_id, s.name, e.xp_delta, COALESCE(e.log_note, ''), e.created_at
+			FROM public.xp_events e
+			JOIN public.skills s ON s.id = e.skill_id
+			WHERE e.user_id = $1 AND s.deleted_at IS NULL AND e.skill_id = $2
+			ORDER BY e.created_at DESC
+			LIMIT $3
+		`
+		args = []interface{}{userID, *skillID, limit}
+	} else {
+		query = `
+			SELECT e.id, e.skill_id, s.name, e.xp_delta, COALESCE(e.log_note, ''), e.created_at
+			FROM public.xp_events e
+			JOIN public.skills s ON s.id = e.skill_id
+			WHERE e.user_id = $1 AND s.deleted_at IS NULL
+			ORDER BY e.created_at DESC
+			LIMIT $2
+		`
+		args = []interface{}{userID, limit}
+	}
+
+	rows, err := db.Query(ctx, query, args...)
+	if err != nil {
+		return nil, fmt.Errorf("getrecentactivity: %w", err)
+	}
+	defer rows.Close()
+
+	var out []ActivityEvent
+	for rows.Next() {
+		var a ActivityEvent
+		if err := rows.Scan(&a.ID, &a.SkillID, &a.SkillName, &a.XPDelta, &a.LogNote, &a.CreatedAt); err != nil {
+			return nil, err
+		}
+		out = append(out, a)
+	}
+	if out == nil {
+		out = []ActivityEvent{}
 	}
 	return out, rows.Err()
 }

@@ -56,6 +56,9 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		xpHandler := handlers.NewXPHandler(db)
 		r.Post("/skills/{id}/xp", xpHandler.HandlePostXP)
 
+		activityHandler := handlers.NewActivityHandler(db)
+		r.Get("/activity", activityHandler.HandleGetActivity)
+
 		calibrateHandler := handlers.NewCalibrateHandler(db, []byte(cfg.MasterKey))
 		r.Post("/calibrate", calibrateHandler.HandlePostCalibrate)
 

@@ -1,13 +1,14 @@
 # Product Requirements
 
-Last updated: 2026-03-15 (updated by requirements-agent: Q-006, Q-007, Q-008 resolved; release 1 scope tightened)
+Last updated: 2026-03-19 (tech stack updated to reflect monorepo; MindTrack added as third app). Prior: 2026-03-15
 
 ## Product Summary
 
-Build a single web application with two connected experiences:
+Build a platform of three connected apps under a shared Go API, auth layer, and UI component library:
 
-- `LifeQuest`: a gamified skill progression system based on real-world activity
-- `NutriLog`: a calorie, macro, and weight tracking system with AI assistance
+- `LifeQuest` (`apps/rpg-tracker`): a gamified skill progression system based on real-world activity — **fully implemented**
+- `NutriLog` (`apps/nutri-log`): a calorie, macro, and weight tracking system with AI assistance — scaffolded, pending feature work
+- `MindTrack` (`apps/mental-health`): a mental wellness and mood tracking app — scaffolded, pending feature work
 
 The product should feel like a self-improvement operating system rather than a generic task tracker.
 
@@ -31,14 +32,15 @@ The planning baseline for release 1 is a `LifeQuest`-first MVP built on a shared
 
 ## Platform And Technical Direction
 
-- Backend: Go
-- HTML templating: Templ
-- Interaction model: HTMX with server-rendered fragments
-- Styling: Tailwind CSS
-- Database: PostgreSQL, likely via Supabase
-- Authentication: Supabase Auth
-- AI provider: Claude API with user-supplied API key stored server-side
-- Delivery target: web app with PWA support
+- Monorepo: Turborepo + pnpm workspaces (`apps/*`, `packages/*`)
+- Backend: Go (chi router, pgx v5, Supabase JWT auth) — single API shared by all three apps
+- Frontend: Next.js 15 App Router + React + Tailwind v4 — one app per product area
+- Shared packages: `@rpgtracker/ui` (components + design tokens), `@rpgtracker/auth` (Supabase SSR), `@rpgtracker/api-client` (typed client)
+- BFF pattern: Next.js Route Handler proxy forwards authenticated requests to Go API
+- Database: PostgreSQL via Supabase
+- Authentication: Supabase Auth (email/password for release 1)
+- AI provider: Claude API with user-supplied API key stored server-side (AES-256-GCM, D-015)
+- Delivery target: web app; PWA deferred (F-021)
 
 ## Product Principles
 

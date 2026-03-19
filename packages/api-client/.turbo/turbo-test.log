@@ -1,0 +1,14 @@
+
+> @rpgtracker/api-client@0.0.1 test /home/meden/GolandProjects/RpgTracker/packages/api-client
+> vitest run
+
+
+ RUN  v2.1.9 /home/meden/GolandProjects/RpgTracker/packages/api-client
+
+ ✓ src/__tests__/client.test.ts (3 tests) 6ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  21:53:23
+   Duration  650ms (transform 76ms, setup 0ms, collect 64ms, tests 6ms, environment 0ms, prepare 192ms)
+

@@ -4,60 +4,299 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { listSkills, logXP } from '@rpgtracker/api-client'
-import { SkillCard, QuickLogSheet, TierTransitionModal } from '@rpgtracker/ui'
-import type { SkillDetail } from '@rpgtracker/api-client'
+import { listSkills, getActivity, logXP } from '@rpgtracker/api-client'
+import type { SkillDetail, ActivityEvent } from '@rpgtracker/api-client'
+import {
+  SkillCard,
+  QuickLogSheet,
+  TierTransitionModal,
+  StatCard,
+  ActivityFeedItem,
+  TierBadge,
+} from '@rpgtracker/ui'
+import { XPGainAnimation } from '@/components/XPGainAnimation'
+
+/** Compute the count of active (uncleared) gates at or below each skill's current level */
+function countActiveGates(skills: SkillDetail[]): number {
+  let count = 0
+  for (const skill of skills) {
+    for (const gate of skill.gates) {
+      if (!gate.is_cleared && skill.current_level >= gate.gate_level) {
+        count++
+      }
+    }
+  }
+  return count
+}
+
+/** Sum XP logged today from activity events */
+function xpToday(events: ActivityEvent[]): number {
+  const todayStart = new Date()
+  todayStart.setHours(0, 0, 0, 0)
+  return events
+    .filter((e) => new Date(e.created_at) >= todayStart)
+    .reduce((sum, e) => sum + e.xp_delta, 0)
+}
+
+/** Find the highest-tier skill */
+function highestTierSkill(skills: SkillDetail[]): SkillDetail | null {
+  if (skills.length === 0) return null
+  return skills.reduce((best, s) =>
+    s.tier_number > best.tier_number ? s : best
+  )
+}
 
 export default function DashboardPage() {
   const router = useRouter()
   const qc = useQueryClient()
-  const { data: skills = [] } = useQuery({ queryKey: ['skills'], queryFn: listSkills })
+
+  const { data: skills = [], isLoading: skillsLoading } = useQuery({
+    queryKey: ['skills'],
+    queryFn: listSkills,
+  })
+
+  const { data: activity = [], isLoading: activityLoading } = useQuery({
+    queryKey: ['activity'],
+    queryFn: () => getActivity(10),
+  })
+
   const [logSheetSkill, setLogSheetSkill] = useState<SkillDetail | null>(null)
-  const [tierTransition, setTierTransition] = useState<{ tierName: string; tierNumber: number } | null>(null)
+  const [tierTransition, setTierTransition] = useState<{
+    tierName: string
+    tierNumber: number
+  } | null>(null)
+  const [xpGain, setXpGain] = useState<{ amount: number; key: number }>({ amount: 0, key: 0 })
 
   const logMutation = useMutation({
-    mutationFn: ({ skillId, xpDelta, logNote }: { skillId: string; xpDelta: number; logNote: string }) =>
-      logXP(skillId, xpDelta, logNote),
+    mutationFn: ({
+      skillId,
+      xpDelta,
+      logNote,
+    }: {
+      skillId: string
+      xpDelta: number
+      logNote: string
+    }) => logXP(skillId, xpDelta, logNote),
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['skills'] })
+      qc.invalidateQueries({ queryKey: ['activity'] })
       setLogSheetSkill(null)
+      setXpGain({ amount: result.xp_added, key: Date.now() })
       if (result.tier_crossed) {
-        setTierTransition({ tierName: result.tier_name, tierNumber: result.tier_number })
+        setTierTransition({
+          tierName: result.tier_name,
+          tierNumber: result.tier_number,
+        })
       }
     },
   })
 
-  return (
-    <div className="max-w-2xl mx-auto p-4 md:p-8">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Dashboard</h1>
-      {skills.length === 0 ? (
-        <div className="text-center py-12 space-y-3">
-          <p className="text-gray-500">No skills yet.</p>
-          <Link href="/skills/new" className="inline-block px-5 py-2.5 rounded-xl font-semibold text-white bg-[var(--color-accent,theme(colors.blue.600))] text-sm">
+  // Loading state
+  if (skillsLoading) {
+    return (
+      <div className="max-w-2xl mx-auto p-4 md:p-8">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 w-40 rounded bg-gray-700" />
+          <div className="grid grid-cols-2 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-20 rounded-xl bg-gray-700" />
+            ))}
+          </div>
+          <div className="h-32 rounded-xl bg-gray-700" />
+          <div className="h-48 rounded-xl bg-gray-700" />
+        </div>
+      </div>
+    )
+  }
+
+  // Empty state — no skills yet
+  if (skills.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto p-4 md:p-8">
+        <div className="text-center py-16 space-y-6">
+          {/* CSS-based shield illustration */}
+          <div className="mx-auto w-24 h-28 relative" aria-hidden="true">
+            <div
+              className="absolute inset-0 rounded-t-full rounded-b-[50%]"
+              style={{
+                backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
+                border: '3px solid var(--color-accent, #6366f1)',
+              }}
+            />
+            <div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl"
+              style={{ color: 'var(--color-accent, #6366f1)' }}
+            >
+              +
+            </div>
+          </div>
+
+          <h2
+            className="text-2xl font-bold"
+            style={{
+              fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+              color: 'var(--color-text-primary, #f9fafb)',
+            }}
+          >
+            Begin Your Quest
+          </h2>
+          <p
+            className="max-w-sm mx-auto"
+            style={{ color: 'var(--color-text-secondary, #9ca3af)' }}
+          >
+            Track your real-world skills like an RPG. Earn XP, level up, and
+            break through tier gates as you grow.
+          </p>
+          <Link
+            href="/skills/new"
+            className="inline-block px-6 py-3 rounded-xl font-semibold text-white min-h-[48px]"
+            style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
+          >
             Create your first skill
           </Link>
         </div>
-      ) : (
-        <div className="space-y-3">
-          {skills.map((skill) => (
-            <SkillCard key={skill.id} skill={skill}
-              onLogXP={(id) => setLogSheetSkill(skills.find(s => s.id === id) ?? null)}
-              onClick={(id) => router.push(`/skills/${id}`)}
-            />
-          ))}
-        </div>
-      )}
+      </div>
+    )
+  }
 
+  // Dashboard with data
+  const featuredSkill = skills[0] // Most recently updated (skills sorted by updated_at DESC)
+  const activeGatesCount = countActiveGates(skills)
+  const todayXP = xpToday(activity)
+  const topSkill = highestTierSkill(skills)
+
+  return (
+    <div className="max-w-2xl mx-auto p-4 md:p-8 space-y-6">
+      {/* Header */}
+      <h1
+        className="text-2xl font-bold"
+        style={{
+          fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+          color: 'var(--color-text-primary, #f9fafb)',
+        }}
+      >
+        Dashboard
+      </h1>
+
+      {/* Stats Row */}
+      <div className="grid grid-cols-2 gap-3" role="region" aria-label="Stats">
+        <StatCard label="Total Skills" value={skills.length} />
+        <StatCard label="Active Gates" value={activeGatesCount} />
+        <StatCard label="XP Today" value={todayXP.toLocaleString()} />
+        <StatCard
+          label="Highest Tier"
+          value={topSkill?.tier_name ?? 'None'}
+          icon={
+            topSkill ? (
+              <TierBadge
+                tierName={topSkill.tier_name}
+                tierNumber={topSkill.tier_number}
+              />
+            ) : undefined
+          }
+        />
+      </div>
+
+      {/* Featured Skill */}
+      <section>
+        <h2
+          className="text-lg font-semibold mb-3"
+          style={{
+            fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+            color: 'var(--color-text-primary, #f9fafb)',
+          }}
+        >
+          Continue where you left off
+        </h2>
+        <SkillCard
+          skill={featuredSkill}
+          onLogXP={(id) =>
+            setLogSheetSkill(skills.find((s) => s.id === id) ?? null)
+          }
+          onClick={(id) => router.push(`/skills/${id}`)}
+        />
+      </section>
+
+      {/* Quick Action — Log XP */}
+      <div className="relative">
+        <button
+          onClick={() => setLogSheetSkill(featuredSkill)}
+          className="w-full py-4 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity"
+          style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
+        >
+          Log XP
+        </button>
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2">
+          <XPGainAnimation xpAmount={xpGain.amount} animationKey={xpGain.key} />
+        </div>
+      </div>
+
+      {/* Recent Activity Feed */}
+      <section>
+        <h2
+          className="text-lg font-semibold mb-3"
+          style={{
+            fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+            color: 'var(--color-text-primary, #f9fafb)',
+          }}
+        >
+          Recent Activity
+        </h2>
+        {activityLoading ? (
+          <div className="animate-pulse space-y-2">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-12 rounded-lg bg-gray-700" />
+            ))}
+          </div>
+        ) : activity.length === 0 ? (
+          <p
+            className="text-sm py-4 text-center"
+            style={{ color: 'var(--color-text-muted, #6b7280)' }}
+          >
+            No activity yet. Log some XP to see your progress here.
+          </p>
+        ) : (
+          <div className="space-y-1">
+            {activity.map((event) => (
+              <ActivityFeedItem
+                key={event.id}
+                skillName={event.skill_name}
+                xpDelta={event.xp_delta}
+                logNote={event.log_note || undefined}
+                createdAt={event.created_at}
+                onClick={() => router.push(`/skills/${event.skill_id}`)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* QuickLogSheet */}
       {logSheetSkill && (
-        <QuickLogSheet skillName={logSheetSkill.name} chips={logSheetSkill.quick_log_chips}
-          isOpen isLoading={logMutation.isPending}
+        <QuickLogSheet
+          skillName={logSheetSkill.name}
+          chips={logSheetSkill.quick_log_chips}
+          isOpen
+          isLoading={logMutation.isPending}
           onClose={() => setLogSheetSkill(null)}
-          onSubmit={({ xpDelta, logNote }) => logMutation.mutate({ skillId: logSheetSkill.id, xpDelta, logNote })}
+          onSubmit={({ xpDelta, logNote }) =>
+            logMutation.mutate({
+              skillId: logSheetSkill.id,
+              xpDelta,
+              logNote,
+            })
+          }
         />
       )}
+
+      {/* Tier Transition Modal */}
       {tierTransition && (
-        <TierTransitionModal newTierName={tierTransition.tierName} newTierNumber={tierTransition.tierNumber}
-          isOpen onContinue={() => setTierTransition(null)} />
+        <TierTransitionModal
+          newTierName={tierTransition.tierName}
+          newTierNumber={tierTransition.tierNumber}
+          isOpen
+          onContinue={() => setTierTransition(null)}
+        />
       )}
     </div>
   )
