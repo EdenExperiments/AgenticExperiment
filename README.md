@@ -1,4 +1,7 @@
-# RpgTracker
+# MOST OF THE DOCUMENTATION IS STALE DUE TO COMPLETE REFACTOR.
+## Will update documentation soon, im halfway through switching from .superpowers to a custom repo. 
+
+## RpgTracker
 
 A Go-based RPG tracker application.
 
