@@ -35,8 +35,11 @@ export function ActivityFeedItem({ skillName, xpDelta, logNote, createdAt, onCli
 
   return (
     <Wrapper
-      className={`w-full flex items-center justify-between py-3 px-3 rounded-lg transition-colors text-left ${onClick ? 'cursor-pointer hover:opacity-80' : ''}`}
-      style={{ backgroundColor: 'var(--color-bg-surface, #1f2937)' }}
+      className={`w-full flex items-center justify-between py-3 px-3 rounded-lg text-left hover:bg-[var(--color-bg-elevated)] ${onClick ? 'cursor-pointer' : ''}`}
+      style={{
+        backgroundColor: 'var(--color-bg-surface, #1f2937)',
+        transition: 'background-color calc(var(--duration-fast, 150ms) * var(--motion-scale, 1))',
+      }}
       onClick={onClick}
       {...(onClick ? { type: 'button' as const } : {})}
     >
