@@ -27,17 +27,23 @@ export function TierTransitionModal({ newTierName, newTierNumber, isOpen, onCont
   const isLegend = newTierNumber === 11
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center md:pl-64">
       <div className="absolute inset-0 bg-black/60" />
-      <div className="relative w-full md:max-w-md bg-white dark:bg-gray-900 rounded-t-3xl md:rounded-3xl p-8 text-center space-y-4">
+      <div
+        className="relative w-full md:max-w-md rounded-t-3xl md:rounded-3xl p-8 text-center space-y-4 border"
+        style={{ background: 'var(--color-bg-elevated)', borderColor: 'var(--color-border-strong)' }}
+      >
         <div className="flex justify-center">
           <TierBadge tierName={newTierName} tierNumber={newTierNumber} className="text-base px-4 py-1.5" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+        <h2
+          className="text-2xl font-bold"
+          style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text-primary)' }}
+        >
           {isLegend ? `You've reached Legend.` : `You've reached ${newTierName}!`}
         </h2>
-        <p className="text-gray-600 dark:text-gray-300">{description}</p>
-        <p className="text-xs text-gray-400 mt-2">
+        <p style={{ color: 'var(--color-text-secondary)' }}>{description}</p>
+        <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
           The next tier requires more XP per level. This reflects the reality that advanced mastery takes greater effort.
         </p>
         <button

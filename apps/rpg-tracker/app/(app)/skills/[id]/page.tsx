@@ -1,13 +1,28 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { getSkill, logXP, deleteSkill, getActivity, getXPChart } from '@rpgtracker/api-client'
+import { getSkill, logXP, deleteSkill, getActivity, getXPChart, createSession } from '@rpgtracker/api-client'
 import type { BlockerGate, ActivityEvent } from '@rpgtracker/api-client'
-import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal } from '@rpgtracker/ui'
+import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal, GrindOverlay, PostSessionScreen, XPBarChart, ConfirmModal } from '@rpgtracker/ui'
 import { XPGainAnimation } from '@/components/XPGainAnimation'
+
+const PLANNED_SESSION_SECONDS = 25 * 60
+
+const TIER_HEX: Record<number, string> = {
+  1: '#9ca3af', 2: '#3b82f6', 3: '#14b8a6', 4: '#22c55e', 5: '#84cc16',
+  6: '#9333ea', 7: '#c026d3', 8: '#d97706', 9: '#ea580c', 10: '#dc2626', 11: '#facc15',
+}
+
+function computeBonusPct(elapsedSec: number, requiresActiveUse: boolean): number {
+  const ratio = Math.min(elapsedSec / PLANNED_SESSION_SECONDS, 1)
+  if (ratio < 0.5) return 0
+  const full = requiresActiveUse ? 10 : 25
+  if (ratio >= 0.95) return full
+  return Math.round(full * ratio)
+}
 
 /** Group activity events by date buckets */
 function groupByDate(events: ActivityEvent[]): { label: string; items: ActivityEvent[] }[] {
@@ -69,6 +84,10 @@ export default function SkillDetailPage() {
   const [tierTransition, setTierTransition] = useState<{ tierName: string; tierNumber: number } | null>(null)
   const [gateFirstHit, setGateFirstHit] = useState<BlockerGate | null>(null)
   const [xpGain, setXpGain] = useState<{ amount: number; key: number }>({ amount: 0, key: 0 })
+  const [grindPhase, setGrindPhase] = useState<'config' | 'work' | 'break' | 'end-early' | null>(null)
+  const [postSession, setPostSession] = useState<{ elapsedSec: number } | null>(null)
+  const sessionStartRef = useRef<number | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const logMutation = useMutation({
     mutationFn: ({ xpDelta, logNote }: { xpDelta: number; logNote: string }) =>
@@ -89,6 +108,29 @@ export default function SkillDetailPage() {
     onSuccess: () => router.push('/skills'),
   })
 
+  const sessionMutation = useMutation({
+    mutationFn: (body: Parameters<typeof createSession>[1]) => createSession(id, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['skill', id] })
+      qc.invalidateQueries({ queryKey: ['skills'] })
+      qc.invalidateQueries({ queryKey: ['activity'] })
+      qc.invalidateQueries({ queryKey: ['xp-chart', id] })
+      setGrindPhase(null)
+      setPostSession(null)
+    },
+  })
+
+  function handleSessionEnd({ status, elapsedSeconds }: { status: 'completed' | 'abandoned'; elapsedSeconds: number }) {
+    const elapsed = elapsedSeconds > 0 ? elapsedSeconds : (sessionStartRef.current ? Math.floor((Date.now() - sessionStartRef.current) / 1000) : 0)
+    if (status === 'abandoned') {
+      sessionMutation.mutate({ status: 'abandoned', session_type: 'pomodoro', planned_duration_sec: PLANNED_SESSION_SECONDS, actual_duration_sec: elapsed })
+      setGrindPhase(null)
+    } else {
+      setGrindPhase(null)
+      setPostSession({ elapsedSec: elapsed })
+    }
+  }
+
   if (isLoading || !skill) return <div className="p-8 text-gray-400">Loading...</div>
 
   const activeGate = skill.gates.find(g => !g.is_cleared && skill.current_level >= g.gate_level)
@@ -98,6 +140,7 @@ export default function SkillDetailPage() {
   // Streak data from skill response
   const currentStreak = skill.streak?.current ?? 0
   const longestStreak = skill.streak?.longest ?? 0
+  const tierColor = TIER_HEX[skill.tier_number] ?? '#6366f1'
 
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8 space-y-6">
@@ -196,6 +239,7 @@ export default function SkillDetailPage() {
         <button
           data-testid="start-session-btn"
           data-variant="primary"
+          onClick={() => setGrindPhase('config')}
           className="flex-1 py-4 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity btn-primary"
           style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
         >
@@ -228,6 +272,24 @@ export default function SkillDetailPage() {
             {skill.description}
           </p>
         </div>
+      )}
+
+      {/* XP Progress Chart */}
+      {xpChart && (
+        <section>
+          <h2
+            className="font-semibold mb-3"
+            style={{
+              fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+              color: 'var(--color-text-primary, #f9fafb)',
+            }}
+          >
+            Last 30 Days
+          </h2>
+          <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-surface, #1f2937)' }}>
+            <XPBarChart data={xpChart.data} tierColor={tierColor} />
+          </div>
+        </section>
       )}
 
       {/* XP History — date grouped */}
@@ -282,7 +344,7 @@ export default function SkillDetailPage() {
 
       {/* Delete */}
       <button
-        onClick={() => { if (confirm('Delete this skill? This cannot be undone.')) deleteMutation.mutate() }}
+        onClick={() => setConfirmDelete(true)}
         className="text-sm w-full text-center py-2 hover:opacity-80 transition-opacity"
         style={{ color: 'var(--color-error, #f87171)' }}
       >
@@ -292,11 +354,13 @@ export default function SkillDetailPage() {
       {logSheetOpen && (
         <QuickLogSheet
           skillName={skill.name}
-          chips={skill.quick_log_chips}
+          tierNumber={skill.tier_number}
           isOpen
           isLoading={logMutation.isPending}
           onClose={() => setLogSheetOpen(false)}
-          onSubmit={({ xpDelta, logNote }) => logMutation.mutate({ xpDelta, logNote: logNote ?? '' })}
+          onSubmit={({ xpDelta, logNote, timeSpentMinutes }) =>
+            logMutation.mutate({ xpDelta, logNote: logNote ?? '', timeSpentMinutes })
+          }
         />
       )}
 
@@ -309,9 +373,57 @@ export default function SkillDetailPage() {
         />
       )}
 
+      {/* Grind overlay — fullscreen, shown when session is active */}
+      {grindPhase && (
+        <GrindOverlay
+          skillId={id}
+          skillName={skill.name}
+          animationTheme={skill.animation_theme ?? 'general'}
+          tierColor={tierColor}
+          tierNumber={skill.tier_number}
+          requiresActiveUse={skill.requires_active_use ?? false}
+          phase={grindPhase}
+          onBegin={() => {
+            sessionStartRef.current = Date.now()
+            setGrindPhase('work')
+          }}
+          onCancel={() => setGrindPhase(null)}
+          onSessionEnd={handleSessionEnd}
+        />
+      )}
+
+      {/* Post-session screen — shown after session ends (non-abandoned) */}
+      {postSession && (() => {
+        const bonusPct = computeBonusPct(postSession.elapsedSec, skill.requires_active_use ?? false)
+        const baseXP = Math.round((postSession.elapsedSec / 60) * 3 * (1 + 0.4 * (skill.tier_number - 1)))
+        const earnedXP = Math.max(1, Math.round(baseXP * (1 + bonusPct / 100)))
+        return (
+          <div className="fixed inset-0 z-50">
+            <PostSessionScreen
+              sessionDurationSeconds={postSession.elapsedSec}
+              earnedXP={earnedXP}
+              bonusPercentage={bonusPct}
+              onSubmit={({ reflectionWhat, reflectionHow, reflectionFeeling }) => {
+                sessionMutation.mutate({
+                  session_type: 'pomodoro',
+                  status: postSession.elapsedSec >= PLANNED_SESSION_SECONDS * 0.95 ? 'completed' : 'partial',
+                  xp_delta: earnedXP,
+                  planned_duration_sec: PLANNED_SESSION_SECONDS,
+                  actual_duration_sec: postSession.elapsedSec,
+                  reflection_what: reflectionWhat,
+                  reflection_how: reflectionHow,
+                  reflection_feeling: reflectionFeeling,
+                })
+              }}
+              onDismiss={() => setPostSession(null)}
+            />
+          </div>
+        )
+      })()}
+
       {/* First-hit gate modal */}
       {gateFirstHit && (
-        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center md:pl-64">
           <div className="absolute inset-0 bg-black/60" />
           <div
             className="relative w-full md:max-w-md rounded-t-3xl md:rounded-3xl p-8 space-y-4"
@@ -341,6 +453,18 @@ export default function SkillDetailPage() {
             </button>
           </div>
         </div>
+      )}
+
+      {confirmDelete && (
+        <ConfirmModal
+          title="Delete this skill?"
+          message="All XP history and session data will be permanently removed. This cannot be undone."
+          confirmLabel="Delete"
+          destructive
+          isLoading={deleteMutation.isPending}
+          onConfirm={() => deleteMutation.mutate()}
+          onCancel={() => setConfirmDelete(false)}
+        />
       )}
     </div>
   )

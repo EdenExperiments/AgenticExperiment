@@ -107,3 +107,78 @@ All first-pass animation gaps are now resolved.
 APPROVED
 
 All 22 items from the first-pass CHANGES-NEEDED list are resolved in the updated spec. The single residual note (system back-gesture on the post-session screen) is a one-line implementation detail that does not require a spec change and does not block implementation or approval.
+
+---
+
+## Third Pass — Starting-Level Gate Interaction (2026-03-21)
+
+**Trigger:** UX advisory request on the unspecified interaction between self-reported starting levels and the gate system.
+
+**Status of this pass: CHANGES-NEEDED** — the spec is silent on this flow. The items below must be addressed before the skill creation handler is implemented.
+
+---
+
+### Flow Correctness
+
+The spec defines the gate submission flow (AC-Group G) and the skill creation wizard (AC-Group A, sections 7 and existing feature context) but contains no rule governing how gates are initialised when a skill is created with a starting level above a gate boundary. This is a dead end in the creation flow: a user who claims level 26 arrives at their new skill's detail page, sees a gate section (D-021 — it replaces the XP bar as the dominant screen element), and has no spec-defined path that explains why two gate submissions are required before their stated level is displayed.
+
+**Recommended rule — Option B (single boundary gate):**
+
+When a skill is created with `starting_level > 9`, the creation handler must:
+
+1. Identify the highest gate whose level is strictly below `starting_level`. For level 26 this is gate 19 (the Adept boundary). For level 45 this is gate 39. For level 9 or below, no auto-clearing occurs.
+2. Bulk-insert `gate_submissions` rows with `verdict = 'self_reported'` for all gates whose level is strictly below the identified highest gate. For level 26: gate 9 is auto-cleared. For level 45: gates 9, 19, 29 are auto-cleared.
+3. Set `blocker_gates.is_cleared = true` and `cleared_at = now()` on those same rows, so the existing `EffectiveLevel()` server-side logic (R-004) treats them as cleared without any code change.
+4. The single highest boundary gate (gate 19 at level 26, gate 39 at level 45) is NOT auto-cleared. It requires a normal G-flow submission.
+
+**Rationale:** Gate integrity validates tier transitions. A user claiming Adept (level 20–29) is asserting they crossed the Apprentice→Adept boundary — gate 19 is the correct check. Requiring gate 9 evidence from a self-reported Adept adds no integrity signal and directly contradicts D-011 (low-friction principle) and the spirit of D-007 (gates are not punitive to ongoing logging). The audit trail is preserved: auto-cleared rows in `gate_submissions` record the reason, satisfying G5 for future social verification (G4).
+
+**The level 99 edge case:** A user claiming level 99 (the maximum per D-018) sits above gate 89. Gates 9 through 79 are auto-cleared. Gate 89 (Master→Grandmaster) requires submission. This is correct — one meaningful submission for the highest claimed boundary.
+
+**Why not Option C (single consolidated submission that clears all):** C is close to B but requires the gate submission handler to programmatically clear N gates on a single approved verdict — a more complex transaction with no meaningful integrity gain over B for this use case.
+
+**Why not Option D (auto-clear all gates at creation):** D loses the integrity check entirely for the starting level. This is acceptable for Novice/Apprentice range but indefensible for a user claiming level 89.
+
+---
+
+### Mobile Viability
+
+With Option B in place, a user creating a level-26 skill arrives at the detail page and sees one gate section for gate 19. One submission, one focused task. This is appropriate mobile UX — the dominant gate section (D-021) is purposeful and bounded.
+
+Without this fix (status quo Option A), a user creating a level-75 skill would face six sequential gate submissions before reaching their starting level. Each submission involves three textareas with character minimums (G2), a possible 30-second AI wait (G3), and a rejection/retry cycle. On mobile this is not merely inconvenient — it is a screen-time and cognitive load pattern that will cause users to abandon the skill or understate their level. D-006 (strong mobile usability for core flows) is violated by Option A.
+
+---
+
+### Navigation Changes
+
+None introduced by this fix. The gate submission flow (AC-Group G) is unchanged. The new logic lives entirely in the creation handler.
+
+---
+
+### Edge Cases
+
+**Starting level exactly on a gate boundary (e.g., level 19 exactly):** The user is at the gate level itself. Gate 19 is the active gate — no auto-clearing occurs for levels below since the user is claiming exactly the boundary, not a level above it. `EffectiveLevel()` caps at 9 until gate 19 is cleared. This is correct and consistent.
+
+**Starting level 10–18 (Apprentice tier, above gate 9 but below gate 19):** Only gate 9 requires submission. No auto-clearing needed — gate 9 is the single applicable boundary gate. This is already consistent with Option B without any auto-clearing logic (no gates to auto-clear below gate 9).
+
+**Starting level 1–9 (Novice tier):** No gates are applicable at creation. The user encounters gate 9 through normal XP accumulation. Option B does not change this path.
+
+**Wizard communication gap (question 2):** The spec does not inform the user during skill creation that a gate submission will be required. This creates a surprise dead-end. The wizard must surface an inline note beneath the level picker when `starting_level` exceeds a gate boundary. Suggested copy: "Starting above level [N] means you'll need to submit one gate assessment (for [TierName] mastery) before your full starting level is displayed." The note must name the specific gate and tier (not generic language), must be non-blocking (not a modal or confirmation step), and must be positioned within normal thumb scroll reach on mobile. No new wizard step is required.
+
+---
+
+### Items to Add to spec.md
+
+- **Add to AC-Group G (Gate Submission), as G9:** "When a skill is created with `starting_level` above a gate boundary, the creation handler auto-clears all gate boundaries strictly below the highest applicable gate by inserting `gate_submissions` rows with `verdict = 'self_reported'` and setting `blocker_gates.is_cleared = true, cleared_at = now()` on those rows. Only the single highest boundary gate requires a user submission. Auto-cleared rows store the note 'Auto-cleared at skill creation — starting level implies this tier was reached' in `ai_feedback`. No cooldown is set. `EffectiveLevel()` is unchanged."
+- **Add to AC-Group A (or the wizard section in section 7):** "When the user selects a starting level above a gate boundary in the skill creation wizard, an inline informational note appears beneath the level picker: 'Starting above level [N] means you'll need to submit one gate assessment ([TierName] mastery) before your full starting level is displayed.' The note is non-blocking and requires no additional wizard step."
+- **Add a new decision entry D-033** (or equivalent) to `Documentation/decision-log.md`: "Starting-level gate initialisation: when a skill is created above a gate boundary, all gates below the highest applicable boundary are auto-cleared at creation (verdict = 'self_reported'). Only the single highest boundary gate requires a submission. This is the 'start where you are' rule — the gate system validates tier transitions going forward, not every historical boundary below the claimed starting level." This prevents future agents from treating the auto-clear as a bug or reverting it.
+
+---
+
+### Approval (Third Pass)
+
+CHANGES-NEEDED
+
+- G9: Add the starting-level auto-clear rule to AC-Group G as specified above.
+- Wizard note: Add the inline gate-preview note to the skill creation wizard section.
+- D-033: Add the binding decision entry to `Documentation/decision-log.md` so the rule is anchored and not inadvertently removed by a future implementation agent.

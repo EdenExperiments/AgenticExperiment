@@ -131,6 +131,7 @@ Social features (leaderboards, friends) are **out of scope** — see separate fu
 - **G6** — `GET /api/v1/skills/{id}` response includes the latest `gate_submission` (verdict, feedback, next_retry_at) for the active gate.
 - **G7** — A user cannot submit a new gate attempt while a cooldown is in effect (enforced server-side).
 - **G8** — Attempt count is shown to the user on the gate section ("Attempt 2 of ∞").
+- **G9** — **Starting-level gate auto-clear (D-033).** When a skill is created with `starting_level` above a gate boundary, the `CreateSkill` handler auto-clears all gate boundaries strictly below the highest applicable gate in the same creation transaction: `blocker_gates.is_cleared = true, cleared_at = now()`, and a `gate_submissions` row is inserted with `verdict = 'self_reported'`, `attempt_number = 1`, and a system-generated note in all three evidence fields (`"Skill created at a higher starting level — this tier's gate was auto-cleared at creation."`). Only the single highest applicable boundary gate requires a user submission. `EffectiveLevel()` is unchanged — it skips auto-cleared gates and caps at the first uncleaned gate. No cooldown is set on auto-cleared gates. Example: skill created at level 26 → gate 9 auto-cleared, gate 19 open for submission.
 
 ---
 
@@ -364,6 +365,12 @@ Pagination: cursor-based on `created_at`. Default limit: 20. Query param: `?limi
 | `MonthlySummary.tsx` | Monthly XP + time + active days summary card |
 | `GateSubmissionForm.tsx` | Evidence textarea × 3 + AI/self-report path selector + submit button |
 | `GateVerdictCard.tsx` | AI feedback display + retry countdown |
+
+### Starting-level gate note (AC-Group A addendum — D-033)
+
+When the user selects a starting level above a gate boundary in the skill creation wizard (Step 2 level picker), an inline informational note appears beneath the picker:
+> "Starting at level [N] means you'll need to submit one gate assessment (Level [G] — the tier boundary you're sitting above). Lower gates are auto-cleared. Your XP always keeps accruing."
+The note names the specific gate and tier. It is non-blocking (no extra wizard step) and dynamically updates as the user scrolls through the level list.
 
 ### Modified shared UI components
 - `SkillCard.tsx` — conditionally show `SkillStreakBadge` when `current_streak ≥ 2`

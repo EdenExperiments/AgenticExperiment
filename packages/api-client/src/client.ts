@@ -5,6 +5,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers: { 'Content-Type': 'application/json' },
     ...init,
   })
+  if (res.status === 204) {
+    return undefined as unknown as T
+  }
   const data = await res.json()
   if (!res.ok) {
     throw new Error((data as APIError).error ?? 'request failed')
@@ -108,18 +111,31 @@ export function signOut(): Promise<void> {
 
 // Training Sessions
 export function createSession(skillId: string, body: {
-  status: 'completed' | 'abandoned'
+  session_type?: 'pomodoro' | 'manual'
+  status: 'completed' | 'partial' | 'abandoned'
   xp_delta?: number
-  bonus_xp?: number
-  duration_seconds: number
+  planned_duration_sec?: number
+  actual_duration_sec?: number
   log_note?: string
   reflection_what?: string
   reflection_how?: string
   reflection_feeling?: string
-}): Promise<TrainingSession> {
-  return request<TrainingSession>(`/api/v1/skills/${skillId}/sessions`, {
+}): Promise<{ session: TrainingSession; xp_result: unknown; streak: unknown }> {
+  const entries: [string, string][] = [
+    ['session_type', body.session_type ?? 'pomodoro'],
+    ['status', body.status],
+  ]
+  if (body.xp_delta !== undefined) entries.push(['xp_delta', String(body.xp_delta)])
+  if (body.planned_duration_sec !== undefined) entries.push(['planned_duration_sec', String(body.planned_duration_sec)])
+  if (body.actual_duration_sec !== undefined) entries.push(['actual_duration_sec', String(body.actual_duration_sec)])
+  if (body.log_note) entries.push(['log_note', body.log_note])
+  if (body.reflection_what) entries.push(['reflection_what', body.reflection_what])
+  if (body.reflection_how) entries.push(['reflection_how', body.reflection_how])
+  if (body.reflection_feeling) entries.push(['reflection_feeling', body.reflection_feeling])
+  return request(`/api/v1/skills/${skillId}/sessions`, {
     method: 'POST',
-    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(entries).toString(),
   })
 }
 

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"sort"
@@ -107,7 +108,31 @@ type dbXPChartStore struct {
 	db *pgxpool.Pool
 }
 
-func (s *dbXPChartStore) GetXPEvents(_ context.Context, _, _ uuid.UUID, _ int) ([]skills.DailyXP, error) {
-	// Stub for compilation — real implementation would query the DB.
-	return nil, nil
+func (s *dbXPChartStore) GetXPEvents(ctx context.Context, skillID, userID uuid.UUID, days int) ([]skills.DailyXP, error) {
+	rows, err := s.db.Query(ctx, `
+		SELECT (e.created_at AT TIME ZONE 'UTC')::date AS day,
+		       SUM(e.xp_delta)::int                    AS xp_total
+		FROM   public.xp_events e
+		JOIN   public.skills s ON s.id = e.skill_id
+		WHERE  e.skill_id    = $1
+		  AND  s.user_id     = $2
+		  AND  s.deleted_at  IS NULL
+		  AND  e.created_at >= NOW() AT TIME ZONE 'UTC' - ($3::int * INTERVAL '1 day')
+		GROUP  BY 1
+		ORDER  BY 1
+	`, skillID, userID, days)
+	if err != nil {
+		return nil, fmt.Errorf("xpchart: query: %w", err)
+	}
+	defer rows.Close()
+
+	var out []skills.DailyXP
+	for rows.Next() {
+		var d skills.DailyXP
+		if err := rows.Scan(&d.Date, &d.XPTotal); err != nil {
+			return nil, fmt.Errorf("xpchart: scan: %w", err)
+		}
+		out = append(out, d)
+	}
+	return out, rows.Err()
 }

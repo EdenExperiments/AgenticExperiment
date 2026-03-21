@@ -65,9 +65,17 @@ func defaultGateDescription(gateLevel int) string {
 	)
 }
 
+// autoClearEvidence is the system-generated evidence text stored in gate_submissions
+// rows created during skill creation (D-033). Distinguishable from user-written content.
+const autoClearEvidence = "Skill created at a higher starting level — this tier's gate was auto-cleared at creation."
+
 // CreateSkill inserts a new skill and its 10 blocker gates in a single transaction.
 // startingLevel must be 1–99 (D-018). gateDescs[i] overrides the default description for gate i
 // when non-empty; pass [10]string{} to use all defaults.
+//
+// D-033: If startingLevel crosses multiple gate boundaries, all gates below the highest
+// applicable boundary are auto-cleared with verdict='self_reported'. Only the highest
+// boundary gate remains open and must be submitted by the user.
 func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID, startingLevel int, gateDescs [10]string) (*Skill, error) {
 	if startingLevel < 1 || startingLevel > 99 {
 		return nil, ErrInvalidStartingLevel
@@ -100,19 +108,57 @@ func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, 
 		return nil, fmt.Errorf("skills: insert: %w", err)
 	}
 
-	// Insert the 10 blocker gates.
+	// Find highest gate boundary the starting level crosses (D-033).
+	// e.g. startingLevel=26 → highestHit=19 (gate at 9 will be auto-cleared).
+	highestHit := -1
+	for _, gl := range gateLevels {
+		if startingLevel >= gl {
+			highestHit = gl
+		}
+	}
+
+	// Insert the 10 blocker gates, collecting IDs so we can auto-clear the right ones.
+	type gateInsert struct {
+		id    uuid.UUID
+		level int
+	}
+	var inserted [10]gateInsert
+
 	for i, gl := range gateLevels {
 		title := defaultGateTitle(gl)
 		desc := defaultGateDescription(gl)
 		if gateDescs[i] != "" {
 			desc = gateDescs[i]
 		}
-		_, err = tx.Exec(ctx, `
+		err = tx.QueryRow(ctx, `
 			INSERT INTO public.blocker_gates (skill_id, gate_level, title, description)
 			VALUES ($1, $2, $3, $4)
-		`, s.ID, gl, title, desc)
+			RETURNING id
+		`, s.ID, gl, title, desc).Scan(&inserted[i].id)
 		if err != nil {
 			return nil, fmt.Errorf("skills: insert gate %d: %w", gl, err)
+		}
+		inserted[i].level = gl
+	}
+
+	// Auto-clear all gates strictly below highestHit (D-033).
+	for _, g := range inserted {
+		if highestHit <= 0 || g.level >= highestHit {
+			continue
+		}
+		if _, err = tx.Exec(ctx, `
+			UPDATE public.blocker_gates SET is_cleared = true, cleared_at = now()
+			WHERE id = $1
+		`, g.id); err != nil {
+			return nil, fmt.Errorf("skills: auto-clear gate %d: %w", g.level, err)
+		}
+		if _, err = tx.Exec(ctx, `
+			INSERT INTO public.gate_submissions
+				(gate_id, user_id, evidence_what, evidence_how, evidence_feeling,
+				 verdict, attempt_number, reviewed_at)
+			VALUES ($1, $2, $3, $3, $3, 'self_reported', 1, now())
+		`, g.id, userID, autoClearEvidence); err != nil {
+			return nil, fmt.Errorf("skills: auto-clear submission gate %d: %w", g.level, err)
 		}
 	}
 

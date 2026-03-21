@@ -3,13 +3,11 @@
 import { useState } from 'react'
 
 interface PostSessionScreenProps {
-  skillId: string
   sessionDurationSeconds: number
-  tierNumber: number
-  quickLogChips: number[]
+  /** XP earned from this session — computed by the parent from elapsed time × rate × tier × bonus. */
+  earnedXP: number
   bonusPercentage: number
   onSubmit: (data: {
-    xpDelta: number
     reflectionWhat?: string
     reflectionHow?: string
     reflectionFeeling?: string
@@ -18,66 +16,68 @@ interface PostSessionScreenProps {
 }
 
 export function PostSessionScreen({
-  skillId,
   sessionDurationSeconds,
-  tierNumber,
-  quickLogChips,
+  earnedXP,
   bonusPercentage,
   onSubmit,
   onDismiss,
 }: PostSessionScreenProps) {
-  const [selectedXP, setSelectedXP] = useState(quickLogChips[1] ?? quickLogChips[0])
   const [reflectionWhat, setReflectionWhat] = useState('')
   const [reflectionHow, setReflectionHow] = useState('')
   const [reflectionFeeling, setReflectionFeeling] = useState('')
 
-  function handleQuickLog() {
-    onSubmit({ xpDelta: selectedXP })
-  }
+  const mins = Math.floor(sessionDurationSeconds / 60)
+  const secs = sessionDurationSeconds % 60
 
-  function handleLogReflect() {
-    onSubmit({
-      xpDelta: selectedXP,
-      reflectionWhat,
-      reflectionHow,
-      reflectionFeeling,
-    })
+  function handleSubmit() {
+    onSubmit({ reflectionWhat, reflectionHow, reflectionFeeling })
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-900 text-white">
+    <div
+      className="flex flex-col min-h-screen"
+      style={{ background: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+    >
       <div className="flex-1 p-6 space-y-6 overflow-y-auto">
-        <h2 className="text-2xl font-bold">Session Complete!</h2>
-        <p className="text-gray-400">
-          Duration: {Math.floor(sessionDurationSeconds / 60)}m {sessionDurationSeconds % 60}s
-          {bonusPercentage > 0 && ` · +${bonusPercentage}% bonus XP`}
-        </p>
+        {/* Header */}
+        <div>
+          <h2
+            className="text-2xl font-bold mb-1"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-accent)' }}
+          >
+            Session Complete!
+          </h2>
+          <p style={{ color: 'var(--color-text-secondary)' }}>
+            {mins}m {secs}s
+          </p>
+        </div>
 
-        {/* XP Chip selector */}
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-300">Select XP</p>
-          <div className="flex gap-2 flex-wrap">
-            {quickLogChips.map((chip) => (
-              <button
-                key={chip}
-                onClick={() => setSelectedXP(chip)}
-                aria-pressed={selectedXP === chip}
-                className={`px-4 py-2 rounded-xl text-sm font-semibold min-h-[44px] transition-colors ${
-                  selectedXP === chip
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-300'
-                }`}
-              >
-                {chip} XP
-              </button>
-            ))}
-          </div>
+        {/* XP earned summary */}
+        <div
+          className="rounded-2xl p-5 text-center border"
+          style={{ background: 'var(--color-bg-elevated)', borderColor: 'var(--color-border)' }}
+        >
+          <p className="text-4xl font-bold" style={{ color: 'var(--color-accent)' }}>
+            +{earnedXP} XP
+          </p>
+          {bonusPercentage > 0 && (
+            <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>
+              includes +{bonusPercentage}% session bonus
+            </p>
+          )}
         </div>
 
         {/* Reflection textareas */}
         <div className="space-y-4">
+          <p className="text-sm font-medium" style={{ color: 'var(--color-text-secondary)' }}>
+            Reflection (optional)
+          </p>
           <div>
-            <label className="block text-sm text-gray-400 mb-1" htmlFor="reflection-what">
+            <label
+              className="block text-sm mb-1"
+              htmlFor="reflection-what"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
               What did you work on?
             </label>
             <textarea
@@ -86,12 +86,21 @@ export function PostSessionScreen({
               value={reflectionWhat}
               onChange={(e) => setReflectionWhat(e.target.value)}
               placeholder="What did you focus on this session?"
-              className="w-full rounded-xl p-3 bg-gray-800 text-white text-sm resize-none"
+              className="w-full rounded-xl p-3 text-sm resize-none"
+              style={{
+                background: 'var(--color-bg-elevated)',
+                color: 'var(--color-text-primary)',
+                border: '1px solid var(--color-border)',
+              }}
               rows={3}
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1" htmlFor="reflection-how">
+            <label
+              className="block text-sm mb-1"
+              htmlFor="reflection-how"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
               How did it feel?
             </label>
             <textarea
@@ -100,12 +109,21 @@ export function PostSessionScreen({
               value={reflectionHow}
               onChange={(e) => setReflectionHow(e.target.value)}
               placeholder="How was the session?"
-              className="w-full rounded-xl p-3 bg-gray-800 text-white text-sm resize-none"
+              className="w-full rounded-xl p-3 text-sm resize-none"
+              style={{
+                background: 'var(--color-bg-elevated)',
+                color: 'var(--color-text-primary)',
+                border: '1px solid var(--color-border)',
+              }}
               rows={3}
             />
           </div>
           <div>
-            <label className="block text-sm text-gray-400 mb-1" htmlFor="reflection-feeling">
+            <label
+              className="block text-sm mb-1"
+              htmlFor="reflection-feeling"
+              style={{ color: 'var(--color-text-secondary)' }}
+            >
               Overall feeling
             </label>
             <textarea
@@ -114,7 +132,12 @@ export function PostSessionScreen({
               value={reflectionFeeling}
               onChange={(e) => setReflectionFeeling(e.target.value)}
               placeholder="Rate your overall feeling"
-              className="w-full rounded-xl p-3 bg-gray-800 text-white text-sm resize-none"
+              className="w-full rounded-xl p-3 text-sm resize-none"
+              style={{
+                background: 'var(--color-bg-elevated)',
+                color: 'var(--color-text-primary)',
+                border: '1px solid var(--color-border)',
+              }}
               rows={2}
             />
           </div>
@@ -125,25 +148,22 @@ export function PostSessionScreen({
       <div
         data-testid="post-session-footer"
         data-sticky="true"
-        className="sticky bottom-0 bg-gray-900 border-t border-gray-700 p-4 space-y-3"
+        className="sticky bottom-0 border-t p-4 space-y-3"
+        style={{ background: 'var(--color-bg)', borderColor: 'var(--color-border)' }}
       >
         <button
-          data-testid="quick-log-btn"
-          onClick={handleQuickLog}
-          className="w-full py-4 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 min-h-[48px]"
+          data-testid="log-session-btn"
+          onClick={handleSubmit}
+          className="w-full py-4 rounded-xl font-semibold min-h-[48px] transition-opacity hover:opacity-90"
+          style={{ background: 'var(--color-accent)', color: '#fff' }}
         >
-          Quick Log ({selectedXP} XP)
-        </button>
-        <button
-          onClick={handleLogReflect}
-          className="w-full py-3 rounded-xl font-medium border border-gray-600 text-gray-300 hover:text-white"
-        >
-          Log + Reflect
+          Log Session (+{earnedXP} XP)
         </button>
         <button
           data-testid="dismiss-log-later"
           onClick={onDismiss}
-          className="w-full py-2 text-sm text-gray-500 hover:text-gray-300"
+          className="w-full py-2 text-sm"
+          style={{ color: 'var(--color-text-muted)' }}
         >
           Dismiss / Log Later
         </button>

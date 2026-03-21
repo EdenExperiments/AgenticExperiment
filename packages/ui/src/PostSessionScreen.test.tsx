@@ -1,16 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { PostSessionScreen } from './PostSessionScreen'
 
-// Mock createSession to detect API calls
 vi.mock('@rpgtracker/api-client', () => ({
   createSession: vi.fn(),
 }))
 
 const defaultProps = {
-  skillId: 'skill-1',
   sessionDurationSeconds: 1500,
-  tierNumber: 1,
-  quickLogChips: [50, 100, 250, 500],
+  earnedXP: 113,
   bonusPercentage: 25,
   onSubmit: vi.fn(),
   onDismiss: vi.fn(),
@@ -21,21 +18,15 @@ afterEach(() => {
 })
 
 // AC-D4: Action buttons are pinned to the bottom of the viewport (sticky footer) on mobile.
-// Test at 375px viewport width (standard mobile breakpoint).
 test('action buttons have sticky positioning at 375px mobile viewport', () => {
-  // Set viewport to 375px width
   Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 375 })
   fireEvent(window, new Event('resize'))
 
   render(<PostSessionScreen {...defaultProps} />)
 
-  // The sticky footer container should be present
   const stickyFooter = screen.getByTestId('post-session-footer')
   expect(stickyFooter).toBeInTheDocument()
 
-  const styles = window.getComputedStyle(stickyFooter)
-  // It must be in a sticky or fixed container — check data attribute or class as proxy
-  // (jsdom doesn't fully compute CSS, so we check the element has the sticky class)
   const hasStickyClass =
     stickyFooter.classList.contains('sticky') ||
     stickyFooter.classList.contains('fixed') ||
@@ -48,18 +39,28 @@ test('"Dismiss / Log Later" does not call createSession API', async () => {
   const { createSession } = await import('@rpgtracker/api-client')
   const onDismiss = vi.fn()
 
-  render(
-    <PostSessionScreen
-      {...defaultProps}
-      onDismiss={onDismiss}
-    />
-  )
+  render(<PostSessionScreen {...defaultProps} onDismiss={onDismiss} />)
 
-  const dismissLink = screen.getByRole('button', { name: /dismiss|log later/i })
-  fireEvent.click(dismissLink)
+  fireEvent.click(screen.getByRole('button', { name: /dismiss|log later/i }))
 
-  // createSession API must not have been called
   expect(createSession).not.toHaveBeenCalled()
-  // onDismiss callback should have been called
   expect(onDismiss).toHaveBeenCalledTimes(1)
+})
+
+test('shows earned XP and bonus percentage', () => {
+  render(<PostSessionScreen {...defaultProps} earnedXP={113} bonusPercentage={25} />)
+  // XP appears in both the summary card and the log button — just assert it's present
+  expect(screen.getAllByText(/\+113 XP/).length).toBeGreaterThan(0)
+  expect(screen.getByText(/25%/)).toBeInTheDocument()
+})
+
+test('log session button calls onSubmit', () => {
+  const onSubmit = vi.fn()
+  render(<PostSessionScreen {...defaultProps} onSubmit={onSubmit} />)
+  fireEvent.click(screen.getByTestId('log-session-btn'))
+  expect(onSubmit).toHaveBeenCalledWith({
+    reflectionWhat: '',
+    reflectionHow: '',
+    reflectionFeeling: '',
+  })
 })
