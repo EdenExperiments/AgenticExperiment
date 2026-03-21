@@ -67,11 +67,11 @@ func TestBonusXPPartialCompletion(t *testing.T) {
 		wantBonusPct   int
 	}{
 		{
-			name:           "ratio 0.75 standard → 25%*0.75=18%",
+			name:           "ratio 0.75 standard → round(25*0.75)=19%",
 			ratio:          0.75,
 			requiresActive: false,
 			baseXP:         200,
-			wantBonusPct:   18, // round(25 * 0.75) = 18.75 → 19? Spec says "rounded to nearest whole %"
+			wantBonusPct:   19, // math.Round(25 * 0.75) = math.Round(18.75) = 19 (spec: "rounded to nearest whole %")
 			// Spec AC-C2: partial bonus = full_bonus_pct × completion_ratio
 			// 25 * 0.75 = 18.75 → rounds to 19
 		},
