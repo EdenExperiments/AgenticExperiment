@@ -139,3 +139,30 @@ test('tier filter shows only matching skills (AC-8)', async () => {
     expect(screen.queryByText('Guitar')).not.toBeInTheDocument()
   })
 })
+
+// ── T1b: Layout + Colour Migration Tests ──────────────────────────────────────
+
+test('AC-04: skills container has CSS grid class for multi-column desktop layout', async () => {
+  const { container } = render(<SkillsPage />, { wrapper })
+  await waitFor(() => {
+    expect(screen.getByText('Guitar')).toBeInTheDocument()
+  })
+  const skillsGrid = container.querySelector('[data-testid="skills-grid"]')
+  expect(skillsGrid).not.toBeNull()
+  // Must have both 'grid' and a multi-column / auto-fill class
+  expect(skillsGrid!.className).toMatch(/\bgrid\b/)
+  expect(skillsGrid!.className).toMatch(/auto-fill|grid-cols-[2-9]|grid-cols-\[repeat/)
+})
+
+test('AC-18: skills list section header references var(--font-display)', async () => {
+  const { container } = render(<SkillsPage />, { wrapper })
+  await waitFor(() => {
+    expect(screen.getByText('Guitar')).toBeInTheDocument()
+  })
+  const headings = container.querySelectorAll('h1, h2')
+  expect(headings.length).toBeGreaterThan(0)
+  const atLeastOneUsesDisplayFont = Array.from(headings).some(
+    (h) => (h as HTMLElement).style.fontFamily.includes('var(--font-display')
+  )
+  expect(atLeastOneUsesDisplayFont).toBe(true)
+})
