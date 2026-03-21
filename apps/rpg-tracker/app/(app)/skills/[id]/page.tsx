@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { getSkill, logXP, deleteSkill, getActivity } from '@rpgtracker/api-client'
+import { getSkill, logXP, deleteSkill, getActivity, getXPChart } from '@rpgtracker/api-client'
 import type { BlockerGate, ActivityEvent } from '@rpgtracker/api-client'
 import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal } from '@rpgtracker/ui'
 import { XPGainAnimation } from '@/components/XPGainAnimation'
@@ -59,6 +59,12 @@ export default function SkillDetailPage() {
     enabled: !!id,
   })
 
+  const { data: xpChart } = useQuery({
+    queryKey: ['xp-chart', id],
+    queryFn: () => getXPChart(id, 30),
+    enabled: !!id,
+  })
+
   const [logSheetOpen, setLogSheetOpen] = useState(false)
   const [tierTransition, setTierTransition] = useState<{ tierName: string; tierNumber: number } | null>(null)
   const [gateFirstHit, setGateFirstHit] = useState<BlockerGate | null>(null)
@@ -89,6 +95,10 @@ export default function SkillDetailPage() {
   const isMaxLevel = skill.xp_to_next_level === 0
   const dateGroups = groupByDate(skillActivity)
 
+  // Streak data from skill response
+  const currentStreak = skill.streak?.current ?? 0
+  const longestStreak = skill.streak?.longest ?? 0
+
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-8 space-y-6">
       {/* Header */}
@@ -114,7 +124,7 @@ export default function SkillDetailPage() {
         >
           {skill.name}
         </h1>
-        <div className="flex items-center gap-3 mt-2">
+        <div className="flex items-center gap-3 mt-2 flex-wrap">
           <TierBadge tierName={skill.tier_name} tierNumber={skill.tier_number} />
           <span
             className="text-2xl font-bold"
@@ -125,6 +135,27 @@ export default function SkillDetailPage() {
           >
             Level {skill.effective_level}
           </span>
+
+          {/* Streak display */}
+          {currentStreak > 0 ? (
+            <span
+              data-testid="streak-badge"
+              className="flex items-center gap-1 bg-orange-500/20 border border-orange-500/40 rounded-full px-3 py-1"
+            >
+              <span role="img" aria-label="streak fire">🔥</span>
+              <span className="font-semibold text-orange-400 text-sm">{currentStreak}</span>
+              {longestStreak > currentStreak && (
+                <span className="text-xs text-orange-300 ml-1">best: {longestStreak}</span>
+              )}
+            </span>
+          ) : (
+            <span
+              data-testid="streak-zero-prompt"
+              className="text-sm text-gray-500 italic"
+            >
+              Log today to start your streak today
+            </span>
+          )}
         </div>
       </div>
 
@@ -136,6 +167,8 @@ export default function SkillDetailPage() {
           description={activeGate.description}
           currentXP={skill.current_xp}
           rawLevel={skill.current_level}
+          firstNotifiedAt={activeGate.first_notified_at}
+          isCleared={activeGate.is_cleared}
         />
       ) : (
         <div className="space-y-2">
@@ -158,17 +191,33 @@ export default function SkillDetailPage() {
         </div>
       )}
 
-      {/* Log XP button with animation */}
-      <div className="relative">
+      {/* Action buttons: Start Session (primary) + Log XP (secondary) */}
+      <div className="relative flex gap-3">
         <button
-          onClick={() => setLogSheetOpen(true)}
-          className="w-full py-4 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity"
+          data-testid="start-session-btn"
+          data-variant="primary"
+          className="flex-1 py-4 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity btn-primary"
           style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
         >
-          Log XP
+          Start Session
         </button>
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-          <XPGainAnimation xpAmount={xpGain.amount} animationKey={xpGain.key} />
+        <div className="relative flex-1">
+          <button
+            data-testid="log-xp-btn"
+            data-variant="secondary"
+            onClick={() => setLogSheetOpen(true)}
+            className="w-full py-4 rounded-xl font-semibold min-h-[48px] hover:opacity-90 transition-opacity btn-secondary"
+            style={{
+              backgroundColor: 'transparent',
+              border: '2px solid var(--color-accent, #6366f1)',
+              color: 'var(--color-accent, #6366f1)',
+            }}
+          >
+            Log XP
+          </button>
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2">
+            <XPGainAnimation xpAmount={xpGain.amount} animationKey={xpGain.key} />
+          </div>
         </div>
       </div>
 
@@ -247,7 +296,7 @@ export default function SkillDetailPage() {
           isOpen
           isLoading={logMutation.isPending}
           onClose={() => setLogSheetOpen(false)}
-          onSubmit={({ xpDelta, logNote }) => logMutation.mutate({ xpDelta, logNote })}
+          onSubmit={({ xpDelta, logNote }) => logMutation.mutate({ xpDelta, logNote: logNote ?? '' })}
         />
       )}
 

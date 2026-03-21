@@ -3,7 +3,7 @@ import { TierBadge } from './TierBadge'
 import type { SkillDetail, BlockerGate } from '@rpgtracker/api-client'
 
 interface SkillCardProps {
-  skill: SkillDetail
+  skill: SkillDetail & { current_streak?: number }
   onLogXP: (skillId: string) => void
   onClick: (skillId: string) => void
 }
@@ -16,6 +16,7 @@ function activeGate(skill: SkillDetail): BlockerGate | undefined {
 
 export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
   const gate = activeGate(skill)
+  const currentStreak = skill.current_streak ?? 0
 
   return (
     <div
@@ -50,9 +51,19 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
           </p>
         </div>
 
-        {gate && (
-          <span role="img" aria-label="gate locked" className="text-amber-500 text-lg flex-shrink-0">&#x1F512;</span>
-        )}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {currentStreak >= 2 && (
+            <span
+              data-testid="streak-badge"
+              className="flex items-center gap-1 bg-orange-500/20 rounded-full px-2 py-0.5 text-xs font-semibold text-orange-400"
+            >
+              🔥 <span>{currentStreak}</span>
+            </span>
+          )}
+          {gate && (
+            <span role="img" aria-label="gate locked" className="text-amber-500 text-lg">&#x1F512;</span>
+          )}
+        </div>
       </div>
 
       <div className="pl-2 mt-3">

@@ -1,12 +1,39 @@
+'use client'
+
+interface GateSubmissionData {
+  verdict: string
+  aiFeedback: string | null
+  nextRetryAt: string | null
+  attemptNumber: number
+}
+
 interface BlockerGateSectionProps {
   gateLevel: number
   title: string
   description: string
   currentXP: number
   rawLevel: number
+  firstNotifiedAt?: string | null
+  isCleared?: boolean
+  activeGateSubmission?: GateSubmissionData | null
+  hasApiKey?: boolean
+  onSubmitForAssessment?: () => void
 }
 
-export function BlockerGateSection({ gateLevel, title, description, currentXP, rawLevel }: BlockerGateSectionProps) {
+export function BlockerGateSection({
+  gateLevel,
+  title,
+  description,
+  currentXP,
+  rawLevel,
+  firstNotifiedAt,
+  isCleared,
+  activeGateSubmission,
+  hasApiKey,
+  onSubmitForAssessment,
+}: BlockerGateSectionProps) {
+  const showSubmitButton = !!firstNotifiedAt && !isCleared
+
   return (
     <div className="rounded-xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-3">
       <div className="flex items-center gap-2">
@@ -26,10 +53,29 @@ export function BlockerGateSection({ gateLevel, title, description, currentXP, r
           Level shown: {gateLevel} (actual level: {rawLevel})
         </p>
       </div>
-      <p className="text-xs text-amber-700 dark:text-amber-400 italic">
-        Your XP keeps growing. You'll advance to Level {gateLevel + 1} when this challenge is complete.
-        Gate completion is coming in a future update.
-      </p>
+
+      {activeGateSubmission && (
+        <p data-testid="attempt-count" className="text-xs text-amber-600 dark:text-amber-400">
+          Attempt {activeGateSubmission.attemptNumber} of ∞
+        </p>
+      )}
+
+      {showSubmitButton && (
+        <button
+          data-testid="submit-gate-btn"
+          onClick={onSubmitForAssessment}
+          className="w-full py-3 rounded-xl font-semibold text-white bg-amber-500 hover:bg-amber-600 min-h-[44px]"
+        >
+          Submit for Assessment
+        </button>
+      )}
+
+      {!firstNotifiedAt && (
+        <p className="text-xs text-amber-700 dark:text-amber-400 italic">
+          Your XP keeps growing. You'll advance to Level {gateLevel + 1} when this challenge is complete.
+          Gate completion is coming in a future update.
+        </p>
+      )}
     </div>
   )
 }

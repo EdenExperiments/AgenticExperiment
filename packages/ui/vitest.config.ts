@@ -7,6 +7,7 @@ export default defineConfig({
   resolve: {
     alias: {
       'next/link': path.resolve(__dirname, 'src/__mocks__/next/link.tsx'),
+      '@rpgtracker/api-client': path.resolve(__dirname, '../api-client/src/index.ts'),
     },
   },
   test: {

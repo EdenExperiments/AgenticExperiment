@@ -26,6 +26,7 @@ export interface Account {
   id: string
   email: string
   display_name: string | null
+  timezone?: string
 }
 
 export interface APIKeyStatus {
@@ -55,6 +56,39 @@ export interface XPEvent {
   log_note: string
 }
 
+export interface SkillStreak {
+  current: number
+  longest: number
+}
+
+export interface GateSubmission {
+  verdict: 'pending' | 'approved' | 'rejected' | 'self_reported'
+  aiFeedback: string | null
+  nextRetryAt: string | null
+  attemptNumber: number
+}
+
+export interface TrainingSession {
+  id: string
+  skill_id: string
+  status: 'completed' | 'abandoned'
+  xp_delta: number
+  bonus_xp: number
+  duration_seconds: number
+  log_note?: string
+  created_at: string
+}
+
+export interface XPChartEntry {
+  date: string
+  xp_total: number
+}
+
+export interface XPChartResponse {
+  days: number
+  data: XPChartEntry[]
+}
+
 export interface SkillDetail extends Skill {
   effective_level: number
   quick_log_chips: [number, number, number, number]
@@ -64,6 +98,11 @@ export interface SkillDetail extends Skill {
   recent_logs: XPEvent[]
   xp_to_next_level: number
   xp_for_current_level: number
+  streak?: SkillStreak
+  active_gate_submission?: GateSubmission | null
+  requires_active_use?: boolean
+  animation_theme?: string
+  current_streak?: number
 }
 
 export interface XPLogResponse {

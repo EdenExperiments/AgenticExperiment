@@ -8,13 +8,14 @@ interface QuickLogSheetProps {
   isOpen: boolean
   isLoading: boolean
   onClose: () => void
-  onSubmit: (data: { xpDelta: number; logNote: string }) => void
+  onSubmit: (data: { xpDelta: number; logNote: string; timeSpentMinutes?: number }) => void
 }
 
 export function QuickLogSheet({ skillName, chips, isOpen, isLoading, onClose, onSubmit }: QuickLogSheetProps) {
   const [selected, setSelected] = useState<number | 'custom'>(chips[1]) // second chip default
   const [customAmount, setCustomAmount] = useState('')
   const [logNote, setLogNote] = useState('')
+  const [timeSpent, setTimeSpent] = useState('')
 
   if (!isOpen) return null
 
@@ -24,7 +25,8 @@ export function QuickLogSheet({ skillName, chips, isOpen, isLoading, onClose, on
 
   function handleSubmit() {
     if (effectiveAmount <= 0) return
-    onSubmit({ xpDelta: effectiveAmount, logNote })
+    const timeSpentMinutes = timeSpent ? parseInt(timeSpent, 10) || undefined : undefined
+    onSubmit({ xpDelta: effectiveAmount, logNote, timeSpentMinutes })
   }
 
   return (
@@ -95,6 +97,17 @@ export function QuickLogSheet({ skillName, chips, isOpen, isLoading, onClose, on
           placeholder="What did you do? (optional)"
           value={logNote}
           onChange={(e) => setLogNote(e.target.value)}
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mb-4 dark:bg-gray-800 dark:border-gray-700"
+        />
+
+        {/* Time spent field (optional) */}
+        <input
+          type="number"
+          inputMode="numeric"
+          data-testid="time-spent-input"
+          placeholder="Time spent (minutes) — optional"
+          value={timeSpent}
+          onChange={(e) => setTimeSpent(e.target.value)}
           className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm mb-4 dark:bg-gray-800 dark:border-gray-700"
         />
 
