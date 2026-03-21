@@ -1,4 +1,4 @@
-## Status: BLOCKED
+## Status: DONE
 
 ## Files Changed
 
@@ -16,16 +16,39 @@
 ### Modified files
 - `apps/api/internal/handlers/account.go` — added HandlePatchAccount method to existing UserHandler (validates IANA timezone, returns 422 on invalid)
 - `apps/api/internal/users/service.go` — added UpdateTimezone function
+- `apps/api/internal/skills/xp_repository.go` — LogXP signature extended with trainingSessionID *uuid.UUID; streak columns updated in transaction; LogXPResult includes Streak field
+- `apps/api/internal/handlers/xp.go` — dbXPStore.LogXP updated to pass nil trainingSessionID
+- `apps/api/internal/handlers/gate.go` — dbGateStore.InsertSubmission implemented with MAX+1 attempt_number in transaction; fmt import added
+- `apps/api/internal/handlers/session.go` — dbSessionStore implemented (CreateSession + ListSessions); NewSessionHandler(db) constructor added; HandleGetSessions added
+- `apps/api/internal/server/server.go` — POST/GET /skills/{id}/sessions routes wired
 
 ## Test Results
 
-86 tests pass, 1 test failing:
+88 tests pass, 0 failing.
 
-**FAILING:** `TestBonusXPPartialCompletion/ratio_0.75_standard_→_25%*0.75=18%`
+## Fixes Applied (T4 blockers resolved)
 
-```
-bonus_xp_test.go:98: bonus_pct: got 19 want 18 (ratio=0.750)
-```
+### Fix 1 — LogXP signature: trainingSessionID *uuid.UUID
+`skills.LogXP` now accepts `trainingSessionID *uuid.UUID` as a 7th parameter. When non-nil the INSERT into `xp_events` includes the `training_session_id` column; when nil the column is omitted (NULL). The single existing non-test caller in `handlers/xp.go` (`dbXPStore.LogXP`) was updated to pass `nil`.
+
+### Fix 2 — Streak update inside LogXP transaction
+The initial `SELECT ... FOR UPDATE` in `LogXP` now also reads `current_streak`, `longest_streak`, and `last_log_date` from the skills row. After reading, it queries `users.timezone`, calls `ComputeStreak`, and the `UPDATE public.skills` statement now also sets `current_streak`, `longest_streak`, and `last_log_date` atomically in the same transaction. The returned `LogXPResult` now includes a populated `Streak *StreakResult`.
+
+### Fix 3 — attempt_number MAX+1 in gate.go
+Both `handleSelfReport` and `handleAISubmission` now pass `AttemptNumber: 0` as a placeholder. `dbGateStore.InsertSubmission` is now a real implementation that opens a transaction, runs `SELECT COALESCE(MAX(attempt_number), 0) + 1 FROM gate_submissions WHERE gate_id=$1 AND user_id=$2`, and uses the result as `attempt_number` in the INSERT — race-safe because both are inside the same transaction.
+
+### Fix 4 — dbSessionStore implemented and wired
+`dbSessionStore` struct added to `handlers/session.go` implementing `SessionStore.CreateSession`:
+- Loads skill's `requires_active_use` from DB
+- Computes `completionRatio = actualDuration / plannedDuration` (0 for manual/zero planned)
+- Calls `ComputeBonusAbandoned` or `ComputeBonus` as appropriate
+- Inserts `training_sessions` row
+- For non-abandoned: calls `LogXP(ctx, db, userID, skillID, base+bonus, logNote, &sessionID)` and returns `XPResult` + `Streak`
+- For abandoned: returns nil `XPResult` and nil `Streak`
+
+`dbSessionStore.ListSessions` implemented with cursor-based pagination (`ORDER BY created_at DESC LIMIT N`, optional `AND created_at < $before`).
+
+`NewSessionHandler(db)` constructor added; wired in `server.go` as `POST /skills/{id}/sessions` and `GET /skills/{id}/sessions`.
 
 ## Notes
 

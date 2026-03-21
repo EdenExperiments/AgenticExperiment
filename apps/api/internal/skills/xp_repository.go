@@ -13,6 +13,13 @@ import (
 	"github.com/meden/rpgtracker/internal/xpcurve"
 )
 
+// logXPSkillState holds the pre-update skill state needed for streak computation.
+type logXPSkillState struct {
+	currentStreak int
+	longestStreak int
+	lastLogDate   *time.Time
+}
+
 // XPEvent is one log entry.
 type XPEvent struct {
 	ID      uuid.UUID `json:"id"`
@@ -42,10 +49,13 @@ type LogXPResult struct {
 	TierNumber    int          `json:"tier_number"`
 	QuickLogChips [4]int       `json:"quick_log_chips"`
 	GateFirstHit  *BlockerGate `json:"gate_first_hit"` // non-nil only on first hit
+	Streak        *StreakResult `json:"streak"`
 }
 
 // LogXP records an XP event and updates skill progression atomically (R-003).
-func LogXP(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, xpDelta int, logNote string) (*LogXPResult, error) {
+// trainingSessionID, when non-nil, is stored as a FK on the xp_events row linking it
+// back to the training_sessions table. Pass nil for manual (non-session) XP logs.
+func LogXP(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, xpDelta int, logNote string, trainingSessionID *uuid.UUID) (*LogXPResult, error) {
 	if xpDelta <= 0 {
 		return nil, fmt.Errorf("xp_delta must be positive")
 	}
@@ -56,14 +66,18 @@ func LogXP(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, xpD
 	}
 	defer tx.Rollback(ctx)
 
-	// 1. Read current skill state (also locks the row).
+	// 1. Read current skill state including streak columns (also locks the row).
 	var skillBefore Skill
+	var streakState logXPSkillState
 	err = tx.QueryRow(ctx, `
-		SELECT id, current_xp, current_level
+		SELECT id, current_xp, current_level, current_streak, longest_streak, last_log_date
 		FROM public.skills
 		WHERE id=$1 AND user_id=$2 AND deleted_at IS NULL
 		FOR UPDATE
-	`, skillID, userID).Scan(&skillBefore.ID, &skillBefore.CurrentXP, &skillBefore.CurrentLevel)
+	`, skillID, userID).Scan(
+		&skillBefore.ID, &skillBefore.CurrentXP, &skillBefore.CurrentLevel,
+		&streakState.currentStreak, &streakState.longestStreak, &streakState.lastLogDate,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("logxp: get skill: %w", err)
 	}
@@ -72,24 +86,50 @@ func LogXP(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, xpD
 	newXP := skillBefore.CurrentXP + xpDelta
 	newLevel := xpcurve.LevelForXP(newXP)
 
-	// 2. Insert xp_event.
-	_, err = tx.Exec(ctx, `
-		INSERT INTO public.xp_events (skill_id, user_id, xp_delta, log_note)
-		VALUES ($1, $2, $3, NULLIF($4, ''))
-	`, skillID, userID, xpDelta, logNote)
+	// 2. Insert xp_event, optionally linking to a training session.
+	if trainingSessionID != nil {
+		_, err = tx.Exec(ctx, `
+			INSERT INTO public.xp_events (skill_id, user_id, xp_delta, log_note, training_session_id)
+			VALUES ($1, $2, $3, NULLIF($4, ''), $5)
+		`, skillID, userID, xpDelta, logNote, *trainingSessionID)
+	} else {
+		_, err = tx.Exec(ctx, `
+			INSERT INTO public.xp_events (skill_id, user_id, xp_delta, log_note)
+			VALUES ($1, $2, $3, NULLIF($4, ''))
+		`, skillID, userID, xpDelta, logNote)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("logxp: insert event: %w", err)
 	}
 
-	// 3. Update skill.current_xp + current_level atomically.
+	// 3. Read the user's timezone for streak computation.
+	var userTimezone string
+	err = tx.QueryRow(ctx, `SELECT timezone FROM public.users WHERE id=$1`, userID).Scan(&userTimezone)
+	if err != nil {
+		// Fall back to UTC if the users row is missing (should not happen in production).
+		userTimezone = "UTC"
+	}
+
+	// 4. Compute new streak values.
+	newStreak, newLongest := ComputeStreak(
+		streakState.lastLogDate,
+		streakState.currentStreak,
+		streakState.longestStreak,
+		time.Now(),
+		userTimezone,
+	)
+
+	// 5. Update skill: current_xp, current_level, streak columns, last_log_date.
+	today := time.Now().UTC().Truncate(24 * time.Hour)
 	var updatedSkill Skill
 	err = tx.QueryRow(ctx, `
 		UPDATE public.skills
-		SET current_xp=$3, current_level=$4, updated_at=NOW()
+		SET current_xp=$3, current_level=$4, updated_at=NOW(),
+		    current_streak=$5, longest_streak=$6, last_log_date=$7
 		WHERE id=$1 AND user_id=$2
 		RETURNING id, user_id, name, description, unit, preset_id,
 		          starting_level, current_xp, current_level, created_at, updated_at
-	`, skillID, userID, newXP, newLevel).Scan(
+	`, skillID, userID, newXP, newLevel, newStreak, newLongest, today).Scan(
 		&updatedSkill.ID, &updatedSkill.UserID, &updatedSkill.Name, &updatedSkill.Description,
 		&updatedSkill.Unit, &updatedSkill.PresetID, &updatedSkill.StartingLevel,
 		&updatedSkill.CurrentXP, &updatedSkill.CurrentLevel, &updatedSkill.CreatedAt, &updatedSkill.UpdatedAt,
@@ -98,7 +138,7 @@ func LogXP(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, xpD
 		return nil, fmt.Errorf("logxp: update skill: %w", err)
 	}
 
-	// 4. Check for first-hit gate — set first_notified_at if needed.
+	// 6. Check for first-hit gate — set first_notified_at if needed.
 	// Use a subquery form for the UPDATE so ORDER BY + LIMIT work correctly in PostgreSQL.
 	var gateFirstHit *BlockerGate
 	var g BlockerGate
@@ -143,6 +183,10 @@ func LogXP(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, xpD
 		TierNumber:    xpcurve.TierNumber(newLevel),
 		QuickLogChips: xpcurve.QuickLogChips(newLevel),
 		GateFirstHit:  gateFirstHit,
+		Streak: &StreakResult{
+			Current: newStreak,
+			Longest: newLongest,
+		},
 	}, nil
 }
 

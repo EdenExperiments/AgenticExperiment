@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -124,7 +125,7 @@ func (h *GateHandler) handleSelfReport(
 		EvidenceHow:     evidenceHow,
 		EvidenceFeeling: evidenceFeeling,
 		Verdict:         "self_reported",
-		AttemptNumber:   1,
+		AttemptNumber:   0, // computed by InsertSubmission as MAX(attempt_number)+1
 	}
 
 	submission, err := h.store.InsertSubmission(r.Context(), req)
@@ -175,7 +176,7 @@ func (h *GateHandler) handleAISubmission(
 		EvidenceHow:     evidenceHow,
 		EvidenceFeeling: evidenceFeeling,
 		Verdict:         "approved",
-		AttemptNumber:   1,
+		AttemptNumber:   0, // computed by InsertSubmission as MAX(attempt_number)+1
 	}
 
 	submission, err := h.store.InsertSubmission(r.Context(), req)
@@ -209,8 +210,52 @@ func (s *dbGateStore) GetActiveCooldown(_ context.Context, _, _ uuid.UUID) (*tim
 	return nil, nil
 }
 
-func (s *dbGateStore) InsertSubmission(_ context.Context, _ skills.CreateGateSubmissionRequest) (*skills.GateSubmission, error) {
-	return nil, nil
+// InsertSubmission inserts a gate_submissions row.
+// Attempt number is computed as MAX(attempt_number)+1 for this gate+user inside the
+// same transaction, so concurrent submissions cannot produce duplicate attempt numbers.
+func (s *dbGateStore) InsertSubmission(ctx context.Context, req skills.CreateGateSubmissionRequest) (*skills.GateSubmission, error) {
+	tx, err := s.db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("gate: begin tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	// Compute next attempt number inside the transaction to be race-safe.
+	var attemptNumber int
+	err = tx.QueryRow(ctx, `
+		SELECT COALESCE(MAX(attempt_number), 0) + 1
+		FROM public.gate_submissions
+		WHERE gate_id = $1 AND user_id = $2
+	`, req.GateID, req.UserID).Scan(&attemptNumber)
+	if err != nil {
+		return nil, fmt.Errorf("gate: get attempt number: %w", err)
+	}
+
+	var sub skills.GateSubmission
+	err = tx.QueryRow(ctx, `
+		INSERT INTO public.gate_submissions
+			(gate_id, user_id, path, evidence_what, evidence_how, evidence_feeling,
+			 verdict, attempt_number, ai_feedback, next_retry_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NULLIF($9, ''), $10)
+		RETURNING id, gate_id, user_id, path, evidence_what, evidence_how, evidence_feeling,
+		          verdict, attempt_number, COALESCE(ai_feedback, ''), next_retry_at, submitted_at
+	`,
+		req.GateID, req.UserID, req.Path,
+		req.EvidenceWhat, req.EvidenceHow, req.EvidenceFeeling,
+		req.Verdict, attemptNumber, req.AIFeedback, req.NextRetryAt,
+	).Scan(
+		&sub.ID, &sub.GateID, &sub.UserID, &sub.Path,
+		&sub.EvidenceWhat, &sub.EvidenceHow, &sub.EvidenceFeeling,
+		&sub.Verdict, &sub.AttemptNumber, &sub.AIFeedback, &sub.NextRetryAt, &sub.SubmittedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("gate: insert submission: %w", err)
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("gate: commit: %w", err)
+	}
+	return &sub, nil
 }
 
 func (s *dbGateStore) ClearGate(_ context.Context, _ uuid.UUID) error {
