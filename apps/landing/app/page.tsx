@@ -69,7 +69,6 @@ export default function LandingPage() {
 
   return (
     <>
-      <a href="#main-content" className="skip-link">Skip to content</a>
       <Navbar />
 
       <main id="main-content" tabIndex={-1}>

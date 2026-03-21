@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import ScrollReveal from '../components/ScrollReveal'
 import Navbar from '../components/Navbar'
 import LandingPage from '../page'
+import RootLayout from '../layout'
 
 // Stub IntersectionObserver — not available in jsdom
 class MockIntersectionObserver {
@@ -73,11 +74,10 @@ test('page has a <main id="main-content"> landmark', () => {
 
 // ─── Test 4: Skip link (AC-5) ─────────────────────────────────────────────────
 
-test('page has a skip link pointing to #main-content', () => {
-  render(<LandingPage />)
+test('layout has a skip link pointing to #main-content', () => {
+  // Skip link lives in layout.tsx, not page.tsx — test the layout component directly.
+  render(<RootLayout><div /></RootLayout>)
 
-  // After T2 adds the skip link to layout.tsx (rendered as first child of
-  // <body>), this assertion will pass. Currently no skip link exists.
   expect(document.querySelector('a[href="#main-content"]')).not.toBeNull()
 })
 
