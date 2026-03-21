@@ -45,3 +45,12 @@ func UpdateDisplayName(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, 
 	)
 	return err
 }
+
+// UpdateTimezone sets the IANA timezone for the given user.
+func UpdateTimezone(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, timezone string) error {
+	_, err := db.Exec(ctx,
+		`UPDATE public.users SET timezone = $1, updated_at = now() WHERE id = $2`,
+		timezone, userID,
+	)
+	return err
+}

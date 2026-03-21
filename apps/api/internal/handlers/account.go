@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
@@ -56,4 +57,38 @@ func (h *UserHandler) HandlePostAccount(w http.ResponseWriter, r *http.Request) 
 	}
 
 	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "updated"})
+}
+
+// HandlePatchAccount handles PATCH /api/v1/account.
+// Accepts: timezone (IANA timezone string). Returns 422 if timezone is invalid (D-029).
+func (h *UserHandler) HandlePatchAccount(w http.ResponseWriter, r *http.Request) {
+	userID, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		api.RespondError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	timezone := r.FormValue("timezone")
+	if timezone != "" {
+		if _, err := time.LoadLocation(timezone); err != nil {
+			api.RespondError(w, http.StatusUnprocessableEntity, "invalid timezone: must be a valid IANA timezone string")
+			return
+		}
+	}
+
+	if h.db != nil && timezone != "" {
+		if err := users.UpdateTimezone(r.Context(), h.db, userID, timezone); err != nil {
+			api.RespondError(w, http.StatusInternalServerError, "failed to update account")
+			return
+		}
+	}
+
+	api.RespondJSON(w, http.StatusOK, map[string]interface{}{
+		"timezone": timezone,
+	})
 }
