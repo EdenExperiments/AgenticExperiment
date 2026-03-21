@@ -1,4 +1,4 @@
-pl# RpgTracker Platform
+# RpgTracker Platform
 
 A self-improvement platform built as a Turborepo monorepo. Three apps share a single Go API, auth layer, and React component library.
 
