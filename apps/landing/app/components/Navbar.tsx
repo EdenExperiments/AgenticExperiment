@@ -1,16 +1,42 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export default function Navbar() {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+
   const [scrolled, setScrolled] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const menuRef = useRef<HTMLUListElement>(null)
+  const toggleRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', handler, { passive: true })
     return () => window.removeEventListener('scroll', handler)
   }, [])
+
+  // Focus management when menu opens/closes
+  useEffect(() => {
+    if (menuOpen) {
+      const firstLink = menuRef.current?.querySelector('a') as HTMLElement | null
+      firstLink?.focus()
+    } else {
+      toggleRef.current?.focus()
+    }
+  }, [menuOpen])
+
+  // Escape key closes menu
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && menuOpen) {
+        setMenuOpen(false)
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [menuOpen])
 
   return (
     <nav className={`navbar ${scrolled ? 'scrolled' : ''}`} role="navigation">
@@ -20,16 +46,16 @@ export default function Navbar() {
           <span>RpgTracker</span>
         </a>
 
-        <ul className={`navbar-links ${menuOpen ? 'open' : ''}`}>
+        <ul ref={menuRef} className={`navbar-links ${menuOpen ? 'open' : ''}`}>
           <li><a href="#features" onClick={() => setMenuOpen(false)}>Features</a></li>
           <li><a href="#apps" onClick={() => setMenuOpen(false)}>The Suite</a></li>
           <li><a href="#how" onClick={() => setMenuOpen(false)}>How It Works</a></li>
           <li>
-            <a href="http://localhost:3000/login" onClick={() => setMenuOpen(false)}>Sign In</a>
+            <a href={`${appUrl}/login`} onClick={() => setMenuOpen(false)}>Sign In</a>
           </li>
           <li>
             <a
-              href="http://localhost:3000/register"
+              href={`${appUrl}/register`}
               className="btn-ghost"
               style={{ padding: '0.5rem 1.25rem', fontSize: '0.65rem' }}
               onClick={() => setMenuOpen(false)}
@@ -40,6 +66,7 @@ export default function Navbar() {
         </ul>
 
         <button
+          ref={toggleRef}
           className="navbar-mobile-toggle"
           aria-label={menuOpen ? 'Close menu' : 'Open menu'}
           aria-expanded={menuOpen}

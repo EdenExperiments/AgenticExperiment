@@ -16,6 +16,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_LANDING_URL ?? 'http://localhost:3001'),
   title: 'RpgTracker — Level Up Your Life',
   description:
     'A self-improvement platform that turns real-world effort into RPG progression. Track skills, earn XP, break through tier gates, and level up your life.',
@@ -25,12 +26,21 @@ export const metadata: Metadata = {
       'Track skills, earn XP, and break through tier gates. A dark-fantasy self-improvement platform.',
     type: 'website',
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RpgTracker — Level Up Your Life',
+    description:
+      'Track skills, earn XP, and break through tier gates. A dark-fantasy self-improvement platform.',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${cinzel.variable} ${inter.variable}`}>
-      <body>{children}</body>
+      <body>
+        <a href="#main-content" className="skip-link">Skip to content</a>
+        {children}
+      </body>
     </html>
   )
 }

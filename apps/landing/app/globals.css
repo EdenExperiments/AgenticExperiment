@@ -60,6 +60,33 @@ body {
   padding: 0 1.5rem;
 }
 
+/* ─── Skip link ──────────────────────────────────────── */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: 9999;
+  background: var(--bg-elevated);
+  color: var(--gold);
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  font-weight: 600;
+  border: 1px solid var(--gold-border);
+}
+.skip-link:focus-visible {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
 /* ─── Scroll reveal ──────────────────────────────────── */
 .reveal {
   opacity: 0;
@@ -75,6 +102,21 @@ body {
 .reveal-delay-2 { transition-delay: 0.2s; }
 .reveal-delay-3 { transition-delay: 0.3s; }
 .reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ─── Reduced motion ─────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
 
 /* ─── Section label row ──────────────────────────────── */
 .section-label-row {
