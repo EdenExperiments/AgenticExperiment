@@ -196,7 +196,7 @@ export default function SkillDetailPage() {
               data-testid="streak-zero-prompt"
               className="text-sm text-gray-500 italic"
             >
-              Log today to start your streak today
+              Log today to start your streak
             </span>
           )}
         </div>
@@ -212,6 +212,7 @@ export default function SkillDetailPage() {
           rawLevel={skill.current_level}
           firstNotifiedAt={activeGate.first_notified_at}
           isCleared={activeGate.is_cleared}
+          activeGateSubmission={skill.active_gate_submission ?? null}
         />
       ) : (
         <div className="space-y-2">
