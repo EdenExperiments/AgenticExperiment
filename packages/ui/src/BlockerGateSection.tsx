@@ -29,33 +29,81 @@ export function BlockerGateSection({
   firstNotifiedAt,
   isCleared,
   activeGateSubmission,
-  hasApiKey,
   onSubmitForAssessment,
 }: BlockerGateSectionProps) {
   const showSubmitButton = !!firstNotifiedAt && !isCleared
 
   return (
-    <div className="rounded-xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-3">
+    <div
+      className="rounded-xl border-2 p-4 space-y-3"
+      style={{
+        backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
+        borderColor: 'var(--color-warning, #facc15)',
+      }}
+    >
       <div className="flex items-center gap-2">
-        <span className="text-amber-500 text-xl">🔒</span>
-        <span className="font-bold text-amber-700 dark:text-amber-400 uppercase text-sm tracking-wider">Gate Locked</span>
+        <span className="text-xl">🔒</span>
+        <span
+          className="font-bold uppercase text-sm tracking-wider"
+          style={{ color: 'var(--color-warning, #facc15)' }}
+        >
+          Gate Locked
+        </span>
       </div>
-      <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">Level {gateLevel} — Progression Paused</p>
-      <div className="border-t border-amber-200 pt-3">
-        <p className="font-semibold text-gray-900 dark:text-white mb-1">{title}</p>
-        <p className="text-sm text-gray-600 dark:text-gray-300">{description}</p>
-      </div>
-      <div className="border-t border-amber-200 pt-3 space-y-1">
-        <p className="text-sm text-gray-500">
-          XP Accruing: <span className="font-semibold text-gray-900 dark:text-white">{currentXP.toLocaleString()}</span>
+
+      <p
+        className="text-sm font-medium"
+        style={{ color: 'var(--color-warning, #facc15)', opacity: 0.8 }}
+      >
+        Level {gateLevel} — Progression Paused
+      </p>
+
+      <div
+        className="border-t pt-3"
+        style={{ borderColor: 'var(--color-border, rgba(212,168,83,0.2))' }}
+      >
+        <p className="font-semibold mb-1" style={{ color: 'var(--color-text-primary, #f0e6d3)' }}>
+          {title}
         </p>
-        <p className="text-xs text-gray-400">
+        {description && (
+          <div
+            className="mt-2 rounded-lg p-3"
+            style={{ backgroundColor: 'var(--color-bg-surface, #12121c)' }}
+          >
+            <p
+              className="text-xs uppercase tracking-wider mb-1 font-semibold"
+              style={{ color: 'var(--color-text-muted, #6b5e4e)' }}
+            >
+              Requirements
+            </p>
+            <p className="text-sm" style={{ color: 'var(--color-text-secondary, #a89880)' }}>
+              {description}
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div
+        className="border-t pt-3 space-y-1"
+        style={{ borderColor: 'var(--color-border, rgba(212,168,83,0.2))' }}
+      >
+        <p className="text-sm" style={{ color: 'var(--color-text-muted, #6b5e4e)' }}>
+          XP Accruing:{' '}
+          <span className="font-semibold" style={{ color: 'var(--color-text-primary, #f0e6d3)' }}>
+            {currentXP.toLocaleString()}
+          </span>
+        </p>
+        <p className="text-xs" style={{ color: 'var(--color-text-muted, #6b5e4e)' }}>
           Level shown: {gateLevel} (actual level: {rawLevel})
         </p>
       </div>
 
-      {activeGateSubmission && (
-        <p data-testid="attempt-count" className="text-xs text-amber-600 dark:text-amber-400">
+      {activeGateSubmission && activeGateSubmission.attemptNumber >= 1 && (
+        <p
+          data-testid="attempt-count"
+          className="text-xs"
+          style={{ color: 'var(--color-warning, #facc15)', opacity: 0.8 }}
+        >
           Attempt {activeGateSubmission.attemptNumber} of ∞
         </p>
       )}
@@ -64,16 +112,20 @@ export function BlockerGateSection({
         <button
           data-testid="submit-gate-btn"
           onClick={onSubmitForAssessment}
-          className="w-full py-3 rounded-xl font-semibold text-white bg-amber-500 hover:bg-amber-600 min-h-[44px]"
+          className="w-full py-3 rounded-xl font-semibold min-h-[44px] hover:opacity-90 transition-opacity"
+          style={{
+            backgroundColor: 'var(--color-warning, #facc15)',
+            color: 'var(--color-text-inverse, #0a0a0f)',
+            minHeight: '44px',
+          }}
         >
           Submit for Assessment
         </button>
       )}
 
       {!firstNotifiedAt && (
-        <p className="text-xs text-amber-700 dark:text-amber-400 italic">
-          Your XP keeps growing. You'll advance to Level {gateLevel + 1} when this challenge is complete.
-          Gate completion is coming in a future update.
+        <p className="text-xs italic" style={{ color: 'var(--color-text-muted, #6b5e4e)' }}>
+          Your XP keeps accumulating. Once you clear this gate, progression resumes.
         </p>
       )}
     </div>
