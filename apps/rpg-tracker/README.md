@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LifeQuest (rpg-tracker)
 
-## Getting Started
+Next.js 15 App Router frontend for the LifeQuest application — the RPG-themed habit and skill tracker.
 
-First, run the development server:
+## Stack
+
+- **Framework:** Next.js 15 (App Router)
+- **UI library:** `@rpgtracker/ui` (shared components in `packages/ui/`)
+- **Auth:** Supabase via `@rpgtracker/auth` package
+- **Data fetching:** TanStack Query v5
+- **Styling:** Tailwind v4
+- **Testing:** Vitest + React Testing Library, Playwright (E2E)
+
+## Running locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# From repo root (starts all apps + API via Turborepo)
 pnpm dev
-# or
-bun dev
+
+# Or just this app
+cd apps/rpg-tracker
+pnpm dev
+# http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Environment variables (`.env.local`):
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+| `GO_API_URL` | Go API address (default: `http://localhost:8080`) |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Architecture: BFF Proxy
 
-## Learn More
+All API calls go through `app/api/[...path]/route.ts` — a Next.js Route Handler that:
 
-To learn more about Next.js, take a look at the following resources:
+1. Reads the Supabase session cookie server-side
+2. Attaches the `Authorization: Bearer <access_token>` header
+3. Forwards the request to the Go API at `GO_API_URL`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+This means **the browser never touches the Go API directly** and the JWT is never exposed to client-side JavaScript.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+Browser → POST /api/v1/skills (cookie auth)
+  → Next.js BFF route handler
+    → reads session from Supabase cookie
+    → adds Authorization: Bearer <jwt>
+    → forwards to Go API :8080/api/v1/skills
+      → response proxied back to browser
+```
 
-## Deploy on Vercel
+## Running tests
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+cd apps/rpg-tracker
+pnpm test          # Vitest unit tests
+pnpm test:e2e      # Playwright E2E (needs dev server running)
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Key directories
+
+```
+app/
+  (auth)/         # Login + register pages (public)
+  (app)/          # Authenticated pages
+    dashboard/    # XP activity feed
+    skills/       # Skill list, detail, new, edit
+    account/      # Profile, API key management
+  api/[...path]/  # BFF proxy to Go API
+```
+
+## Database architecture note
+
+Auth and application data are in **separate databases**:
+
+- **Supabase (cloud)** — authentication only. The Supabase SQL Editor does not contain application tables like `public.users` or `public.skills`.
+- **Local Docker postgres** (`localhost:5432`) — all application data. Run `docker compose up -d db` from the repo root.
+
+See `apps/api/README.md` for full DB access instructions.
+
+## Debugging
+
+- **500 from POST /api/v1/skills** — check the Go API logs (not the browser). Most likely a missing `public.users` row in the local Docker postgres for a newly created or re-created Supabase user. The `ensureUserMiddleware` in the Go API handles this automatically on first request.
+- **Session not forwarding** — verify the `access_token` cookie is set after login. The BFF proxy reads this cookie server-side.
+- **503 upstream unavailable** — the Go API at `GO_API_URL` isn't reachable. Ensure `docker compose up -d db` is running and the Go API server is started.

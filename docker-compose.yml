@@ -16,4 +16,10 @@ services:
       retries: 5
 
 volumes:
+  # Named volume — data persists across `docker compose down` and `docker compose up`.
+  # WARNING: `docker compose down -v` deletes this volume and all application data.
+  # After a volume wipe, migrations re-run automatically on next `go run ./cmd/server`
+  # but user data is permanently lost. Supabase auth users will still exist but will
+  # have no local app row until they make their first API request (ensureUserMiddleware
+  # handles this lazily). Do not use `down -v` unless you intend a full local reset.
   db_data:

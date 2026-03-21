@@ -133,6 +133,7 @@ func (h *SkillHandler) HandlePostSkill(w http.ResponseWriter, r *http.Request) {
 			api.RespondError(w, http.StatusUnprocessableEntity, err.Error())
 			return
 		}
+		log.Printf("ERROR: CreateSkill user=%s: %v", userID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to create skill")
 		return
 	}
@@ -148,6 +149,7 @@ func (h *SkillHandler) HandleGetSkills(w http.ResponseWriter, r *http.Request) {
 	}
 	list, err := h.store.ListSkills(r.Context(), userID)
 	if err != nil {
+		log.Printf("ERROR: ListSkills user=%s: %v", userID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to list skills")
 		return
 	}
@@ -176,6 +178,7 @@ func (h *SkillHandler) HandleGetSkill(w http.ResponseWriter, r *http.Request) {
 			api.RespondError(w, http.StatusNotFound, "skill not found")
 			return
 		}
+		log.Printf("ERROR: GetSkill user=%s skill=%s: %v", userID, skillID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to fetch skill")
 		return
 	}
@@ -217,6 +220,7 @@ func (h *SkillHandler) HandlePutSkill(w http.ResponseWriter, r *http.Request) {
 			api.RespondError(w, http.StatusNotFound, "skill not found")
 			return
 		}
+		log.Printf("ERROR: UpdateSkill user=%s skill=%s: %v", userID, skillID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to update skill")
 		return
 	}
@@ -240,6 +244,7 @@ func (h *SkillHandler) HandleDeleteSkill(w http.ResponseWriter, r *http.Request)
 			api.RespondError(w, http.StatusNotFound, "skill not found")
 			return
 		}
+		log.Printf("ERROR: SoftDeleteSkill user=%s skill=%s: %v", userID, skillID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to delete skill")
 		return
 	}

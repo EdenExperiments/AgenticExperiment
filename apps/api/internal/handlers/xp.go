@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -62,6 +63,7 @@ func (h *XPHandler) HandlePostXP(w http.ResponseWriter, r *http.Request) {
 
 	result, err := h.store.LogXP(r.Context(), userID, skillID, xpDelta, logNote)
 	if err != nil {
+		log.Printf("ERROR: LogXP user=%s skill=%s delta=%d: %v", userID, skillID, xpDelta, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to log xp")
 		return
 	}

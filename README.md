@@ -1,4 +1,4 @@
-# RpgTracker Platform
+pl# RpgTracker Platform
 
 A self-improvement platform built as a Turborepo monorepo. Three apps share a single Go API, auth layer, and React component library.
 
@@ -15,8 +15,8 @@ A self-improvement platform built as a Turborepo monorepo. Three apps share a si
 - **Backend:** Go · chi router · pgx v5 · Supabase JWT auth
 - **Shared packages:** `@rpgtracker/ui` · `@rpgtracker/auth` · `@rpgtracker/api-client`
 - **Monorepo:** Turborepo · pnpm workspaces
-- **Database:** PostgreSQL via Supabase · golang-migrate
-- **Auth:** Supabase Auth (email/password)
+- **Database:** Local Docker PostgreSQL (application data) · golang-migrate
+- **Auth:** Supabase Auth (email/password + JWT validation) — auth only, not application data
 - **AI:** Claude API — user-supplied key, stored AES-256-GCM encrypted server-side
 
 ## Local Development
@@ -32,22 +32,20 @@ cp apps/api/.env.example apps/api/.env
 # Edit apps/api/.env — fill in SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY, MASTER_KEY
 
 # 3. Start the database
-cd apps/api && make db-up
+docker compose up -d db
+# ⚠️  Use plain `docker compose down` to stop — never `down -v` unless you want a full reset.
+# The -v flag deletes the db_data volume and all local application data permanently.
 
-# 4. Run migrations
-make migrate-up
+# 4. Start the Go API (migrations run automatically on startup)
+cd apps/api && make run
 
-# 5. One-time Supabase auth trigger (first setup only)
-# See docs/setup.md — must be run manually in the Supabase SQL Editor
-
-# 6. Start the Go API (from apps/api/)
-make run
-
-# 7. Start all Next.js apps (from repo root, separate terminal)
+# 5. Start all Next.js apps (from repo root, separate terminal)
 cd ../.. && pnpm dev
 ```
 
 Each app runs on its own port. The Next.js apps proxy API requests to the Go server at `http://localhost:8080`.
+
+> **Database architecture:** Supabase handles authentication only (`auth.users`, JWT signing). All application data (`public.users`, `public.skills`, etc.) lives in the local Docker postgres container. The Supabase SQL Editor does not contain these tables. See `apps/api/README.md` for how to query local data.
 
 ## Tests
 

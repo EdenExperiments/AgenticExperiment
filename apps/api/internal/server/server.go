@@ -13,6 +13,7 @@ import (
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/config"
 	"github.com/meden/rpgtracker/internal/handlers"
+	"github.com/meden/rpgtracker/internal/users"
 )
 
 // Server wraps the standard http.Server and holds application dependencies.
@@ -41,6 +42,7 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 	// Protected API routes
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Use(sessionMiddleware)
+		r.Use(ensureUserMiddleware(db))
 
 		presetHandler := handlers.NewPresetHandler(db)
 		r.Get("/presets", presetHandler.HandleGetPresets)
@@ -97,6 +99,30 @@ func (s *Server) Start() error {
 // ServeHTTP allows Server to be used as an http.Handler in tests.
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.httpServer.Handler.ServeHTTP(w, r)
+}
+
+// ensureUserMiddleware guarantees a public.users row exists for the authenticated
+// user before any handler runs. This prevents FK violations on tables that
+// reference users(id) when a user is created or re-created in Supabase auth
+// but the application-side row has not been written yet (e.g. trigger timing,
+// or delete-and-re-add flows). GetOrCreateUser is idempotent (ON CONFLICT DO NOTHING).
+func ensureUserMiddleware(db *pgxpool.Pool) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			userID, ok := auth.UserIDFromContext(r.Context())
+			if !ok {
+				next.ServeHTTP(w, r)
+				return
+			}
+			email := auth.EmailFromContext(r.Context())
+			if _, err := users.GetOrCreateUser(r.Context(), db, userID, email); err != nil {
+				log.Printf("ERROR: ensureUser for %s: %v", userID, err)
+				api.RespondError(w, http.StatusInternalServerError, "failed to initialize user session")
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 // panicRecoveryMiddleware recovers from panics, logs them, and returns a
