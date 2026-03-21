@@ -20,7 +20,7 @@ import { XPGainAnimation } from '@/components/XPGainAnimation'
 function countActiveGates(skills: SkillDetail[]): number {
   let count = 0
   for (const skill of skills) {
-    for (const gate of skill.gates) {
+    for (const gate of skill.gates ?? []) {
       if (!gate.is_cleared && skill.current_level >= gate.gate_level) {
         count++
       }

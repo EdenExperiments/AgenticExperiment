@@ -26,7 +26,7 @@ func main() {
 	}
 	defer pool.Close()
 
-	sessionMiddleware, err := auth.NewSessionMiddleware(cfg.SupabaseProjectURL)
+	sessionMiddleware, err := auth.NewJWTMiddleware(cfg.SupabaseProjectURL)
 	if err != nil {
 		log.Fatalf("auth middleware init failed: %v", err)
 	}

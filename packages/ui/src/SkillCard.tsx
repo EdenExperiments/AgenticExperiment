@@ -9,7 +9,7 @@ interface SkillCardProps {
 }
 
 function activeGate(skill: SkillDetail): BlockerGate | undefined {
-  return skill.gates
+  return (skill.gates ?? [])
     .filter(g => !g.is_cleared && skill.current_level >= g.gate_level)
     .sort((a, b) => a.gate_level - b.gate_level)[0]
 }

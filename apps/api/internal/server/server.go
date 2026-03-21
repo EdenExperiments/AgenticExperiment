@@ -62,6 +62,12 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Post("/skills/{id}/sessions", sessionHandler.HandlePostSession)
 		r.Get("/skills/{id}/sessions", sessionHandler.HandleGetSessions)
 
+		xpChartHandler := handlers.NewXPChartHandler(db)
+		r.Get("/skills/{id}/xp-chart", xpChartHandler.HandleGetXPChart)
+
+		gateHandler := handlers.NewGateHandler(db, []byte(cfg.MasterKey))
+		r.Post("/blocker-gates/{id}/submit", gateHandler.HandlePostGateSubmit)
+
 		activityHandler := handlers.NewActivityHandler(db)
 		r.Get("/activity", activityHandler.HandleGetActivity)
 
@@ -71,6 +77,7 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		userHandler := handlers.NewUserHandler(db)
 		r.Get("/account", userHandler.HandleGetAccount)
 		r.Put("/account", userHandler.HandlePostAccount)
+		r.Patch("/account", userHandler.HandlePatchAccount)
 
 		keyHandler := handlers.NewKeyHandler(db, []byte(cfg.MasterKey))
 		r.Get("/account/api-key", keyHandler.HandleGetAPIKey)

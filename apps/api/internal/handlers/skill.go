@@ -36,8 +36,8 @@ type SkillDetail struct {
 	QuickLogChips     [4]int               `json:"quick_log_chips"`
 	TierName          string               `json:"tier_name"`
 	TierNumber        int                  `json:"tier_number"`
-	Gates             []skills.BlockerGate `json:"gates,omitempty"`
-	RecentLogs        []skills.XPEvent     `json:"recent_logs,omitempty"`
+	Gates             []skills.BlockerGate `json:"gates"`
+	RecentLogs        []skills.XPEvent     `json:"recent_logs"`
 	XPToNextLevel     int                  `json:"xp_to_next_level"`
 	XPForCurrentLevel int                  `json:"xp_for_current_level"`
 }
@@ -255,6 +255,9 @@ func (h *SkillHandler) HandleDeleteSkill(w http.ResponseWriter, r *http.Request)
 func toSkillDetail(s *skills.Skill, gates []skills.BlockerGate, recentLogs []skills.XPEvent) SkillDetail {
 	if gates == nil {
 		gates = []skills.BlockerGate{}
+	}
+	if recentLogs == nil {
+		recentLogs = []skills.XPEvent{}
 	}
 	effective := skills.EffectiveLevel(s.CurrentLevel, gates)
 	return SkillDetail{

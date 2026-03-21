@@ -140,7 +140,7 @@ export function submitGate(gateId: string, body: {
   evidence_how?: string
   evidence_feeling?: string
 }): Promise<GateSubmission> {
-  return request<GateSubmission>(`/api/v1/gates/${gateId}/submit`, {
+  return request<GateSubmission>(`/api/v1/blocker-gates/${gateId}/submit`, {
     method: 'POST',
     body: JSON.stringify(body),
   })
