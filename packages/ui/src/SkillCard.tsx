@@ -23,7 +23,7 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
       role="button"
       tabIndex={0}
       aria-label={skill.name}
-      className="skill-card relative rounded-xl p-4 shadow-sm border cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+      className="skill-card relative rounded-xl p-4 shadow-sm border cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg min-h-[44px]"
       style={{
         backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
         borderColor: 'var(--color-border, rgba(75, 85, 99, 0.5))',
@@ -55,7 +55,11 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
           {currentStreak >= 2 && (
             <span
               data-testid="streak-badge"
-              className="flex items-center gap-1 bg-orange-500/20 rounded-full px-2 py-0.5 text-xs font-semibold text-orange-400"
+              className="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
+              style={{
+                backgroundColor: 'var(--color-accent-muted)',
+                color: 'var(--color-accent)',
+              }}
             >
               🔥 <span>{currentStreak}</span>
             </span>

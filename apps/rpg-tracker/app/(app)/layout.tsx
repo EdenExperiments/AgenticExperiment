@@ -11,7 +11,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen">
       {!hideNav && <Sidebar currentPath={pathname} />}
       <main className={`flex-1 ${!hideNav ? 'pb-20 md:pb-0' : ''}`}>
-        {children}
+        <div className="max-w-[1500px] w-[90%] mx-auto">
+          {children}
+        </div>
       </main>
       {!hideNav && <BottomTabBar currentPath={pathname} />}
     </div>
