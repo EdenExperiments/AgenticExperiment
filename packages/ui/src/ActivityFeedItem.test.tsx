@@ -73,6 +73,56 @@ test('renders as div (not button) when onClick is not provided', () => {
   expect(screen.queryByRole('button')).not.toBeInTheDocument()
 })
 
+// --- AC-16: Hover highlight ---
+describe('AC-16: hover background highlight', () => {
+  test('item element has hover background class referencing a CSS variable', () => {
+    const { container } = render(
+      <ActivityFeedItem
+        skillName="Guitar"
+        xpDelta={25}
+        createdAt={new Date().toISOString()}
+      />
+    )
+    const item = container.firstChild as HTMLElement
+    const className = item.className
+    // Must have a hover background class that references a CSS variable (not hardcoded colour)
+    expect(className).toMatch(/hover:bg-\[var\(--color-/)
+  })
+
+  test('interactive item (with onClick) has hover background highlight', () => {
+    const { container } = render(
+      <ActivityFeedItem
+        skillName="Guitar"
+        xpDelta={25}
+        createdAt={new Date().toISOString()}
+        onClick={vi.fn()}
+      />
+    )
+    const item = container.firstChild as HTMLElement
+    const className = item.className
+    expect(className).toMatch(/hover:bg-\[var\(--color-/)
+  })
+})
+
+// --- AC-17: motion-scale gating on transition ---
+describe('AC-17: rpg-clean instant transitions', () => {
+  test('item transition includes --motion-scale gating', () => {
+    const { container } = render(
+      <ActivityFeedItem
+        skillName="Guitar"
+        xpDelta={25}
+        createdAt={new Date().toISOString()}
+      />
+    )
+    const item = container.firstChild as HTMLElement
+    const style = item.style.transition ?? ''
+    const className = item.className
+    // Must reference --motion-scale either in inline style or Tailwind class
+    const motionGated = style.includes('--motion-scale') || className.includes('--motion-scale')
+    expect(motionGated).toBe(true)
+  })
+})
+
 // formatRelativeTime unit tests
 describe('formatRelativeTime', () => {
   test('returns "just now" for timestamps less than a minute ago', () => {

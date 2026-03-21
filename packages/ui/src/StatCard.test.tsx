@@ -28,3 +28,52 @@ test('uses theme CSS custom properties for styling', () => {
   expect(valueEl.style.color).toBe('var(--color-accent, #6366f1)')
   expect(valueEl.style.fontFamily).toBe('var(--font-display, var(--font-body, Inter, system-ui, sans-serif))')
 })
+
+// --- AC-15: Hover lift with motion-scale gating ---
+describe('AC-15: hover lift effect', () => {
+  test('card wrapper has hover lift classes using @media(hover:hover) guard', () => {
+    const { container } = render(<StatCard label="Test" value={42} />)
+    const card = container.firstChild as HTMLElement
+    // Must use Tailwind arbitrary variant with media(hover:hover) guard for hover lift
+    expect(card.className).toMatch(/\[@media\(hover:hover\)\]:hover:-translate-y/)
+  })
+
+  test('card wrapper transition includes var(--motion-scale) gating', () => {
+    const { container } = render(<StatCard label="Test" value={42} />)
+    const card = container.firstChild as HTMLElement
+    const transition = card.style.transition ?? ''
+    expect(transition).toMatch(/var\(--motion-scale/)
+  })
+
+  test('card wrapper has focus-visible outline using --color-accent', () => {
+    const { container } = render(<StatCard label="Test" value={42} />)
+    const card = container.firstChild as HTMLElement
+    expect(card.className).toMatch(/focus-visible:outline-\[var\(--color-accent/)
+  })
+})
+
+// --- AC-17: rpg-clean instant transitions ---
+describe('AC-17: rpg-clean instant transitions', () => {
+  test('card transition string uses var(--duration-fast) * var(--motion-scale)', () => {
+    const { container } = render(<StatCard label="Test" value={42} />)
+    const card = container.firstChild as HTMLElement
+    const transition = card.style.transition ?? ''
+    expect(transition).toMatch(/var\(--duration-fast/)
+    expect(transition).toMatch(/var\(--motion-scale/)
+  })
+})
+
+// --- AC-19: Card hierarchy — bg-elevated + border ---
+describe('AC-19: card hierarchy CSS variables', () => {
+  test('card wrapper background references --color-bg-elevated', () => {
+    const { container } = render(<StatCard label="Test" value={42} />)
+    const card = container.firstChild as HTMLElement
+    expect(card.style.backgroundColor).toMatch(/var\(--color-bg-elevated/)
+  })
+
+  test('card wrapper border references --color-border', () => {
+    const { container } = render(<StatCard label="Test" value={42} />)
+    const card = container.firstChild as HTMLElement
+    expect(card.style.borderColor).toMatch(/var\(--color-border/)
+  })
+})

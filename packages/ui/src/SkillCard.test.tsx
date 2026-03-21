@@ -96,3 +96,120 @@ test('streak badge is shown when current_streak is 2', () => {
   expect(screen.getByTestId('streak-badge')).toBeInTheDocument()
   expect(screen.getByText('2')).toBeInTheDocument()
 })
+
+// --- AC-09: Colour migration — no hardcoded orange- classes ---
+describe('AC-09: colour migration', () => {
+  test('rendered HTML contains no hardcoded orange-500 or orange-400 class tokens', () => {
+    const skillWithStreak = { ...mockSkill, current_streak: 3 }
+    const { container } = render(
+      <SkillCard skill={skillWithStreak} onLogXP={vi.fn()} onClick={vi.fn()} />
+    )
+    expect(container.innerHTML).not.toMatch(/orange-500|orange-400/)
+  })
+
+  test('streak badge uses CSS variable for background colour (--color-accent-muted)', () => {
+    const skillWithStreak = { ...mockSkill, current_streak: 3 }
+    const { container } = render(
+      <SkillCard skill={skillWithStreak} onLogXP={vi.fn()} onClick={vi.fn()} />
+    )
+    const badge = container.querySelector('[data-testid="streak-badge"]')
+    expect(badge).not.toBeNull()
+    // Must reference CSS variable, not hardcoded colour class
+    const style = badge!.getAttribute('style') ?? ''
+    const className = badge!.getAttribute('class') ?? ''
+    const usesAccentMuted =
+      style.includes('--color-accent-muted') || className.includes('--color-accent-muted')
+    expect(usesAccentMuted).toBe(true)
+  })
+
+  test('streak badge uses CSS variable for text colour (--color-accent)', () => {
+    const skillWithStreak = { ...mockSkill, current_streak: 3 }
+    const { container } = render(
+      <SkillCard skill={skillWithStreak} onLogXP={vi.fn()} onClick={vi.fn()} />
+    )
+    const badge = container.querySelector('[data-testid="streak-badge"]')
+    expect(badge).not.toBeNull()
+    const style = badge!.getAttribute('style') ?? ''
+    const className = badge!.getAttribute('class') ?? ''
+    const usesAccent =
+      style.includes('--color-accent') || className.includes('--color-accent')
+    expect(usesAccent).toBe(true)
+  })
+})
+
+// --- AC-14: Hover lift with motion-scale gating ---
+describe('AC-14: hover lift effect', () => {
+  test('card wrapper transition includes var(--motion-scale) for motion-scale gating', () => {
+    const { container } = render(
+      <SkillCard skill={mockSkill} onLogXP={vi.fn()} onClick={vi.fn()} />
+    )
+    const card = container.firstChild as HTMLElement
+    // Transition must reference --motion-scale so rpg-clean (motion-scale=0) gives 0ms
+    const transition = card.style.transition ?? ''
+    expect(transition).toMatch(/var\(--motion-scale/)
+  })
+
+  test('card wrapper has hover lift classes using @media(hover:hover) guard', () => {
+    const { container } = render(
+      <SkillCard skill={mockSkill} onLogXP={vi.fn()} onClick={vi.fn()} />
+    )
+    const card = container.firstChild as HTMLElement
+    const className = card.className
+    // Must use Tailwind arbitrary variant or transition class referencing hover guard
+    // The class should include hover:-translate-y- (lift) inside media(hover:hover)
+    expect(className).toMatch(/\[@media\(hover:hover\)\]:hover:-translate-y/)
+  })
+
+  test('card wrapper has focus-visible outline using --color-accent', () => {
+    const { container } = render(
+      <SkillCard skill={mockSkill} onLogXP={vi.fn()} onClick={vi.fn()} />
+    )
+    const card = container.firstChild as HTMLElement
+    const className = card.className
+    // focus-visible outline must reference --color-accent
+    expect(className).toMatch(/focus-visible:outline-\[var\(--color-accent/)
+  })
+})
+
+// --- AC-17: rpg-clean instant transitions (motion-scale=0 means 0ms) ---
+describe('AC-17: rpg-clean instant transitions', () => {
+  test('card transition string uses var(--duration-fast) * var(--motion-scale) so 0ms when scale=0', () => {
+    const { container } = render(
+      <SkillCard skill={mockSkill} onLogXP={vi.fn()} onClick={vi.fn()} />
+    )
+    const card = container.firstChild as HTMLElement
+    const transition = card.style.transition ?? ''
+    expect(transition).toMatch(/var\(--duration-fast/)
+    expect(transition).toMatch(/var\(--motion-scale/)
+  })
+})
+
+// --- AC-19: Card hierarchy — bg-elevated + border ---
+describe('AC-19: card hierarchy CSS variables', () => {
+  test('card wrapper background references --color-bg-elevated', () => {
+    const { container } = render(
+      <SkillCard skill={mockSkill} onLogXP={vi.fn()} onClick={vi.fn()} />
+    )
+    const card = container.firstChild as HTMLElement
+    expect(card.style.backgroundColor).toMatch(/var\(--color-bg-elevated/)
+  })
+
+  test('card wrapper border references --color-border', () => {
+    const { container } = render(
+      <SkillCard skill={mockSkill} onLogXP={vi.fn()} onClick={vi.fn()} />
+    )
+    const card = container.firstChild as HTMLElement
+    expect(card.style.borderColor).toMatch(/var\(--color-border/)
+  })
+})
+
+// --- AC-22: 44px minimum tap target ---
+describe('AC-22: tap target minimum 44px', () => {
+  test('card clickable wrapper has min-h-[44px] class', () => {
+    const { container } = render(
+      <SkillCard skill={mockSkill} onLogXP={vi.fn()} onClick={vi.fn()} />
+    )
+    const card = container.firstChild as HTMLElement
+    expect(card.className).toMatch(/min-h-\[44px\]|min-h-11/)
+  })
+})
