@@ -73,3 +73,26 @@ test('does not show lock icon when gate is cleared', () => {
   render(<SkillCard skill={skillWithClearedGate} onLogXP={vi.fn()} onClick={vi.fn()} />)
   expect(screen.queryByRole('img', { name: /gate locked/i })).not.toBeInTheDocument()
 })
+
+// AC-E6: Streak badge hidden when current_streak=0 (or absent from props)
+test('streak badge is hidden when current_streak is 0', () => {
+  const skillWithNoStreak = {
+    ...mockSkill,
+    current_streak: 0,
+  }
+  render(<SkillCard skill={skillWithNoStreak} onLogXP={vi.fn()} onClick={vi.fn()} />)
+  // No streak badge should be rendered when streak is 0
+  expect(screen.queryByTestId('streak-badge')).not.toBeInTheDocument()
+})
+
+// AC-E6: Streak badge shown on SkillCard only when current_streak >= 2
+test('streak badge is shown when current_streak is 2', () => {
+  const skillWithStreak = {
+    ...mockSkill,
+    current_streak: 2,
+  }
+  render(<SkillCard skill={skillWithStreak} onLogXP={vi.fn()} onClick={vi.fn()} />)
+  // Streak badge must appear (AC-E6: shown when >= 2 days)
+  expect(screen.getByTestId('streak-badge')).toBeInTheDocument()
+  expect(screen.getByText('2')).toBeInTheDocument()
+})

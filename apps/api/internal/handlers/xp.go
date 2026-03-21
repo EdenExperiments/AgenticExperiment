@@ -34,7 +34,8 @@ func NewXPHandlerWithStore(s XPStore) *XPHandler {
 type dbXPStore struct{ db *pgxpool.Pool }
 
 func (s *dbXPStore) LogXP(ctx context.Context, userID, skillID uuid.UUID, xpDelta int, logNote string) (*skills.LogXPResult, error) {
-	return skills.LogXP(ctx, s.db, userID, skillID, xpDelta, logNote)
+	// Manual XP logs (POST /skills/{id}/xp) are never linked to a training session.
+	return skills.LogXP(ctx, s.db, userID, skillID, xpDelta, logNote, nil)
 }
 
 // HandlePostXP handles POST /api/v1/skills/{id}/xp.

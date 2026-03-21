@@ -58,6 +58,10 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		xpHandler := handlers.NewXPHandler(db)
 		r.Post("/skills/{id}/xp", xpHandler.HandlePostXP)
 
+		sessionHandler := handlers.NewSessionHandler(db)
+		r.Post("/skills/{id}/sessions", sessionHandler.HandlePostSession)
+		r.Get("/skills/{id}/sessions", sessionHandler.HandleGetSessions)
+
 		activityHandler := handlers.NewActivityHandler(db)
 		r.Get("/activity", activityHandler.HandleGetActivity)
 

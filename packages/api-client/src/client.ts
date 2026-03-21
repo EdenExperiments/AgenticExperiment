@@ -1,4 +1,4 @@
-import type { Skill, SkillDetail, Preset, Account, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent } from './types'
+import type { Skill, SkillDetail, Preset, Account, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse } from './types'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -104,6 +104,54 @@ export function deleteAPIKey(): Promise<void> {
 
 export function signOut(): Promise<void> {
   return request('/api/v1/auth/signout', { method: 'POST' })
+}
+
+// Training Sessions
+export function createSession(skillId: string, body: {
+  status: 'completed' | 'abandoned'
+  xp_delta?: number
+  bonus_xp?: number
+  duration_seconds: number
+  log_note?: string
+  reflection_what?: string
+  reflection_how?: string
+  reflection_feeling?: string
+}): Promise<TrainingSession> {
+  return request<TrainingSession>(`/api/v1/skills/${skillId}/sessions`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+export function listSessions(skillId: string, params?: { limit?: number; offset?: number }): Promise<TrainingSession[]> {
+  const qs = params ? new URLSearchParams(params as Record<string, string>).toString() : ''
+  return request<TrainingSession[]>(`/api/v1/skills/${skillId}/sessions${qs ? `?${qs}` : ''}`)
+}
+
+export function getXPChart(skillId: string, days?: number): Promise<XPChartResponse> {
+  const qs = days ? `?days=${days}` : ''
+  return request<XPChartResponse>(`/api/v1/skills/${skillId}/xp-chart${qs}`)
+}
+
+// Gate submissions
+export function submitGate(gateId: string, body: {
+  path: 'ai' | 'self_report'
+  evidence_what?: string
+  evidence_how?: string
+  evidence_feeling?: string
+}): Promise<GateSubmission> {
+  return request<GateSubmission>(`/api/v1/gates/${gateId}/submit`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  })
+}
+
+// Account update
+export function updateAccount(data: { timezone?: string; display_name?: string }): Promise<Account> {
+  return request<Account>('/api/v1/account', {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  })
 }
 
 // Activity
