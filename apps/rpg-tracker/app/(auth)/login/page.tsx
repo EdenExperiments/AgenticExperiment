@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createBrowserClient } from '@rpgtracker/auth/client'
+import SocialAuthButtons from '../components/SocialAuthButtons'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -40,7 +41,7 @@ export default function LoginPage() {
           <h1
             className="text-3xl font-bold tracking-tight"
             style={{
-              fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+              fontFamily: 'var(--font-display)',
               color: 'var(--color-text)',
             }}
           >
@@ -58,6 +59,16 @@ export default function LoginPage() {
             border: '1px solid var(--color-border)',
           }}
         >
+          {/* Social auth */}
+          <SocialAuthButtons onError={(msg) => setError(msg)} />
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 my-5">
+            <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-border)' }} />
+            <span className="text-xs" style={{ color: 'var(--color-muted)' }}>or</span>
+            <div className="flex-1 h-px" style={{ backgroundColor: 'var(--color-border)' }} />
+          </div>
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
               <label
