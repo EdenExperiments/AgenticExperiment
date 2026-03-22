@@ -38,12 +38,12 @@ export function TierTransitionModal({ newTierName, newTierNumber, isOpen, onCont
         </div>
         <h2
           className="text-2xl font-bold"
-          style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text-primary)' }}
+          style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}
         >
           {isLegend ? `You've reached Legend.` : `You've reached ${newTierName}!`}
         </h2>
         <p style={{ color: 'var(--color-text-secondary)' }}>{description}</p>
-        <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="text-xs mt-2" style={{ color: 'var(--color-muted)' }}>
           The next tier requires more XP per level. This reflects the reality that advanced mastery takes greater effort.
         </p>
         <button

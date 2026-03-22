@@ -33,7 +33,7 @@ export default function APIKeyPage() {
         className="text-2xl font-bold"
         style={{
           fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-          color: 'var(--color-text-primary, #f9fafb)',
+          color: 'var(--color-text)',
         }}
       >
         Add Claude API Key
@@ -47,26 +47,26 @@ export default function APIKeyPage() {
           required
           className="w-full rounded-xl px-4 py-3"
           style={{
-            backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
-            border: '1px solid var(--color-border, #374151)',
-            color: 'var(--color-text-primary, #f9fafb)',
+            backgroundColor: 'var(--color-bg-elevated)',
+            border: '1px solid var(--color-border)',
+            color: 'var(--color-text)',
           }}
         />
-        {error && <p className="text-sm" style={{ color: 'var(--color-danger, #ef4444)' }}>{error}</p>}
-        <p className="text-xs" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+        {error && <p className="text-sm" style={{ color: 'var(--color-error)' }}>{error}</p>}
+        <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
           Your key is encrypted and stored securely. It is never visible in the browser.
         </p>
         <button
           type="submit"
           disabled={saving || !key}
           className="w-full py-4 rounded-xl font-semibold text-white disabled:opacity-50 min-h-[48px]"
-          style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
+          style={{ backgroundColor: 'var(--color-accent)' }}
         >
           {saving ? 'Saving…' : 'Verify and Save'}
         </button>
         <button type="button" onClick={() => router.back()}
           className="w-full text-sm py-2"
-          style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+          style={{ color: 'var(--color-muted)' }}>
           Cancel
         </button>
       </form>

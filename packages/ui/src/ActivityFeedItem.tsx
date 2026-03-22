@@ -35,9 +35,9 @@ export function ActivityFeedItem({ skillName, xpDelta, logNote, createdAt, onCli
 
   return (
     <Wrapper
-      className={`w-full flex items-center justify-between py-3 px-3 rounded-lg text-left hover:bg-[var(--color-bg-elevated)] ${onClick ? 'cursor-pointer' : ''}`}
+      className={`activity-history w-full flex items-center justify-between py-3 px-3 rounded-lg text-left hover:bg-[var(--color-bg-elevated)] ${onClick ? 'cursor-pointer' : ''}`}
       style={{
-        backgroundColor: 'var(--color-bg-surface, #1f2937)',
+        backgroundColor: 'var(--color-surface)',
         transition: 'background-color calc(var(--duration-fast, 150ms) * var(--motion-scale, 1))',
       }}
       onClick={onClick}
@@ -47,13 +47,13 @@ export function ActivityFeedItem({ skillName, xpDelta, logNote, createdAt, onCli
         <div className="flex items-center gap-2">
           <span
             className="font-medium text-sm truncate"
-            style={{ color: 'var(--color-text-primary, #f9fafb)' }}
+            style={{ color: 'var(--color-text)' }}
           >
             {skillName}
           </span>
           <span
             className="text-sm font-semibold shrink-0"
-            style={{ color: 'var(--color-accent, #6366f1)' }}
+            style={{ color: 'var(--color-accent)' }}
           >
             +{xpDelta} XP
           </span>
@@ -61,7 +61,7 @@ export function ActivityFeedItem({ skillName, xpDelta, logNote, createdAt, onCli
         {logNote && (
           <p
             className="text-xs truncate mt-0.5"
-            style={{ color: 'var(--color-text-muted, #6b7280)' }}
+            style={{ color: 'var(--color-muted)' }}
           >
             {logNote}
           </p>
@@ -69,7 +69,7 @@ export function ActivityFeedItem({ skillName, xpDelta, logNote, createdAt, onCli
       </div>
       <span
         className="text-xs shrink-0 ml-3"
-        style={{ color: 'var(--color-text-muted, #6b7280)' }}
+        style={{ color: 'var(--color-muted)' }}
         data-testid="relative-time"
       >
         {formatRelativeTime(createdAt)}

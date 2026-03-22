@@ -16,8 +16,7 @@ export function GrindAnimation({ theme, phase, tierColor, tierNumber }: GrindAni
         borderColor: tierColor ?? 'var(--color-accent, #6366f1)',
       } as React.CSSProperties
     : {
-        '--color-break': '#60a5fa',
-        borderColor: 'var(--color-break, #60a5fa)',
+        borderColor: 'var(--color-break)',
       } as React.CSSProperties
 
   return (

@@ -9,7 +9,7 @@ interface SidebarProps {
 export function Sidebar({ currentPath }: SidebarProps) {
   return (
     <aside
-      className="hidden md:flex flex-col w-64 min-h-screen border-r p-4"
+      className="nav-panel hidden md:flex flex-col w-64 min-h-screen border-r p-4"
       style={{ background: 'var(--color-bg-elevated)', borderColor: 'var(--color-border)' }}
     >
       <div className="mb-8">
@@ -41,11 +41,11 @@ export function Sidebar({ currentPath }: SidebarProps) {
             </Link>
           )
         })}
-        <div className="px-3 py-2 text-sm flex justify-between items-center" style={{ color: 'var(--color-text-muted)' }}>
+        <div className="px-3 py-2 text-sm flex justify-between items-center" style={{ color: 'var(--color-muted)' }}>
           <span>NutriLog</span>
           <span
             className="text-xs px-1.5 py-0.5 rounded"
-            style={{ background: 'var(--color-bg-surface)', color: 'var(--color-text-muted)' }}
+            style={{ background: 'var(--color-surface)', color: 'var(--color-muted)' }}
           >
             Soon
           </span>

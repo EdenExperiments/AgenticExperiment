@@ -40,8 +40,8 @@ export function BottomTabBar({ currentPath }: BottomTabBarProps) {
                 role="presentation"
               >
                 <span className="text-xl">{tab.icon}</span>
-                <span className="text-[10px] font-medium" style={{ color: 'var(--color-text-muted)' }}>{tab.label}</span>
-                <span className="text-[9px]" style={{ color: 'var(--color-text-muted)' }}>Coming soon</span>
+                <span className="text-[10px] font-medium" style={{ color: 'var(--color-muted)' }}>{tab.label}</span>
+                <span className="text-[9px]" style={{ color: 'var(--color-muted)' }}>Coming soon</span>
               </div>
             )
           }
@@ -53,7 +53,7 @@ export function BottomTabBar({ currentPath }: BottomTabBarProps) {
               aria-label={tab.label}
               aria-current={isActive ? 'page' : undefined}
               className="flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors min-h-[44px]"
-              style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-text-muted)' }}
+              style={{ color: isActive ? 'var(--color-accent)' : 'var(--color-muted)' }}
             >
               <span className="text-xl">{tab.icon}</span>
               <span className="text-[10px] font-medium">{tab.label}</span>

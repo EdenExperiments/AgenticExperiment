@@ -119,13 +119,13 @@ export default function DashboardPage() {
             <div
               className="absolute inset-0 rounded-t-full rounded-b-[50%]"
               style={{
-                backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
-                border: '3px solid var(--color-accent, #6366f1)',
+                backgroundColor: 'var(--color-bg-elevated)',
+                border: '3px solid var(--color-accent)',
               }}
             />
             <div
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl"
-              style={{ color: 'var(--color-accent, #6366f1)' }}
+              style={{ color: 'var(--color-accent)' }}
             >
               +
             </div>
@@ -135,14 +135,14 @@ export default function DashboardPage() {
             className="text-2xl font-bold"
             style={{
               fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-              color: 'var(--color-text-primary, #f9fafb)',
+              color: 'var(--color-text)',
             }}
           >
             Begin Your Quest
           </h2>
           <p
             className="max-w-sm mx-auto"
-            style={{ color: 'var(--color-text-secondary, #9ca3af)' }}
+            style={{ color: 'var(--color-text-secondary)' }}
           >
             Track your real-world skills like an RPG. Earn XP, level up, and
             break through tier gates as you grow.
@@ -150,7 +150,7 @@ export default function DashboardPage() {
           <Link
             href="/skills/new"
             className="inline-block px-6 py-3 rounded-xl font-semibold text-white min-h-[48px]"
-            style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
+            style={{ backgroundColor: 'var(--color-accent)' }}
           >
             Create your first skill
           </Link>
@@ -172,7 +172,7 @@ export default function DashboardPage() {
         className="text-2xl font-bold"
         style={{
           fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-          color: 'var(--color-text-primary, #f9fafb)',
+          color: 'var(--color-text)',
         }}
       >
         Dashboard
@@ -205,7 +205,7 @@ export default function DashboardPage() {
             className="text-lg font-semibold"
             style={{
               fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-              color: 'var(--color-text-primary, #f9fafb)',
+              color: 'var(--color-text)',
             }}
           >
             Your Skills
@@ -231,7 +231,7 @@ export default function DashboardPage() {
             <button
               onClick={() => setLogSheetSkill(featuredSkill)}
               className="w-full py-3 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
+              style={{ backgroundColor: 'var(--color-accent)' }}
             >
               Log XP
             </button>
@@ -246,15 +246,15 @@ export default function DashboardPage() {
           data-testid="activity-feed"
           className="rounded-xl p-4 self-start lg:sticky lg:top-8"
           style={{
-            backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
-            border: '1px solid var(--color-border, rgba(75, 85, 99, 0.5))',
+            backgroundColor: 'var(--color-bg-elevated)',
+            border: '1px solid var(--color-border)',
           }}
         >
           <h2
             className="text-lg font-semibold mb-3"
             style={{
               fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-              color: 'var(--color-text-primary, #f9fafb)',
+              color: 'var(--color-text)',
             }}
           >
             Recent Activity
@@ -262,13 +262,13 @@ export default function DashboardPage() {
           {activityLoading ? (
             <div className="animate-pulse space-y-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-12 rounded-lg" style={{ backgroundColor: 'var(--color-bg-surface)' }} />
+                <div key={i} className="h-12 rounded-lg" style={{ backgroundColor: 'var(--color-surface)' }} />
               ))}
             </div>
           ) : activity.length === 0 ? (
             <p
               className="text-sm py-4 text-center"
-              style={{ color: 'var(--color-text-muted, #6b7280)' }}
+              style={{ color: 'var(--color-muted)' }}
             >
               No activity yet. Log some XP to see your progress here.
             </p>

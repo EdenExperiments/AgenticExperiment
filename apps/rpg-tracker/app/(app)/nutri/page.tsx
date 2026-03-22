@@ -6,12 +6,12 @@ export default function NutriPage() {
         className="text-2xl font-bold"
         style={{
           fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-          color: 'var(--color-text-primary, #f9fafb)',
+          color: 'var(--color-text)',
         }}
       >
         NutriLog
       </h1>
-      <p className="max-w-sm" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+      <p className="max-w-sm" style={{ color: 'var(--color-muted)' }}>
         Nutrition tracking is coming in a future update. LifeQuest is fully available now.
       </p>
     </div>

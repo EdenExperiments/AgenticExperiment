@@ -96,7 +96,7 @@ export function GrindOverlay({
           <div className="text-center space-y-1">
             <p
               className="text-[10px] tracking-[0.25em] uppercase"
-              style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text-muted)' }}
+              style={{ fontFamily: 'var(--font-display)', color: 'var(--color-muted)' }}
             >
               Session Start
             </p>
@@ -121,7 +121,7 @@ export function GrindOverlay({
                 <span title="This skill requires active engagement during the session" className="cursor-help">ⓘ</span>
               </p>
             )}
-            <p style={{ color: 'var(--color-text-muted)' }}>
+            <p style={{ color: 'var(--color-muted)' }}>
               50%+ of target duration qualifies for bonus XP
             </p>
           </div>
@@ -169,7 +169,7 @@ export function GrindOverlay({
           className="w-full max-w-xs rounded-2xl p-6 space-y-4 border"
           style={{ background: 'var(--color-bg-elevated)', borderColor: 'var(--color-border-strong)' }}
         >
-          <h2 className="text-xl font-bold text-center" style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text-primary)' }}>
+          <h2 className="text-xl font-bold text-center" style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}>
             End Session Early?
           </h2>
           <p className="text-sm text-center" style={{ color: 'var(--color-text-secondary)' }}>
@@ -180,7 +180,7 @@ export function GrindOverlay({
               data-testid="option-keep-going"
               onClick={() => setInternalPhase('work')}
               className="w-full py-3 rounded-xl font-medium min-h-[44px]"
-              style={{ background: 'var(--color-bg-surface)', color: 'var(--color-text-primary)' }}
+              style={{ background: 'var(--color-surface)', color: 'var(--color-text)' }}
             >
               Keep Going
             </button>
@@ -215,11 +215,11 @@ export function GrindOverlay({
         style={{ background: 'var(--color-bg)' }}
       >
         <GrindAnimation theme={animationTheme} phase="work" tierColor={tierColor} tierNumber={tierNumber} />
-        <p className="mt-4 text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>
+        <p className="mt-4 text-lg font-medium" style={{ color: 'var(--color-text)' }}>
           {skillName} — Work Phase
         </p>
         {elapsedSec > 0 && (
-          <p className="text-sm mt-1 tabular-nums" style={{ color: 'var(--color-text-muted)' }}>
+          <p className="text-sm mt-1 tabular-nums" style={{ color: 'var(--color-muted)' }}>
             {elapsedMins}m {String(elapsedSecsRemainder).padStart(2, '0')}s
           </p>
         )}
@@ -243,7 +243,7 @@ export function GrindOverlay({
         style={{ background: 'var(--color-bg)' }}
       >
         <GrindAnimation theme={animationTheme} phase="break" tierColor={tierColor} tierNumber={tierNumber} />
-        <p className="mt-4 text-lg font-medium" style={{ color: 'var(--color-text-primary)' }}>
+        <p className="mt-4 text-lg font-medium" style={{ color: 'var(--color-text)' }}>
           Break Time
         </p>
         <button

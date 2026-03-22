@@ -59,7 +59,7 @@ export function QuickLogSheet({ skillName, tierNumber, isOpen, isLoading, onClos
         style={{
           background: 'var(--color-bg-elevated)',
           borderColor: 'var(--color-border-strong)',
-          color: 'var(--color-text-primary)',
+          color: 'var(--color-text)',
         }}
       >
         <div className="flex items-center justify-between mb-5">
@@ -68,12 +68,12 @@ export function QuickLogSheet({ skillName, tierNumber, isOpen, isLoading, onClos
             onClick={onClose}
             aria-label="Close"
             className="text-2xl leading-none"
-            style={{ color: 'var(--color-text-muted)' }}
+            style={{ color: 'var(--color-muted)' }}
           >×</button>
         </div>
 
         {/* Time chips */}
-        <p className="text-xs mb-2 uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+        <p className="text-xs mb-2 uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>
           How long did you practice?
         </p>
         <div className="flex gap-2 flex-wrap mb-2">
@@ -87,7 +87,7 @@ export function QuickLogSheet({ skillName, tierNumber, isOpen, isLoading, onClos
               style={
                 selected === mins
                   ? { background: 'var(--color-accent)', color: '#fff' }
-                  : { background: 'var(--color-bg-surface)', color: 'var(--color-text-secondary)' }
+                  : { background: 'var(--color-surface)', color: 'var(--color-text-secondary)' }
               }
             >
               {mins} min
@@ -101,7 +101,7 @@ export function QuickLogSheet({ skillName, tierNumber, isOpen, isLoading, onClos
             style={
               selected === 'custom'
                 ? { background: 'var(--color-accent)', color: '#fff' }
-                : { background: 'var(--color-bg-surface)', color: 'var(--color-text-secondary)' }
+                : { background: 'var(--color-surface)', color: 'var(--color-text-secondary)' }
             }
           >
             Custom
@@ -120,8 +120,8 @@ export function QuickLogSheet({ skillName, tierNumber, isOpen, isLoading, onClos
             onChange={(e) => setCustomMinutes(e.target.value)}
             className="w-full rounded-xl px-4 py-3 text-sm mb-2"
             style={{
-              background: 'var(--color-bg-surface)',
-              color: 'var(--color-text-primary)',
+              background: 'var(--color-surface)',
+              color: 'var(--color-text)',
               border: '1px solid var(--color-border)',
             }}
           />
@@ -130,7 +130,7 @@ export function QuickLogSheet({ skillName, tierNumber, isOpen, isLoading, onClos
         {/* XP preview */}
         <div className="h-7 flex items-center justify-center mb-4">
           {previewXP !== null && (
-            <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+            <span className="text-sm" style={{ color: 'var(--color-muted)' }}>
               ≈ <span style={{ color: 'var(--color-accent)' }}>{previewXP} XP</span>
             </span>
           )}
@@ -144,8 +144,8 @@ export function QuickLogSheet({ skillName, tierNumber, isOpen, isLoading, onClos
           onChange={(e) => setLogNote(e.target.value)}
           className="w-full rounded-xl px-4 py-3 text-sm mb-4"
           style={{
-            background: 'var(--color-bg-surface)',
-            color: 'var(--color-text-primary)',
+            background: 'var(--color-surface)',
+            color: 'var(--color-text)',
             border: '1px solid var(--color-border)',
           }}
         />
