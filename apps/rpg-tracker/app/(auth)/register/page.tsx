@@ -31,17 +31,40 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+    <main
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ backgroundColor: 'var(--color-bg-base, #0f0f1a)' }}
+    >
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">RPG Tracker</h1>
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Start tracking your real-life skills</p>
+          <h1
+            className="text-3xl font-bold tracking-tight"
+            style={{
+              fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+              color: 'var(--color-text-primary, #f9fafb)',
+            }}
+          >
+            RPG Tracker
+          </h1>
+          <p className="mt-2 text-sm" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+            Start tracking your real-life skills
+          </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm">
+        <div
+          className="rounded-2xl p-8 shadow-sm"
+          style={{
+            backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
+            border: '1px solid var(--color-border, #374151)',
+          }}
+        >
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium"
+                style={{ color: 'var(--color-text-secondary, #9ca3af)' }}
+              >
                 Email
               </label>
               <input
@@ -52,12 +75,22 @@ export default function RegisterPage() {
                 required
                 autoComplete="email"
                 placeholder="you@example.com"
-                className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent,theme(colors.blue.500))] transition-shadow"
+                className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition-shadow"
+                style={{
+                  backgroundColor: 'var(--color-bg-surface, #1f2937)',
+                  border: '1px solid var(--color-border, #374151)',
+                  color: 'var(--color-text-primary, #f9fafb)',
+                  boxShadow: 'none',
+                }}
               />
             </div>
 
             <div className="space-y-1.5">
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium"
+                style={{ color: 'var(--color-text-secondary, #9ca3af)' }}
+              >
                 Password
               </label>
               <input
@@ -68,12 +101,18 @@ export default function RegisterPage() {
                 required
                 autoComplete="new-password"
                 placeholder="••••••••"
-                className="w-full border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--color-accent,theme(colors.blue.500))] transition-shadow"
+                className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition-shadow"
+                style={{
+                  backgroundColor: 'var(--color-bg-surface, #1f2937)',
+                  border: '1px solid var(--color-border, #374151)',
+                  color: 'var(--color-text-primary, #f9fafb)',
+                  boxShadow: 'none',
+                }}
               />
             </div>
 
             {error && (
-              <p role="alert" className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-lg px-3 py-2">
+              <p role="alert" className="text-sm rounded-lg px-3 py-2" style={{ color: 'var(--color-danger, #ef4444)', backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>
                 {error}
               </p>
             )}
@@ -81,16 +120,17 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl font-semibold text-white bg-[var(--color-accent,theme(colors.blue.600))] hover:opacity-90 disabled:opacity-50 transition-opacity min-h-[48px]"
+              className="w-full py-3 rounded-xl font-semibold text-white hover:opacity-90 disabled:opacity-50 transition-opacity min-h-[48px]"
+              style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
             >
               {loading ? 'Creating account…' : 'Create account'}
             </button>
           </form>
         </div>
 
-        <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+        <p className="mt-6 text-center text-sm" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
           Already have an account?{' '}
-          <Link href="/login" className="font-medium text-[var(--color-accent,theme(colors.blue.600))] hover:underline">
+          <Link href="/login" className="font-medium hover:underline" style={{ color: 'var(--color-accent, #6366f1)' }}>
             Sign in
           </Link>
         </p>
