@@ -15,7 +15,7 @@ export function XPBarChart({ data, tierColor }: XPBarChartProps) {
         className="flex items-center justify-center"
         style={{ minHeight: '192px' }}
       >
-        <p className="text-sm" style={{ color: 'var(--color-text-muted, #6b5e4e)' }}>
+        <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
           Start logging to see your progress here
         </p>
       </div>
@@ -37,7 +37,7 @@ export function XPBarChart({ data, tierColor }: XPBarChartProps) {
       <div className="flex justify-end mb-1">
         <span
           className="text-[10px] tabular-nums"
-          style={{ color: 'var(--color-text-muted, #6b5e4e)' }}
+          style={{ color: 'var(--color-muted)' }}
         >
           {maxXP.toLocaleString()} XP
         </span>
@@ -75,7 +75,7 @@ export function XPBarChart({ data, tierColor }: XPBarChartProps) {
             className="flex-1 text-center overflow-hidden"
             style={{
               fontSize: '10px',
-              color: 'var(--color-text-muted, #6b5e4e)',
+              color: 'var(--color-muted)',
               whiteSpace: 'nowrap',
             }}
           >

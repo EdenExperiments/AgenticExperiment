@@ -25,7 +25,7 @@ test('applies custom className', () => {
 test('uses theme CSS custom properties for styling', () => {
   render(<StatCard label="Test" value={42} />)
   const valueEl = screen.getByTestId('stat-value')
-  expect(valueEl.style.color).toBe('var(--color-accent, #6366f1)')
+  expect(valueEl.style.color).toBe('var(--color-accent)')
   expect(valueEl.style.fontFamily).toBe('var(--font-display, var(--font-body, Inter, system-ui, sans-serif))')
 })
 

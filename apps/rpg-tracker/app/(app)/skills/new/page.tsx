@@ -115,35 +115,50 @@ export default function SkillCreatePage() {
   return (
     <div className="max-w-xl mx-auto p-4 md:p-8 min-h-screen">
       {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-8">
-        {([1, 2, 3] as Step[]).map((s) => (
-          <div key={s} className="flex items-center gap-2">
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-              style={step >= s
-                ? { background: 'var(--color-accent)', color: '#fff' }
-                : { background: 'var(--color-bg-elevated)', color: 'var(--color-text-muted)', border: '1px solid var(--color-border)' }
-              }
-            >
-              {s}
-            </div>
-            {s < 3 && (
+      {(() => {
+        const STEP_LABELS: Record<number, string> = { 1: 'Identity', 2: 'Appraisal', 3: 'The Arbiter' }
+        return (
+          <div className="step-indicator flex items-end gap-2 mb-8" role="list" aria-label="Steps">
+            <span className="sr-only">Step {step} of 3</span>
+            {([1, 2, 3] as Step[]).map((s) => (
               <div
-                className="flex-1 h-px w-12"
-                style={{ background: step > s ? 'var(--color-accent)' : 'var(--color-border)' }}
-              />
-            )}
+                key={s}
+                role="listitem"
+                className={`step-indicator__step flex-1 flex flex-col items-center gap-1.5${
+                  step === s ? ' step-indicator__step--active' : ''
+                }${step > s ? ' step-indicator__step--complete' : ''}`}
+              >
+                <div
+                  className="step-indicator__dot w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                  style={step >= s
+                    ? { background: 'var(--color-accent)', color: '#fff' }
+                    : { background: 'var(--color-bg-elevated)', color: 'var(--color-muted)', border: '1px solid var(--color-border)' }
+                  }
+                >
+                  {step > s ? '✓' : s}
+                </div>
+                <span
+                  className="step-indicator__label text-[10px] text-center leading-tight"
+                  style={{
+                    fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+                    color: step === s ? 'var(--color-accent)' : 'var(--color-muted)',
+                    fontWeight: step === s ? 600 : undefined,
+                  }}
+                >
+                  {STEP_LABELS[s]}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
-        <span className="ml-2 text-sm" style={{ color: 'var(--color-text-muted)' }}>Step {step} of 3</span>
-      </div>
+        )
+      })()}
 
       {/* ── Step 1: Choose skill ── */}
       {step === 1 && (
         <div className="space-y-4">
           <h1
             className="text-2xl font-bold"
-            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text-primary)' }}
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}
           >
             New Skill
           </h1>
@@ -173,7 +188,7 @@ export default function SkillCreatePage() {
               type="button"
               onClick={() => setShowPresets(v => !v)}
               className="w-full py-3 rounded-xl border border-dashed text-sm transition-colors"
-              style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-muted)' }}
+              style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}
             >
               {showPresets ? '▴ Hide presets' : '▾ Browse presets — start from a template'}
             </button>
@@ -190,21 +205,21 @@ export default function SkillCreatePage() {
                   onChange={e => setPresetSearch(e.target.value)}
                   className="w-full text-sm rounded-lg px-3 py-2"
                   style={{
-                    background: 'var(--color-bg-surface)',
-                    color: 'var(--color-text-primary)',
+                    background: 'var(--color-surface)',
+                    color: 'var(--color-text)',
                     border: '1px solid var(--color-border)',
                   }}
                 />
               </div>
               <div className="max-h-72 overflow-y-auto">
                 {presetsByCategory.length === 0 ? (
-                  <p className="text-sm text-center py-6" style={{ color: 'var(--color-text-muted)' }}>No presets match your search</p>
+                  <p className="text-sm text-center py-6" style={{ color: 'var(--color-muted)' }}>No presets match your search</p>
                 ) : (
                   presetsByCategory.map(cat => (
                     <div key={cat.name}>
                       <div
                         className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider sticky top-0"
-                        style={{ background: 'var(--color-bg-surface)', color: 'var(--color-text-muted)' }}
+                        style={{ background: 'var(--color-surface)', color: 'var(--color-muted)' }}
                       >
                         {CATEGORY_EMOJI[cat.slug] ?? '•'} {cat.name}
                       </div>
@@ -215,8 +230,8 @@ export default function SkillCreatePage() {
                           className="w-full text-left px-4 py-3 transition-colors"
                           style={{ borderTop: '1px solid var(--color-border)' }}
                         >
-                          <p className="text-sm font-medium" style={{ color: 'var(--color-text-primary)' }}>{preset.name}</p>
-                          <p className="text-xs mt-0.5 line-clamp-1" style={{ color: 'var(--color-text-muted)' }}>{preset.description}</p>
+                          <p className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>{preset.name}</p>
+                          <p className="text-xs mt-0.5 line-clamp-1" style={{ color: 'var(--color-muted)' }}>{preset.description}</p>
                         </button>
                       ))}
                     </div>
@@ -236,8 +251,8 @@ export default function SkillCreatePage() {
               onChange={(e) => setDraft(d => ({ ...d, name: e.target.value }))}
               className="w-full rounded-xl px-4 py-3"
               style={{
-                background: 'var(--color-bg-elevated)',
-                color: 'var(--color-text-primary)',
+                background: 'var(--color-surface)',
+                color: 'var(--color-text)',
                 border: '1px solid var(--color-border)',
               }}
             />
@@ -249,8 +264,8 @@ export default function SkillCreatePage() {
               onChange={(e) => setDraft(d => ({ ...d, description: e.target.value }))}
               className="w-full rounded-xl px-4 py-3 resize-none"
               style={{
-                background: 'var(--color-bg-elevated)',
-                color: 'var(--color-text-primary)',
+                background: 'var(--color-surface)',
+                color: 'var(--color-text)',
                 border: '1px solid var(--color-border)',
               }}
             />
@@ -301,7 +316,7 @@ export default function SkillCreatePage() {
         <div className="space-y-4">
           <h1
             className="text-2xl font-bold"
-            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text-primary)' }}
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}
           >
             Starting Level
           </h1>
@@ -337,8 +352,8 @@ export default function SkillCreatePage() {
                     <div
                       className="text-[10px] text-center py-1"
                       style={{
-                        background: 'var(--color-bg-surface)',
-                        color: 'var(--color-text-muted)',
+                        background: 'var(--color-surface)',
+                        color: 'var(--color-muted)',
                         borderTop: '1px solid var(--color-border)',
                       }}
                     >
@@ -350,7 +365,7 @@ export default function SkillCreatePage() {
                     className="w-full text-left px-4 py-3 text-sm flex justify-between items-center transition-colors min-h-[44px]"
                     style={{
                       background: selected ? 'var(--color-accent-muted)' : undefined,
-                      color: selected ? 'var(--color-accent)' : 'var(--color-text-primary)',
+                      color: selected ? 'var(--color-accent)' : 'var(--color-text)',
                       fontWeight: selected ? 600 : undefined,
                     }}
                   >
@@ -368,7 +383,7 @@ export default function SkillCreatePage() {
             const requiredGate = hit.length > 0 ? hit[hit.length - 1] : null
             if (!requiredGate) return null
             return (
-              <div className="rounded-xl p-4 text-sm" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--color-text-secondary, #9ca3af)' }}>
+              <div className="rounded-xl p-4 text-sm" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--color-text-secondary)' }}>
                 <p className="font-medium mb-1">One gate challenge required</p>
                 <p>
                   Starting at level {draft.startingLevel} means you&apos;ll need to submit one gate assessment
@@ -403,30 +418,30 @@ export default function SkillCreatePage() {
         <div className="space-y-4">
           <h1
             className="text-2xl font-bold"
-            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text-primary)' }}
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}
           >
             Confirm
           </h1>
           <div className="rounded-xl p-4 space-y-2" style={{ border: '1px solid var(--color-border)', background: 'var(--color-bg-elevated)' }}>
             {draft.presetId && (
               <div>
-                <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Preset</span>
+                <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Preset</span>
                 <p className="text-sm font-medium" style={{ color: 'var(--color-accent)' }}>{draft.presetName}</p>
               </div>
             )}
             <div>
-              <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Skill</span>
-              <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>{draft.name}</p>
+              <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Skill</span>
+              <p className="font-semibold" style={{ color: 'var(--color-text)' }}>{draft.name}</p>
             </div>
             {draft.description && (
               <div>
-                <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Description</span>
+                <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Description</span>
                 <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{draft.description}</p>
               </div>
             )}
             <div>
-              <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>Starting Level</span>
-              <p className="font-semibold" style={{ color: 'var(--color-text-primary)' }}>Level {draft.startingLevel}</p>
+              <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Starting Level</span>
+              <p className="font-semibold" style={{ color: 'var(--color-text)' }}>Level {draft.startingLevel}</p>
             </div>
           </div>
 
@@ -436,11 +451,11 @@ export default function SkillCreatePage() {
               <p>Gates pause your level display at tier boundaries (levels 9, 19, 29…). Your XP keeps accruing. Complete the gate challenge to unlock the next tier.</p>
               {GATE_LEVELS.slice(0, 3).map((gl, i) => (
                 <div key={gl} className="pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
-                  <span className="font-medium" style={{ color: 'var(--color-text-primary)' }}>Gate at Level {gl}:</span>{' '}
+                  <span className="font-medium" style={{ color: 'var(--color-text)' }}>Gate at Level {gl}:</span>{' '}
                   {draft.gateDescriptions[i] || `Default gate — ${gl === 9 ? 'Novice' : gl === 19 ? 'Apprentice' : 'Adept'} completion challenge`}
                 </div>
               ))}
-              <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>…plus gates at levels 39, 49, 59, 69, 79, 89, and 99</p>
+              <p className="text-xs" style={{ color: 'var(--color-muted)' }}>…plus gates at levels 39, 49, 59, 69, 79, 89, and 99</p>
             </div>
           </details>
 

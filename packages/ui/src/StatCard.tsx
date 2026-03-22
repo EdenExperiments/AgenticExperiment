@@ -17,10 +17,10 @@ export interface StatCardProps {
 export function StatCard({ label, value, icon, className = '' }: StatCardProps) {
   return (
     <div
-      className={`rounded-xl border p-4 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 ${className}`}
+      className={`stat-card rounded-xl border p-4 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 ${className}`}
       style={{
-        backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
-        borderColor: 'var(--color-border, rgba(75, 85, 99, 0.5))',
+        backgroundColor: 'var(--color-bg-elevated)',
+        borderColor: 'var(--color-border)',
         transition: 'transform calc(var(--duration-fast, 150ms) * var(--motion-scale, 1)), box-shadow calc(var(--duration-fast, 150ms) * var(--motion-scale, 1))',
       }}
     >
@@ -28,7 +28,7 @@ export function StatCard({ label, value, icon, className = '' }: StatCardProps) 
         {icon && <span className="text-lg">{icon}</span>}
         <span
           className="text-xs uppercase tracking-wider"
-          style={{ color: 'var(--color-text-muted, #6b7280)' }}
+          style={{ color: 'var(--color-muted)' }}
         >
           {label}
         </span>
@@ -36,7 +36,7 @@ export function StatCard({ label, value, icon, className = '' }: StatCardProps) 
       <div
         className="text-2xl font-bold"
         style={{
-          color: 'var(--color-accent, #6366f1)',
+          color: 'var(--color-accent)',
           fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
         }}
         data-testid="stat-value"

@@ -36,17 +36,17 @@ export function ConfirmModal({
                    md:bottom-auto md:inset-x-auto md:top-1/2 md:-translate-y-1/2
                    md:left-[calc(50%+8rem)] md:-translate-x-1/2
                    md:w-[420px] md:rounded-2xl"
-        style={{ backgroundColor: 'var(--color-bg-elevated, #1a1a2e)' }}
+        style={{ backgroundColor: 'var(--color-bg-elevated)' }}
       >
         <h2
           id="confirm-modal-title"
           className="font-semibold mb-2"
-          style={{ color: 'var(--color-text-primary, #f9fafb)' }}
+          style={{ color: 'var(--color-text)' }}
         >
           {title}
         </h2>
         {message && (
-          <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary, #9ca3af)' }}>
+          <p className="text-sm mb-6" style={{ color: 'var(--color-text-secondary)' }}>
             {message}
           </p>
         )}
@@ -58,8 +58,8 @@ export function ConfirmModal({
             className="w-full py-4 rounded-xl font-semibold text-white min-h-[48px] disabled:opacity-50 hover:opacity-90 transition-opacity"
             style={{
               backgroundColor: destructive
-                ? 'var(--color-error, #ef4444)'
-                : 'var(--color-accent, #6366f1)',
+                ? 'var(--color-error)'
+                : 'var(--color-accent)',
             }}
           >
             {isLoading ? 'Working…' : confirmLabel}
@@ -69,8 +69,8 @@ export function ConfirmModal({
             disabled={isLoading}
             className="w-full py-3 rounded-xl font-medium min-h-[44px] border"
             style={{
-              borderColor: 'var(--color-border, #374151)',
-              color: 'var(--color-text-secondary, #9ca3af)',
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text-secondary)',
             }}
           >
             {cancelLabel}

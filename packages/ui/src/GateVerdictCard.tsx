@@ -47,7 +47,7 @@ export function GateVerdictCard({ verdict, aiFeedback, attemptNumber, nextRetryA
       <div
         className="p-4 rounded-xl border"
         style={{
-          backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
+          backgroundColor: 'var(--color-bg-elevated)',
           borderColor: 'var(--color-success, #4ade80)',
           color: 'var(--color-success, #4ade80)',
         }}
@@ -59,7 +59,7 @@ export function GateVerdictCard({ verdict, aiFeedback, attemptNumber, nextRetryA
           </p>
         </div>
         {aiFeedback && (
-          <p className="text-sm mt-2" style={{ color: 'var(--color-text-secondary, #a89880)' }}>
+          <p className="text-sm mt-2" style={{ color: 'var(--color-text-secondary)' }}>
             {aiFeedback}
           </p>
         )}
@@ -72,29 +72,29 @@ export function GateVerdictCard({ verdict, aiFeedback, attemptNumber, nextRetryA
       <div
         className="p-4 rounded-xl border"
         style={{
-          backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
-          borderColor: 'var(--color-error, #f87171)',
-          color: 'var(--color-error, #f87171)',
+          backgroundColor: 'var(--color-bg-elevated)',
+          borderColor: 'var(--color-error)',
+          color: 'var(--color-error)',
         }}
       >
         <div className="flex items-center gap-2">
           <CrossIcon />
-          <p className="font-semibold" style={{ color: 'var(--color-error, #f87171)' }}>
+          <p className="font-semibold" style={{ color: 'var(--color-error)' }}>
             Assessment Rejected
           </p>
         </div>
         {aiFeedback && (
-          <p className="text-sm mt-2" style={{ color: 'var(--color-text-secondary, #a89880)' }}>
+          <p className="text-sm mt-2" style={{ color: 'var(--color-text-secondary)' }}>
             {aiFeedback}
           </p>
         )}
         {nextRetryAt && (
-          <p className="text-xs mt-2" style={{ color: 'var(--color-text-muted, #6b5e4e)' }}>
+          <p className="text-xs mt-2" style={{ color: 'var(--color-muted)' }}>
             Retry available on {nextRetryAt}
           </p>
         )}
         {attemptNumber && (
-          <p className="text-xs mt-1" style={{ color: 'var(--color-text-muted, #6b5e4e)' }}>
+          <p className="text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
             Attempt {attemptNumber}
           </p>
         )}
@@ -106,13 +106,13 @@ export function GateVerdictCard({ verdict, aiFeedback, attemptNumber, nextRetryA
     <div
       className="p-4 rounded-xl border"
       style={{
-        backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
-        borderColor: 'var(--color-info, #60a5fa)',
+        backgroundColor: 'var(--color-bg-elevated)',
+        borderColor: 'var(--color-info)',
       }}
     >
       <div className="flex items-center gap-2">
         <span role="img" aria-label="Assessment pending" className="animate-spin inline-block">⟳</span>
-        <p className="font-semibold" style={{ color: 'var(--color-info, #60a5fa)' }}>
+        <p className="font-semibold" style={{ color: 'var(--color-info)' }}>
           Assessment Pending
         </p>
       </div>

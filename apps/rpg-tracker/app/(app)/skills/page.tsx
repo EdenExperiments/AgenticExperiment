@@ -77,7 +77,7 @@ export default function SkillsPage() {
     return sortSkills(result, sortBy)
   }, [skills, sortBy, tierFilter])
 
-  if (isLoading) return <div className="p-8" style={{ color: 'var(--color-text-muted)' }}>Loading...</div>
+  if (isLoading) return <div className="p-8" style={{ color: 'var(--color-muted)' }}>Loading...</div>
 
   return (
     <div className="p-4 md:p-8">
@@ -86,7 +86,7 @@ export default function SkillsPage() {
           className="text-2xl font-bold"
           style={{
             fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-            color: 'var(--color-text-primary, #f9fafb)',
+            color: 'var(--color-text)',
           }}
         >
           Skills
@@ -94,7 +94,7 @@ export default function SkillsPage() {
         <Link
           href="/skills/new"
           className="px-4 py-2 rounded-xl font-semibold text-white text-sm min-h-[44px] flex items-center"
-          style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
+          style={{ backgroundColor: 'var(--color-accent)' }}
         >
           + Add Skill
         </Link>
@@ -107,16 +107,16 @@ export default function SkillsPage() {
             <div
               className="absolute inset-0 rounded-t-full rounded-b-[50%]"
               style={{
-                backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
-                border: '3px solid var(--color-accent, #6366f1)',
+                backgroundColor: 'var(--color-bg-elevated)',
+                border: '3px solid var(--color-accent)',
               }}
             />
             <div
               className="absolute top-1/3 left-1/2 -translate-x-1/2 w-6 h-10"
               style={{
-                borderLeft: '2px solid var(--color-accent, #6366f1)',
-                borderRight: '2px solid var(--color-accent, #6366f1)',
-                borderBottom: '2px solid var(--color-accent, #6366f1)',
+                borderLeft: '2px solid var(--color-accent)',
+                borderRight: '2px solid var(--color-accent)',
+                borderBottom: '2px solid var(--color-accent)',
               }}
             />
           </div>
@@ -125,18 +125,18 @@ export default function SkillsPage() {
             className="text-xl font-bold"
             style={{
               fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-              color: 'var(--color-text-primary, #f9fafb)',
+              color: 'var(--color-text)',
             }}
           >
             No skills yet
           </h2>
-          <p style={{ color: 'var(--color-text-secondary, #9ca3af)' }}>
+          <p style={{ color: 'var(--color-text-secondary)' }}>
             Start tracking your real-world skills like an RPG character.
           </p>
           <Link
             href="/skills/new"
             className="inline-block px-6 py-3 rounded-xl font-semibold text-white min-h-[48px]"
-            style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
+            style={{ backgroundColor: 'var(--color-accent)' }}
           >
             Create your first skill
           </Link>
@@ -152,20 +152,21 @@ export default function SkillsPage() {
                   key={opt.value}
                   onClick={() => setSortBy(opt.value)}
                   aria-pressed={sortBy === opt.value}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[36px] ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     sortBy === opt.value
                       ? 'text-white'
                       : ''
                   }`}
                   style={{
+                    minHeight: 'var(--tap-target-min, 44px)',
                     backgroundColor:
                       sortBy === opt.value
-                        ? 'var(--color-accent, #6366f1)'
-                        : 'var(--color-bg-surface, #1f2937)',
+                        ? 'var(--color-accent)'
+                        : 'var(--color-surface)',
                     color:
                       sortBy === opt.value
                         ? 'white'
-                        : 'var(--color-text-secondary, #9ca3af)',
+                        : 'var(--color-text-secondary)',
                   }}
                 >
                   {opt.label}
@@ -178,10 +179,11 @@ export default function SkillsPage() {
               value={tierFilter}
               onChange={(e) => setTierFilter(e.target.value)}
               aria-label="Filter by tier"
-              className="text-xs rounded-lg px-2 py-1.5 min-h-[36px] border-none"
+              className="text-xs rounded-lg px-2 py-1.5 border-none"
               style={{
-                backgroundColor: 'var(--color-bg-surface, #1f2937)',
-                color: 'var(--color-text-secondary, #9ca3af)',
+                minHeight: 'var(--tap-target-min, 44px)',
+                backgroundColor: 'var(--color-surface)',
+                color: 'var(--color-text-secondary)',
               }}
             >
               {TIER_NAMES.map((tier) => (
@@ -196,7 +198,7 @@ export default function SkillsPage() {
           {filteredAndSorted.length === 0 ? (
             <p
               className="text-center py-8 text-sm"
-              style={{ color: 'var(--color-text-muted, #6b7280)' }}
+              style={{ color: 'var(--color-muted)' }}
             >
               No skills match this filter.
             </p>
@@ -220,7 +222,7 @@ export default function SkillsPage() {
         href="/skills/new"
         aria-label="Add new skill"
         className="fixed bottom-20 right-4 w-14 h-14 rounded-full text-white text-2xl flex items-center justify-center shadow-lg md:hidden"
-        style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
+        style={{ backgroundColor: 'var(--color-accent)' }}
       >
         +
       </Link>

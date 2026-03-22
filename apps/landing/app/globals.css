@@ -10,14 +10,6 @@
   --gold-border-hover: rgba(212, 168, 83, 0.6);
   --gold-glow:     rgba(212, 168, 83, 0.15);
 
-  --bg:            #0a0a0f;
-  --bg-surface:    #12121c;
-  --bg-elevated:   #1a1a2e;
-
-  --text-primary:  #f0e6d3;
-  --text-secondary:#a89880;
-  --text-muted:    #6b5e4e;
-
   --emerald:       #059669;
   --emerald-faint: rgba(5, 150, 105, 0.08);
   --emerald-border:rgba(5, 150, 105, 0.25);
@@ -32,13 +24,13 @@
 
 html {
   scroll-behavior: smooth;
-  background: var(--bg);
+  background: var(--color-bg);
 }
 
 body {
-  background: var(--bg);
-  color: var(--text-primary);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body, var(--font-inter), system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -48,9 +40,6 @@ body {
   background: rgba(212, 168, 83, 0.3);
   color: var(--gold-light);
 }
-
-/* ─── Typography ─────────────────────────────────────── */
-.font-display { font-family: var(--font-cinzel), 'Georgia', serif; }
 
 /* ─── Layout ─────────────────────────────────────────── */
 .container-landing {
@@ -69,7 +58,7 @@ body {
   height: 1px;
   overflow: hidden;
   z-index: 9999;
-  background: var(--bg-elevated);
+  background: var(--color-bg-elevated);
   color: var(--gold);
   padding: 0.75rem 1.5rem;
   text-decoration: none;
@@ -202,7 +191,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--color-muted);
   background: transparent;
   border: 1px solid rgba(107, 94, 78, 0.3);
   border-radius: 2px;
@@ -258,7 +247,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   text-decoration: none;
   transition: color 0.2s ease;
 }
@@ -268,7 +257,7 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   padding: 0.25rem;
 }
 @media (max-width: 768px) {
@@ -363,7 +352,7 @@ body {
 }
 
 .hero-heading {
-  font-family: var(--font-cinzel), serif;
+  font-family: var(--font-display, var(--font-cinzel), serif);
   font-weight: 900;
   line-height: 0.9;
   letter-spacing: -0.01em;
@@ -372,7 +361,7 @@ body {
 .hero-heading-line1 {
   display: block;
   font-size: clamp(3.5rem, 10vw, 8rem);
-  color: var(--text-primary);
+  color: var(--color-text);
   opacity: 0.9;
 }
 .hero-heading-gold {
@@ -388,7 +377,8 @@ body {
 
 .hero-sub {
   font-size: clamp(1rem, 2.5vw, 1.2rem);
-  color: var(--text-secondary);
+  font-family: var(--font-body, var(--font-inter), system-ui, sans-serif);
+  color: var(--color-text-secondary);
   max-width: 520px;
   line-height: 1.75;
   margin-bottom: 2.5rem;
@@ -410,7 +400,7 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text-muted);
+  color: var(--color-muted);
   font-size: 0.65rem;
   letter-spacing: 0.2em;
   font-family: var(--font-cinzel), serif;
@@ -419,8 +409,8 @@ body {
 }
 .scroll-chevron {
   width: 20px; height: 20px;
-  border-right: 1px solid var(--text-muted);
-  border-bottom: 1px solid var(--text-muted);
+  border-right: 1px solid var(--color-muted);
+  border-bottom: 1px solid var(--color-muted);
   transform: rotate(45deg);
   animation: bounce 2s ease-in-out infinite;
 }
@@ -434,13 +424,13 @@ body {
   font-family: var(--font-cinzel), serif;
   font-size: clamp(1.8rem, 4vw, 2.8rem);
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--color-text);
   margin-bottom: 0.75rem;
   line-height: 1.15;
 }
 .section-sub {
   font-size: 1.05rem;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   max-width: 560px;
   line-height: 1.7;
   margin-bottom: 3.5rem;
@@ -553,7 +543,7 @@ body {
   font-family: var(--font-cinzel), serif;
   font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--color-text);
   letter-spacing: 0.03em;
 }
 .badge-live {
@@ -576,13 +566,13 @@ body {
   text-transform: uppercase;
   padding: 0.3rem 0.65rem;
   border-radius: 2px;
-  color: var(--text-muted);
+  color: var(--color-muted);
   background: rgba(107, 94, 78, 0.1);
   border: 1px solid rgba(107, 94, 78, 0.2);
 }
 .app-tagline {
   font-size: 0.95rem;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   line-height: 1.65;
 }
 .app-features {
@@ -597,7 +587,7 @@ body {
   align-items: flex-start;
   gap: 0.6rem;
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   line-height: 1.5;
 }
 .app-feature-dot-gold {
@@ -641,7 +631,7 @@ body {
 }
 .app-stat-label {
   font-size: 0.65rem;
-  color: var(--text-muted);
+  color: var(--color-muted);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
@@ -657,7 +647,7 @@ body {
 }
 
 .feature-card {
-  background: var(--bg-surface);
+  background: var(--color-surface);
   border: 1px solid var(--gold-border);
   border-radius: 4px;
   padding: 2rem;
@@ -689,11 +679,11 @@ body {
   font-family: var(--font-cinzel), serif;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--color-text);
 }
 .feature-desc {
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   line-height: 1.7;
 }
 
@@ -754,7 +744,7 @@ body {
 .how-number {
   width: 56px; height: 56px;
   border-radius: 50%;
-  background: var(--bg-elevated);
+  background: var(--color-bg-elevated);
   border: 1px solid var(--gold-border);
   display: flex;
   align-items: center;
@@ -771,12 +761,12 @@ body {
   font-family: var(--font-cinzel), serif;
   font-size: 1rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: var(--color-text);
   margin-bottom: 0.75rem;
 }
 .how-desc {
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   line-height: 1.7;
 }
 
@@ -793,7 +783,7 @@ body {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg) 100%);
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-bg) 100%);
   z-index: 0;
 }
 .cta-inner {
@@ -805,13 +795,13 @@ body {
   font-family: var(--font-cinzel), serif;
   font-size: clamp(2rem, 5vw, 3.5rem);
   font-weight: 900;
-  color: var(--text-primary);
+  color: var(--color-text);
   margin-bottom: 1rem;
   line-height: 1.1;
 }
 .cta-sub {
   font-size: 1.05rem;
-  color: var(--text-secondary);
+  color: var(--color-text-secondary);
   margin-bottom: 2.5rem;
   max-width: 440px;
   margin-left: auto;
@@ -849,14 +839,14 @@ body {
 }
 .footer-links a {
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: var(--color-muted);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 .footer-links a:hover { color: var(--gold); }
 .footer-copy {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: var(--color-muted);
 }
 
 /* ─── Animations ─────────────────────────────────────── */

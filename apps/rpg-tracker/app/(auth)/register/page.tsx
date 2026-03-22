@@ -32,8 +32,8 @@ export default function RegisterPage() {
 
   return (
     <main
-      className="min-h-screen flex items-center justify-center px-4"
-      style={{ backgroundColor: 'var(--color-bg-base, #0f0f1a)' }}
+      className="auth-page min-h-screen flex items-center justify-center px-4"
+      style={{ backgroundColor: 'var(--color-bg)' }}
     >
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
@@ -41,21 +41,21 @@ export default function RegisterPage() {
             className="text-3xl font-bold tracking-tight"
             style={{
               fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-              color: 'var(--color-text-primary, #f9fafb)',
+              color: 'var(--color-text)',
             }}
           >
             RPG Tracker
           </h1>
-          <p className="mt-2 text-sm" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+          <p className="mt-2 text-sm" style={{ color: 'var(--color-muted)' }}>
             Start tracking your real-life skills
           </p>
         </div>
 
         <div
-          className="rounded-2xl p-8 shadow-sm"
+          className="auth-page__card rounded-2xl p-8 shadow-sm"
           style={{
-            backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
-            border: '1px solid var(--color-border, #374151)',
+            backgroundColor: 'var(--color-bg-elevated)',
+            border: '1px solid var(--color-border)',
           }}
         >
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -63,7 +63,7 @@ export default function RegisterPage() {
               <label
                 htmlFor="email"
                 className="block text-sm font-medium"
-                style={{ color: 'var(--color-text-secondary, #9ca3af)' }}
+                style={{ color: 'var(--color-text-secondary)' }}
               >
                 Email
               </label>
@@ -77,9 +77,9 @@ export default function RegisterPage() {
                 placeholder="you@example.com"
                 className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition-shadow"
                 style={{
-                  backgroundColor: 'var(--color-bg-surface, #1f2937)',
-                  border: '1px solid var(--color-border, #374151)',
-                  color: 'var(--color-text-primary, #f9fafb)',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text)',
                   boxShadow: 'none',
                 }}
               />
@@ -89,7 +89,7 @@ export default function RegisterPage() {
               <label
                 htmlFor="password"
                 className="block text-sm font-medium"
-                style={{ color: 'var(--color-text-secondary, #9ca3af)' }}
+                style={{ color: 'var(--color-text-secondary)' }}
               >
                 Password
               </label>
@@ -103,16 +103,16 @@ export default function RegisterPage() {
                 placeholder="••••••••"
                 className="w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition-shadow"
                 style={{
-                  backgroundColor: 'var(--color-bg-surface, #1f2937)',
-                  border: '1px solid var(--color-border, #374151)',
-                  color: 'var(--color-text-primary, #f9fafb)',
+                  backgroundColor: 'var(--color-surface)',
+                  border: '1px solid var(--color-border)',
+                  color: 'var(--color-text)',
                   boxShadow: 'none',
                 }}
               />
             </div>
 
             {error && (
-              <p role="alert" className="text-sm rounded-lg px-3 py-2" style={{ color: 'var(--color-danger, #ef4444)', backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>
+              <p role="alert" className="text-sm rounded-lg px-3 py-2" style={{ color: 'var(--color-error)', backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>
                 {error}
               </p>
             )}
@@ -121,16 +121,16 @@ export default function RegisterPage() {
               type="submit"
               disabled={loading}
               className="w-full py-3 rounded-xl font-semibold text-white hover:opacity-90 disabled:opacity-50 transition-opacity min-h-[48px]"
-              style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
+              style={{ backgroundColor: 'var(--color-accent)' }}
             >
               {loading ? 'Creating account…' : 'Create account'}
             </button>
           </form>
         </div>
 
-        <p className="mt-6 text-center text-sm" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+        <p className="mt-6 text-center text-sm" style={{ color: 'var(--color-muted)' }}>
           Already have an account?{' '}
-          <Link href="/login" className="font-medium hover:underline" style={{ color: 'var(--color-accent, #6366f1)' }}>
+          <Link href="/login" className="font-medium hover:underline" style={{ color: 'var(--color-accent)' }}>
             Sign in
           </Link>
         </p>

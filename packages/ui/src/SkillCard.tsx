@@ -23,10 +23,10 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
       role="button"
       tabIndex={0}
       aria-label={skill.name}
-      className="skill-card relative rounded-xl p-4 shadow-sm border cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg min-h-[44px]"
+      className="skill-card card relative rounded-xl p-4 shadow-sm border cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg min-h-[44px]"
       style={{
-        backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
-        borderColor: 'var(--color-border, rgba(75, 85, 99, 0.5))',
+        backgroundColor: 'var(--color-bg-elevated)',
+        borderColor: 'var(--color-border)',
         transition: 'transform calc(var(--duration-fast, 150ms) * var(--motion-scale, 0)), box-shadow calc(var(--duration-fast, 150ms) * var(--motion-scale, 0))',
       }}
       onClick={() => onClick(skill.id)}
@@ -40,13 +40,13 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
           <div className="flex items-center gap-2 flex-wrap">
             <h3
               className="font-semibold truncate"
-              style={{ color: 'var(--color-text-primary, #f9fafb)' }}
+              style={{ color: 'var(--color-text)' }}
             >
               {skill.name}
             </h3>
             <TierBadge tierName={skill.tier_name} tierNumber={skill.tier_number} />
           </div>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+          <p className="text-sm mt-0.5" style={{ color: 'var(--color-muted)' }}>
             Level {skill.effective_level}
           </p>
         </div>
@@ -65,7 +65,7 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
             </span>
           )}
           {gate && (
-            <span role="img" aria-label="gate locked" className="text-lg" style={{ color: 'var(--color-accent, #6366f1)' }}>&#x1F512;</span>
+            <span role="img" aria-label="gate locked" className="text-lg" style={{ color: 'var(--color-accent)' }}>&#x1F512;</span>
           )}
         </div>
       </div>
@@ -77,7 +77,7 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
           xpToNextLevel={skill.xp_to_next_level}
           className="mb-1"
         />
-        <p className="text-xs" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+        <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
           {skill.xp_for_current_level.toLocaleString()} / {(skill.xp_for_current_level + skill.xp_to_next_level).toLocaleString()} XP to next level
         </p>
       </div>
@@ -88,8 +88,8 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
           onClick={(e) => { e.stopPropagation(); onLogXP(skill.id) }}
           className="flex items-center gap-1 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors min-h-[44px]"
           style={{
-            backgroundColor: 'var(--color-bg-surface, #1f2937)',
-            color: 'var(--color-text-secondary, #9ca3af)',
+            backgroundColor: 'var(--color-surface)',
+            color: 'var(--color-text-secondary)',
           }}
         >
           + Log
@@ -100,7 +100,7 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
       <style>{`
         .skill-card:hover {
           transform: scale(calc(1 + 0.02 * var(--motion-scale, 0)));
-          box-shadow: 0 0 calc(12px * var(--motion-scale, 0)) var(--color-border, rgba(75, 85, 99, 0.5));
+          box-shadow: 0 0 calc(12px * var(--motion-scale, 0)) var(--color-border);
         }
         .skill-card:active {
           transform: scale(calc(1 - 0.02 * var(--motion-scale, 0)));

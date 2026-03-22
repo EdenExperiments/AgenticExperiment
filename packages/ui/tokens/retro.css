@@ -13,6 +13,16 @@
   --color-success: #27ae60;
   --color-secondary: #6b21a8;
 
+  /* Extended tokens */
+  --color-bg-elevated: #22213a;
+  --color-text-secondary: #b0a898;
+  --color-accent-muted: rgba(212, 168, 83, 0.10);
+  --color-warning: #e5a817;
+  --color-break: #3b82f6;
+  --color-border-strong: #d4a853;
+  --color-text-inverse: #0a0a12;
+  --color-info: #60a5fa;
+
   /* XP bar — gold gradient */
   --color-xp-fill: linear-gradient(90deg, #b8860b, #d4a853, #f0c060);
   --color-xp-bg: rgba(212, 168, 83, 0.1);

@@ -24,7 +24,7 @@ export default function AccountPage() {
         className="text-2xl font-bold"
         style={{
           fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-          color: 'var(--color-text-primary, #f9fafb)',
+          color: 'var(--color-text)',
         }}
       >
         Account
@@ -34,23 +34,23 @@ export default function AccountPage() {
         <section
           className="rounded-xl p-5 space-y-3"
           style={{
-            backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
-            border: '1px solid var(--color-border, #374151)',
+            backgroundColor: 'var(--color-bg-elevated)',
+            border: '1px solid var(--color-border)',
           }}
         >
           <div>
-            <label className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+            <label className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>
               Display name
             </label>
-            <p className="font-medium" style={{ color: 'var(--color-text-primary, #f9fafb)' }}>
+            <p className="font-medium" style={{ color: 'var(--color-text)' }}>
               {account?.display_name ?? '—'}
             </p>
           </div>
           <div>
-            <label className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+            <label className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>
               Email
             </label>
-            <p className="font-medium" style={{ color: 'var(--color-text-primary, #f9fafb)' }}>
+            <p className="font-medium" style={{ color: 'var(--color-text)' }}>
               {account?.email ?? '—'}
             </p>
           </div>
@@ -59,26 +59,26 @@ export default function AccountPage() {
         <section
           className="rounded-xl p-5 space-y-3"
           style={{
-            backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
-            border: '1px solid var(--color-border, #374151)',
+            backgroundColor: 'var(--color-bg-elevated)',
+            border: '1px solid var(--color-border)',
           }}
         >
           <h2
             className="font-semibold"
             style={{
               fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-              color: 'var(--color-text-primary, #f9fafb)',
+              color: 'var(--color-text)',
             }}
           >
             Claude API Key
           </h2>
-          <p className="text-sm" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+          <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
             {keyStatus?.has_key ? `Key saved (ending in ****${keyStatus.key_hint ?? ''})` : 'No key saved'}
           </p>
           <Link
             href="/account/api-key"
             className="inline-block text-sm font-medium hover:underline"
-            style={{ color: 'var(--color-accent, #6366f1)' }}
+            style={{ color: 'var(--color-accent)' }}
           >
             {keyStatus?.has_key ? 'Update or remove key' : 'Add API key'}
           </Link>
@@ -87,15 +87,15 @@ export default function AccountPage() {
         <section
           className="rounded-xl p-5 space-y-3"
           style={{
-            backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
-            border: '1px solid var(--color-border, #374151)',
+            backgroundColor: 'var(--color-bg-elevated)',
+            border: '1px solid var(--color-border)',
           }}
         >
           <h2
             className="font-semibold"
             style={{
               fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-              color: 'var(--color-text-primary, #f9fafb)',
+              color: 'var(--color-text)',
             }}
           >
             Security
@@ -103,14 +103,18 @@ export default function AccountPage() {
           <Link
             href="/account/password"
             className="text-sm hover:underline block"
-            style={{ color: 'var(--color-accent, #6366f1)' }}
+            style={{ color: 'var(--color-accent)' }}
           >
             Change Password
           </Link>
           <button
             onClick={handleSignOut}
-            className="text-sm font-medium"
-            style={{ color: 'var(--color-danger, #ef4444)' }}
+            className="text-sm font-medium rounded-lg px-3 py-2 border"
+            style={{
+              color: 'var(--color-error)',
+              borderColor: 'var(--color-error)',
+              minHeight: 'var(--tap-target-min, 44px)',
+            }}
           >
             Sign Out
           </button>

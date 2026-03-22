@@ -4,9 +4,9 @@ import { useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { getSkill, logXP, deleteSkill, getActivity, getXPChart, createSession } from '@rpgtracker/api-client'
+import { getSkill, logXP, deleteSkill, getActivity, getXPChart, createSession, updateSkill } from '@rpgtracker/api-client'
 import type { BlockerGate, ActivityEvent } from '@rpgtracker/api-client'
-import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal, GrindOverlay, PostSessionScreen, XPBarChart, ConfirmModal } from '@rpgtracker/ui'
+import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal, GrindOverlay, PostSessionScreen, XPBarChart, ConfirmModal, SkillEditModal } from '@rpgtracker/ui'
 import { XPGainAnimation } from '@/components/XPGainAnimation'
 
 const PLANNED_SESSION_SECONDS = 25 * 60
@@ -81,6 +81,7 @@ export default function SkillDetailPage() {
   })
 
   const [logSheetOpen, setLogSheetOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
   const [tierTransition, setTierTransition] = useState<{ tierName: string; tierNumber: number } | null>(null)
   const [gateFirstHit, setGateFirstHit] = useState<BlockerGate | null>(null)
   const [xpGain, setXpGain] = useState<{ amount: number; key: number }>({ amount: 0, key: 0 })
@@ -155,9 +156,14 @@ export default function SkillDetailPage() {
           <Link href="/skills" className="link-muted text-sm flex items-center gap-1">
             &larr; Skills
           </Link>
-          <Link href={`/skills/${id}/edit`} className="link-muted text-sm">
-            Edit
-          </Link>
+          {skill.is_custom && (
+            <button
+              onClick={() => setEditModalOpen(true)}
+              className="link-muted text-sm"
+            >
+              Edit
+            </button>
+          )}
         </div>
 
         {/* Skill identity — name, level in gold gradient, tier badge, streak */}
@@ -195,6 +201,7 @@ export default function SkillDetailPage() {
 
         {/* Gate / XP progress — protected components */}
         {activeGate ? (
+          <div className="gate-section">
           <BlockerGateSection
             gateLevel={activeGate.gate_level}
             title={activeGate.title}
@@ -205,6 +212,7 @@ export default function SkillDetailPage() {
             isCleared={activeGate.is_cleared}
             activeGateSubmission={skill.active_gate_submission ?? null}
           />
+          </div>
         ) : (
           <div className="card p-5 space-y-2">
             <XPProgressBar
@@ -287,22 +295,28 @@ export default function SkillDetailPage() {
             <h2 className="heading section-label mb-3">
               XP History
             </h2>
+            <div className="activity-history">
             {dateGroups.length === 0 ? (
-              <p className="text-muted text-sm py-8 text-center">
-                No activity yet. Log some XP to start building your history.
+              <p
+                className="activity-history__empty text-muted text-sm py-8 text-center"
+                data-empty-minimal="No activity yet. Log some XP to get started."
+                data-empty-retro="Your chronicle awaits... Begin your journey."
+                data-empty-modern="No data recorded. Initiate a session to begin logging."
+              >
+                No activity yet. Log some XP to get started.
               </p>
             ) : (
               <div className="space-y-5">
                 {dateGroups.map((group) => (
                   <div key={group.label}>
-                    <h3 className="label-date text-xs mb-2">
+                    <h3 className="activity-history__date-header label-date text-xs mb-2">
                       {group.label}
                     </h3>
                     <div className="space-y-1">
                       {group.items.map((log) => (
                         <div
                           key={log.id}
-                          className="history-row flex justify-between text-sm py-2.5 px-3"
+                          className="activity-history__entry history-row flex justify-between text-sm py-2.5 px-3"
                         >
                           <span className="text-body">
                             {log.log_note || 'Session'}
@@ -317,6 +331,7 @@ export default function SkillDetailPage() {
                 ))}
               </div>
             )}
+            </div>
           </section>
         </div>
       </div>
@@ -333,6 +348,21 @@ export default function SkillDetailPage() {
       </div>
 
       {/* ── Modals & overlays ─────────────────────────────── */}
+      {editModalOpen && skill && (
+        <SkillEditModal
+          skillId={skill.id}
+          skillName={skill.name}
+          skillDescription={skill.description ?? ''}
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          onUpdate={async (name, description) => {
+            await updateSkill(id, { name, description })
+            qc.invalidateQueries({ queryKey: ['skill', id] })
+            qc.invalidateQueries({ queryKey: ['skills'] })
+          }}
+        />
+      )}
+
       {logSheetOpen && (
         <QuickLogSheet
           skillName={skill.name}

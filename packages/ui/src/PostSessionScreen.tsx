@@ -36,7 +36,7 @@ export function PostSessionScreen({
   return (
     <div
       className="flex flex-col min-h-screen"
-      style={{ background: 'var(--color-bg)', color: 'var(--color-text-primary)' }}
+      style={{ background: 'var(--color-bg)', color: 'var(--color-text)' }}
     >
       <div className="flex-1 p-6 space-y-6 overflow-y-auto">
         {/* Header */}
@@ -61,7 +61,7 @@ export function PostSessionScreen({
             +{earnedXP} XP
           </p>
           {bonusPercentage > 0 && (
-            <p className="text-sm mt-1" style={{ color: 'var(--color-text-muted)' }}>
+            <p className="text-sm mt-1" style={{ color: 'var(--color-muted)' }}>
               includes +{bonusPercentage}% session bonus
             </p>
           )}
@@ -89,7 +89,7 @@ export function PostSessionScreen({
               className="w-full rounded-xl p-3 text-sm resize-none"
               style={{
                 background: 'var(--color-bg-elevated)',
-                color: 'var(--color-text-primary)',
+                color: 'var(--color-text)',
                 border: '1px solid var(--color-border)',
               }}
               rows={3}
@@ -112,7 +112,7 @@ export function PostSessionScreen({
               className="w-full rounded-xl p-3 text-sm resize-none"
               style={{
                 background: 'var(--color-bg-elevated)',
-                color: 'var(--color-text-primary)',
+                color: 'var(--color-text)',
                 border: '1px solid var(--color-border)',
               }}
               rows={3}
@@ -135,7 +135,7 @@ export function PostSessionScreen({
               className="w-full rounded-xl p-3 text-sm resize-none"
               style={{
                 background: 'var(--color-bg-elevated)',
-                color: 'var(--color-text-primary)',
+                color: 'var(--color-text)',
                 border: '1px solid var(--color-border)',
               }}
               rows={2}
@@ -163,7 +163,7 @@ export function PostSessionScreen({
           data-testid="dismiss-log-later"
           onClick={onDismiss}
           className="w-full py-2 text-sm"
-          style={{ color: 'var(--color-text-muted)' }}
+          style={{ color: 'var(--color-muted)' }}
         >
           Dismiss / Log Later
         </button>
