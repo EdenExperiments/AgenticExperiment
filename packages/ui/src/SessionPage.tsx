@@ -248,6 +248,7 @@ export function SessionPage({
       elapsedWorkSeconds={pomodoro.elapsedWorkSeconds}
       isPaused={pomodoro.state === 'paused'}
       totalWorkSec={sessionConfig?.workSec ?? 1500}
+      totalBreakSec={sessionConfig?.breakSec ?? 300}
       onEndEarly={handleEndEarly}
       onPause={pomodoro.pause}
       onResume={pomodoro.resume}

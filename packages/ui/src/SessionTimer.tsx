@@ -16,6 +16,7 @@ interface SessionTimerProps {
   elapsedWorkSeconds: number
   isPaused: boolean
   totalWorkSec: number
+  totalBreakSec: number
   onEndEarly: () => void
   onPause: () => void
   onResume: () => void
@@ -60,7 +61,7 @@ export function SessionTimer(props: SessionTimerProps) {
   }
 
   if (theme === 'modern') {
-    return <SessionTimerModern {...commonProps} totalWorkSec={props.totalWorkSec} />
+    return <SessionTimerModern {...commonProps} totalWorkSec={props.totalWorkSec} totalBreakSec={props.totalBreakSec} />
   }
 
   return <SessionTimerMinimal {...commonProps} />

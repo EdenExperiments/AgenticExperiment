@@ -9,6 +9,7 @@ interface SessionTimerModernProps {
   elapsedWorkSeconds: number
   isPaused: boolean
   totalWorkSec: number
+  totalBreakSec: number
   onEndEarly: () => void
   onPause: () => void
   onResume: () => void
@@ -33,7 +34,7 @@ export function SessionTimerModern({
   // SVG progress ring
   const radius = 90
   const circumference = 2 * Math.PI * radius
-  const phaseDuration = isBreak ? 300 : totalWorkSec
+  const phaseDuration = isBreak ? totalBreakSec : totalWorkSec
   const progress = phaseDuration > 0 ? 1 - remainingSeconds / phaseDuration : 0
   const strokeDashoffset = circumference * (1 - progress)
 
