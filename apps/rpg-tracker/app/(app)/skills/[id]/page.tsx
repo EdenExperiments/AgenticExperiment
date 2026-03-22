@@ -239,7 +239,7 @@ export default function SkillDetailPage() {
           <Link
             data-testid="start-session-btn"
             data-variant="primary"
-            href={`/skills/${params.id}/session?from=skill`}
+            href={`/skills/${id}/session?from=skill`}
             className="btn btn-primary flex-1 py-4 text-center"
           >
             Start Session
