@@ -113,7 +113,7 @@ export default function SkillCreatePage() {
   })
 
   return (
-    <div className="max-w-lg mx-auto p-4 md:p-8 min-h-screen">
+    <div className="max-w-xl mx-auto p-4 md:p-8 min-h-screen">
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-8">
         {([1, 2, 3] as Step[]).map((s) => (

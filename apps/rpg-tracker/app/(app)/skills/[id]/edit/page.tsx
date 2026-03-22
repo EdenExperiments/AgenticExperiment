@@ -34,7 +34,7 @@ export default function SkillEditPage() {
   if (!skill) return <div className="p-8 text-gray-400">Loading…</div>
 
   return (
-    <div className="max-w-lg mx-auto p-4 md:p-8 space-y-6">
+    <div className="max-w-xl mx-auto p-4 md:p-8 space-y-6">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Edit Skill</h1>
       <form onSubmit={(e) => { e.preventDefault(); mutation.mutate() }} className="space-y-4">
         <input type="text" value={name} onChange={(e) => setName(e.target.value)} required maxLength={60}
