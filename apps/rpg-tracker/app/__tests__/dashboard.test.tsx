@@ -145,14 +145,14 @@ test('renders 4 stat cards with correct values (AC-4, AC-5)', async () => {
   expect(statValues[0]).toHaveTextContent('2')
 })
 
-test('shows featured skill section with most recent skill (AC-6)', async () => {
+test('shows skills section with all skills listed (AC-6)', async () => {
   render(<DashboardPage />, { wrapper })
   await waitFor(() => {
-    expect(screen.getByText('Continue where you left off')).toBeInTheDocument()
+    expect(screen.getByText('Your Skills')).toBeInTheDocument()
   })
-  // Guitar is the first/most recently updated skill — appears in both SkillCard and activity feed
-  const guitarElements = screen.getAllByText('Guitar')
-  expect(guitarElements.length).toBeGreaterThanOrEqual(1)
+  // Both skills should appear in the grid (may also appear in activity feed)
+  expect(screen.getAllByText('Guitar').length).toBeGreaterThanOrEqual(1)
+  expect(screen.getAllByText('Running').length).toBeGreaterThanOrEqual(1)
 })
 
 test('renders activity feed items (AC-7)', async () => {

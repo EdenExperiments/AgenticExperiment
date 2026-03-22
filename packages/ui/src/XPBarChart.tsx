@@ -15,7 +15,7 @@ export function XPBarChart({ data, tierColor }: XPBarChartProps) {
         className="flex items-center justify-center"
         style={{ minHeight: '192px' }}
       >
-        <p style={{ color: 'var(--color-text-muted, #6b5e4e)' }}>
+        <p className="text-sm" style={{ color: 'var(--color-text-muted, #6b5e4e)' }}>
           Start logging to see your progress here
         </p>
       </div>
@@ -33,8 +33,18 @@ export function XPBarChart({ data, tierColor }: XPBarChartProps) {
 
   return (
     <div data-testid="xp-bar-chart" style={{ minHeight: '192px' }}>
+      {/* Max XP reference label */}
+      <div className="flex justify-end mb-1">
+        <span
+          className="text-[10px] tabular-nums"
+          style={{ color: 'var(--color-text-muted, #6b5e4e)' }}
+        >
+          {maxXP.toLocaleString()} XP
+        </span>
+      </div>
+
       {/* Bars row */}
-      <div className="flex items-end gap-1" style={{ height: '160px' }}>
+      <div className="flex items-end gap-[3px]" style={{ height: '148px' }}>
         {data.map((entry) => {
           const height = (entry.xp_total / maxXP) * 100
           const label = formatBarLabel(entry.date, entry.xp_total)
@@ -42,11 +52,12 @@ export function XPBarChart({ data, tierColor }: XPBarChartProps) {
             <div
               key={entry.date}
               data-testid="xp-bar"
-              className="flex-1 rounded-t"
+              className="flex-1 rounded-t transition-opacity hover:opacity-80"
               style={{
                 height: `${height}%`,
                 backgroundColor: tierColor,
                 minHeight: entry.xp_total > 0 ? '4px' : '0px',
+                boxShadow: entry.xp_total > 0 ? `0 0 4px ${tierColor}30` : 'none',
               }}
               title={label}
               aria-label={label}
@@ -54,8 +65,9 @@ export function XPBarChart({ data, tierColor }: XPBarChartProps) {
           )
         })}
       </div>
+
       {/* X-axis labels row */}
-      <div className="flex gap-1 mt-1">
+      <div className="flex gap-[3px] mt-2">
         {data.map((entry, i) => (
           <div
             key={entry.date}

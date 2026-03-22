@@ -1,15 +1,15 @@
-const TIER_TEXT: Record<number, string> = {
-  1:  'text-gray-600 bg-gray-100 font-medium',
-  2:  'text-blue-700 bg-blue-50 font-medium',
-  3:  'text-teal-700 bg-teal-50 font-medium',
-  4:  'text-green-700 bg-green-50 font-medium',
-  5:  'text-lime-700 bg-lime-50 font-medium',
-  6:  'text-purple-700 bg-purple-50 font-medium',
-  7:  'text-fuchsia-700 bg-fuchsia-50 font-medium',
-  8:  'text-amber-700 bg-amber-50 font-medium',
-  9:  'text-orange-700 bg-orange-50 font-medium',
-  10: 'text-red-700 bg-red-50 font-medium',
-  11: 'text-yellow-700 bg-yellow-100 font-bold',
+const TIER_STYLES: Record<number, { bg: string; text: string; border: string }> = {
+  1:  { bg: 'rgba(156,163,175,0.15)', text: '#d1d5db', border: 'rgba(156,163,175,0.3)' },
+  2:  { bg: 'rgba(59,130,246,0.15)',  text: '#93c5fd', border: 'rgba(59,130,246,0.3)' },
+  3:  { bg: 'rgba(20,184,166,0.15)',  text: '#5eead4', border: 'rgba(20,184,166,0.3)' },
+  4:  { bg: 'rgba(34,197,94,0.15)',   text: '#86efac', border: 'rgba(34,197,94,0.3)' },
+  5:  { bg: 'rgba(132,204,22,0.15)',  text: '#bef264', border: 'rgba(132,204,22,0.3)' },
+  6:  { bg: 'rgba(147,51,234,0.15)',  text: '#c4b5fd', border: 'rgba(147,51,234,0.3)' },
+  7:  { bg: 'rgba(192,38,211,0.15)',  text: '#f0abfc', border: 'rgba(192,38,211,0.3)' },
+  8:  { bg: 'rgba(217,119,6,0.15)',   text: '#fcd34d', border: 'rgba(217,119,6,0.3)' },
+  9:  { bg: 'rgba(234,88,12,0.15)',   text: '#fdba74', border: 'rgba(234,88,12,0.3)' },
+  10: { bg: 'rgba(220,38,38,0.15)',   text: '#fca5a5', border: 'rgba(220,38,38,0.3)' },
+  11: { bg: 'rgba(250,204,21,0.15)',  text: '#fde047', border: 'rgba(250,204,21,0.4)' },
 }
 
 interface TierBadgeProps {
@@ -19,9 +19,16 @@ interface TierBadgeProps {
 }
 
 export function TierBadge({ tierName, tierNumber, className = '' }: TierBadgeProps) {
-  const colorClass = TIER_TEXT[tierNumber] ?? 'text-gray-600 bg-gray-100 font-medium'
+  const style = TIER_STYLES[tierNumber] ?? TIER_STYLES[1]
   return (
-    <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs ${colorClass} ${className}`}>
+    <span
+      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${className}`}
+      style={{
+        backgroundColor: style.bg,
+        color: style.text,
+        border: `1px solid ${style.border}`,
+      }}
+    >
       {tierName}
     </span>
   )

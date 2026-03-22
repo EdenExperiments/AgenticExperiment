@@ -9,20 +9,28 @@ test('shows correct percentage', () => {
   expect(fill).toHaveStyle('width: 50%')
 })
 
-test('applies tier-1 color class for Novice', () => {
+test('applies tier color via inline style for Novice', () => {
   const { container } = render(
     <XPProgressBar tierNumber={1} xpForCurrentLevel={0} xpToNextLevel={100} />
   )
   const fill = container.querySelector('[data-testid="xp-bar-fill"]')
-  expect(fill).toHaveClass('bg-gray-400')
+  expect(fill).toHaveStyle({ backgroundColor: '#9ca3af' })
 })
 
-test('applies gradient for Legend tier 11', () => {
+test('applies tier color via inline style for Legend', () => {
   const { container } = render(
     <XPProgressBar tierNumber={11} xpForCurrentLevel={50} xpToNextLevel={100} />
   )
   const fill = container.querySelector('[data-testid="xp-bar-fill"]')
-  expect(fill).toHaveClass('bg-gradient-to-r')
+  expect(fill).toHaveStyle({ backgroundColor: '#facc15' })
+})
+
+test('uses CSS variable for track background', () => {
+  const { container } = render(
+    <XPProgressBar tierNumber={1} xpForCurrentLevel={50} xpToNextLevel={100} />
+  )
+  const track = container.querySelector('[role="progressbar"]')
+  expect(track).toHaveStyle({ backgroundColor: 'var(--color-xp-bg, rgba(212,168,83,0.1))' })
 })
 
 test('shows full bar at MaxLevel', () => {

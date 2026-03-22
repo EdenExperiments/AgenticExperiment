@@ -197,107 +197,97 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Featured Skill */}
-      <section>
-        <h2
-          className="text-lg font-semibold mb-3"
-          style={{
-            fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-            color: 'var(--color-text-primary, #f9fafb)',
-          }}
-        >
-          Continue where you left off
-        </h2>
-        <SkillCard
-          skill={featuredSkill}
-          onLogXP={(id) =>
-            setLogSheetSkill(skills.find((s) => s.id === id) ?? null)
-          }
-          onClick={(id) => router.push(`/skills/${id}`)}
-        />
-      </section>
-
-      {/* All Skills Grid */}
-      <section>
-        <h2
-          className="text-lg font-semibold mb-3"
-          style={{
-            fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-            color: 'var(--color-text-primary, #f9fafb)',
-          }}
-        >
-          Your Skills
-        </h2>
-        <div
-          data-testid="skills-grid"
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-        >
-          {skills.map((skill) => (
-            <SkillCard
-              key={skill.id}
-              skill={skill}
-              onLogXP={(id) =>
-                setLogSheetSkill(skills.find((s) => s.id === id) ?? null)
-              }
-              onClick={(id) => router.push(`/skills/${id}`)}
-            />
-          ))}
-        </div>
-      </section>
-
-      {/* Quick Action — Log XP */}
-      <div className="relative">
-        <button
-          onClick={() => setLogSheetSkill(featuredSkill)}
-          className="w-full py-4 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity"
-          style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
-        >
-          Log XP
-        </button>
-        <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-          <XPGainAnimation xpAmount={xpGain.amount} animationKey={xpGain.key} />
-        </div>
-      </div>
-
-      {/* Recent Activity Feed */}
-      <section data-testid="activity-feed">
-        <h2
-          className="text-lg font-semibold mb-3"
-          style={{
-            fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-            color: 'var(--color-text-primary, #f9fafb)',
-          }}
-        >
-          Recent Activity
-        </h2>
-        {activityLoading ? (
-          <div className="animate-pulse space-y-2">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-12 rounded-lg" style={{ backgroundColor: 'var(--color-bg-elevated)' }} />
-            ))}
-          </div>
-        ) : activity.length === 0 ? (
-          <p
-            className="text-sm py-4 text-center"
-            style={{ color: 'var(--color-text-muted, #6b7280)' }}
+      {/* Two-column layout: skills left, activity right */}
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
+        {/* Left column — Skills */}
+        <div className="space-y-4">
+          <h2
+            className="text-lg font-semibold"
+            style={{
+              fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+              color: 'var(--color-text-primary, #f9fafb)',
+            }}
           >
-            No activity yet. Log some XP to see your progress here.
-          </p>
-        ) : (
-          <div className="space-y-1">
-            {activity.map((event) => (
-              <ActivityFeedItem
-                key={event.id}
-                skillName={event.skill_name}
-                xpDelta={event.xp_delta}
-                logNote={event.log_note || undefined}
-                createdAt={event.created_at}
-                onClick={() => router.push(`/skills/${event.skill_id}`)}
+            Your Skills
+          </h2>
+          <div
+            data-testid="skills-grid"
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
+            {skills.map((skill) => (
+              <SkillCard
+                key={skill.id}
+                skill={skill}
+                onLogXP={(id) =>
+                  setLogSheetSkill(skills.find((s) => s.id === id) ?? null)
+                }
+                onClick={(id) => router.push(`/skills/${id}`)}
               />
             ))}
           </div>
-        )}
-      </section>
+
+          {/* Quick Action — Log XP */}
+          <div className="relative max-w-md">
+            <button
+              onClick={() => setLogSheetSkill(featuredSkill)}
+              className="w-full py-3 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
+            >
+              Log XP
+            </button>
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2">
+              <XPGainAnimation xpAmount={xpGain.amount} animationKey={xpGain.key} />
+            </div>
+          </div>
+        </div>
+
+        {/* Right column — Activity Feed */}
+        <section
+          data-testid="activity-feed"
+          className="rounded-xl p-4 self-start lg:sticky lg:top-8"
+          style={{
+            backgroundColor: 'var(--color-bg-elevated, #1a1a2e)',
+            border: '1px solid var(--color-border, rgba(75, 85, 99, 0.5))',
+          }}
+        >
+          <h2
+            className="text-lg font-semibold mb-3"
+            style={{
+              fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+              color: 'var(--color-text-primary, #f9fafb)',
+            }}
+          >
+            Recent Activity
+          </h2>
+          {activityLoading ? (
+            <div className="animate-pulse space-y-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-12 rounded-lg" style={{ backgroundColor: 'var(--color-bg-surface)' }} />
+              ))}
+            </div>
+          ) : activity.length === 0 ? (
+            <p
+              className="text-sm py-4 text-center"
+              style={{ color: 'var(--color-text-muted, #6b7280)' }}
+            >
+              No activity yet. Log some XP to see your progress here.
+            </p>
+          ) : (
+            <div className="space-y-1">
+              {activity.map((event) => (
+                <ActivityFeedItem
+                  key={event.id}
+                  skillName={event.skill_name}
+                  xpDelta={event.xp_delta}
+                  logNote={event.log_note || undefined}
+                  createdAt={event.created_at}
+                  onClick={() => router.push(`/skills/${event.skill_id}`)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
 
       {/* QuickLogSheet */}
       {logSheetSkill && (
