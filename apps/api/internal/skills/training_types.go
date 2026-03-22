@@ -17,8 +17,12 @@ type TrainingSession struct {
 	Status           string     `json:"status"` // completed | partial | abandoned
 	CompletionRatio  float64    `json:"completion_ratio"`
 	BonusPercentage  int        `json:"bonus_percentage"`
-	BonusXP          int        `json:"bonus_xp"`
-	CreatedAt        time.Time  `json:"created_at"`
+	BonusXP                    int       `json:"bonus_xp"`
+	PomodoroWorkSec            int       `json:"pomodoro_work_sec"`
+	PomodoroBreakSec           int       `json:"pomodoro_break_sec"`
+	PomodoroIntervalsCompleted int       `json:"pomodoro_intervals_completed"`
+	PomodoroIntervalsPlanned   int       `json:"pomodoro_intervals_planned"`
+	CreatedAt                  time.Time `json:"created_at"`
 }
 
 // CreateSessionRequest is the input to SessionStore.CreateSession.
@@ -27,8 +31,12 @@ type CreateSessionRequest struct {
 	PlannedDuration int
 	ActualDuration  int
 	Status          string
-	BaseXP          int
-	LogNote         string
+	BaseXP                     int
+	LogNote                    string
+	PomodoroWorkSec            int
+	PomodoroBreakSec           int
+	PomodoroIntervalsCompleted int
+	PomodoroIntervalsPlanned   int
 }
 
 // CreateSessionResult is the output from SessionStore.CreateSession.

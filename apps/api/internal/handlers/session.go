@@ -85,17 +85,23 @@ func (s *dbSessionStore) CreateSession(ctx context.Context, userID, skillID uuid
 	err = s.db.QueryRow(ctx, `
 		INSERT INTO public.training_sessions
 			(skill_id, user_id, session_type, planned_duration_sec, actual_duration_sec,
-			 status, completion_ratio, bonus_percentage, bonus_xp)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			 status, completion_ratio, bonus_percentage, bonus_xp,
+			 pomodoro_work_sec, pomodoro_break_sec, pomodoro_intervals_completed, pomodoro_intervals_planned)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 		RETURNING id, skill_id, user_id, session_type, planned_duration_sec, actual_duration_sec,
-		          status, completion_ratio, bonus_percentage, bonus_xp, created_at
+		          status, completion_ratio, bonus_percentage, bonus_xp,
+		          pomodoro_work_sec, pomodoro_break_sec, pomodoro_intervals_completed, pomodoro_intervals_planned,
+		          created_at
 	`,
 		skillID, userID, req.SessionType, req.PlannedDuration, req.ActualDuration,
 		req.Status, completionRatio, bonusPct, bonusXP,
+		req.PomodoroWorkSec, req.PomodoroBreakSec, req.PomodoroIntervalsCompleted, req.PomodoroIntervalsPlanned,
 	).Scan(
 		&session.ID, &session.SkillID, &session.UserID, &session.SessionType,
 		&session.PlannedDuration, &session.ActualDuration, &session.Status,
-		&session.CompletionRatio, &session.BonusPercentage, &session.BonusXP, &session.CreatedAt,
+		&session.CompletionRatio, &session.BonusPercentage, &session.BonusXP,
+		&session.PomodoroWorkSec, &session.PomodoroBreakSec, &session.PomodoroIntervalsCompleted, &session.PomodoroIntervalsPlanned,
+		&session.CreatedAt,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("session: insert: %w", err)
@@ -143,7 +149,9 @@ func (s *dbSessionStore) ListSessions(ctx context.Context, skillID, userID uuid.
 	if before != nil {
 		rows, err = s.db.Query(ctx, `
 			SELECT id, skill_id, user_id, session_type, planned_duration_sec, actual_duration_sec,
-			       status, completion_ratio, bonus_percentage, bonus_xp, created_at
+			       status, completion_ratio, bonus_percentage, bonus_xp,
+			       pomodoro_work_sec, pomodoro_break_sec, pomodoro_intervals_completed, pomodoro_intervals_planned,
+			       created_at
 			FROM public.training_sessions
 			WHERE skill_id=$1 AND user_id=$2 AND created_at < $3
 			ORDER BY created_at DESC
@@ -152,7 +160,9 @@ func (s *dbSessionStore) ListSessions(ctx context.Context, skillID, userID uuid.
 	} else {
 		rows, err = s.db.Query(ctx, `
 			SELECT id, skill_id, user_id, session_type, planned_duration_sec, actual_duration_sec,
-			       status, completion_ratio, bonus_percentage, bonus_xp, created_at
+			       status, completion_ratio, bonus_percentage, bonus_xp,
+			       pomodoro_work_sec, pomodoro_break_sec, pomodoro_intervals_completed, pomodoro_intervals_planned,
+			       created_at
 			FROM public.training_sessions
 			WHERE skill_id=$1 AND user_id=$2
 			ORDER BY created_at DESC
@@ -170,7 +180,9 @@ func (s *dbSessionStore) ListSessions(ctx context.Context, skillID, userID uuid.
 		if err := rows.Scan(
 			&ts.ID, &ts.SkillID, &ts.UserID, &ts.SessionType,
 			&ts.PlannedDuration, &ts.ActualDuration, &ts.Status,
-			&ts.CompletionRatio, &ts.BonusPercentage, &ts.BonusXP, &ts.CreatedAt,
+			&ts.CompletionRatio, &ts.BonusPercentage, &ts.BonusXP,
+			&ts.PomodoroWorkSec, &ts.PomodoroBreakSec, &ts.PomodoroIntervalsCompleted, &ts.PomodoroIntervalsPlanned,
+			&ts.CreatedAt,
 		); err != nil {
 			return nil, nil, err
 		}
@@ -230,13 +242,29 @@ func (h *SessionHandler) HandlePostSession(w http.ResponseWriter, r *http.Reques
 		baseXP = n
 	}
 
+	// Parse optional Pomodoro fields.
+	pomodoroWorkSec := parseIntOrZero(r.FormValue("pomodoro_work_sec"))
+	pomodoroBreakSec := parseIntOrZero(r.FormValue("pomodoro_break_sec"))
+	pomodoroIntervalsCompleted := parseIntOrZero(r.FormValue("pomodoro_intervals_completed"))
+	pomodoroIntervalsPlanned := parseIntOrZero(r.FormValue("pomodoro_intervals_planned"))
+
+	// Validate: intervals_completed cannot exceed intervals_planned.
+	if pomodoroIntervalsCompleted > pomodoroIntervalsPlanned {
+		api.RespondError(w, http.StatusUnprocessableEntity, "pomodoro_intervals_completed cannot exceed pomodoro_intervals_planned")
+		return
+	}
+
 	req := skills.CreateSessionRequest{
-		SessionType:     sessionType,
-		PlannedDuration: plannedDuration,
-		ActualDuration:  actualDuration,
-		Status:          status,
-		BaseXP:          baseXP,
-		LogNote:         logNote,
+		SessionType:                sessionType,
+		PlannedDuration:            plannedDuration,
+		ActualDuration:             actualDuration,
+		Status:                     status,
+		BaseXP:                     baseXP,
+		LogNote:                    logNote,
+		PomodoroWorkSec:            pomodoroWorkSec,
+		PomodoroBreakSec:           pomodoroBreakSec,
+		PomodoroIntervalsCompleted: pomodoroIntervalsCompleted,
+		PomodoroIntervalsPlanned:   pomodoroIntervalsPlanned,
 	}
 
 	result, err := h.store.CreateSession(r.Context(), userID, skillID, req)

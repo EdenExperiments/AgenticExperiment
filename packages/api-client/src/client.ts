@@ -120,6 +120,10 @@ export function createSession(skillId: string, body: {
   reflection_what?: string
   reflection_how?: string
   reflection_feeling?: string
+  pomodoro_work_sec?: number
+  pomodoro_break_sec?: number
+  pomodoro_intervals_completed?: number
+  pomodoro_intervals_planned?: number
 }): Promise<{ session: TrainingSession; xp_result: unknown; streak: unknown }> {
   const entries: [string, string][] = [
     ['session_type', body.session_type ?? 'pomodoro'],
@@ -132,6 +136,10 @@ export function createSession(skillId: string, body: {
   if (body.reflection_what) entries.push(['reflection_what', body.reflection_what])
   if (body.reflection_how) entries.push(['reflection_how', body.reflection_how])
   if (body.reflection_feeling) entries.push(['reflection_feeling', body.reflection_feeling])
+  if (body.pomodoro_work_sec !== undefined) entries.push(['pomodoro_work_sec', String(body.pomodoro_work_sec)])
+  if (body.pomodoro_break_sec !== undefined) entries.push(['pomodoro_break_sec', String(body.pomodoro_break_sec)])
+  if (body.pomodoro_intervals_completed !== undefined) entries.push(['pomodoro_intervals_completed', String(body.pomodoro_intervals_completed)])
+  if (body.pomodoro_intervals_planned !== undefined) entries.push(['pomodoro_intervals_planned', String(body.pomodoro_intervals_planned)])
   return request(`/api/v1/skills/${skillId}/sessions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

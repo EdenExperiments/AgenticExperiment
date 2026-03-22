@@ -36,6 +36,11 @@ func (s *stubSessionStore) CreateSession(
 		return nil, s.err
 	}
 	s.xpEventCreated = req.Status != "abandoned"
+	// Forward Pomodoro fields from request to session (like a real store would)
+	s.session.PomodoroWorkSec = req.PomodoroWorkSec
+	s.session.PomodoroBreakSec = req.PomodoroBreakSec
+	s.session.PomodoroIntervalsCompleted = req.PomodoroIntervalsCompleted
+	s.session.PomodoroIntervalsPlanned = req.PomodoroIntervalsPlanned
 	return &skills.CreateSessionResult{
 		Session:  s.session,
 		XPResult: s.xpResult,
@@ -224,5 +229,142 @@ func TestCreateSessionValidation(t *testing.T) {
 
 	if w.Code != http.StatusUnprocessableEntity {
 		t.Fatalf("expected 422 for missing xp_delta, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+// ── T1.4: Pomodoro field tests (AC-L2) ────────────────────────────
+
+// TestPostSession_WithPomodoroFields verifies that POST with Pomodoro fields
+// stores them in the session and returns them in the response.
+func TestPostSession_WithPomodoroFields(t *testing.T) {
+	skillID := uuid.New()
+	sessionID := uuid.New()
+
+	stub := &stubSessionStore{
+		session: &skills.TrainingSession{
+			ID:      sessionID,
+			SkillID: skillID,
+			Status:  "completed",
+		},
+		xpResult: &skills.LogXPResult{
+			Skill:   &skills.Skill{Name: "Guitar"},
+			XPAdded: 75,
+		},
+	}
+	h := handlers.NewSessionHandlerWithStore(stub)
+
+	form := url.Values{
+		"session_type":                 {"pomodoro"},
+		"planned_duration_sec":         {"6000"},
+		"actual_duration_sec":          {"5400"},
+		"status":                       {"completed"},
+		"xp_delta":                     {"75"},
+		"pomodoro_work_sec":            {"900"},
+		"pomodoro_break_sec":           {"600"},
+		"pomodoro_intervals_completed": {"3"},
+		"pomodoro_intervals_planned":   {"4"},
+	}
+	req := sessionRequest(skillID, form)
+	w := httptest.NewRecorder()
+	h.HandlePostSession(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var resp map[string]json.RawMessage
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	var session map[string]interface{}
+	if err := json.Unmarshal(resp["session"], &session); err != nil {
+		t.Fatalf("decode session: %v", err)
+	}
+
+	// Verify Pomodoro fields in response
+	if v := int(session["pomodoro_work_sec"].(float64)); v != 900 {
+		t.Errorf("pomodoro_work_sec = %d, want 900", v)
+	}
+	if v := int(session["pomodoro_break_sec"].(float64)); v != 600 {
+		t.Errorf("pomodoro_break_sec = %d, want 600", v)
+	}
+	if v := int(session["pomodoro_intervals_completed"].(float64)); v != 3 {
+		t.Errorf("pomodoro_intervals_completed = %d, want 3", v)
+	}
+	if v := int(session["pomodoro_intervals_planned"].(float64)); v != 4 {
+		t.Errorf("pomodoro_intervals_planned = %d, want 4", v)
+	}
+}
+
+// TestPostSession_WithoutPomodoroFields_BackwardCompatible verifies that POST
+// without Pomodoro fields continues to work (defaults to 0).
+func TestPostSession_WithoutPomodoroFields_BackwardCompatible(t *testing.T) {
+	skillID := uuid.New()
+	sessionID := uuid.New()
+
+	stub := &stubSessionStore{
+		session: &skills.TrainingSession{
+			ID:      sessionID,
+			SkillID: skillID,
+			Status:  "completed",
+		},
+		xpResult: &skills.LogXPResult{
+			Skill:   &skills.Skill{Name: "Piano"},
+			XPAdded: 50,
+		},
+	}
+	h := handlers.NewSessionHandlerWithStore(stub)
+
+	form := url.Values{
+		"session_type":         {"manual"},
+		"planned_duration_sec": {"1500"},
+		"actual_duration_sec":  {"1200"},
+		"status":               {"completed"},
+		"xp_delta":             {"50"},
+	}
+	req := sessionRequest(skillID, form)
+	w := httptest.NewRecorder()
+	h.HandlePostSession(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
+	}
+
+	// Verify no error — backward compatible
+	var resp map[string]json.RawMessage
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if resp["session"] == nil {
+		t.Error("session missing from response")
+	}
+}
+
+// TestPostSession_IntervalsCompletedExceedPlanned verifies validation:
+// pomodoro_intervals_completed > pomodoro_intervals_planned returns 422.
+func TestPostSession_IntervalsCompletedExceedPlanned(t *testing.T) {
+	skillID := uuid.New()
+	stub := &stubSessionStore{
+		session: &skills.TrainingSession{},
+	}
+	h := handlers.NewSessionHandlerWithStore(stub)
+
+	form := url.Values{
+		"session_type":                 {"pomodoro"},
+		"planned_duration_sec":         {"6000"},
+		"actual_duration_sec":          {"6000"},
+		"status":                       {"completed"},
+		"xp_delta":                     {"75"},
+		"pomodoro_work_sec":            {"1500"},
+		"pomodoro_break_sec":           {"300"},
+		"pomodoro_intervals_completed": {"5"}, // > planned
+		"pomodoro_intervals_planned":   {"4"},
+	}
+	req := sessionRequest(skillID, form)
+	w := httptest.NewRecorder()
+	h.HandlePostSession(w, req)
+
+	if w.Code != http.StatusUnprocessableEntity {
+		t.Errorf("expected 422 for intervals_completed > intervals_planned, got %d: %s", w.Code, w.Body.String())
 	}
 }

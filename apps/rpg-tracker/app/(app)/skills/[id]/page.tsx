@@ -236,14 +236,14 @@ export default function SkillDetailPage() {
 
         {/* Action buttons — game menu style */}
         <div className="relative flex gap-3">
-          <button
+          <Link
             data-testid="start-session-btn"
             data-variant="primary"
-            onClick={() => setGrindPhase('config')}
-            className="btn btn-primary flex-1 py-4"
+            href={`/skills/${params.id}/session?from=skill`}
+            className="btn btn-primary flex-1 py-4 text-center"
           >
             Start Session
-          </button>
+          </Link>
           <div className="relative flex-1">
             <button
               data-testid="log-xp-btn"

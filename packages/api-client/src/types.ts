@@ -76,6 +76,10 @@ export interface TrainingSession {
   bonus_xp: number
   duration_seconds: number
   log_note?: string
+  pomodoro_work_sec: number
+  pomodoro_break_sec: number
+  pomodoro_intervals_completed: number
+  pomodoro_intervals_planned: number
   created_at: string
 }
 
