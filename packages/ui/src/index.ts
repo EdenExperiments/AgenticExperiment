@@ -22,6 +22,7 @@ export { GrindOverlay } from './GrindOverlay'
 export { PostSessionScreen } from './PostSessionScreen'
 // Session route components
 export { SessionPage } from './SessionPage'
+export type { SessionLogData, SessionLogResult } from './SessionPage'
 export { SessionConfig } from './SessionConfig'
 export type { SessionConfigResult } from './SessionConfig'
 export { SessionTimer } from './SessionTimer'

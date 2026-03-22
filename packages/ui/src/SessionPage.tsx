@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { createSession } from '@rpgtracker/api-client'
 import { usePomodoro } from './usePomodoro'
 import { useBrowserNotification } from './useBrowserNotification'
 import { useSessionNavigation } from './useSessionNavigation'
@@ -12,6 +11,27 @@ import { SessionTimer } from './SessionTimer'
 import { SessionEndEarly } from './SessionEndEarly'
 import { SessionSummary } from './SessionSummary'
 
+export interface SessionLogData {
+  session_type: 'pomodoro' | 'simple'
+  status: 'completed' | 'abandoned'
+  xp_delta?: number
+  planned_duration_sec: number
+  actual_duration_sec: number
+  log_note?: string
+  reflection_what?: string
+  reflection_how?: string
+  reflection_feeling?: string
+  pomodoro_work_sec?: number
+  pomodoro_break_sec?: number
+  pomodoro_intervals_completed?: number
+  pomodoro_intervals_planned?: number
+}
+
+export interface SessionLogResult {
+  bonusXP: number
+  streak?: { current: number; longest: number } | null
+}
+
 interface SessionPageProps {
   skillId: string
   skillName: string
@@ -19,6 +39,7 @@ interface SessionPageProps {
   tierNumber: number
   requiresActiveUse: boolean
   animationTheme: string
+  onLogSession?: (data: SessionLogData) => Promise<SessionLogResult | void>
 }
 
 type PagePhase = 'config' | 'timer' | 'end-early' | 'summary'
@@ -28,6 +49,7 @@ export function SessionPage({
   skillName,
   tierColor,
   tierNumber,
+  onLogSession,
 }: SessionPageProps) {
   const router = useRouter()
   const { returnUrl } = useSessionNavigation()
@@ -133,31 +155,35 @@ export function SessionPage({
   }
 
   async function handleLogSession(reflections: { what: string; how: string; feeling: string }) {
-    const status = isAbandoned ? 'abandoned' : 'completed'
-    try {
-      const result = await createSession(skillId, {
-        session_type: sessionConfig?.type ?? 'pomodoro',
-        status,
-        xp_delta: earnedXP > 0 ? earnedXP : undefined,
-        planned_duration_sec: sessionConfig
-          ? sessionConfig.workSec * sessionConfig.rounds + sessionConfig.breakSec * (sessionConfig.rounds - 1)
-          : 0,
-        actual_duration_sec: pomodoro.elapsedWorkSeconds,
-        log_note: reflections.what || undefined,
-        reflection_what: reflections.what || undefined,
-        reflection_how: reflections.how || undefined,
-        reflection_feeling: reflections.feeling || undefined,
-        pomodoro_work_sec: sessionConfig?.workSec,
-        pomodoro_break_sec: sessionConfig?.breakSec,
-        pomodoro_intervals_completed: pomodoro.currentRound,
-        pomodoro_intervals_planned: sessionConfig?.rounds,
-      })
+    const status: 'completed' | 'abandoned' = isAbandoned ? 'abandoned' : 'completed'
+    const data: SessionLogData = {
+      session_type: sessionConfig?.type ?? 'pomodoro',
+      status,
+      xp_delta: earnedXP > 0 ? earnedXP : undefined,
+      planned_duration_sec: sessionConfig
+        ? sessionConfig.workSec * sessionConfig.rounds + sessionConfig.breakSec * (sessionConfig.rounds - 1)
+        : 0,
+      actual_duration_sec: pomodoro.elapsedWorkSeconds,
+      log_note: reflections.what || undefined,
+      reflection_what: reflections.what || undefined,
+      reflection_how: reflections.how || undefined,
+      reflection_feeling: reflections.feeling || undefined,
+      pomodoro_work_sec: sessionConfig?.workSec,
+      pomodoro_break_sec: sessionConfig?.breakSec,
+      pomodoro_intervals_completed: pomodoro.currentRound,
+      pomodoro_intervals_planned: sessionConfig?.rounds,
+    }
 
-      if (result.streak) {
-        const s = result.streak as { current: number; longest: number }
-        setStreakStatus(s)
+    try {
+      if (onLogSession) {
+        const result = await onLogSession(data)
+        if (result) {
+          if (result.streak) setStreakStatus(result.streak)
+          if (result.bonusXP > 0 && earnedXP > 0) {
+            setBonusPercentage(Math.round((result.bonusXP / earnedXP) * 100))
+          }
+        }
       }
-      setBonusPercentage(result.session.bonus_xp > 0 ? Math.round((result.session.bonus_xp / earnedXP) * 100) : 0)
     } catch {
       // If API fails, still navigate
     }
