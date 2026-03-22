@@ -1,4 +1,5 @@
 export { createBrowserClient } from './client'
+export { signInWithProvider } from './social'
 export { createSupabaseServerClient } from './server'
 export { createAuthMiddleware } from './middleware'
 export { useSession, useSubscription } from './hooks'
