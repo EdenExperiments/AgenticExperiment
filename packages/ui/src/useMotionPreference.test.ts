@@ -40,7 +40,7 @@ test('updates when data-theme attribute changes', async () => {
   // Simulate theme change
   act(() => {
     document.documentElement.style.setProperty('--motion-scale', '1')
-    document.documentElement.setAttribute('data-theme', 'rpg-game')
+    document.documentElement.setAttribute('data-theme', 'retro')
   })
 
   // MutationObserver fires asynchronously

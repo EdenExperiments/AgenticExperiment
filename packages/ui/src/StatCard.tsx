@@ -11,8 +11,8 @@ export interface StatCardProps {
  * StatCard — compact metric display for dashboard stats row.
  *
  * Theme-aware via CSS custom properties:
- * - rpg-game: elevated bg, gold accent border, display font for value
- * - rpg-clean: surface bg, subtle border, body font for value
+ * - retro: elevated bg, gold accent border, display font for value
+ * - minimal: surface bg, subtle border, body font for value
  */
 export function StatCard({ label, value, icon, className = '' }: StatCardProps) {
   return (

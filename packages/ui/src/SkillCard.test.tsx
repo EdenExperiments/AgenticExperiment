@@ -144,7 +144,7 @@ describe('AC-14: hover lift effect', () => {
       <SkillCard skill={mockSkill} onLogXP={vi.fn()} onClick={vi.fn()} />
     )
     const card = container.firstChild as HTMLElement
-    // Transition must reference --motion-scale so rpg-clean (motion-scale=0) gives 0ms
+    // Transition must reference --motion-scale so minimal (motion-scale=0.3) gives reduced duration
     const transition = card.style.transition ?? ''
     expect(transition).toMatch(/var\(--motion-scale/)
   })
@@ -171,8 +171,8 @@ describe('AC-14: hover lift effect', () => {
   })
 })
 
-// --- AC-17: rpg-clean instant transitions (motion-scale=0 means 0ms) ---
-describe('AC-17: rpg-clean instant transitions', () => {
+// --- AC-17: minimal reduced motion transitions (motion-scale gates duration) ---
+describe('AC-17: minimal reduced motion transitions', () => {
   test('card transition string uses var(--duration-fast) * var(--motion-scale) so 0ms when scale=0', () => {
     const { container } = render(
       <SkillCard skill={mockSkill} onLogXP={vi.fn()} onClick={vi.fn()} />

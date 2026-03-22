@@ -18,7 +18,7 @@ interface ThemeProviderProps {
  * before this component hydrates — no flash of wrong theme.
  *
  * Cookie migration: if the stored `rpgt-theme` cookie holds an old value
- * (e.g. `rpg-game`, `rpg-clean`) that is not in VALID_THEMES, the caller
+ * (e.g. `rpg-game`, `rpg-clean`, or other legacy values) that is not in VALID_THEMES, the caller
  * (layout.tsx) already falls back to `'minimal'`. ThemeProvider additionally
  * overwrites any invalid cookie it detects on the client to prevent stale
  * values persisting across hard navigations.

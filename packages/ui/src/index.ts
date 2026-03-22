@@ -1,5 +1,6 @@
 export { ThemeProvider, setTheme, VALID_THEMES } from './ThemeProvider'
 export type { Theme } from './ThemeProvider'
+export { ThemeSwitcher } from './ThemeSwitcher'
 export { XPProgressBar } from './XPProgressBar'
 export { TierBadge } from './TierBadge'
 export { SkillCard } from './SkillCard'

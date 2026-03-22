@@ -1,6 +1,7 @@
 @import '@rpgtracker/ui/tokens/base.css';
-@import '@rpgtracker/ui/tokens/rpg-game.css';
-@import '@rpgtracker/ui/tokens/rpg-clean.css';
+@import '@rpgtracker/ui/tokens/minimal.css';
+@import '@rpgtracker/ui/tokens/retro.css';
+@import '@rpgtracker/ui/tokens/modern.css';
 @import "tailwindcss";
 @import '@rpgtracker/ui/tokens/components.css';
 
