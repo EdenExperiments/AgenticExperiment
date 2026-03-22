@@ -1,0 +1,44 @@
+/* packages/ui/tokens/retro.css */
+/* Dark, warm, narrative, tactile — amber/gold and deep purple */
+[data-theme="retro"] {
+  /* Colours */
+  --color-bg: #0a0a12;
+  --color-surface: #1a1a2e;
+  --color-text: #e8e0d0;
+  --color-muted: #8b7e6a;
+  --color-accent: #d4a853;
+  --color-accent-hover: #e8bb66;
+  --color-border: #2a2a40;
+  --color-error: #c0392b;
+  --color-success: #27ae60;
+  --color-secondary: #6b21a8;
+
+  /* XP bar — gold gradient */
+  --color-xp-fill: linear-gradient(90deg, #b8860b, #d4a853, #f0c060);
+  --color-xp-bg: rgba(212, 168, 83, 0.1);
+
+  /* Typography */
+  --font-display: var(--font-press-start), monospace;
+  --font-body: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Motion — snappy and tactile */
+  --motion-scale: 0.7;
+
+  /* Radii — chunky */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* Shadows — warm undertones */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.6), 0 4px 8px -4px rgba(0, 0, 0, 0.5);
+}
+
+/* Honour OS-level motion preference */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="retro"] {
+    --motion-scale: 0;
+  }
+}

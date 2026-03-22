@@ -1,0 +1,44 @@
+/* packages/ui/tokens/modern.css */
+/* Sci-fi command centre — dark navy, cyan/magenta neon, glassmorphism */
+[data-theme="modern"] {
+  /* Colours */
+  --color-bg: #0a0e1a;
+  --color-surface: rgba(15, 23, 42, 0.8);
+  --color-text: #e2e8f0;
+  --color-muted: #64748b;
+  --color-accent: #00d4ff;
+  --color-accent-hover: #33ddff;
+  --color-border: rgba(0, 212, 255, 0.15);
+  --color-error: #ff3864;
+  --color-success: #00ff94;
+  --color-secondary: #e040fb;
+
+  /* XP bar — cyan gradient */
+  --color-xp-fill: linear-gradient(90deg, #0099cc, #00d4ff, #33ddff);
+  --color-xp-bg: rgba(0, 212, 255, 0.1);
+
+  /* Typography */
+  --font-display: var(--font-rajdhani), system-ui, sans-serif;
+  --font-body: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Motion — fluid and atmospheric */
+  --motion-scale: 1.0;
+
+  /* Radii — sharp-ish with some softness */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* Shadows — glow-tinted elevation */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.5), 0 0 8px rgba(0, 212, 255, 0.04);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.6), 0 0 16px rgba(0, 212, 255, 0.06);
+  --shadow-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.7), 0 0 32px rgba(0, 212, 255, 0.08);
+}
+
+/* Honour OS-level motion preference */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="modern"] {
+    --motion-scale: 0;
+  }
+}

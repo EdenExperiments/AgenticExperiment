@@ -1,4 +1,4 @@
-export { ThemeProvider } from './ThemeProvider'
+export { ThemeProvider, setTheme, VALID_THEMES } from './ThemeProvider'
 export type { Theme } from './ThemeProvider'
 export { XPProgressBar } from './XPProgressBar'
 export { TierBadge } from './TierBadge'
