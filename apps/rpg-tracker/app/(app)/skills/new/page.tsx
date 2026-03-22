@@ -368,7 +368,7 @@ export default function SkillCreatePage() {
             const requiredGate = hit.length > 0 ? hit[hit.length - 1] : null
             if (!requiredGate) return null
             return (
-              <div className="rounded-xl bg-amber-50 dark:bg-amber-950/20 p-4 text-sm text-amber-700 dark:text-amber-300">
+              <div className="rounded-xl p-4 text-sm" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--color-text-secondary, #9ca3af)' }}>
                 <p className="font-medium mb-1">One gate challenge required</p>
                 <p>
                   Starting at level {draft.startingLevel} means you&apos;ll need to submit one gate assessment

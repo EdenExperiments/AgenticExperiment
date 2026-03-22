@@ -65,7 +65,7 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
             </span>
           )}
           {gate && (
-            <span role="img" aria-label="gate locked" className="text-amber-500 text-lg">&#x1F512;</span>
+            <span role="img" aria-label="gate locked" className="text-lg" style={{ color: 'var(--color-accent, #6366f1)' }}>&#x1F512;</span>
           )}
         </div>
       </div>

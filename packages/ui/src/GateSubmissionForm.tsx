@@ -68,8 +68,8 @@ export function GateSubmissionForm({
     return (
       <div className="space-y-4">
         {previousSubmission.aiFeedback && (
-          <div data-testid="ai-feedback" className="p-4 rounded-xl bg-red-900/20 border border-red-700/40">
-            <p className="text-sm text-red-300">{previousSubmission.aiFeedback}</p>
+          <div data-testid="ai-feedback" className="p-4 rounded-xl" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)' }}>
+            <p className="text-sm" style={{ color: 'var(--color-danger, #ef4444)' }}>{previousSubmission.aiFeedback}</p>
           </div>
         )}
         <p data-testid="retry-date" className="text-sm" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
@@ -133,7 +133,7 @@ export function GateSubmissionForm({
 
       {/* Loading state */}
       {isLoading && (
-        <div data-testid="ai-loading" className="flex items-center gap-2 text-blue-400 text-sm">
+        <div data-testid="ai-loading" className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-accent, #6366f1)' }}>
           <span>⟳</span>
           <span>Assessing your evidence...</span>
         </div>
