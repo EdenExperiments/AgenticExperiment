@@ -105,7 +105,7 @@ describe('AC-16: hover background highlight', () => {
 })
 
 // --- AC-17: motion-scale gating on transition ---
-describe('AC-17: rpg-clean instant transitions', () => {
+describe('AC-17: minimal reduced motion transitions', () => {
   test('item transition includes --motion-scale gating', () => {
     const { container } = render(
       <ActivityFeedItem

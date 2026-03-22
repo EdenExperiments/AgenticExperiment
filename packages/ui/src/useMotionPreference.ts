@@ -13,8 +13,9 @@ export interface MotionPreference {
  * useMotionPreference reads the --motion-scale CSS custom property from :root
  * and returns a boolean + numeric value for gating animations.
  *
- * rpg-game theme sets --motion-scale: 1 (full animation budget).
- * rpg-clean theme sets --motion-scale: 0 (no animation).
+ * retro theme sets --motion-scale: 0.7 (high animation budget).
+ * modern theme sets --motion-scale: 1.0 (full animation budget).
+ * minimal theme sets --motion-scale: 0.3 (reduced animation).
  *
  * SSR-safe: returns { prefersMotion: false, motionScale: 0 } on the server.
  */

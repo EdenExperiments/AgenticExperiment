@@ -52,8 +52,8 @@ describe('AC-15: hover lift effect', () => {
   })
 })
 
-// --- AC-17: rpg-clean instant transitions ---
-describe('AC-17: rpg-clean instant transitions', () => {
+// --- AC-17: minimal reduced motion transitions ---
+describe('AC-17: minimal reduced motion transitions', () => {
   test('card transition string uses var(--duration-fast) * var(--motion-scale)', () => {
     const { container } = render(<StatCard label="Test" value={42} />)
     const card = container.firstChild as HTMLElement

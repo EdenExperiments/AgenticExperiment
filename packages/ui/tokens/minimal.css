@@ -1,0 +1,43 @@
+/* packages/ui/tokens/minimal.css */
+/* Clean, data-forward, productivity-tool aesthetic — light palette */
+[data-theme="minimal"] {
+  /* Colours */
+  --color-bg: #ffffff;
+  --color-surface: #f8f9fa;
+  --color-text: #1a1a2e;
+  --color-muted: #6b7280;
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-border: #e5e7eb;
+  --color-error: #dc2626;
+  --color-success: #16a34a;
+
+  /* XP bar */
+  --color-xp-fill: #2563eb;
+  --color-xp-bg: rgba(37, 99, 235, 0.1);
+
+  /* Typography */
+  --font-display: var(--font-inter), system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Motion — functional transitions only */
+  --motion-scale: 0.3;
+
+  /* Radii — sharp and clean */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+
+  /* Shadows — minimal elevation */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+
+/* Honour OS-level motion preference */
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="minimal"] {
+    --motion-scale: 0;
+  }
+}

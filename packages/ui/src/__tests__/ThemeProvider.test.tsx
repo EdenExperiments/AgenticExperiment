@@ -10,16 +10,16 @@ describe('ThemeProvider', () => {
 
   it('applies the given theme as data-theme on <html>', () => {
     render(
-      <ThemeProvider theme="rpg-game">
+      <ThemeProvider theme="retro">
         <div>content</div>
       </ThemeProvider>
     )
-    expect(document.documentElement.getAttribute('data-theme')).toBe('rpg-game')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('retro')
   })
 
   it('renders children', () => {
     render(
-      <ThemeProvider theme="nutri-saas">
+      <ThemeProvider theme="minimal">
         <p>hello</p>
       </ThemeProvider>
     )
@@ -28,11 +28,11 @@ describe('ThemeProvider', () => {
 
   it('updates data-theme when theme prop changes', () => {
     const { rerender } = render(
-      <ThemeProvider theme="rpg-game"><div /></ThemeProvider>
+      <ThemeProvider theme="retro"><div /></ThemeProvider>
     )
-    expect(document.documentElement.getAttribute('data-theme')).toBe('rpg-game')
+    expect(document.documentElement.getAttribute('data-theme')).toBe('retro')
 
-    rerender(<ThemeProvider theme="rpg-clean"><div /></ThemeProvider>)
-    expect(document.documentElement.getAttribute('data-theme')).toBe('rpg-clean')
+    rerender(<ThemeProvider theme="minimal"><div /></ThemeProvider>)
+    expect(document.documentElement.getAttribute('data-theme')).toBe('minimal')
   })
 })

@@ -13,8 +13,8 @@ export interface XPGainAnimationProps {
 /**
  * XPGainAnimation — floating "+N XP" text that rises and fades.
  *
- * rpg-game (motionScale=1): spring animation, rises ~60px, fades over 1.2s, gold color
- * rpg-clean (motionScale=0): renders nothing
+ * retro/modern (motionScale>0): spring animation, rises ~60px, fades over 1.2s, accent color
+ * minimal (motionScale=0.3): reduced animation; renders nothing when motionScale=0
  */
 export function XPGainAnimation({ xpAmount, animationKey }: XPGainAnimationProps) {
   const { prefersMotion } = useMotionPreference()
