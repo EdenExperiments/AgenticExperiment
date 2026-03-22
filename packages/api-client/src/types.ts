@@ -103,6 +103,7 @@ export interface SkillDetail extends Skill {
   requires_active_use?: boolean
   animation_theme?: string
   current_streak?: number
+  is_custom?: boolean
 }
 
 export interface XPLogResponse {

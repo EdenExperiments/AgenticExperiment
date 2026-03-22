@@ -115,28 +115,43 @@ export default function SkillCreatePage() {
   return (
     <div className="max-w-xl mx-auto p-4 md:p-8 min-h-screen">
       {/* Step indicator */}
-      <div className="flex items-center gap-2 mb-8">
-        {([1, 2, 3] as Step[]).map((s) => (
-          <div key={s} className="flex items-center gap-2">
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-              style={step >= s
-                ? { background: 'var(--color-accent)', color: '#fff' }
-                : { background: 'var(--color-bg-elevated)', color: 'var(--color-muted)', border: '1px solid var(--color-border)' }
-              }
-            >
-              {s}
-            </div>
-            {s < 3 && (
+      {(() => {
+        const STEP_LABELS: Record<number, string> = { 1: 'Identity', 2: 'Appraisal', 3: 'The Arbiter' }
+        return (
+          <div className="step-indicator flex items-end gap-2 mb-8" role="list" aria-label="Steps">
+            <span className="sr-only">Step {step} of 3</span>
+            {([1, 2, 3] as Step[]).map((s) => (
               <div
-                className="flex-1 h-px w-12"
-                style={{ background: step > s ? 'var(--color-accent)' : 'var(--color-border)' }}
-              />
-            )}
+                key={s}
+                role="listitem"
+                className={`step-indicator__step flex-1 flex flex-col items-center gap-1.5${
+                  step === s ? ' step-indicator__step--active' : ''
+                }${step > s ? ' step-indicator__step--complete' : ''}`}
+              >
+                <div
+                  className="step-indicator__dot w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+                  style={step >= s
+                    ? { background: 'var(--color-accent)', color: '#fff' }
+                    : { background: 'var(--color-bg-elevated)', color: 'var(--color-muted)', border: '1px solid var(--color-border)' }
+                  }
+                >
+                  {step > s ? '✓' : s}
+                </div>
+                <span
+                  className="step-indicator__label text-[10px] text-center leading-tight"
+                  style={{
+                    fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+                    color: step === s ? 'var(--color-accent)' : 'var(--color-muted)',
+                    fontWeight: step === s ? 600 : undefined,
+                  }}
+                >
+                  {STEP_LABELS[s]}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
-        <span className="ml-2 text-sm" style={{ color: 'var(--color-muted)' }}>Step {step} of 3</span>
-      </div>
+        )
+      })()}
 
       {/* ── Step 1: Choose skill ── */}
       {step === 1 && (
@@ -236,7 +251,7 @@ export default function SkillCreatePage() {
               onChange={(e) => setDraft(d => ({ ...d, name: e.target.value }))}
               className="w-full rounded-xl px-4 py-3"
               style={{
-                background: 'var(--color-bg-elevated)',
+                background: 'var(--color-surface)',
                 color: 'var(--color-text)',
                 border: '1px solid var(--color-border)',
               }}
@@ -249,7 +264,7 @@ export default function SkillCreatePage() {
               onChange={(e) => setDraft(d => ({ ...d, description: e.target.value }))}
               className="w-full rounded-xl px-4 py-3 resize-none"
               style={{
-                background: 'var(--color-bg-elevated)',
+                background: 'var(--color-surface)',
                 color: 'var(--color-text)',
                 border: '1px solid var(--color-border)',
               }}

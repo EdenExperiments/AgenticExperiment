@@ -152,11 +152,12 @@ export default function SkillsPage() {
                   key={opt.value}
                   onClick={() => setSortBy(opt.value)}
                   aria-pressed={sortBy === opt.value}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors min-h-[36px] ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     sortBy === opt.value
                       ? 'text-white'
                       : ''
                   }`}
+                  style={{ minHeight: 'var(--tap-target-min, 44px)' }}
                   style={{
                     backgroundColor:
                       sortBy === opt.value
@@ -178,8 +179,9 @@ export default function SkillsPage() {
               value={tierFilter}
               onChange={(e) => setTierFilter(e.target.value)}
               aria-label="Filter by tier"
-              className="text-xs rounded-lg px-2 py-1.5 min-h-[36px] border-none"
+              className="text-xs rounded-lg px-2 py-1.5 border-none"
               style={{
+                minHeight: 'var(--tap-target-min, 44px)',
                 backgroundColor: 'var(--color-surface)',
                 color: 'var(--color-text-secondary)',
               }}

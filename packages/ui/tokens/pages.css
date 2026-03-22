@@ -6,6 +6,23 @@
 
 
 /* ================================================================== */
+/* DASHBOARD MAIN GRID (.dashboard-main-grid)                          */
+/* dashboard.md — responsive 1-col mobile / sidebar-grid desktop      */
+/* ================================================================== */
+
+.dashboard-main-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 1024px) {
+  .dashboard-main-grid {
+    grid-template-columns: 1fr minmax(280px, 320px);
+  }
+}
+
+
+/* ================================================================== */
 /* GATE SECTION (.gate-section)                                        */
 /* skill-detail.md — Gate Mood per theme                               */
 /* ================================================================== */

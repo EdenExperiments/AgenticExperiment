@@ -1,19 +1,43 @@
 import type { Metadata } from 'next'
-import { Cinzel, Inter } from 'next/font/google'
+import { Inter, Press_Start_2P, Space_Grotesk, Rajdhani } from 'next/font/google'
+import { ThemeProvider } from '@rpgtracker/ui'
+import './landing-tokens.css'
 import './globals.css'
-
-const cinzel = Cinzel({
-  subsets: ['latin'],
-  variable: '--font-cinzel',
-  weight: ['400', '600', '700', '900'],
-  display: 'swap',
-})
 
 const inter = Inter({
   subsets: ['latin'],
+  weight: ['400', '500', '700', '900'],
   variable: '--font-inter',
   display: 'swap',
 })
+
+const pressStart2P = Press_Start_2P({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-press-start',
+  display: 'swap',
+})
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-space-grotesk',
+  display: 'swap',
+})
+
+const rajdhani = Rajdhani({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-rajdhani',
+  display: 'swap',
+})
+
+const fontClassNames = [
+  inter.variable,
+  pressStart2P.variable,
+  spaceGrotesk.variable,
+  rajdhani.variable,
+].join(' ')
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_LANDING_URL ?? 'http://localhost:3001'),
@@ -36,10 +60,12 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${cinzel.variable} ${inter.variable}`}>
+    <html lang="en" data-theme="retro" className={fontClassNames} suppressHydrationWarning>
       <body>
-        <a href="#main-content" className="skip-link">Skip to content</a>
-        {children}
+        <ThemeProvider theme="retro">
+          <a href="#main-content" className="skip-link">Skip to content</a>
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )

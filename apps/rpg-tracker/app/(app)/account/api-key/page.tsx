@@ -47,9 +47,10 @@ export default function APIKeyPage() {
           required
           className="w-full rounded-xl px-4 py-3"
           style={{
-            backgroundColor: 'var(--color-bg-elevated)',
+            backgroundColor: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
             color: 'var(--color-text)',
+            fontFamily: 'var(--font-mono, monospace)',
           }}
         />
         {error && <p className="text-sm" style={{ color: 'var(--color-error)' }}>{error}</p>}

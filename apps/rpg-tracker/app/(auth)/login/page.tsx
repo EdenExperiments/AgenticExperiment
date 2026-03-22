@@ -32,7 +32,7 @@ export default function LoginPage() {
 
   return (
     <main
-      className="min-h-screen flex items-center justify-center px-4"
+      className="auth-page min-h-screen flex items-center justify-center px-4"
       style={{ backgroundColor: 'var(--color-bg)' }}
     >
       <div className="w-full max-w-sm">
@@ -52,7 +52,7 @@ export default function LoginPage() {
         </div>
 
         <div
-          className="rounded-2xl p-8 shadow-sm"
+          className="auth-page__card rounded-2xl p-8 shadow-sm"
           style={{
             backgroundColor: 'var(--color-bg-elevated)',
             border: '1px solid var(--color-border)',

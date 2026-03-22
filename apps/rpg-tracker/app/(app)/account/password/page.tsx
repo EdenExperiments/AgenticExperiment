@@ -48,7 +48,7 @@ export default function PasswordPage() {
           onChange={(e) => setCurrent(e.target.value)} required
           className="w-full rounded-xl px-4 py-3"
           style={{
-            backgroundColor: 'var(--color-bg-elevated)',
+            backgroundColor: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
             color: 'var(--color-text)',
           }} />
@@ -56,7 +56,7 @@ export default function PasswordPage() {
           onChange={(e) => setNext(e.target.value)} required minLength={8}
           className="w-full rounded-xl px-4 py-3"
           style={{
-            backgroundColor: 'var(--color-bg-elevated)',
+            backgroundColor: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
             color: 'var(--color-text)',
           }} />
