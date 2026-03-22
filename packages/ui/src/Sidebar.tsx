@@ -9,7 +9,7 @@ interface SidebarProps {
 export function Sidebar({ currentPath }: SidebarProps) {
   return (
     <aside
-      className="nav-panel hidden md:flex flex-col w-64 min-h-screen border-r p-4"
+      className="nav-panel sidebar hidden md:flex flex-col w-64 min-h-screen border-r p-4"
       style={{ background: 'var(--color-bg-elevated)', borderColor: 'var(--color-border)' }}
     >
       <div className="mb-8">
@@ -31,7 +31,7 @@ export function Sidebar({ currentPath }: SidebarProps) {
               key={href}
               href={href}
               aria-current={active ? 'page' : undefined}
-              className="flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+              className={`sidebar__item flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors${active ? ' sidebar__item--active' : ''}`}
               style={{
                 background: active ? 'var(--color-accent-muted)' : undefined,
                 color: active ? 'var(--color-accent)' : 'var(--color-text-secondary)',
@@ -56,7 +56,7 @@ export function Sidebar({ currentPath }: SidebarProps) {
             <Link
               href="/account"
               aria-current={active ? 'page' : undefined}
-              className="flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+              className={`sidebar__item flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors${active ? ' sidebar__item--active' : ''}`}
               style={{
                 background: active ? 'var(--color-accent-muted)' : undefined,
                 color: active ? 'var(--color-accent)' : 'var(--color-text-secondary)',

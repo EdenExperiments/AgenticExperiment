@@ -157,8 +157,8 @@ export default function SkillsPage() {
                       ? 'text-white'
                       : ''
                   }`}
-                  style={{ minHeight: 'var(--tap-target-min, 44px)' }}
                   style={{
+                    minHeight: 'var(--tap-target-min, 44px)',
                     backgroundColor:
                       sortBy === opt.value
                         ? 'var(--color-accent)'

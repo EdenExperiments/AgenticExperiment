@@ -60,9 +60,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" data-theme="retro" className={fontClassNames} suppressHydrationWarning>
+    <html lang="en" data-theme="minimal" className={fontClassNames} suppressHydrationWarning>
       <body>
-        <ThemeProvider theme="retro">
+        <ThemeProvider theme="minimal">
           <a href="#main-content" className="skip-link">Skip to content</a>
           {children}
         </ThemeProvider>

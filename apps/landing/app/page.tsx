@@ -146,19 +146,19 @@ export default function LandingPage() {
                   <ul className="app-features">
                     <li className="app-feature">
                       <span className="app-feature-dot-gold" />
-                      <span>XP & levelling across <strong style={{ color: 'var(--text-primary)' }}>11 tiers</strong> — Novice through Legend</span>
+                      <span>XP & levelling across <strong style={{ color: 'var(--color-text)' }}>11 tiers</strong> — Novice through Legend</span>
                     </li>
                     <li className="app-feature">
                       <span className="app-feature-dot-gold" />
-                      <span><strong style={{ color: 'var(--text-primary)' }}>Blocker gates</strong> at each tier boundary — prove mastery, don't grind past it</span>
+                      <span><strong style={{ color: 'var(--color-text)' }}>Blocker gates</strong> at each tier boundary — prove mastery, don't grind past it</span>
                     </li>
                     <li className="app-feature">
                       <span className="app-feature-dot-gold" />
-                      <span><strong style={{ color: 'var(--text-primary)' }}>100+ skill presets</strong> across 15 categories to start instantly</span>
+                      <span><strong style={{ color: 'var(--color-text)' }}>100+ skill presets</strong> across 15 categories to start instantly</span>
                     </li>
                     <li className="app-feature">
                       <span className="app-feature-dot-gold" />
-                      <span><strong style={{ color: 'var(--text-primary)' }}>AI calibration</strong> via Claude — describe your level, get a precise starting point</span>
+                      <span><strong style={{ color: 'var(--color-text)' }}>AI calibration</strong> via Claude — describe your level, get a precise starting point</span>
                     </li>
                   </ul>
 
@@ -250,7 +250,7 @@ export default function LandingPage() {
         </section>
 
         {/* ── Features ──────────────────────────────────────── */}
-        <section className="section" id="features" style={{ background: 'linear-gradient(180deg, var(--bg) 0%, var(--bg-surface) 100%)' }} aria-label="Features">
+        <section className="section" id="features" style={{ background: 'linear-gradient(180deg, var(--color-bg) 0%, var(--color-surface) 100%)' }} aria-label="Features">
           <div className="container-landing">
             <ScrollReveal>
               <div className="section-label-row">
