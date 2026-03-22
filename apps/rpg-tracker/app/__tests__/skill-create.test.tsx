@@ -6,6 +6,7 @@ vi.mock('@rpgtracker/api-client', () => ({
   createSkill: vi.fn().mockResolvedValue({ id: 'new-skill-1' }),
   calibrateSkill: vi.fn(),
   getAPIKeyStatus: vi.fn().mockResolvedValue({ has_key: false }),
+  getPresets: vi.fn().mockResolvedValue([]),
 }))
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
@@ -31,4 +32,24 @@ test('advances to step 2 on next', async () => {
 test('step 1 next button is disabled when name is empty', () => {
   render(<SkillCreatePage />, { wrapper })
   expect(screen.getByRole('button', { name: /next/i })).toBeDisabled()
+})
+
+// ── T1b: Layout Tests (AC-08) ─────────────────────────────────────────────────
+
+test('AC-08: form container has mx-auto centering class', () => {
+  const { container } = render(<SkillCreatePage />, { wrapper })
+  // The outer form container should use mx-auto for centering
+  const formContainer = container.firstElementChild
+  expect(formContainer).not.toBeNull()
+  expect(formContainer!.className).toMatch(/\bmx-auto\b/)
+})
+
+test('AC-08: form container uses max-w-xl or max-w-2xl (not max-w-lg or max-w-2xl as outer constraint)', () => {
+  const { container } = render(<SkillCreatePage />, { wrapper })
+  const formContainer = container.firstElementChild
+  expect(formContainer).not.toBeNull()
+  // New layout: max-w-xl or max-w-2xl (wider than old max-w-lg)
+  expect(formContainer!.className).toMatch(/max-w-xl|max-w-2xl/)
+  // Must NOT still be the old max-w-lg
+  expect(formContainer!.className).not.toMatch(/\bmax-w-lg\b/)
 })

@@ -131,7 +131,7 @@ export default function SkillDetailPage() {
     }
   }
 
-  if (isLoading || !skill) return <div className="p-8 text-gray-400">Loading...</div>
+  if (isLoading || !skill) return <div className="p-8" style={{ color: 'var(--color-text-muted)' }}>Loading...</div>
 
   const activeGate = skill.gates.find(g => !g.is_cleared && skill.current_level >= g.gate_level)
   const isMaxLevel = skill.xp_to_next_level === 0
@@ -143,205 +143,220 @@ export default function SkillDetailPage() {
   const tierColor = TIER_HEX[skill.tier_number] ?? '#6366f1'
 
   return (
-    <div className="max-w-2xl mx-auto p-4 md:p-8 space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <Link href="/skills" className="text-sm hover:opacity-80 flex items-center gap-1"
-          style={{ color: 'var(--color-text-muted, #6b7280)' }}>
-          &larr; Skills
-        </Link>
-        <Link href={`/skills/${id}/edit`} className="text-sm hover:opacity-80"
-          style={{ color: 'var(--color-text-muted, #6b7280)' }}>
-          Edit
-        </Link>
-      </div>
-
-      {/* Hero Stats — skill name + tier/level as prominent display */}
-      <div>
-        <h1
-          className="text-3xl font-bold"
-          style={{
-            fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-            color: 'var(--color-text-primary, #f9fafb)',
-          }}
-        >
-          {skill.name}
-        </h1>
-        <div className="flex items-center gap-3 mt-2 flex-wrap">
-          <TierBadge tierName={skill.tier_name} tierNumber={skill.tier_number} />
-          <span
-            className="text-2xl font-bold"
-            style={{
-              fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-              color: 'var(--color-accent, #6366f1)',
-            }}
-          >
-            Level {skill.effective_level}
-          </span>
-
-          {/* Streak display */}
-          {currentStreak > 0 ? (
-            <span
-              data-testid="streak-badge"
-              className="flex items-center gap-1 bg-orange-500/20 border border-orange-500/40 rounded-full px-3 py-1"
-            >
-              <span role="img" aria-label="streak fire">🔥</span>
-              <span className="font-semibold text-orange-400 text-sm">{currentStreak}</span>
-              {longestStreak > currentStreak && (
-                <span className="text-xs text-orange-300 ml-1">best: {longestStreak}</span>
-              )}
-            </span>
-          ) : (
-            <span
-              data-testid="streak-zero-prompt"
-              className="text-sm text-gray-500 italic"
-            >
-              Log today to start your streak
-            </span>
-          )}
+    <div className="p-4 md:p-8 space-y-6">
+      {/* Hero Section — full width */}
+      <div data-testid="hero-section" className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <Link href="/skills" className="text-sm hover:opacity-80 flex items-center gap-1"
+            style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+            &larr; Skills
+          </Link>
+          <Link href={`/skills/${id}/edit`} className="text-sm hover:opacity-80"
+            style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+            Edit
+          </Link>
         </div>
-      </div>
 
-      {/* XP bar OR blocker gate section */}
-      {activeGate ? (
-        <BlockerGateSection
-          gateLevel={activeGate.gate_level}
-          title={activeGate.title}
-          description={activeGate.description}
-          currentXP={skill.current_xp}
-          rawLevel={skill.current_level}
-          firstNotifiedAt={activeGate.first_notified_at}
-          isCleared={activeGate.is_cleared}
-          activeGateSubmission={skill.active_gate_submission ?? null}
-        />
-      ) : (
-        <div className="space-y-2">
-          <XPProgressBar
-            tierNumber={skill.tier_number}
-            xpForCurrentLevel={skill.xp_for_current_level}
-            xpToNextLevel={skill.xp_to_next_level}
-            isMaxLevel={isMaxLevel}
-            className="h-3"
-          />
-          {isMaxLevel ? (
-            <p className="text-sm text-center" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
-              Maximum Level Reached
-            </p>
-          ) : (
-            <p className="text-sm" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
-              {skill.xp_for_current_level.toLocaleString()} / {(skill.xp_for_current_level + skill.xp_to_next_level).toLocaleString()} XP to level {skill.effective_level + 1}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Action buttons: Start Session (primary) + Log XP (secondary) */}
-      <div className="relative flex gap-3">
-        <button
-          data-testid="start-session-btn"
-          data-variant="primary"
-          onClick={() => setGrindPhase('config')}
-          className="flex-1 py-4 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity btn-primary"
-          style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
-        >
-          Start Session
-        </button>
-        <div className="relative flex-1">
-          <button
-            data-testid="log-xp-btn"
-            data-variant="secondary"
-            onClick={() => setLogSheetOpen(true)}
-            className="w-full py-4 rounded-xl font-semibold min-h-[48px] hover:opacity-90 transition-opacity btn-secondary"
-            style={{
-              backgroundColor: 'transparent',
-              border: '2px solid var(--color-accent, #6366f1)',
-              color: 'var(--color-accent, #6366f1)',
-            }}
-          >
-            Log XP
-          </button>
-          <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-            <XPGainAnimation xpAmount={xpGain.amount} animationKey={xpGain.key} />
-          </div>
-        </div>
-      </div>
-
-      {/* Description */}
-      {skill.description && (
-        <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-surface, #1f2937)' }}>
-          <p className="text-sm" style={{ color: 'var(--color-text-secondary, #9ca3af)' }}>
-            {skill.description}
-          </p>
-        </div>
-      )}
-
-      {/* XP Progress Chart */}
-      {xpChart && (
-        <section>
-          <h2
-            className="font-semibold mb-3"
+        {/* Hero Stats — skill name + tier/level as prominent display */}
+        <div>
+          <h1
+            className="text-3xl font-bold"
             style={{
               fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
               color: 'var(--color-text-primary, #f9fafb)',
             }}
           >
-            Last 30 Days
-          </h2>
-          <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-surface, #1f2937)' }}>
-            <XPBarChart data={xpChart.data} tierColor={tierColor} />
-          </div>
-        </section>
-      )}
+            {skill.name}
+          </h1>
+          <div className="flex items-center gap-3 mt-2 flex-wrap">
+            <TierBadge tierName={skill.tier_name} tierNumber={skill.tier_number} />
+            <span
+              className="text-2xl font-bold"
+              style={{
+                fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+                color: 'var(--color-accent, #6366f1)',
+              }}
+            >
+              Level {skill.effective_level}
+            </span>
 
-      {/* XP History — date grouped */}
-      <section>
-        <h2
-          className="font-semibold mb-3"
-          style={{
-            fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-            color: 'var(--color-text-primary, #f9fafb)',
-          }}
-        >
-          XP History
-        </h2>
-        {dateGroups.length === 0 ? (
-          <p className="text-sm py-4 text-center" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
-            No activity yet. Log some XP to start building your history.
-          </p>
+            {/* Streak display */}
+            {currentStreak > 0 ? (
+              <span
+                data-testid="streak-badge"
+                className="flex items-center gap-1 rounded-full px-3 py-1"
+                style={{
+                  backgroundColor: 'var(--color-accent-muted)',
+                  borderColor: 'var(--color-accent)',
+                  borderWidth: '1px',
+                }}
+              >
+                <span role="img" aria-label="streak fire">🔥</span>
+                <span className="font-semibold text-sm" style={{ color: 'var(--color-accent)' }}>{currentStreak}</span>
+                {longestStreak > currentStreak && (
+                  <span className="text-xs ml-1" style={{ color: 'var(--color-accent-hover, #e8bb66)' }}>best: {longestStreak}</span>
+                )}
+              </span>
+            ) : (
+              <span
+                data-testid="streak-zero-prompt"
+                className="text-sm italic"
+                style={{ color: 'var(--color-text-muted)' }}
+              >
+                Log today to start your streak
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* XP bar OR blocker gate section */}
+        {activeGate ? (
+          <BlockerGateSection
+            gateLevel={activeGate.gate_level}
+            title={activeGate.title}
+            description={activeGate.description}
+            currentXP={skill.current_xp}
+            rawLevel={skill.current_level}
+            firstNotifiedAt={activeGate.first_notified_at}
+            isCleared={activeGate.is_cleared}
+            activeGateSubmission={skill.active_gate_submission ?? null}
+          />
         ) : (
-          <div className="space-y-4">
-            {dateGroups.map((group) => (
-              <div key={group.label}>
-                <h3
-                  className="text-xs uppercase tracking-wider mb-2"
-                  style={{ color: 'var(--color-text-muted, #6b7280)' }}
-                >
-                  {group.label}
-                </h3>
-                <div className="space-y-1">
-                  {group.items.map((log) => (
-                    <div
-                      key={log.id}
-                      className="flex justify-between text-sm py-2 px-3 rounded-lg"
-                      style={{ backgroundColor: 'var(--color-bg-surface, #1f2937)' }}
-                    >
-                      <span style={{ color: 'var(--color-text-secondary, #9ca3af)' }}>
-                        {log.log_note || 'Session'}
-                      </span>
-                      <span
-                        className="font-semibold"
-                        style={{ color: 'var(--color-accent, #6366f1)' }}
-                      >
-                        +{log.xp_delta} XP
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
+          <div className="space-y-2">
+            <XPProgressBar
+              tierNumber={skill.tier_number}
+              xpForCurrentLevel={skill.xp_for_current_level}
+              xpToNextLevel={skill.xp_to_next_level}
+              isMaxLevel={isMaxLevel}
+              className="h-3"
+            />
+            {isMaxLevel ? (
+              <p className="text-sm text-center" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+                Maximum Level Reached
+              </p>
+            ) : (
+              <p className="text-sm" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+                {skill.xp_for_current_level.toLocaleString()} / {(skill.xp_for_current_level + skill.xp_to_next_level).toLocaleString()} XP to level {skill.effective_level + 1}
+              </p>
+            )}
           </div>
         )}
-      </section>
+
+        {/* Action buttons: Start Session (primary) + Log XP (secondary) */}
+        <div className="relative flex gap-3">
+          <button
+            data-testid="start-session-btn"
+            data-variant="primary"
+            onClick={() => setGrindPhase('config')}
+            className="flex-1 py-4 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity btn-primary"
+            style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
+          >
+            Start Session
+          </button>
+          <div className="relative flex-1">
+            <button
+              data-testid="log-xp-btn"
+              data-variant="secondary"
+              onClick={() => setLogSheetOpen(true)}
+              className="w-full py-4 rounded-xl font-semibold min-h-[48px] hover:opacity-90 transition-opacity btn-secondary"
+              style={{
+                backgroundColor: 'transparent',
+                border: '2px solid var(--color-accent, #6366f1)',
+                color: 'var(--color-accent, #6366f1)',
+              }}
+            >
+              Log XP
+            </button>
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2">
+              <XPGainAnimation xpAmount={xpGain.amount} animationKey={xpGain.key} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Two-column grid: chart left, description+history right (Option B) */}
+      <div data-testid="detail-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Left column: XP Progress Chart */}
+        {xpChart && (
+          <section>
+            <h2
+              className="font-semibold mb-3"
+              style={{
+                fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+                color: 'var(--color-text-primary, #f9fafb)',
+              }}
+            >
+              Last 30 Days
+            </h2>
+            <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-bg-surface, #1f2937)' }}>
+              <XPBarChart data={xpChart.data} tierColor={tierColor} />
+            </div>
+          </section>
+        )}
+
+        {/* Right column: Description + XP History */}
+        <div data-testid="history-section" className={xpChart ? '' : 'md:col-span-2'}>
+          {/* Description */}
+          {skill.description && (
+            <div className="rounded-xl p-4 mb-6" style={{ backgroundColor: 'var(--color-bg-surface, #1f2937)' }}>
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary, #9ca3af)' }}>
+                {skill.description}
+              </p>
+            </div>
+          )}
+
+          {/* XP History — date grouped */}
+          <section>
+            <h2
+              className="font-semibold mb-3"
+              style={{
+                fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+                color: 'var(--color-text-primary, #f9fafb)',
+              }}
+            >
+              XP History
+            </h2>
+            {dateGroups.length === 0 ? (
+              <p className="text-sm py-4 text-center" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
+                No activity yet. Log some XP to start building your history.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {dateGroups.map((group) => (
+                  <div key={group.label}>
+                    <h3
+                      className="text-xs uppercase tracking-wider mb-2"
+                      style={{ color: 'var(--color-text-muted, #6b7280)' }}
+                    >
+                      {group.label}
+                    </h3>
+                    <div className="space-y-1">
+                      {group.items.map((log) => (
+                        <div
+                          key={log.id}
+                          className="flex justify-between text-sm py-2 px-3 rounded-lg"
+                          style={{ backgroundColor: 'var(--color-bg-surface, #1f2937)' }}
+                        >
+                          <span style={{ color: 'var(--color-text-secondary, #9ca3af)' }}>
+                            {log.log_note || 'Session'}
+                          </span>
+                          <span
+                            className="font-semibold"
+                            style={{ color: 'var(--color-accent, #6366f1)' }}
+                          >
+                            +{log.xp_delta} XP
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
+      </div>
 
       {/* Delete */}
       <button

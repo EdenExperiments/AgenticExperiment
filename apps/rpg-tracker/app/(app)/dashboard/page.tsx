@@ -94,16 +94,16 @@ export default function DashboardPage() {
   // Loading state
   if (skillsLoading) {
     return (
-      <div className="max-w-2xl mx-auto p-4 md:p-8">
+      <div className="p-4 md:p-8">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 w-40 rounded bg-gray-700" />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="h-8 w-40 rounded" style={{ backgroundColor: 'var(--color-bg-elevated)' }} />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-20 rounded-xl bg-gray-700" />
+              <div key={i} className="h-20 rounded-xl" style={{ backgroundColor: 'var(--color-bg-elevated)' }} />
             ))}
           </div>
-          <div className="h-32 rounded-xl bg-gray-700" />
-          <div className="h-48 rounded-xl bg-gray-700" />
+          <div className="h-32 rounded-xl" style={{ backgroundColor: 'var(--color-bg-elevated)' }} />
+          <div className="h-48 rounded-xl" style={{ backgroundColor: 'var(--color-bg-elevated)' }} />
         </div>
       </div>
     )
@@ -112,7 +112,7 @@ export default function DashboardPage() {
   // Empty state — no skills yet
   if (skills.length === 0) {
     return (
-      <div className="max-w-2xl mx-auto p-4 md:p-8">
+      <div className="p-4 md:p-8">
         <div className="text-center py-16 space-y-6">
           {/* CSS-based shield illustration */}
           <div className="mx-auto w-24 h-28 relative" aria-hidden="true">
@@ -166,7 +166,7 @@ export default function DashboardPage() {
   const topSkill = highestTierSkill(skills)
 
   return (
-    <div className="max-w-2xl mx-auto p-4 md:p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6">
       {/* Header */}
       <h1
         className="text-2xl font-bold"
@@ -179,7 +179,7 @@ export default function DashboardPage() {
       </h1>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-2 gap-3" role="region" aria-label="Stats">
+      <div data-testid="stats-grid" className="grid grid-cols-2 md:grid-cols-4 gap-3" role="region" aria-label="Stats">
         <StatCard label="Total Skills" value={skills.length} />
         <StatCard label="Active Gates" value={activeGatesCount} />
         <StatCard label="XP Today" value={todayXP.toLocaleString()} />
@@ -217,6 +217,34 @@ export default function DashboardPage() {
         />
       </section>
 
+      {/* All Skills Grid */}
+      <section>
+        <h2
+          className="text-lg font-semibold mb-3"
+          style={{
+            fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+            color: 'var(--color-text-primary, #f9fafb)',
+          }}
+        >
+          Your Skills
+        </h2>
+        <div
+          data-testid="skills-grid"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
+          {skills.map((skill) => (
+            <SkillCard
+              key={skill.id}
+              skill={skill}
+              onLogXP={(id) =>
+                setLogSheetSkill(skills.find((s) => s.id === id) ?? null)
+              }
+              onClick={(id) => router.push(`/skills/${id}`)}
+            />
+          ))}
+        </div>
+      </section>
+
       {/* Quick Action — Log XP */}
       <div className="relative">
         <button
@@ -232,7 +260,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Activity Feed */}
-      <section>
+      <section data-testid="activity-feed">
         <h2
           className="text-lg font-semibold mb-3"
           style={{
@@ -245,7 +273,7 @@ export default function DashboardPage() {
         {activityLoading ? (
           <div className="animate-pulse space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-12 rounded-lg bg-gray-700" />
+              <div key={i} className="h-12 rounded-lg" style={{ backgroundColor: 'var(--color-bg-elevated)' }} />
             ))}
           </div>
         ) : activity.length === 0 ? (

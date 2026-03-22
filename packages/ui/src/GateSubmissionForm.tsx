@@ -68,17 +68,18 @@ export function GateSubmissionForm({
     return (
       <div className="space-y-4">
         {previousSubmission.aiFeedback && (
-          <div data-testid="ai-feedback" className="p-4 rounded-xl bg-red-900/20 border border-red-700/40">
-            <p className="text-sm text-red-300">{previousSubmission.aiFeedback}</p>
+          <div data-testid="ai-feedback" className="p-4 rounded-xl" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.25)' }}>
+            <p className="text-sm" style={{ color: 'var(--color-danger, #ef4444)' }}>{previousSubmission.aiFeedback}</p>
           </div>
         )}
-        <p data-testid="retry-date" className="text-sm text-gray-400">
+        <p data-testid="retry-date" className="text-sm" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
           {retryMessage}
         </p>
         <button
           data-testid="retry-btn"
           disabled
-          className="w-full py-3 rounded-xl font-semibold bg-gray-700 text-gray-500 cursor-not-allowed"
+          className="w-full py-3 rounded-xl font-semibold cursor-not-allowed"
+          style={{ backgroundColor: 'var(--color-bg-surface, #1f2937)', color: 'var(--color-text-muted, #6b7280)' }}
         >
           Retry Assessment
         </button>
@@ -132,7 +133,7 @@ export function GateSubmissionForm({
 
       {/* Loading state */}
       {isLoading && (
-        <div data-testid="ai-loading" className="flex items-center gap-2 text-blue-400 text-sm">
+        <div data-testid="ai-loading" className="flex items-center gap-2 text-sm" style={{ color: 'var(--color-accent, #6366f1)' }}>
           <span>⟳</span>
           <span>Assessing your evidence...</span>
         </div>
@@ -141,7 +142,7 @@ export function GateSubmissionForm({
       {/* Form fields */}
       <div data-testid="form-fields" className="space-y-4">
         <div>
-          <label htmlFor={`evidence-what-${gateId}`} className="block text-sm font-medium text-gray-300 mb-1">
+          <label htmlFor={`evidence-what-${gateId}`} className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text-secondary, #9ca3af)' }}>
             What did you accomplish?
           </label>
           <textarea
@@ -149,20 +150,26 @@ export function GateSubmissionForm({
             value={evidenceWhat}
             onChange={(e) => setEvidenceWhat(e.target.value)}
             placeholder="Describe what you accomplished in detail..."
-            className="w-full rounded-xl p-3 bg-gray-800 text-white text-sm resize-none border border-gray-700 focus:border-blue-500"
+            className="w-full rounded-xl p-3 text-sm resize-none"
+            style={{
+              backgroundColor: 'var(--color-bg-surface, #1f2937)',
+              color: 'var(--color-text-primary, #f9fafb)',
+              border: '1px solid var(--color-border, #374151)',
+            }}
             rows={4}
           />
           <p
             data-testid="counter-what"
             data-met={whatMet ? 'true' : 'false'}
-            className={`text-xs mt-1 text-right ${whatMet ? 'text-green-500' : 'text-gray-500'}`}
+            className="text-xs mt-1 text-right"
+            style={{ color: whatMet ? 'var(--color-success, #22c55e)' : 'var(--color-text-muted, #6b7280)' }}
           >
             {whatCount} / {MIN_CHARS}
           </p>
         </div>
 
         <div>
-          <label htmlFor={`evidence-how-${gateId}`} className="block text-sm font-medium text-gray-300 mb-1">
+          <label htmlFor={`evidence-how-${gateId}`} className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text-secondary, #9ca3af)' }}>
             How did you practice?
           </label>
           <textarea
@@ -170,16 +177,21 @@ export function GateSubmissionForm({
             value={evidenceHow}
             onChange={(e) => setEvidenceHow(e.target.value)}
             placeholder="Describe your practice method..."
-            className="w-full rounded-xl p-3 bg-gray-800 text-white text-sm resize-none border border-gray-700"
+            className="w-full rounded-xl p-3 text-sm resize-none"
+            style={{
+              backgroundColor: 'var(--color-bg-surface, #1f2937)',
+              color: 'var(--color-text-primary, #f9fafb)',
+              border: '1px solid var(--color-border, #374151)',
+            }}
             rows={3}
           />
-          <p data-testid="counter-how" className="text-xs mt-1 text-right text-gray-500">
+          <p data-testid="counter-how" className="text-xs mt-1 text-right" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
             {evidenceHow.length} / {MIN_CHARS}
           </p>
         </div>
 
         <div>
-          <label htmlFor={`evidence-feeling-${gateId}`} className="block text-sm font-medium text-gray-300 mb-1">
+          <label htmlFor={`evidence-feeling-${gateId}`} className="block text-sm font-medium mb-1" style={{ color: 'var(--color-text-secondary, #9ca3af)' }}>
             How did it feel?
           </label>
           <textarea
@@ -187,10 +199,15 @@ export function GateSubmissionForm({
             value={evidenceFeeling}
             onChange={(e) => setEvidenceFeeling(e.target.value)}
             placeholder="Describe how the session felt..."
-            className="w-full rounded-xl p-3 bg-gray-800 text-white text-sm resize-none border border-gray-700"
+            className="w-full rounded-xl p-3 text-sm resize-none"
+            style={{
+              backgroundColor: 'var(--color-bg-surface, #1f2937)',
+              color: 'var(--color-text-primary, #f9fafb)',
+              border: '1px solid var(--color-border, #374151)',
+            }}
             rows={3}
           />
-          <p data-testid="counter-feeling" className="text-xs mt-1 text-right text-gray-500">
+          <p data-testid="counter-feeling" className="text-xs mt-1 text-right" style={{ color: 'var(--color-text-muted, #6b7280)' }}>
             {evidenceFeeling.length} / {MIN_CHARS}
           </p>
         </div>
@@ -199,7 +216,8 @@ export function GateSubmissionForm({
       <button
         onClick={handleSubmit}
         disabled={isLoading}
-        className="w-full py-3 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-3 rounded-xl font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+        style={{ backgroundColor: 'var(--color-accent, #6366f1)' }}
       >
         {isLoading ? 'Assessing...' : path === 'ai' ? 'Submit for AI Assessment' : 'Submit Self-Report'}
       </button>

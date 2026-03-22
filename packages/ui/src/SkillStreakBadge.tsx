@@ -11,12 +11,16 @@ export function SkillStreakBadge({ current, longest }: SkillStreakBadgeProps) {
   return (
     <div
       data-testid="streak-badge"
-      className="flex items-center gap-1 bg-orange-500/20 border border-orange-500/40 rounded-full px-3 py-1"
+      className="flex items-center gap-1 rounded-full px-3 py-1"
+      style={{
+        backgroundColor: 'var(--color-accent-muted, rgba(99, 102, 241, 0.2))',
+        border: '1px solid var(--color-accent-muted, rgba(99, 102, 241, 0.4))',
+      }}
     >
       <span role="img" aria-label="streak fire">🔥</span>
-      <span className="font-semibold text-orange-400 text-sm">{current}</span>
+      <span className="font-semibold text-sm" style={{ color: 'var(--color-accent, #6366f1)' }}>{current}</span>
       {longest > current && (
-        <span className="text-xs text-orange-300 ml-1">best: {longest}</span>
+        <span className="text-xs ml-1" style={{ color: 'var(--color-accent, #6366f1)', opacity: 0.8 }}>best: {longest}</span>
       )}
     </div>
   )

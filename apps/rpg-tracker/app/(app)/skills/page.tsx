@@ -77,10 +77,10 @@ export default function SkillsPage() {
     return sortSkills(result, sortBy)
   }, [skills, sortBy, tierFilter])
 
-  if (isLoading) return <div className="p-8 text-gray-400">Loading...</div>
+  if (isLoading) return <div className="p-8" style={{ color: 'var(--color-text-muted)' }}>Loading...</div>
 
   return (
-    <div className="max-w-2xl mx-auto p-4 md:p-8">
+    <div className="p-4 md:p-8">
       <div className="flex items-center justify-between mb-6">
         <h1
           className="text-2xl font-bold"
@@ -201,7 +201,7 @@ export default function SkillsPage() {
               No skills match this filter.
             </p>
           ) : (
-            <div className="space-y-3">
+            <div data-testid="skills-grid" className="grid grid-cols-1 md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
               {filteredAndSorted.map((skill) => (
                 <SkillCard
                   key={skill.id}
