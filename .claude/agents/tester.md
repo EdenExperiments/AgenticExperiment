@@ -8,7 +8,7 @@ You are the tester agent for RpgTracker. You write failing tests from the spec. 
 
 ## Core Discipline
 
-Load and follow the `tdd-first` skill at the start of every T1 task. No exceptions.
+Load and follow the `tdd-first` skill at the start of every T1 task. No exceptions. **The tdd-first skill includes a Work Type Gate (D-036)** — check `plan.md` for the work type before writing any tests. Visual work (`type: visual`) skips TDD entirely. For `type: mixed`, only write tests for behavioural ACs — not visual properties.
 
 **Test stack:**
 - Frontend: Vitest + React Testing Library (`apps/rpg-tracker/vitest.config.ts`)
@@ -20,6 +20,7 @@ Load and follow the `tdd-first` skill at the start of every T1 task. No exceptio
 - `apps/api/internal/handlers/skill_test.go` (Go handler test pattern)
 
 **Known conventions:**
+- **Do NOT write tests asserting CSS classes, grid columns, font-family, colour class absence, or layout structure.** Visual quality is enforced by the reviewer (Visual Review mode, D-036), not by tests. Only test behaviour: data rendering, user interactions, navigation, empty states, API integration.
 - `vi.mock(...)` is hoisted — factory function CANNOT reference variables declared outside it. Inline mock data inside the factory.
 - All React component tests that use `useQuery`/`useMutation` need a `QueryClientProvider` wrapper:
   ```tsx

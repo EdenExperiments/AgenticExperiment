@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-03-19 (Phase 2 complete: F-004–F-009 all done; real-dashboard and skill-polish features shipped; 78 tests green. Prior: Phase 1 complete 2026-03-16: F-001, F-002, F-003 done.)
+Last updated: 2026-03-23 (added Release 2+ features F-023–F-031 from design exploration; updated test count to 170). Prior: 2026-03-19 Phase 2 complete.
 
 Status values:
 
@@ -47,6 +47,20 @@ Status values:
 | F-020 | Cross-app XP integration | Cross-app | deferred | unassigned | LifeQuest and NutriLog event models | Which health events should award XP? | Post-MVP integration. |
 | F-021 | PWA install and push notifications | Platform | deferred | ux-agent | Shared shell; browser support | None | D-006: mobile usability is required in release 1, but PWA install and push notifications are deferred. |
 | F-022 | Data export | Platform | deferred | unassigned | Final schema | Export format priority unclear | Add after schema stabilises. |
+
+### Release 2+ Features (from design exploration 2026-03-23)
+
+| ID | Feature | Area | Status | Owner | Dependencies | Open Questions | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| F-023 | Three-theme system (Minimal, Retro, Modern) | Platform | deferred | unassigned | Style guides; page guides; three-layer token architecture | Theme-specific component variant list; which components need L3 variants vs CSS-only? | Three switchable themes. Same features, different visual identity. See product-requirements.md Three-Theme System section. |
+| F-024 | Focus timer / pomodoro | LifeQuest | deferred | unassigned | Skill system | Timer → XP conversion rate; session history schema | Timed practice sessions tied to skill XP. Visible in all three theme designs. |
+| F-025 | Skill trees | LifeQuest | deferred | unassigned | Meta-skills (F-011); skill relationships model | Skill relationship types; tree vs graph vs linear paths? | Visual progression paths showing skill relationships and specialisation. |
+| F-026 | Social features (activity stream, party, leaderboard) | Social | deferred | unassigned | Character system; privacy model | Privacy defaults; opt-in vs opt-out; what's visible to others? | Activity stream, party system, global tier rankings. D-008 defers social from release 1. |
+| F-027 | Intel / knowledge base | LifeQuest | deferred | unassigned | Skill system; content curation pipeline | Content sourcing; expert validation process; how to keep current? | Curated learning resources per skill. Expert-informed guidance, book recommendations. |
+| F-028 | Character avatar / visual identity | LifeQuest | deferred | unassigned | Tier system; theme system | Avatar customisation scope; generated vs user-uploaded? | Visual representation of progress. Pixel art in retro theme, sleek avatar in modern. |
+| F-029 | Mastery system (sub-skills, technical arsenal) | LifeQuest | deferred | unassigned | F-011 meta-skills | Sub-skill granularity; how deep? | Deep-dive skill breakdown visible in modern theme design. |
+| F-030 | Location-aware guidance | Platform | deferred | unassigned | Skill system; geolocation API; venue data source | Data source for local classes/centres; privacy implications | E.g. "snow sports" → nearest snow centre. Part of long-term guidance platform vision. |
+| F-031 | Narrative layer | LifeQuest | deferred | unassigned | Character system; theme system (retro) | How much narrative varies by theme? All themes or retro-only? | RPG story framing. Wizard onboarding dialogue, boss battle framing, .EXE naming. Strongest in retro theme. |
 
 ---
 
@@ -111,8 +125,8 @@ No release-1 feature is in `needs-clarification`. No release-1 feature is in `re
 | Gate section replaces XP bar (D-021); same vertical position, above fold | D-021, ux-spec 6.2 | TASK-213 AC |
 | first_notified_at IS NULL check for first-hit gate modal | architecture.md, ux-spec 6.3 | TASK-213 AC |
 | XP write = xp_events insert + skills.current_xp + skills.current_level in one transaction | R-003, architecture.md | TASK-209 AC |
-| HTMX double-submission guard: hx-disabled-elt + 1-second server-side dedup | architecture.md | TASK-210 AC |
-| EffectiveLevel computed in Go handler, not template | R-004, architecture.md | TASK-202 AC, TASK-211 AC, TASK-213 AC |
+| Double-submission guard: disabled button state + 1-second server-side dedup | architecture.md | TASK-210 AC |
+| EffectiveLevel computed in Go handler, not frontend | R-004, architecture.md | TASK-202 AC, TASK-211 AC, TASK-213 AC |
 | Email/password auth only; no OAuth UI | D-012 | TASK-110 AC |
 | Plaintext Claude key never in HTML, cookies, logs, or DB | D-015, D-009 | TASK-112 AC |
 | Supabase Auth trigger created manually (not in migration files) | architecture.md 4.1.1 | TASK-106 runbook |
@@ -127,9 +141,12 @@ No release-1 feature is in `needs-clarification`. No release-1 feature is in `re
 | `golang-migrate/migrate` | Schema migration management | Plain SQL up/down files; runs at app startup |
 | Supabase JWKS endpoint | JWT validation in Go middleware | Must be cached with 1h TTL; see R-001 |
 | Go stdlib `crypto/aes`, `crypto/cipher` | AES-256-GCM encryption | No external dependency; see R-002 for nonce discipline |
-| `github.com/a-h/templ` | HTML templating | Required; no other template engine |
-| HTMX (CDN or vendored) | Client-side interaction | No JavaScript frameworks |
-| Tailwind CSS | Styling | Tier color CSS variables defined in TASK-103 |
+| Next.js 15 | React framework with App Router | BFF proxy via Route Handlers |
+| React 19 | UI framework | Client components with `'use client'` directive |
+| TanStack Query v5 | Server state management | `useQuery`, `useMutation`, cache invalidation |
+| Tailwind CSS v4 | Styling | Design tokens via CSS custom properties; `@source` for shared packages |
+| Vitest + React Testing Library | Frontend testing | `vi.mock` hoisted — factories cannot reference outer variables |
+| `@supabase/ssr` | Auth cookie handling | Server-side session via BFF pattern |
 
 ### Nothing in release 1 is in `needs-clarification`
 

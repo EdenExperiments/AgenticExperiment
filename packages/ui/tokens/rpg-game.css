@@ -17,6 +17,10 @@
   --color-accent: #d4a853;
   --color-accent-hover: #e8bb66;
   --color-accent-muted: rgba(212, 168, 83, 0.15);
+  --color-accent-dark: #b8860b;
+  --color-accent-light: #f0c060;
+  --color-accent-glow: rgba(212, 168, 83, 0.06);
+  --color-accent-edge: rgba(212, 168, 83, 0.08);
 
   /* Border */
   --color-border: rgba(212, 168, 83, 0.2);

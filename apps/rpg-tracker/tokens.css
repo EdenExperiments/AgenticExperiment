@@ -2,6 +2,7 @@
 @import '@rpgtracker/ui/tokens/rpg-game.css';
 @import '@rpgtracker/ui/tokens/rpg-clean.css';
 @import "tailwindcss";
+@import '@rpgtracker/ui/tokens/components.css';
 
 /* Tell Tailwind v4 to scan shared UI package for utility classes */
 @source "../../packages/ui/src";

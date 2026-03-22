@@ -294,7 +294,7 @@ CREATE INDEX idx_xp_events_logged_at ON public.xp_events(skill_id, logged_at DES
 
 **Invariant:** `skills.current_xp` must always equal `SUM(xp_events.xp_delta) WHERE skill_id = ?`. The application must update both in a single transaction.
 
-**Idempotency / double-submission guard (Phase 2):** The Phase 2 XP log handler must implement idempotency protection against double-POST on slow connections (common in HTMX apps). Recommended approach: use HTMX `hx-disabled-elt` on the submit button to disable it on the first click, plus a server-side 1-second dedup window per `(skill_id, user_id)` — reject a new `xp_events` insert if a row with the same `(skill_id, user_id)` was inserted within the last second.
+**Idempotency / double-submission guard (Phase 2):** The Phase 2 XP log handler must implement idempotency protection against double-POST on slow connections. Recommended approach: disable the submit button on click (React state), plus a server-side 1-second dedup window per `(skill_id, user_id)` — reject a new `xp_events` insert if a row with the same `(skill_id, user_id)` was inserted within the last second.
 
 ---
 
@@ -607,7 +607,7 @@ This trigger fires after every `INSERT` on `auth.users` and inserts the correspo
    - Stream: true (for UI streaming)
 4. Application calls Anthropic API with Authorization: Bearer <plaintext_key>.
 5. Response is streamed back to the Go handler.
-6. Go handler streams HTMX-compatible fragments to the client via SSE or chunked response.
+6. Go handler streams response to the Next.js BFF proxy, which forwards to the React client via SSE or chunked response.
 7. Plaintext key reference is discarded at end of function scope (not stored, not logged).
 ```
 
@@ -711,7 +711,7 @@ AES-256-GCM is catastrophically broken if a nonce is reused with the same key. M
 `skills.current_xp` is a denormalised aggregate of `xp_events`. If a write to `skills` fails after a write to `xp_events`, they drift. Mitigation: always update both in a single `BEGIN` / `COMMIT` transaction. Add a reconciliation function that can be run as a maintenance query: `UPDATE skills SET current_xp = (SELECT COALESCE(SUM(xp_delta), 0) FROM xp_events WHERE skill_id = skills.id)`.
 
 **Risk R-004: Level gate logic bypass**
-If the level-cap logic is implemented only in the UI layer (template), a client that constructs direct API requests could observe or act on an uncapped level. Mitigation: the effective level computation must live in the Go handler / service layer, not in the Templ template. Templates receive the already-capped level value.
+If the level-cap logic is implemented only in the UI layer (template), a client that constructs direct API requests could observe or act on an uncapped level. Mitigation: the effective level computation must live in the Go handler / service layer, not in the frontend. The API response includes the already-capped level value.
 
 ---
 

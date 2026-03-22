@@ -25,7 +25,7 @@ Supabase session tokens live server-side (via `@supabase/ssr` cookie handling). 
 
 `packages/ui/tokens/base.css` — spacing, radii, typography scale, animation durations. Never overridden per theme.
 
-Theme files override colour, font, and motion:
+### Current Theme Files (Release 1)
 
 | Theme | App | Identity | `--motion-scale` |
 |-------|-----|----------|-----------------|
@@ -36,15 +36,70 @@ Theme files override colour, font, and motion:
 
 Theme applied via `data-theme` attribute on `<html>`. Set server-side from cookie before hydration — no flash of wrong theme. `ThemeProvider` in `packages/ui` handles the wiring.
 
-`--motion-scale` is the animation budget hook. Framer Motion variants and `useMotionPreference` hook in `packages/ui/src` read this CSS variable to gate animations per theme.
+`--motion-scale` is the animation budget hook. `useMotionPreference` hook in `packages/ui/src` reads this CSS variable to gate animations per theme.
+
+### Three-Theme System (designed — F-023)
+
+The current two-theme system (`rpg-game` / `rpg-clean`) will be replaced by three user-selectable themes that represent fundamentally different visual identities:
+
+| Theme | Identity | Key Visual DNA |
+|-------|----------|---------------|
+| **Minimal** | Clean, data-forward, productivity tool | Light backgrounds, blue accent, flat cards, bold typography, no atmospheric effects |
+| **Retro** | Full RPG immersion, cyberpunk/arcade | Dark backgrounds, amber/gold + purple, pixel fonts, character portraits, scanline textures, narrative framing |
+| **Modern** | Sci-fi command centre | Dark navy, cyan + magenta, glass morphism, neon accents, atmospheric glows |
+
+All three themes surface the same features — differences are visual treatment and UX flavour only.
+
+**Three-layer architecture:**
+1. **CSS Custom Properties** (~60%) — colours, fonts, radii, shadows, motion budgets. `data-theme` swap, zero JS.
+2. **Theme-scoped component CSS** (~25%) — `[data-theme="retro"] .card { ... }` for glass, scanlines, glows. Pure CSS.
+3. **Component variants** (~15%) — structural differences only (pixel art, name formatting, timer display). Variant registry pattern with `dynamic()` code splitting.
+
+Style guides (`Documentation/style-guide/`) and page guides (`Documentation/page-guides/`) govern visual implementation. These are now written and ready for use:
+- `style-guide/shared.md` — system-wide rules (tokens, typography, motion, density, accessibility)
+- `style-guide/minimal.md`, `retro.md`, `modern.md` — per-theme specifics
+- `page-guides/` — one file per page with mood, hierarchy, theme variations, and element status (EXISTING/NEW/MODIFIED)
+
+Source material: `Design_Discussion.md` (finalised design direction) and `design-inspiration/` (reference images). See product-requirements.md for full feature details.
 
 ---
 
 ## App Identities
 
-- **LifeQuest** (`apps/rpg-tracker`): RPG-style skill/habit tracker. XP, levels, tiers, blocker gates, AI skill calibration. Fully implemented (Phase 1 + Phase 2 + polish).
+- **LifeQuest** (`apps/rpg-tracker`): RPG-style skill/habit tracker. XP, levels, tiers, blocker gates, AI skill calibration. Logic and API fully implemented (Phase 1 + Phase 2). Responsive layout shipped. Three-theme visual design system is designed (style guides and page guides written) — implementation pending. Current UI uses old two-theme system (`rpg-game`/`rpg-clean`) and is structurally correct but not at the target visual quality bar.
 - **NutriLog** (`apps/nutri-log`): Nutrition and weight tracking. Scaffolded only (auth redirect + proxy). Theme `nutri-saas`.
 - **MindTrack** (`apps/mental-health`): Mental wellness tracking. Scaffolded only (auth redirect + proxy). Theme `mental-calm`.
+
+---
+
+## Hub Architecture
+
+The RPG Tracker (LifeQuest) is the central hub for the suite. Other apps feed progress into the character/skill system:
+
+- NutriLog → nutrition logging counts toward health-related skills and character progression
+- MindTrack → mental health and wellbeing progress feeds into the system
+- Future apps → any app added to the suite integrates the same way
+
+This is not a "dashboard that aggregates data from other apps" — it's a unified progression system where every activity across the suite contributes to levelling up as a person.
+
+---
+
+## Development Pipeline Split
+
+The agentic development pipeline is split into two paths based on work type:
+
+| Path | Flow | Gate |
+|------|------|------|
+| **Logic/API** | spec → TDD (tester agent) → implement → code review | Tests must pass |
+| **UI/Visual** | style guide → page brief → implement → visual review | Reviewer checks token usage, theme compatibility, accessibility |
+
+**Why:** TDD verifies *behaviour* ("when I click submit, the XP updates") but cannot verify *aesthetics* ("does this page create atmosphere?"). Applying TDD universally to visual work produces meaningless assertions about CSS classes, which are brittle and constrain creative freedom.
+
+**Tests still required for:** business logic, API contracts, data flow (query hooks, cache), component *behaviour* (form submission, modals, validation).
+
+**Tests NOT required for:** visual composition, layout assertions, theme-dependent rendering, atmospheric effects.
+
+The reviewer agent handles visual review: checks design token usage (no hardcoded values), three-layer architecture compliance, accessibility (focus states, contrast), and that all three themes render correctly.
 
 ---
 
