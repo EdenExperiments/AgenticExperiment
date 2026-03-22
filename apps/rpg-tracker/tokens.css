@@ -4,16 +4,18 @@
 @import '@rpgtracker/ui/tokens/modern.css';
 @import "tailwindcss";
 @import '@rpgtracker/ui/tokens/components.css';
+@import '@rpgtracker/ui/tokens/pages.css';
 
 /* Tell Tailwind v4 to scan shared UI package for utility classes */
 @source "../../packages/ui/src";
 
-/* Ensure form inputs are always readable in all themes / dark mode */
+/* Ensure form inputs are always readable in all themes */
 @layer base {
   input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]),
   textarea,
   select {
-    @apply text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400;
+    color: var(--color-text);
+    background-color: var(--color-surface);
   }
 }
 

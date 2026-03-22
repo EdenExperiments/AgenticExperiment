@@ -1,0 +1,1000 @@
+/* packages/ui/tokens/pages.css */
+/* Layer 2 theme-scoped CSS — page-specific visual treatments.
+   All rules are scoped to [data-theme="<name>"].
+   Do NOT duplicate Layer 1 token values — reference var(--color-*) instead.
+   ------------------------------------------------------------------ */
+
+
+/* ================================================================== */
+/* GATE SECTION (.gate-section)                                        */
+/* skill-detail.md — Gate Mood per theme                               */
+/* ================================================================== */
+
+/* Minimal — clean motivating challenge card */
+[data-theme="minimal"] .gate-section {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  padding: 1rem 1.25rem;
+}
+
+[data-theme="minimal"] .gate-section__title {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+[data-theme="minimal"] .gate-section__progress-bar {
+  background-color: var(--color-accent-muted);
+  border-radius: var(--radius-sm);
+}
+
+[data-theme="minimal"] .gate-section__progress-bar-fill {
+  background-color: var(--color-accent);
+  border-radius: var(--radius-sm);
+}
+
+/* Retro — ominous dungeon door */
+[data-theme="retro"] .gate-section {
+  border: 2px solid var(--color-secondary);
+  box-shadow: 0 0 0 1px var(--color-secondary), inset 0 0 0 1px rgba(107, 33, 168, 0.3);
+  border-radius: var(--radius-md);
+  background-color: rgba(10, 10, 18, 0.85);
+  padding: 1.25rem 1.5rem;
+}
+
+[data-theme="retro"] .gate-section__title {
+  color: var(--color-secondary);
+  text-shadow: 0 0 8px rgba(107, 33, 168, 0.5);
+}
+
+[data-theme="retro"] .gate-section__progress-bar {
+  background-color: rgba(107, 33, 168, 0.2);
+  border-radius: var(--radius-sm);
+}
+
+[data-theme="retro"] .gate-section__progress-bar-fill {
+  background: linear-gradient(90deg, #6b21a8, #9333ea);
+  border-radius: var(--radius-sm);
+}
+
+/* Modern — high-tech security checkpoint */
+[data-theme="modern"] .gate-section {
+  border: 1px solid var(--color-secondary);
+  border-radius: var(--radius-md);
+  background-color: rgba(15, 23, 42, 0.7);
+  padding: 1rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="modern"] .gate-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(224, 64, 251, 0.04) 0%,
+    transparent 60%
+  );
+  pointer-events: none;
+}
+
+[data-theme="modern"] .gate-section__title {
+  color: var(--color-secondary);
+  text-shadow: 0 0 10px rgba(224, 64, 251, 0.4);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+[data-theme="modern"] .gate-section__progress-bar {
+  background-color: rgba(224, 64, 251, 0.12);
+  border-radius: var(--radius-sm);
+}
+
+[data-theme="modern"] .gate-section__progress-bar-fill {
+  background: linear-gradient(90deg, #9333ea, #e040fb);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 8px rgba(224, 64, 251, 0.4);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-theme="modern"] .gate-section {
+    animation: gate-border-pulse 3s ease-in-out infinite;
+  }
+}
+
+@keyframes gate-border-pulse {
+  0%, 100% { border-color: var(--color-secondary); }
+  50%       { border-color: rgba(224, 64, 251, 0.5); }
+}
+
+
+/* ================================================================== */
+/* ACTIVITY HISTORY (.activity-history)                                */
+/* skill-detail.md — Activity History per theme                        */
+/* ================================================================== */
+
+/* Minimal — simple chronological list, no decoration */
+[data-theme="minimal"] .activity-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+[data-theme="minimal"] .activity-history__date-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.5rem 0 0.25rem;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 0.25rem;
+}
+
+[data-theme="minimal"] .activity-history__entry {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.375rem 0;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.875rem;
+}
+
+[data-theme="minimal"] .activity-history__timestamp {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+}
+
+/* Retro — RPG journal / visual log */
+[data-theme="retro"] .activity-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+[data-theme="retro"] .activity-history__date-header {
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 0.75rem 0 0.25rem;
+}
+
+[data-theme="retro"] .activity-history__entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  background-color: rgba(42, 42, 64, 0.5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  font-size: 0.875rem;
+}
+
+[data-theme="retro"] .activity-history__entry-icon {
+  flex-shrink: 0;
+  color: var(--color-accent);
+  font-size: 1rem;
+}
+
+[data-theme="retro"] .activity-history__timestamp {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  display: block;
+  margin-top: 0.125rem;
+}
+
+/* Modern — timeline with glowing vertical line and animated nodes */
+[data-theme="modern"] .activity-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+[data-theme="modern"] .activity-history::before {
+  content: '';
+  position: absolute;
+  left: 0.4375rem;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-accent),
+    rgba(0, 212, 255, 0.15)
+  );
+  box-shadow: 0 0 6px rgba(0, 212, 255, 0.3);
+}
+
+[data-theme="modern"] .activity-history__date-header {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--color-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0.75rem 0 0.25rem;
+  margin-left: -1.5rem;
+  padding-left: 2rem;
+}
+
+[data-theme="modern"] .activity-history__entry {
+  position: relative;
+  padding: 0.5rem 0.75rem 0.5rem 0.5rem;
+  color: var(--color-text);
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+[data-theme="modern"] .activity-history__entry::before {
+  content: '';
+  position: absolute;
+  left: -1.125rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background-color: var(--color-accent);
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.6);
+}
+
+[data-theme="modern"] .activity-history__timestamp {
+  color: var(--color-muted);
+  font-size: 0.6875rem;
+  display: block;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-theme="modern"] .activity-history__entry {
+    animation: entry-fade-in calc(300ms * var(--motion-scale)) ease-out both;
+  }
+
+  [data-theme="modern"] .activity-history__entry::before {
+    animation: node-pulse calc(2s * var(--motion-scale)) ease-in-out 1;
+  }
+}
+
+@keyframes entry-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes node-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 212, 255, 0.6); }
+  50%       { box-shadow: 0 0 16px rgba(0, 212, 255, 1); }
+}
+
+
+/* ================================================================== */
+/* STEP INDICATOR (.step-indicator)                                    */
+/* skill-create.md — narrative-driven stepper                         */
+/* ================================================================== */
+
+/* Minimal — clean stepper */
+[data-theme="minimal"] .step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+[data-theme="minimal"] .step-indicator__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+[data-theme="minimal"] .step-indicator__step::after {
+  content: '';
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  right: -50%;
+  height: 2px;
+  background-color: var(--color-border);
+  z-index: 0;
+}
+
+[data-theme="minimal"] .step-indicator__step:last-child::after {
+  display: none;
+}
+
+[data-theme="minimal"] .step-indicator__dot {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background-color: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  transition: border-color calc(150ms * var(--motion-scale)) ease,
+              background-color calc(150ms * var(--motion-scale)) ease;
+}
+
+[data-theme="minimal"] .step-indicator__step--active .step-indicator__dot {
+  border-color: var(--color-accent);
+  background-color: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
+[data-theme="minimal"] .step-indicator__step--complete .step-indicator__dot {
+  border-color: var(--color-success);
+  background-color: var(--color-success);
+  color: var(--color-text-inverse);
+}
+
+[data-theme="minimal"] .step-indicator__step--complete::after {
+  background-color: var(--color-success);
+}
+
+[data-theme="minimal"] .step-indicator__label {
+  font-size: 0.6875rem;
+  color: var(--color-muted);
+  margin-top: 0.375rem;
+  text-align: center;
+}
+
+[data-theme="minimal"] .step-indicator__step--active .step-indicator__label {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* Retro — narrative chapter indicator */
+[data-theme="retro"] .step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+[data-theme="retro"] .step-indicator__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+[data-theme="retro"] .step-indicator__step::after {
+  content: '';
+  position: absolute;
+  top: 1.125rem;
+  left: 50%;
+  right: -50%;
+  height: 3px;
+  background-color: var(--color-border);
+  z-index: 0;
+}
+
+[data-theme="retro"] .step-indicator__step:last-child::after {
+  display: none;
+}
+
+[data-theme="retro"] .step-indicator__dot {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-border);
+  background-color: var(--color-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  color: var(--color-muted);
+  transition: border-color calc(150ms * var(--motion-scale)) ease;
+}
+
+[data-theme="retro"] .step-indicator__step--active .step-indicator__dot {
+  border-color: var(--color-accent);
+  background-color: rgba(212, 168, 83, 0.12);
+  color: var(--color-accent);
+  box-shadow: 0 0 8px rgba(212, 168, 83, 0.3);
+}
+
+[data-theme="retro"] .step-indicator__step--complete .step-indicator__dot {
+  border-color: var(--color-success);
+  background-color: rgba(39, 174, 96, 0.12);
+  color: var(--color-success);
+}
+
+[data-theme="retro"] .step-indicator__step--complete::after {
+  background-color: var(--color-success);
+}
+
+[data-theme="retro"] .step-indicator__label {
+  font-size: 0.625rem;
+  color: var(--color-muted);
+  margin-top: 0.5rem;
+  text-align: center;
+  font-family: var(--font-body);
+}
+
+[data-theme="retro"] .step-indicator__step--active .step-indicator__label {
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+/* Modern — progress pipeline */
+[data-theme="modern"] .step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+[data-theme="modern"] .step-indicator__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+[data-theme="modern"] .step-indicator__step::after {
+  content: '';
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  right: -50%;
+  height: 1px;
+  background-color: var(--color-border);
+  z-index: 0;
+}
+
+[data-theme="modern"] .step-indicator__step:last-child::after {
+  display: none;
+}
+
+[data-theme="modern"] .step-indicator__dot {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background-color: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  transition: border-color calc(200ms * var(--motion-scale)) ease,
+              box-shadow calc(200ms * var(--motion-scale)) ease;
+}
+
+[data-theme="modern"] .step-indicator__step--active .step-indicator__dot {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.4);
+}
+
+[data-theme="modern"] .step-indicator__step--complete .step-indicator__dot {
+  border-color: var(--color-success);
+  color: var(--color-success);
+  box-shadow: 0 0 8px rgba(0, 255, 148, 0.3);
+}
+
+[data-theme="modern"] .step-indicator__step--complete::after {
+  background-color: var(--color-accent);
+  box-shadow: 0 0 4px rgba(0, 212, 255, 0.4);
+}
+
+[data-theme="modern"] .step-indicator__label {
+  font-size: 0.6875rem;
+  color: var(--color-muted);
+  margin-top: 0.375rem;
+  text-align: center;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+[data-theme="modern"] .step-indicator__step--active .step-indicator__label {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+
+/* ================================================================== */
+/* NAVIGATION                                                           */
+/* shared.md — Sidebar (desktop) / bottom tabs (mobile)               */
+/* ================================================================== */
+
+/* Minimal — subtle sidebar, clean bottom tabs */
+[data-theme="minimal"] .sidebar {
+  background-color: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+}
+
+[data-theme="minimal"] .sidebar__item {
+  border-radius: var(--radius-sm);
+  transition: background-color calc(120ms * var(--motion-scale)) ease;
+}
+
+[data-theme="minimal"] .sidebar__item:hover {
+  background-color: var(--color-accent-muted);
+}
+
+[data-theme="minimal"] .sidebar__item--active {
+  background-color: var(--color-accent-muted);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+[data-theme="minimal"] .sidebar__item--active .sidebar__item-icon {
+  color: var(--color-accent);
+}
+
+[data-theme="minimal"] .bottom-tabs {
+  background-color: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+}
+
+[data-theme="minimal"] .bottom-tabs__item--active {
+  color: var(--color-accent);
+}
+
+[data-theme="minimal"] .bottom-tabs__item--active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2rem;
+  height: 2px;
+  background-color: var(--color-accent);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+}
+
+/* Retro — game menu sidebar, chunky bottom tabs */
+[data-theme="retro"] .sidebar {
+  background-color: var(--color-surface);
+  border-right: 2px solid var(--color-border);
+}
+
+[data-theme="retro"] .sidebar__item {
+  border-radius: var(--radius-md);
+  transition: background-color calc(150ms * var(--motion-scale)) ease,
+              color calc(150ms * var(--motion-scale)) ease;
+}
+
+[data-theme="retro"] .sidebar__item:hover {
+  background-color: rgba(212, 168, 83, 0.08);
+  color: var(--color-accent);
+}
+
+[data-theme="retro"] .sidebar__item--active {
+  background-color: rgba(212, 168, 83, 0.12);
+  color: var(--color-accent);
+  border-left: 3px solid var(--color-accent);
+}
+
+[data-theme="retro"] .sidebar__item--active .sidebar__item-icon {
+  color: var(--color-accent);
+}
+
+[data-theme="retro"] .bottom-tabs {
+  background-color: var(--color-bg);
+  border-top: 2px solid var(--color-border);
+}
+
+[data-theme="retro"] .bottom-tabs__item--active {
+  color: var(--color-accent);
+}
+
+[data-theme="retro"] .bottom-tabs__item--active::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2.5rem;
+  height: 3px;
+  background-color: var(--color-accent);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+/* Modern — glass-effect HUD navigation */
+[data-theme="modern"] .sidebar__item {
+  border-radius: var(--radius-md);
+  transition: background-color calc(200ms * var(--motion-scale)) ease,
+              box-shadow calc(200ms * var(--motion-scale)) ease;
+}
+
+[data-theme="modern"] .sidebar__item:hover {
+  background-color: var(--color-accent-muted);
+}
+
+[data-theme="modern"] .sidebar__item--active {
+  background-color: var(--color-accent-muted);
+  color: var(--color-accent);
+  border-left: 2px solid var(--color-accent);
+  box-shadow: inset 0 0 8px rgba(0, 212, 255, 0.08);
+}
+
+[data-theme="modern"] .sidebar__item--active .sidebar__item-icon {
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 4px rgba(0, 212, 255, 0.5));
+}
+
+[data-theme="modern"] .bottom-tabs {
+  border-top: 1px solid var(--color-border);
+}
+
+[data-theme="modern"] .bottom-tabs__item--active {
+  color: var(--color-accent);
+}
+
+[data-theme="modern"] .bottom-tabs__item--active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2rem;
+  height: 2px;
+  background-color: var(--color-accent);
+  box-shadow: 0 0 6px rgba(0, 212, 255, 0.6);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+
+
+/* ================================================================== */
+/* AUTH PAGE BACKGROUNDS                                               */
+/* auth.md — atmospheric depth for dark themes on login/register      */
+/* ================================================================== */
+
+/* Minimal — clean centred form on light background, no atmosphere */
+[data-theme="minimal"] .auth-page {
+  background-color: var(--color-bg);
+}
+
+[data-theme="minimal"] .auth-page__card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* Retro — dark atmospheric background continuing from landing */
+[data-theme="retro"] .auth-page {
+  background-color: var(--color-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="retro"] .auth-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 30%,
+    rgba(107, 33, 168, 0.08) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+[data-theme="retro"] .auth-page__card {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(212, 168, 83, 0.1);
+}
+
+/* Modern — dark navy with atmospheric glow behind form */
+[data-theme="modern"] .auth-page {
+  background: linear-gradient(
+    135deg,
+    var(--color-bg) 0%,
+    #0d1526 50%,
+    #0a1020 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="modern"] .auth-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 60% 50% at 50% 35%,
+    rgba(0, 212, 255, 0.05) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+[data-theme="modern"] .auth-page__card {
+  background-color: rgba(15, 23, 42, 0.7);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  [data-theme="modern"] .auth-page__card {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+
+/* ================================================================== */
+/* STAT CARD MODERN GLOW (.stat-card)                                  */
+/* dashboard.md — holographic HUD readouts in Modern                  */
+/* ================================================================== */
+
+[data-theme="modern"] .stat-card {
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="modern"] .stat-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 0%,
+    rgba(0, 212, 255, 0.06) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+[data-theme="modern"] .stat-card__value {
+  text-shadow: 0 0 12px rgba(0, 212, 255, 0.3);
+  color: var(--color-accent);
+}
+
+@media (hover: hover) {
+  [data-theme="modern"] .stat-card:hover {
+    border-color: var(--color-border-strong);
+    box-shadow: 0 0 16px rgba(0, 212, 255, 0.1);
+    transition: border-color calc(200ms * var(--motion-scale)) ease,
+                box-shadow calc(200ms * var(--motion-scale)) ease;
+  }
+}
+
+
+/* ================================================================== */
+/* NUTRILOG PLACEHOLDER (.nutri-placeholder)                           */
+/* nutri-placeholder.md — themed teaser card                          */
+/* ================================================================== */
+
+/* Minimal — professional coming soon */
+[data-theme="minimal"] .nutri-placeholder {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  text-align: center;
+}
+
+[data-theme="minimal"] .nutri-placeholder__title {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+[data-theme="minimal"] .nutri-placeholder__description {
+  color: var(--color-muted);
+}
+
+/* Retro — upcoming expansion chapter */
+[data-theme="retro"] .nutri-placeholder {
+  background-color: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="retro"] .nutri-placeholder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 70% 50% at 50% 0%,
+    rgba(212, 168, 83, 0.06) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+[data-theme="retro"] .nutri-placeholder__title {
+  color: var(--color-accent);
+  text-shadow: 0 0 8px rgba(212, 168, 83, 0.3);
+}
+
+[data-theme="retro"] .nutri-placeholder__description {
+  color: var(--color-muted);
+}
+
+/* Modern — system module pending install */
+[data-theme="modern"] .nutri-placeholder {
+  background-color: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="modern"] .nutri-placeholder::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 70% 50% at 50% 0%,
+    rgba(0, 212, 255, 0.05) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  [data-theme="modern"] .nutri-placeholder {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+[data-theme="modern"] .nutri-placeholder__title {
+  color: var(--color-accent);
+  text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+[data-theme="modern"] .nutri-placeholder__description {
+  color: var(--color-muted);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-theme="modern"] .nutri-placeholder {
+    animation: module-pulse 4s ease-in-out infinite;
+  }
+}
+
+@keyframes module-pulse {
+  0%, 100% { border-color: var(--color-border); }
+  50%       { border-color: rgba(0, 212, 255, 0.25); }
+}
+
+
+/* ================================================================== */
+/* FORM INPUT FOCUS STATES                                             */
+/* Per-theme focus treatments for inputs, textareas, selects          */
+/* ================================================================== */
+
+/* Minimal — clean accent outline */
+[data-theme="minimal"] input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]):focus,
+[data-theme="minimal"] textarea:focus,
+[data-theme="minimal"] select:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 1px;
+  border-color: var(--color-accent);
+  box-shadow: none;
+}
+
+/* Retro — gold accent glow */
+[data-theme="retro"] input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]):focus,
+[data-theme="retro"] textarea:focus,
+[data-theme="retro"] select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(212, 168, 83, 0.25),
+              0 0 8px rgba(212, 168, 83, 0.15);
+}
+
+/* Modern — cyan expanding glow */
+[data-theme="modern"] input:not([type="submit"]):not([type="button"]):not([type="checkbox"]):not([type="radio"]):focus,
+[data-theme="modern"] textarea:focus,
+[data-theme="modern"] select:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2),
+              0 0 12px rgba(0, 212, 255, 0.12);
+  transition: box-shadow calc(200ms * var(--motion-scale)) ease,
+              border-color calc(200ms * var(--motion-scale)) ease;
+}
+
+
+/* ================================================================== */
+/* SESSION PAGE (.session-page)                                        */
+/* session.md — full-screen timer immersion                           */
+/* ================================================================== */
+
+/* Minimal — meditation-app calm */
+[data-theme="minimal"] .session-page {
+  background-color: var(--color-bg);
+}
+
+[data-theme="minimal"] .session-page__timer {
+  font-family: var(--font-display);
+  color: var(--color-text);
+}
+
+[data-theme="minimal"] .session-page__break-indicator {
+  color: var(--color-break);
+  background-color: rgba(37, 99, 235, 0.08);
+  border-radius: var(--radius-md);
+  padding: 0.25rem 0.75rem;
+}
+
+/* Retro — battle screen training montage */
+[data-theme="retro"] .session-page {
+  background-color: var(--color-bg);
+}
+
+[data-theme="retro"] .session-page__timer {
+  font-family: var(--font-display);
+  color: var(--color-accent);
+  text-shadow: 0 0 12px rgba(212, 168, 83, 0.4);
+}
+
+[data-theme="retro"] .session-page__break-indicator {
+  color: var(--color-break);
+  background-color: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: var(--radius-md);
+  padding: 0.25rem 0.75rem;
+}
+
+/* Modern — mission in progress holographic ring */
+[data-theme="modern"] .session-page {
+  background: linear-gradient(
+    135deg,
+    var(--color-bg) 0%,
+    #0d1526 50%,
+    #0a1020 100%
+  );
+}
+
+[data-theme="modern"] .session-page__timer {
+  font-family: var(--font-display);
+  color: var(--color-accent);
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+}
+
+[data-theme="modern"] .session-page__timer-ring {
+  stroke: var(--color-accent);
+  filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.5));
+}
+
+[data-theme="modern"] .session-page__break-indicator {
+  color: var(--color-break);
+  background-color: rgba(129, 140, 248, 0.1);
+  border: 1px solid rgba(129, 140, 248, 0.3);
+  border-radius: var(--radius-md);
+  padding: 0.25rem 0.75rem;
+  text-shadow: 0 0 8px rgba(129, 140, 248, 0.4);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-theme="modern"] .session-page__timer-glow {
+    animation: timer-ambient-pulse calc(3s * var(--motion-scale)) ease-in-out infinite;
+  }
+}
+
+@keyframes timer-ambient-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.7; }
+}
