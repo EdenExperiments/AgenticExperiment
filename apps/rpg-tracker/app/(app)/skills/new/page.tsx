@@ -7,7 +7,6 @@ import { createSkill, calibrateSkill, getAPIKeyStatus, getPresets, listCategorie
 import {
   PathSelector,
   PresetGallery,
-  ProgressionPreview,
   ArbiterAvatar,
   ArbiterDialogue,
   getTierForLevel,
@@ -378,11 +377,6 @@ export default function SkillCreatePage() {
                 assessment. Lower gates are auto-cleared. Your XP always keeps accruing.
               </p>
             </div>
-          )}
-
-          {/* Progression preview — preset path only (ACV-5, page guide) */}
-          {path === 'preset' && (
-            <ProgressionPreview highlightLevel={draft.startingLevel} />
           )}
 
           {/* Navigation */}
