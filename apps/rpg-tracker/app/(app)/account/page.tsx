@@ -1,15 +1,37 @@
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { getAccount, getAPIKeyStatus } from '@rpgtracker/api-client'
+import { getAccount, getAPIKeyStatus, getAccountStats, uploadAvatar, deleteAvatar } from '@rpgtracker/api-client'
+import { PlayerCard, AvatarCropModal, ThemePickerPreview } from '@rpgtracker/ui'
 import { createBrowserClient } from '@rpgtracker/auth/client'
 
 export default function AccountPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
+  const [showCropModal, setShowCropModal] = useState(false)
+
   const { data: account } = useQuery({ queryKey: ['account'], queryFn: getAccount })
   const { data: keyStatus } = useQuery({ queryKey: ['api-key-status'], queryFn: getAPIKeyStatus })
+  const { data: accountStats } = useQuery({ queryKey: ['account-stats'], queryFn: getAccountStats })
+
+  const uploadAvatarMutation = useMutation({
+    mutationFn: uploadAvatar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['account'] })
+      queryClient.invalidateQueries({ queryKey: ['account-stats'] })
+    },
+  })
+
+  const removeAvatarMutation = useMutation({
+    mutationFn: deleteAvatar,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['account'] })
+      queryClient.invalidateQueries({ queryKey: ['account-stats'] })
+    },
+  })
 
   async function handleSignOut() {
     const supabase = createBrowserClient()
@@ -30,6 +52,20 @@ export default function AccountPage() {
         Account
       </h1>
 
+      <PlayerCard
+        displayName={account?.display_name ?? null}
+        avatarUrl={account?.avatar_url ?? null}
+        stats={accountStats ?? null}
+        onAvatarClick={() => setShowCropModal(true)}
+        onRemoveAvatar={() => removeAvatarMutation.mutate()}
+        onSetDisplayName={() => {
+          document.getElementById('display-name-field')?.focus()
+        }}
+        isRemovingAvatar={removeAvatarMutation.isPending}
+      />
+
+      <ThemePickerPreview />
+
       <div data-testid="settings-grid" className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <section
           className="rounded-xl p-5 space-y-3"
@@ -39,7 +75,11 @@ export default function AccountPage() {
           }}
         >
           <div>
-            <label className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>
+            <label
+              id="display-name-field"
+              className="text-xs uppercase tracking-wider"
+              style={{ color: 'var(--color-muted)' }}
+            >
               Display name
             </label>
             <p className="font-medium" style={{ color: 'var(--color-text)' }}>
@@ -120,6 +160,18 @@ export default function AccountPage() {
           </button>
         </section>
       </div>
+
+      <AvatarCropModal
+        open={showCropModal}
+        onClose={() => setShowCropModal(false)}
+        onUpload={async (blob) => {
+          const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
+          await uploadAvatarMutation.mutateAsync(file)
+          setShowCropModal(false)
+        }}
+        isUploading={uploadAvatarMutation.isPending}
+        error={uploadAvatarMutation.error?.message ?? null}
+      />
     </div>
   )
 }

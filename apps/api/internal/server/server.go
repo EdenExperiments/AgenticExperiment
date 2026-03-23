@@ -23,7 +23,7 @@ type Server struct {
 }
 
 // NewServer creates a new Server wired with a chi router and basic routes.
-func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Handler, db *pgxpool.Pool) *Server {
+func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Handler, db *pgxpool.Pool, storageClient ...handlers.StorageClient) *Server {
 	r := chi.NewRouter()
 	r.Use(panicRecoveryMiddleware) // outermost: catches panics from any downstream middleware
 	r.Use(middleware.Logger)
@@ -78,11 +78,19 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		calibrateHandler := handlers.NewCalibrateHandler(db, []byte(cfg.MasterKey))
 		r.Post("/calibrate", calibrateHandler.HandlePostCalibrate)
 
-		userHandler := handlers.NewUserHandler(db)
+		var userHandler *handlers.UserHandler
+		if len(storageClient) > 0 && storageClient[0] != nil {
+			userHandler = handlers.NewUserHandlerFull(db, storageClient[0], cfg.SupabaseProjectURL)
+		} else {
+			userHandler = handlers.NewUserHandler(db)
+		}
 		r.Get("/account", userHandler.HandleGetAccount)
 		r.Put("/account", userHandler.HandlePostAccount)
 		r.Patch("/account", userHandler.HandlePatchAccount)
 		r.Patch("/account/primary-skill", userHandler.HandlePatchPrimarySkill)
+		r.Post("/account/avatar", userHandler.HandlePostAvatar)
+		r.Delete("/account/avatar", userHandler.HandleDeleteAvatar)
+		r.Get("/account/stats", userHandler.HandleGetAccountStats)
 
 		keyHandler := handlers.NewKeyHandler(db, []byte(cfg.MasterKey))
 		r.Get("/account/api-key", keyHandler.HandleGetAPIKey)

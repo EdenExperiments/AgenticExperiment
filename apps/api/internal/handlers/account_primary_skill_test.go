@@ -46,6 +46,18 @@ func (s *stubPrimarySkillStore) SetPrimarySkill(_ context.Context, userID, skill
 	return &skillID, nil
 }
 
+func (s *stubPrimarySkillStore) SetAvatarURL(_ context.Context, userID uuid.UUID, url string) (*users.User, error) {
+	return &users.User{ID: userID, AvatarURL: &url}, nil
+}
+
+func (s *stubPrimarySkillStore) ClearAvatarURL(_ context.Context, userID uuid.UUID) (*users.User, error) {
+	return &users.User{ID: userID}, nil
+}
+
+func (s *stubPrimarySkillStore) GetAccountStats(_ context.Context, _ uuid.UUID) (*handlers.AccountStats, error) {
+	return &handlers.AccountStats{}, nil
+}
+
 // --- Tests ---
 
 // TestPatchPrimarySkill_ACL1 verifies that PATCH /api/v1/account/primary-skill
