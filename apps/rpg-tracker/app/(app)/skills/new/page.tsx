@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { createSkill, calibrateSkill, getAPIKeyStatus, getPresets, listCategories } from '@rpgtracker/api-client'
+import { createSkill, calibrateSkill, getAPIKeyStatus, getPresets, listCategories, listSkills } from '@rpgtracker/api-client'
 import {
   PathSelector,
   PresetGallery,
@@ -66,6 +66,17 @@ export default function SkillCreatePage() {
     queryFn: () => getPresets({}),
     staleTime: Infinity,
   })
+
+  const { data: existingSkills = [] } = useQuery({
+    queryKey: ['skills'],
+    queryFn: listSkills,
+    staleTime: 30_000,
+  })
+
+  // Filter out presets the user already has as skills
+  const availablePresets = presets.filter(
+    p => !existingSkills.some(s => s.preset_id === p.id)
+  )
 
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
@@ -190,7 +201,7 @@ export default function SkillCreatePage() {
               {/* Preset gallery */}
               {!draft.presetId && (
                 <PresetGallery
-                  presets={presets}
+                  presets={availablePresets}
                   isLoading={presetsLoading}
                   selectedId={draft.presetId}
                   onSelect={(preset) => {
