@@ -114,8 +114,8 @@ function getVariantStyles(variant: string): React.CSSProperties {
   switch (variant) {
     case 'error':
       return {
-        backgroundColor: 'rgba(239, 68, 68, 0.08)',
-        border: '1px solid rgba(239, 68, 68, 0.2)',
+        backgroundColor: 'color-mix(in srgb, var(--color-error) 8%, transparent)',
+        border: '1px solid color-mix(in srgb, var(--color-error) 20%, transparent)',
       }
     case 'result':
       return {

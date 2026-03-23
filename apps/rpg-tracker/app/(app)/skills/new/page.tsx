@@ -11,6 +11,8 @@ import {
   ArbiterAvatar,
   ArbiterDialogue,
   getTierForLevel,
+  tierColor,
+  TIER_COLOR_CSS,
 } from '@rpgtracker/ui'
 
 type Path = 'preset' | 'custom' | null
@@ -150,6 +152,8 @@ export default function SkillCreatePage() {
   // ── Step Flow (step indicator visible from here) ──
   return (
     <div className="max-w-xl mx-auto p-4 md:p-8 min-h-screen">
+      {/* Inject tier colour tokens (D-020) */}
+      <style>{TIER_COLOR_CSS}</style>
       {/* Step indicator — ACV-6, ACV-22 */}
       <StepIndicator currentStep={step} />
 
@@ -287,7 +291,7 @@ export default function SkillCreatePage() {
                         minHeight: 'var(--tap-target-min, 44px)',
                         fontFamily: 'var(--font-body)',
                         backgroundColor: draft.categoryId === null ? 'var(--color-accent)' : 'var(--color-surface)',
-                        color: draft.categoryId === null ? 'white' : 'var(--color-text-secondary)',
+                        color: draft.categoryId === null ? 'var(--color-text-on-accent, #fff)' : 'var(--color-text-secondary)',
                       }}
                     >
                       None
@@ -302,7 +306,7 @@ export default function SkillCreatePage() {
                           minHeight: 'var(--tap-target-min, 44px)',
                           fontFamily: 'var(--font-body)',
                           backgroundColor: draft.categoryId === cat.id ? 'var(--color-accent)' : 'var(--color-surface)',
-                          color: draft.categoryId === cat.id ? 'white' : 'var(--color-text-secondary)',
+                          color: draft.categoryId === cat.id ? 'var(--color-text-on-accent, #fff)' : 'var(--color-text-secondary)',
                         }}
                       >
                         {cat.emoji} {cat.name}
@@ -333,7 +337,7 @@ export default function SkillCreatePage() {
               className="flex-1 py-3 rounded-xl font-semibold disabled:opacity-50"
               style={{
                 background: 'var(--color-accent)',
-                color: '#fff',
+                color: 'var(--color-text-on-accent, #fff)',
                 minHeight: 'var(--tap-target-min, 44px)',
               }}
             >
@@ -399,7 +403,7 @@ export default function SkillCreatePage() {
               className="flex-1 py-3 rounded-xl font-semibold"
               style={{
                 background: 'var(--color-accent)',
-                color: '#fff',
+                color: 'var(--color-text-on-accent, #fff)',
                 minHeight: 'var(--tap-target-min, 44px)',
               }}
             >
@@ -460,7 +464,7 @@ export default function SkillCreatePage() {
                 className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
                 style={{
                   background: 'var(--color-accent)',
-                  color: '#fff',
+                  color: 'var(--color-text-on-accent, #fff)',
                   minHeight: 'var(--tap-target-min, 44px)',
                 }}
               >
@@ -511,7 +515,7 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
             style={currentStep >= s
-              ? { background: 'var(--color-accent)', color: '#fff' }
+              ? { background: 'var(--color-accent)', color: 'var(--color-text-on-accent, #fff)' }
               : { background: 'var(--color-bg-elevated)', color: 'var(--color-muted)', border: '1px solid var(--color-border)' }
             }
           >
@@ -550,7 +554,7 @@ function LevelPicker({ value, onChange }: { value: number; onChange: (level: num
         >
           {value}
         </div>
-        <div className="text-xs mt-1" style={{ color: tier.color }}>
+        <div className="text-xs mt-1" style={{ color: tierColor(tier) }}>
           {tier.name} tier
         </div>
       </div>
@@ -690,7 +694,7 @@ function ArbiterStep({
           className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
           style={{
             background: 'var(--color-accent)',
-            color: '#fff',
+            color: 'var(--color-text-on-accent, #fff)',
             minHeight: 'var(--tap-target-min, 44px)',
           }}
         >
@@ -751,7 +755,7 @@ function ArbiterStep({
         className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
         style={{
           background: 'var(--color-accent)',
-          color: '#fff',
+          color: 'var(--color-text-on-accent, #fff)',
           minHeight: 'var(--tap-target-min, 44px)',
         }}
       >
@@ -789,7 +793,7 @@ function SkillSummary({
         <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Starting Level</span>
         <p className="font-semibold" style={{ color: 'var(--color-text)' }}>
           Level {level}{' '}
-          <span className="text-xs font-normal" style={{ color: tier.color }}>({tier.name})</span>
+          <span className="text-xs font-normal" style={{ color: tierColor(tier) }}>({tier.name})</span>
         </p>
       </div>
       {category && (

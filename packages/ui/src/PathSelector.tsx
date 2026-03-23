@@ -95,7 +95,7 @@ export function PathSelector({ onSelectPreset, onSelectCustom, backHref = '/skil
             e.currentTarget.style.borderColor = 'var(--color-border)'
           }}
         >
-          <div className="text-3xl mb-3">{config.presetIcon}</div>
+          <div className="text-3xl mb-3" aria-hidden="true">{config.presetIcon}</div>
           <h2
             className="text-lg font-semibold mb-2"
             style={{

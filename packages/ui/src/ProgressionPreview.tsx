@@ -1,6 +1,6 @@
 'use client'
 
-import { TIERS, getTierForLevel } from './tierConstants'
+import { TIERS, getTierForLevel, tierColor, TIER_COLOR_CSS } from './tierConstants'
 import type { Tier } from './tierConstants'
 
 export interface ProgressionPreviewProps {
@@ -18,6 +18,9 @@ export function ProgressionPreview({ highlightLevel }: ProgressionPreviewProps) 
         border: '1px solid var(--color-border)',
       }}
     >
+      {/* Inject tier colour tokens */}
+      <style>{TIER_COLOR_CSS}</style>
+
       <h3
         className="text-xs font-semibold uppercase tracking-wider"
         style={{
@@ -50,6 +53,7 @@ function TierRow({
   isActive: boolean
   highlightLevel?: number
 }) {
+  const color = tierColor(tier)
   const levelRange = tier.maxLevel === 200
     ? `L${tier.minLevel}+`
     : `L${tier.minLevel}–${tier.maxLevel}`
@@ -58,21 +62,21 @@ function TierRow({
     <div
       className="flex items-center gap-3 rounded-lg px-3 py-1.5 transition-colors"
       style={{
-        backgroundColor: isActive ? `${tier.color}15` : undefined,
-        border: isActive ? `1px solid ${tier.color}40` : '1px solid transparent',
+        backgroundColor: isActive ? `color-mix(in srgb, ${color} 10%, transparent)` : undefined,
+        border: isActive ? `1px solid color-mix(in srgb, ${color} 25%, transparent)` : '1px solid transparent',
       }}
     >
       {/* Tier dot */}
       <div
         className="w-2.5 h-2.5 rounded-full shrink-0"
-        style={{ backgroundColor: tier.color }}
+        style={{ backgroundColor: color }}
       />
 
       {/* Tier name */}
       <span
         className="text-sm font-medium flex-1"
         style={{
-          color: isActive ? tier.color : 'var(--color-text)',
+          color: isActive ? color : 'var(--color-text)',
           fontFamily: 'var(--font-body, Inter, system-ui, sans-serif)',
         }}
       >
@@ -82,7 +86,7 @@ function TierRow({
       {/* Level range */}
       <span
         className="text-xs tabular-nums"
-        style={{ color: isActive ? tier.color : 'var(--color-muted)' }}
+        style={{ color: isActive ? color : 'var(--color-muted)' }}
       >
         {levelRange}
       </span>
@@ -92,8 +96,8 @@ function TierRow({
         <span
           className="text-[10px] px-1.5 py-0.5 rounded"
           style={{
-            backgroundColor: `${tier.color}20`,
-            color: tier.color,
+            backgroundColor: `color-mix(in srgb, ${color} 12%, transparent)`,
+            color: color,
           }}
         >
           Gate L{tier.gateLevel}
@@ -104,7 +108,7 @@ function TierRow({
       {isActive && highlightLevel != null && (
         <span
           className="text-xs font-bold"
-          style={{ color: tier.color }}
+          style={{ color: color }}
         >
           ← L{highlightLevel}
         </span>

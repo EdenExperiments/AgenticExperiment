@@ -60,7 +60,7 @@ export type { PlayerCardProps } from './PlayerCard'
 export { AvatarCropModal } from './AvatarCropModal'
 export { ThemePickerPreview } from './ThemePickerPreview'
 // Skill Create Overhaul (Phase 6)
-export { TIERS, GATE_LEVELS, getTierForLevel } from './tierConstants'
+export { TIERS, GATE_LEVELS, getTierForLevel, tierColor, TIER_COLOR_CSS } from './tierConstants'
 export type { Tier } from './tierConstants'
 export { PathSelector } from './PathSelector'
 export type { PathSelectorProps } from './PathSelector'

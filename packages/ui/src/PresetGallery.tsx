@@ -182,7 +182,7 @@ export function PresetGallery({
                           className="w-full py-2 rounded-lg text-sm font-semibold"
                           style={{
                             backgroundColor: 'var(--color-accent)',
-                            color: '#fff',
+                            color: 'var(--color-text-on-accent, #fff)',
                             minHeight: 'var(--tap-target-min, 44px)',
                           }}
                         >
