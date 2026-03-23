@@ -20,6 +20,12 @@ type Skill struct {
 	Description   string     `json:"description"`
 	Unit          string     `json:"unit"`
 	PresetID      *uuid.UUID `json:"preset_id"`
+	CategoryID    *uuid.UUID `json:"category_id"`
+	CategoryName  *string    `json:"category_name"`
+	CategorySlug  *string    `json:"category_slug"`
+	CategoryEmoji *string    `json:"category_emoji"`
+	IsFavourite   bool       `json:"is_favourite"`
+	Tags          []Tag      `json:"tags"`
 	StartingLevel int        `json:"starting_level"`
 	CurrentXP     int        `json:"current_xp"`
 	CurrentLevel  int        `json:"current_level"`
@@ -27,6 +33,24 @@ type Skill struct {
 	CreatedAt     time.Time  `json:"created_at"`
 	UpdatedAt     time.Time  `json:"updated_at"`
 }
+
+// Tag is a user-defined tag linked to skills.
+type Tag struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+}
+
+// TagWithCount extends Tag with the number of skills using it.
+type TagWithCount struct {
+	Tag
+	SkillCount int `json:"skill_count"`
+}
+
+// ErrInvalidCategory is returned when a category_id does not exist.
+var ErrInvalidCategory = errors.New("invalid category")
+
+// ErrTooManyTags is returned when more than 5 tags are provided.
+var ErrTooManyTags = errors.New("maximum 5 tags per skill")
 
 // BlockerGate is one gate row for a skill.
 type BlockerGate struct {
@@ -76,7 +100,7 @@ const autoClearEvidence = "Skill created at a higher starting level — this tie
 // D-033: If startingLevel crosses multiple gate boundaries, all gates below the highest
 // applicable boundary are auto-cleared with verdict='self_reported'. Only the highest
 // boundary gate remains open and must be submitted by the user.
-func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID, startingLevel int, gateDescs [10]string) (*Skill, error) {
+func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID, categoryID *uuid.UUID, startingLevel int, gateDescs [10]string) (*Skill, error) {
 	if startingLevel < 1 || startingLevel > 99 {
 		return nil, ErrInvalidStartingLevel
 	}
@@ -216,7 +240,7 @@ func GetSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID) 
 }
 
 // UpdateSkill updates name and description of a skill owned by userID.
-func UpdateSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, name, description string) (*Skill, error) {
+func UpdateSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, name, description string, categoryID *uuid.UUID) (*Skill, error) {
 	var s Skill
 	err := db.QueryRow(ctx, `
 		UPDATE public.skills SET name=$3, description=$4, updated_at=NOW()
@@ -287,4 +311,29 @@ func EffectiveLevel(currentLevel int, gates []BlockerGate) int {
 		}
 	}
 	return currentLevel
+}
+
+// ToggleFavourite flips the is_favourite flag on a skill and returns the new value.
+// TODO(T2): implement
+func ToggleFavourite(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID) (bool, error) {
+	return false, fmt.Errorf("ToggleFavourite: not implemented")
+}
+
+// SetSkillTags replaces all tags on a skill with the given names (max 5).
+// Tags are created if they don't exist (user-scoped, lowercase, trimmed).
+// TODO(T2): implement
+func SetSkillTags(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, tagNames []string) ([]Tag, error) {
+	return nil, fmt.Errorf("SetSkillTags: not implemented")
+}
+
+// ListTags returns all tags for a user with skill counts.
+// TODO(T2): implement
+func ListTags(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) ([]TagWithCount, error) {
+	return nil, fmt.Errorf("ListTags: not implemented")
+}
+
+// ValidateCategoryID checks that a category ID exists in skill_categories.
+// TODO(T2): implement
+func ValidateCategoryID(ctx context.Context, db *pgxpool.Pool, categoryID uuid.UUID) error {
+	return fmt.Errorf("ValidateCategoryID: not implemented")
 }

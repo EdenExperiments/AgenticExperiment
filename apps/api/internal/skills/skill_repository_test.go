@@ -21,7 +21,7 @@ var seedUserID = uuid.MustParse("00000000-0000-0000-0000-000000000001")
 func TestCreateSkill_SetsStartingLevel(t *testing.T) {
 	db := testDB(t)
 	skill, err := skills.CreateSkill(context.Background(), db, seedUserID,
-		"Test Skill", "", "session", nil, 10, [10]string{})
+		"Test Skill", "", "session", nil, nil, 10, [10]string{})
 	if err != nil {
 		t.Fatalf("CreateSkill: %v", err)
 	}
@@ -40,7 +40,7 @@ func TestCreateSkill_SetsStartingLevel(t *testing.T) {
 func TestCreateSkill_InsertsTenGates(t *testing.T) {
 	db := testDB(t)
 	skill, err := skills.CreateSkill(context.Background(), db, seedUserID,
-		"Gate Test", "", "session", nil, 1, [10]string{})
+		"Gate Test", "", "session", nil, nil, 1, [10]string{})
 	if err != nil {
 		t.Fatalf("CreateSkill: %v", err)
 	}
@@ -65,7 +65,7 @@ func TestCreateSkill_InsertsTenGates(t *testing.T) {
 func TestCreateSkill_RejectsLevelAbove99(t *testing.T) {
 	db := testDB(t)
 	_, err := skills.CreateSkill(context.Background(), db, seedUserID,
-		"Too High", "", "session", nil, 100, [10]string{})
+		"Too High", "", "session", nil, nil, 100, [10]string{})
 	if !errors.Is(err, skills.ErrInvalidStartingLevel) {
 		t.Fatalf("expected ErrInvalidStartingLevel, got %v", err)
 	}
@@ -74,7 +74,7 @@ func TestCreateSkill_RejectsLevelAbove99(t *testing.T) {
 func TestListSkills_ExcludesSoftDeleted(t *testing.T) {
 	db := testDB(t)
 	skill, err := skills.CreateSkill(context.Background(), db, seedUserID,
-		"Doomed Skill", "", "session", nil, 1, [10]string{})
+		"Doomed Skill", "", "session", nil, nil, 1, [10]string{})
 	if err != nil {
 		t.Fatalf("CreateSkill: %v", err)
 	}
