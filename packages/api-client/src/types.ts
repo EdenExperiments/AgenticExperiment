@@ -51,6 +51,14 @@ export interface Account {
   display_name: string | null
   timezone?: string
   primary_skill_id: string | null
+  avatar_url: string | null
+}
+
+export interface AccountStats {
+  total_xp: number
+  longest_streak: number
+  skill_count: number
+  category_distribution: { category: string; count: number }[]
 }
 
 export interface APIKeyStatus {

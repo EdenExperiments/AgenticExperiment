@@ -18,6 +18,7 @@ type User struct {
 	Email          string     `json:"email"`
 	DisplayName    *string    `json:"display_name"`
 	PrimarySkillID *uuid.UUID `json:"primary_skill_id"`
+	AvatarURL      *string    `json:"avatar_url"`
 }
 
 // GetOrCreateUser upserts a user row by ID and returns the current record.
@@ -34,9 +35,51 @@ func GetOrCreateUser(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, em
 
 	var u User
 	err = db.QueryRow(ctx,
-		`SELECT id, email, display_name, primary_skill_id FROM public.users WHERE id = $1`,
+		`SELECT id, email, display_name, primary_skill_id, avatar_url FROM public.users WHERE id = $1`,
 		userID,
-	).Scan(&u.ID, &u.Email, &u.DisplayName, &u.PrimarySkillID)
+	).Scan(&u.ID, &u.Email, &u.DisplayName, &u.PrimarySkillID, &u.AvatarURL)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+// SetAvatarURL updates the avatar_url for the given user and returns the updated record.
+func SetAvatarURL(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, url string) (*User, error) {
+	_, err := db.Exec(ctx,
+		`UPDATE public.users SET avatar_url = $2, updated_at = now() WHERE id = $1`,
+		userID, url,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var u User
+	err = db.QueryRow(ctx,
+		`SELECT id, email, display_name, primary_skill_id, avatar_url FROM public.users WHERE id = $1`,
+		userID,
+	).Scan(&u.ID, &u.Email, &u.DisplayName, &u.PrimarySkillID, &u.AvatarURL)
+	if err != nil {
+		return nil, err
+	}
+	return &u, nil
+}
+
+// ClearAvatarURL sets avatar_url to NULL for the given user and returns the updated record.
+func ClearAvatarURL(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) (*User, error) {
+	_, err := db.Exec(ctx,
+		`UPDATE public.users SET avatar_url = NULL, updated_at = now() WHERE id = $1`,
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var u User
+	err = db.QueryRow(ctx,
+		`SELECT id, email, display_name, primary_skill_id, avatar_url FROM public.users WHERE id = $1`,
+		userID,
+	).Scan(&u.ID, &u.Email, &u.DisplayName, &u.PrimarySkillID, &u.AvatarURL)
 	if err != nil {
 		return nil, err
 	}

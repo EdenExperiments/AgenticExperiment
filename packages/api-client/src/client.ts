@@ -1,4 +1,4 @@
-import type { Skill, SkillDetail, Preset, Account, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory } from './types'
+import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory } from './types'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -213,6 +213,30 @@ export function listTags(): Promise<TagWithCount[]> {
 // Categories
 export function listCategories(): Promise<SkillCategory[]> {
   return request<SkillCategory[]>('/api/v1/categories')
+}
+
+// Avatar
+export async function uploadAvatar(file: File): Promise<Account> {
+  const form = new FormData()
+  form.append('avatar', file)
+  const res = await fetch('/api/v1/account/avatar', {
+    method: 'POST',
+    body: form,
+  })
+  const data = await res.json()
+  if (!res.ok) {
+    throw new Error((data as APIError).error ?? 'upload failed')
+  }
+  return data as Account
+}
+
+export function deleteAvatar(): Promise<Account> {
+  return request<Account>('/api/v1/account/avatar', { method: 'DELETE' })
+}
+
+// Account Stats
+export function getAccountStats(): Promise<AccountStats> {
+  return request<AccountStats>('/api/v1/account/stats')
 }
 
 // Activity

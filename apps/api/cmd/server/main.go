@@ -9,6 +9,7 @@ import (
 	"github.com/meden/rpgtracker/internal/config"
 	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/server"
+	"github.com/meden/rpgtracker/internal/storage"
 )
 
 func main() {
@@ -31,7 +32,9 @@ func main() {
 		log.Fatalf("auth middleware init failed: %v", err)
 	}
 
-	srv := server.NewServer(cfg, sessionMiddleware, pool)
+	storageClient := storage.NewSupabaseStorageClient(cfg.SupabaseProjectURL, cfg.SupabaseServiceRoleKey)
+
+	srv := server.NewServer(cfg, sessionMiddleware, pool, storageClient)
 
 	log.Printf("starting server on port %s", cfg.Port)
 
