@@ -183,6 +183,15 @@ export function updateAccount(data: { timezone?: string; display_name?: string }
   })
 }
 
+// Primary Skill Focus
+export function setPrimarySkill(skillId: string): Promise<{ primary_skill_id: string | null }> {
+  return request('/api/v1/account/primary-skill', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ skill_id: skillId }).toString(),
+  })
+}
+
 // Favourites
 export function toggleFavourite(skillId: string): Promise<{ is_favourite: boolean }> {
   return request(`/api/v1/skills/${skillId}/favourite`, { method: 'PATCH' })

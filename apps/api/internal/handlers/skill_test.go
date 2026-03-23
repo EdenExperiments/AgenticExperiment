@@ -345,6 +345,7 @@ func TestHandlePutSkill_WithCategoryID(t *testing.T) {
 	skillID := uuid.New()
 	catID := uuid.New()
 	stub := &stubSkillStore{
+		detail:  &skills.Skill{ID: skillID, Name: "Guitar", Unit: "session"},
 		updated: &skills.Skill{ID: skillID, Name: "Guitar", Unit: "session"},
 	}
 	h := handlers.NewSkillHandlerWithStore(stub)

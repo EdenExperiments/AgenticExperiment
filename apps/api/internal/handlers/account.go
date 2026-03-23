@@ -1,23 +1,55 @@
 package handlers
 
 import (
+	"context"
+	"errors"
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/users"
 )
 
+// UserStore abstracts user-related DB operations for testability.
+type UserStore interface {
+	GetOrCreateUser(ctx context.Context, userID uuid.UUID, email string) (*users.User, error)
+	SetPrimarySkill(ctx context.Context, userID, skillID uuid.UUID) (*uuid.UUID, error)
+}
+
+// dbUserStore wraps a pgxpool.Pool to implement UserStore using the real DB functions.
+type dbUserStore struct {
+	db *pgxpool.Pool
+}
+
+func (s *dbUserStore) GetOrCreateUser(ctx context.Context, userID uuid.UUID, email string) (*users.User, error) {
+	return users.GetOrCreateUser(ctx, s.db, userID, email)
+}
+
+func (s *dbUserStore) SetPrimarySkill(ctx context.Context, userID, skillID uuid.UUID) (*uuid.UUID, error) {
+	return users.SetPrimarySkill(ctx, s.db, userID, skillID)
+}
+
 // UserHandler handles HTTP requests for the user account screen.
 type UserHandler struct {
-	db *pgxpool.Pool
+	db    *pgxpool.Pool
+	store UserStore
 }
 
 // NewUserHandler constructs a UserHandler with the given connection pool.
 func NewUserHandler(db *pgxpool.Pool) *UserHandler {
-	return &UserHandler{db: db}
+	var store UserStore
+	if db != nil {
+		store = &dbUserStore{db: db}
+	}
+	return &UserHandler{db: db, store: store}
+}
+
+// NewUserHandlerWithStore constructs a UserHandler with an injected store (for testing).
+func NewUserHandlerWithStore(store UserStore) *UserHandler {
+	return &UserHandler{store: store}
 }
 
 // HandleGetAccount returns the authenticated user's account data as JSON.
@@ -29,7 +61,7 @@ func (h *UserHandler) HandleGetAccount(w http.ResponseWriter, r *http.Request) {
 	}
 
 	email := auth.EmailFromContext(r.Context())
-	u, err := users.GetOrCreateUser(r.Context(), h.db, userID, email)
+	u, err := h.store.GetOrCreateUser(r.Context(), userID, email)
 	if err != nil {
 		api.RespondError(w, http.StatusInternalServerError, "internal server error")
 		return
@@ -90,5 +122,41 @@ func (h *UserHandler) HandlePatchAccount(w http.ResponseWriter, r *http.Request)
 
 	api.RespondJSON(w, http.StatusOK, map[string]interface{}{
 		"timezone": timezone,
+	})
+}
+
+// HandlePatchPrimarySkill handles PATCH /api/v1/account/primary-skill.
+// Toggle pattern: if skill_id matches current primary, unpin; otherwise pin.
+func (h *UserHandler) HandlePatchPrimarySkill(w http.ResponseWriter, r *http.Request) {
+	userID, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+
+	if err := r.ParseForm(); err != nil {
+		api.RespondError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+
+	skillIDStr := r.FormValue("skill_id")
+	skillID, err := uuid.Parse(skillIDStr)
+	if err != nil {
+		api.RespondError(w, http.StatusUnprocessableEntity, "invalid skill_id format")
+		return
+	}
+
+	result, err := h.store.SetPrimarySkill(r.Context(), userID, skillID)
+	if err != nil {
+		if errors.Is(err, users.ErrSkillNotOwned) {
+			api.RespondError(w, http.StatusNotFound, "skill not found")
+			return
+		}
+		api.RespondError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	api.RespondJSON(w, http.StatusOK, map[string]interface{}{
+		"primary_skill_id": result,
 	})
 }

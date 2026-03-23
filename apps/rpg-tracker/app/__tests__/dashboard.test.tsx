@@ -90,11 +90,15 @@ function makeMockActivity() {
 const mockListSkills = vi.fn()
 const mockGetActivity = vi.fn()
 const mockLogXP = vi.fn()
+const mockGetAccount = vi.fn()
+const mockSetPrimarySkill = vi.fn()
 
 vi.mock('@rpgtracker/api-client', () => ({
   listSkills: (...args: unknown[]) => mockListSkills(...args),
   getActivity: (...args: unknown[]) => mockGetActivity(...args),
   logXP: (...args: unknown[]) => mockLogXP(...args),
+  getAccount: (...args: unknown[]) => mockGetAccount(...args),
+  setPrimarySkill: (...args: unknown[]) => mockSetPrimarySkill(...args),
 }))
 
 function wrapper({ children }: { children: React.ReactNode }) {
@@ -111,6 +115,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockListSkills.mockResolvedValue(makeMockSkills())
   mockGetActivity.mockResolvedValue(makeMockActivity())
+  mockGetAccount.mockResolvedValue({ id: 'user-1', email: 'test@example.com', display_name: null, primary_skill_id: null })
   mockLogXP.mockResolvedValue({
     skill: makeMockSkills()[0],
     xp_added: 25,

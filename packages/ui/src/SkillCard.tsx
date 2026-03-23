@@ -3,7 +3,7 @@ import { TierBadge } from './TierBadge'
 import type { SkillDetail, BlockerGate } from '@rpgtracker/api-client'
 
 interface SkillCardProps {
-  skill: SkillDetail & { current_streak?: number }
+  skill: SkillDetail
   onLogXP: (skillId: string) => void
   onClick: (skillId: string) => void
   onToggleFavourite?: (skillId: string) => void
