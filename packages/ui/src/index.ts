@@ -49,6 +49,10 @@ export { SkillEditModal } from './SkillEditModal'
 export { PrimarySkillCard } from './PrimarySkillCard'
 export type { PrimarySkillCardProps } from './PrimarySkillCard'
 export { computeFocusSkill } from './computeFocusSkill'
+// Quick Log Panel (inline collapsible — P4-5)
+export { QuickLogPanel } from './QuickLogPanel'
+// Hub placeholder cards (P4-6)
+export { HubPlaceholderCard } from './HubPlaceholderCard'
 // Identity & Profile
 export { DefaultAvatar } from './DefaultAvatar'
 export { PlayerCard } from './PlayerCard'

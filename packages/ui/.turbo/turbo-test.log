@@ -6,7 +6,23 @@
 
  RUN  v2.1.9 /home/meden/GolandProjects/RpgTracker/packages/ui
 
- ✓ src/XPBarChart.test.tsx (4 tests) 112ms
+ ✓ src/__tests__/computeFocusSkill.test.ts (9 tests) 4ms
+ ✓ src/__tests__/usePomodoro.test.ts (17 tests) 45ms
+ ✓ src/StatCard.test.tsx (11 tests) 54ms
+ ✓ src/ActivityFeedItem.test.tsx (13 tests) 81ms
+ ✓ src/__tests__/useBrowserNotification.test.ts (6 tests) 30ms
+ ✓ src/XPBarChart.test.tsx (4 tests) 93ms
+ ✓ src/__tests__/XPBarChart.test.tsx (7 tests) 108ms
+ ✓ src/__tests__/GateVerdictCard.test.tsx (8 tests) 86ms
+ ✓ src/GateSubmissionForm.test.tsx (5 tests) 131ms
+ ✓ src/GrindOverlay.test.tsx (4 tests) 125ms
+ ✓ src/PostSessionScreen.test.tsx (4 tests) 112ms
+ ✓ src/__tests__/BlockerGateSection.test.tsx (10 tests) 157ms
+ ✓ src/BlockerGateSection.test.tsx (6 tests) 151ms
+ ✓ src/SkillCard.test.tsx (18 tests) 252ms
+ ✓ src/__tests__/SessionPage.test.tsx (4 tests) 315ms
+ ✓ src/__tests__/useSessionNavigation.test.ts (4 tests) 19ms
+ ✓ src/__tests__/sessionXP.test.ts (8 tests) 2ms
 stderr | src/useMotionPreference.test.ts > updates when data-theme attribute changes
 An update to TestComponent inside a test was not wrapped in act(...).
 
@@ -19,9 +35,10 @@ act(() => {
 
 This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
 
- ✓ src/ActivityFeedItem.test.tsx (13 tests) 146ms
- ✓ src/XPProgressBar.test.tsx (5 tests) 104ms
- ✓ src/PostSessionScreen.test.tsx (4 tests) 200ms
+ ✓ src/TierBadge.test.tsx (3 tests) 45ms
+ ✓ src/XPProgressBar.test.tsx (5 tests) 63ms
+ ✓ src/__tests__/ThemeProvider.test.tsx (3 tests) 22ms
+ ✓ src/Sidebar.test.tsx (2 tests) 53ms
 stderr | src/useMotionPreference.test.ts > updates when data-theme attribute changes
 An update to TestComponent inside a test was not wrapped in act(...).
 
@@ -34,5 +51,13 @@ act(() => {
 
 This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
 
- ✓ src/useMotionPreference.test.ts (4 tests) 145ms
- ✓ src/__tests__/BlockerGateSection.test.tsx (10 tests) 215ms
+ ✓ src/useMotionPreference.test.ts (4 tests) 89ms
+ ✓ src/QuickLogSheet.test.tsx (4 tests) 91ms
+ ✓ src/BottomTabBar.test.tsx (3 tests) 58ms
+ ✓ src/TierTransitionModal.test.tsx (2 tests) 57ms
+
+ Test Files  25 passed (25)
+      Tests  164 passed (164)
+   Start at  12:49:22
+   Duration  1.57s (transform 645ms, setup 939ms, collect 2.60s, tests 2.24s, environment 9.04s, prepare 1.53s)
+

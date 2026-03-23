@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-03-23 (F-032 done, F-033 done — Phase 3 Skill Organisation complete; 155 UI + 112 Go tests green). Prior: 2026-03-22 F-023/F-024/F-041 done.
+Last updated: 2026-03-23 (F-036 done, F-037 done — Phase 5 Identity & Profile complete). Prior: 2026-03-23 F-034/F-035 done (Phase 4). Prior: 2026-03-23 F-032/F-033 done (Phase 3). Prior: 2026-03-22 F-023/F-024/F-041 done.
 
 Status values:
 
@@ -63,10 +63,10 @@ Status values:
 | F-031 | Narrative layer | LifeQuest | deferred | unassigned | Character system; theme system (retro) | How much narrative varies by theme? All themes or retro-only? | RPG story framing. Wizard onboarding dialogue, boss battle framing, .EXE naming. Strongest in retro theme. |
 | F-032 | Skill categories and tags | LifeQuest | **done** | delivery-agent | None remaining | None | Phase 3. Preset categories (9 from existing skill_categories table, D-038 resolved: keep current). User-defined tags (max 5 per skill). Category/tag filters on skills list. Tags on detail hero. Category picker in skill create. |
 | F-033 | Skill favourites / pinning | LifeQuest | **done** | delivery-agent | None remaining | None | Phase 3. `is_favourite` boolean, PATCH toggle endpoint with optimistic UI + rollback. Favourites quick-filter on skills list. Dimming pattern on un-favourite in filtered view (P3-D12). |
-| F-034 | Primary Skill Focus / Next Quest | LifeQuest | deferred | unassigned | F-033 + algorithm | D-041: single vs multi-pin | Phase 4. Dashboard centre-stage card. Pinned or algorithmically chosen skill. |
-| F-035 | Quick Session from Dashboard | LifeQuest | deferred | unassigned | F-024 + F-034 | None | Phase 4. One-tap session start from dashboard for pinned skill. |
-| F-036 | Avatar system | Platform | deferred | unassigned | Storage infra | D-042: storage provider | Phase 5. Upload, crop, themed defaults. Maps to old F-028. |
-| F-037 | Account stats aggregation | Platform | deferred | unassigned | API endpoint | None | Phase 5. Total XP, streaks, skill count, category distribution. Player Card component. |
+| F-034 | Primary Skill Focus / Next Quest | LifeQuest | **done** | delivery-agent | None remaining | None | Phase 4 complete. `computeFocusSkill()` algorithm (pinned → streak → favourite → recency), `PrimarySkillCard` component, `PATCH /api/v1/account/primary-skill` toggle endpoint. D-041 resolved: single pin only. |
+| F-035 | Quick Session from Dashboard | LifeQuest | **done** | delivery-agent | None remaining | None | Phase 4 complete. "Start Session" CTA in PrimarySkillCard navigates to `/skills/[id]/session`. QuickLogPanel replaces bottom sheet. HubPlaceholderCard teasers for NutriLog/MindTrack. XPBarChart rolling average trend line. |
+| F-036 | Avatar system | Platform | **done** | delivery-agent | None remaining | None | Phase 5 complete. Supabase Storage upload/delete via Go REST client. Client-side 256x256 JPEG crop. Three themed default avatars (CSS/SVG). D-042 resolved. Migration 000011. |
+| F-037 | Account stats aggregation | Platform | **done** | delivery-agent | None remaining | None | Phase 5 complete. `GET /api/v1/account/stats` endpoint. PlayerCard component with Total XP, Best Streak, skill count, category pills. ThemePickerPreview replaces theme toggle on account page. |
 | F-038 | Skill create overhaul (Preset/Custom/Arbiter) | LifeQuest | deferred | unassigned | F-032 | None | Phase 6. Character creation experience. Arbiter avatar with themed dialogue. |
 | F-039 | Social auth (Google/GitHub/Apple) | Platform | in-progress | delivery-agent | Supabase config | Provider setup on Supabase pending | Phase 7. UI buttons shipped. Supabase provider config not yet enabled. |
 | F-040 | Free trial system | Platform | deferred | unassigned | Subscription model | D-039: server-side vs UI-only | Phase 7. 14-day trial messaging. Enforcement TBD. |

@@ -6,5 +6,1098 @@
 
  RUN  v2.1.9 /home/meden/GolandProjects/RpgTracker/apps/rpg-tracker
 
- ✓ components/__tests__/XPGainAnimation.test.tsx (5 tests) 41ms
- ✓ app/__tests__/providers.test.tsx (1 test) 37ms
+ ✓ app/__tests__/providers.test.tsx (1 test) 16ms
+ ✓ components/__tests__/XPGainAnimation.test.tsx (5 tests) 21ms
+ ❯ app/__tests__/skill-create.test.tsx (3 tests | 3 failed) 27ms
+   × renders step 1 by default 22ms
+     → [vitest] No "listCategories" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+   × advances to step 2 on next 2ms
+     → [vitest] No "listCategories" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+   × step 1 next button is disabled when name is empty 2ms
+     → [vitest] No "listCategories" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+(node:181800) Warning: `--localstorage-file` was provided without a valid path
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ app/__tests__/account.test.tsx (1 test) 52ms
+ ❯ app/__tests__/login.test.tsx (2 tests | 1 failed) 74ms
+   × Login page > renders email and password fields 65ms
+     → Found multiple elements with the role "button" and name `/sign in/i`
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Sign in with Google"[39m
+  [33mclass[39m=[32m"social-auth-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]"[39m
+  [33mstyle[39m=[32m"background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text);"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mheight[39m=[32m"20"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"20"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"[39m
+      [33mfill[39m=[32m"#4285F4"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"[39m
+      [33mfill[39m=[32m"#34A853"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"[39m
+      [33mfill[39m=[32m"#FBBC05"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"[39m
+      [33mfill[39m=[32m"#EA4335"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [36m<span>[39m
+    [0mContinue with Google[0m
+  [36m</span>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Sign in with GitHub"[39m
+  [33mclass[39m=[32m"social-auth-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]"[39m
+  [33mstyle[39m=[32m"background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text);"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mfill[39m=[32m"currentColor"[39m
+    [33mheight[39m=[32m"20"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"20"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [36m<span>[39m
+    [0mContinue with GitHub[0m
+  [36m</span>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Sign in with Apple"[39m
+  [33mclass[39m=[32m"social-auth-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]"[39m
+  [33mstyle[39m=[32m"background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text);"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mfill[39m=[32m"currentColor"[39m
+    [33mheight[39m=[32m"20"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"20"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-1.55 4.2-3.74 4.25z"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [36m<span>[39m
+    [0mContinue with Apple[0m
+  [36m</span>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"w-full py-3 rounded-xl font-semibold text-white hover:opacity-90 disabled:opacity-50 transition-opacity min-h-[48px]"[39m
+  [33mstyle[39m=[32m"background-color: var(--color-accent);"[39m
+  [33mtype[39m=[32m"submit"[39m
+[36m>[39m
+  [0mSign in[0m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<main[39m
+      [33mclass[39m=[32m"auth-page min-h-screen flex items-center justify-center px-4"[39m
+      [33mstyle[39m=[32m"background-color: var(--color-bg);"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"w-full max-w-sm"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mb-8 text-center"[39m
+        [36m>[39m
+          [36m<h1[39m
+            [33mclass[39m=[32m"text-3xl font-bold tracking-tight"[39m
+            [33mstyle[39m=[32m"font-family: var(--font-display); color: var(--color-text);"[39m
+          [36m>[39m
+            [0mRPG Tracker[0m
+          [36m</h1>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"mt-2 text-sm"[39m
+            [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+          [36m>[39m
+            [0mSign in to continue your journey[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"auth-page__card rounded-2xl p-8 shadow-sm"[39m
+          [33mstyle[39m=[32m"background-color: var(--color-bg-elevated); border: 1px solid var(--color-border);"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-col gap-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Sign in with Google"[39m
+              [33mclass[39m=[32m"social-auth-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]"[39m
+              [33mstyle[39m=[32m"background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text);"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mheight[39m=[32m"20"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"[39m
+                  [33mfill[39m=[32m"#4285F4"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"[39m
+                  [33mfill[39m=[32m"#34A853"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"[39m
+                  [33mfill[39m=[32m"#FBBC05"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"[39m
+                  [33mfill[39m=[32m"#EA4335"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<span>[39m
+                [0mContinue with Google[0m
+              [36m</span>[39m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Sign in with GitHub"[39m
+              [33mclass[39m=[32m"social-auth-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]"[39m
+              [33mstyle[39m=[32m"background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text);"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mheight[39m=[32m"20"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<span>[39m
+                [0mContinue with GitHub[0m
+              [36m</span>[39m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Sign in with Apple"[39m
+              [33mclass[39m=[32m"social-auth-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]"[39m
+              [33mstyle[39m=[32m"background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text);"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mheight[39m=[32m"20"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-1.55 4.2-3.74 4.25z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<span>[39m
+                [0mContinue with Apple[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-3 my-5"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1 h-px"[39m
+              [33mstyle[39m=[32m"background-color: var(--color-border);"[39m
+            [36m/>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"text-xs"[39m
+              [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+            [36m>[39m
+              [0mor[0m
+            [36m</span>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1 h-px"[39m
+              [33mstyle[39m=[32m"background-color: var(--color-border);"[39m
+            [36m/>[39m
+          [36m</div>[39m
+          [36m<form[39m
+            [33mclass[39m=[32m"space-y-5"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"space-y-1.5"[39m
+            [36m>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m"block text-sm font-medium"[39m
+                [33mfor[39m=[32m"email"[39m
+                [33mstyle[39m=[32m"color: var(--color-text-secondary);"[39m
+              [36m>[39m
+                [0mEmail[0m
+              [36m</label>[39m
+              [36m<input[39m
+                [33mautocomplete[39m=[32m"email"[39m
+                [33mclass[39m=[32m"w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition-shadow"[39m
+                [33mid[39m=[32m"email"[39m
+                [33mplaceholder[39m=[32m"you@example.com"[39m
+                [33mrequired[39m=[32m""[39m
+                [33mstyle[39m=[32m"background-color: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text); box-shadow: none;"[39m
+                [33mtype[39m=[32m"email"[39m
+                [33mvalue[39m=[32m""[39m
+              [36m/>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"space-y-1.5"[39m
+            [36m>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m"block text-sm font-medium"[39m
+                [33mfor[39m=[32m"password"[39m
+                [33mstyle[39m=[32m"color: var(--color-text-secondary);"[39m
+              [36m>[39m
+                [0mPassword[0m
+              [36m</label>[39m
+              [36m<input[39m
+                [33mautocomplete[39m=[32m"current-password"[39m
+                [33mclass[39m=[32m"w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition-shadow"[39m
+                [33mid[39m=[32m"password"[39m
+                [33mplaceholder[39m=[32m"••••••••"[39m
+                [33mrequired[39m=[32m""[39m
+                [33mstyle[39m=[32m"background-color: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text); box-shadow: none;"[39m
+                [33mtype[39m=[32m"password"[39m
+                [33mvalue[39m=[32m""[39m
+              [36m/>[39m
+            [36m</div>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"w-full py-3 rounded-xl font-semibold text-white hover:opacity-90 disabled:opacity-50 transition-opacity min-h-[48px]"[39m
+              [33mstyle[39m=[32m"background-color: var(--color-accent);"[39m
+              [33mtype[39m=[32m"submit"[39m
+            [36m>[39m
+              [0mSign in[0m
+            [36m</button>[39m
+          [36m</form>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"mt-6 text-center text-sm"[39m
+          [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+        [36m>[39m
+          [0mNo account?[0m
+          [0m [0m
+          [36m<a[39m
+            [33mclass[39m=[32m"font-medium hover:underline"[39m
+            [33mhref[39m=[32m"/register"[39m
+            [33mstyle[39m=[32m"color: var(--color-accent);"[39m
+          [36m>[39m
+            [0mCreate account[0m
+          [36m</a>[39m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</main>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ app/__tests__/skill-detail-sessions.test.tsx (3 tests | 3 failed) 23ms
+   × "Start Session" is the primary button and "Log XP" is secondary 19ms
+     → [vitest] No "listTags" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+   × when current_streak=0, streak badge hidden and motivational prompt shown 2ms
+     → [vitest] No "listTags" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+   × when current_streak > 0, streak badge is shown and prompt is hidden 2ms
+     → [vitest] No "listTags" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+ ❯ app/__tests__/skill-detail.test.tsx (4 tests | 4 failed) 26ms
+   × renders skill name and tier 20ms
+     → [vitest] No "listTags" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+   × shows Log XP button 2ms
+     → [vitest] No "listTags" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+   × shows XP History section header 2ms
+     → [vitest] No "listTags" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+   × shows date-grouped activity with Today header 2ms
+     → [vitest] No "listTags" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+ ❯ app/__tests__/skills-list.test.tsx (5 tests | 5 failed) 27ms
+   × shows empty state when no skills 18ms
+     → [vitest] No "listCategories" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+   × empty state includes CSS-based illustration (AC-11) 2ms
+     → [vitest] No "listCategories" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+   × renders sort controls with 4 options (AC-6) 2ms
+     → [vitest] No "listCategories" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+   × sorting by name reorders cards without network request (AC-7) 2ms
+     → [vitest] No "listCategories" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+   × tier filter shows only matching skills (AC-8) 3ms
+     → [vitest] No "listCategories" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+ ✓ app/__tests__/app-layout.test.tsx (1 test) 49ms
+ ❯ app/__tests__/dashboard.test.tsx (8 tests | 1 failed) 1164ms
+   × shows Log XP quick action button 1007ms
+     → expected undefined to be truthy
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"p-4 md:p-8 space-y-6"[39m
+      [36m>[39m
+        [36m<h1[39m
+          [33mclass[39m=[32m"text-2xl font-bold"[39m
+          [33mstyle[39m=[32m"font-family: var(--font-display, var(--font-body, Inter, system-ui, sans-serif)); color: var(--color-text);"[39m
+        [36m>[39m
+          [0mDashboard[0m
+        [36m</h1>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"max-w-xl"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative rounded-xl p-5 shadow-md border w-full"[39m
+            [33mstyle[39m=[32m"background-color: var(--color-bg-elevated); border-color: var(--color-border);"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"absolute left-0 top-0 right-0 h-1 rounded-t-xl tier-accent-1"[39m
+            [36m/>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-start justify-between gap-3"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex-1 min-w-0"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex items-center gap-2 flex-wrap"[39m
+                [36m>[39m
+                  [36m<h2[39m
+                    [33mclass[39m=[32m"text-xl font-bold truncate"[39m
+                    [33mstyle[39m=[32m"color: var(--color-text); font-family: var(--font-display, inherit);"[39m
+                  [36m>[39m
+                    [0mGuitar[0m
+                  [36m</h2>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex items-center gap-2 mt-1.5 flex-wrap"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold "[39m
+                    [33mstyle[39m=[32m"background-color: rgba(156, 163, 175, 0.15); color: rgb(209, 213, 219); border: 1px solid rgba(156, 163, 175, 0.3);"[39m
+                  [36m>[39m
+                    [0mNovice[0m
+                  [36m</span>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"text-sm"[39m
+                    [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+                  [36m>[39m
+                    [0mLevel [0m
+                    [0m5[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"Pin Guitar as focus"[39m
+                [33mclass[39m=[32m"flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg transition-colors"[39m
+                [33mstyle[39m=[32m"color: var(--color-muted); opacity: 1;"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"24"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"24"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"text-xs font-medium mt-1"[39m
+              [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+            [36m>[39m
+              [0mSuggested[0m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"mt-3"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-valuemax[39m=[32m"100"[39m
+                [33maria-valuemin[39m=[32m"0"[39m
+                [33maria-valuenow[39m=[32m"50"[39m
+                [33mclass[39m=[32m"relative rounded-full overflow-hidden h-2"[39m
+                [33mrole[39m=[32m"progressbar"[39m
+                [33mstyle[39m=[32m"background-color: var(--color-xp-bg, rgba(212,168,83,0.1));"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"h-full rounded-full transition-all duration-500"[39m
+                  [33mdata-testid[39m=[32m"xp-bar-fill"[39m
+                  [33mstyle[39m=[32m"width: 50%; background-color: rgb(156, 163, 175); box-shadow: 0 0 8px #9ca3af40;"[39m
+                [36m/>[39m
+              [36m</div>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-xs mt-1"[39m
+                [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+              [36m>[39m
+                [0m100[0m
+                [0m / [0m
+                [0m300[0m
+                [0m XP[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"mt-4"[39m
+            [36m>[39m
+              [36m<a[39m
+                [33mclass[39m=[32m"inline-flex items-center justify-center w-full min-h-[48px] rounded-lg text-sm font-semibold transition-colors"[39m
+                [33mhref[39m=[32m"/skills/skill-1/session"[39m
+                [33mstyle[39m=[32m"background-color: var(--color-accent); color: var(--color-bg);"[39m
+              [36m>[39m
+                [0mStart Session[0m
+              [36m</a>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Stats"[39m
+          [33mclass[39m=[32m"grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3"[39m
+          [33mdata-testid[39m=[32m"stats-grid"[39m
+          [33mrole[39m=[32m"region"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"stat-card rounded-xl border p-4 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 "[39m
+            [33mstyle[39m=[32m"background-color: var(--color-bg-elevated); border-color: var(--color-border); transition: transform calc(var(--duration-fast, 150ms) * var(--motion-scale, 1)), box-shadow calc(var(--duration-fast, 150ms) * var(--motion-scale, 1));"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-center gap-2 mb-1"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"text-xs uppercase tracking-wider"[39m
+                [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+  ...
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 17 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  app/__tests__/dashboard.test.tsx > shows Log XP quick action button
+AssertionError: expected undefined to be truthy
+
+Ignored nodes: comments, script, style
+[36m<html>[39m
+  [36m<head />[39m
+  [36m<body>[39m
+    [36m<div>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"p-4 md:p-8 space-y-6"[39m
+      [36m>[39m
+        [36m<h1[39m
+          [33mclass[39m=[32m"text-2xl font-bold"[39m
+          [33mstyle[39m=[32m"font-family: var(--font-display, var(--font-body, Inter, system-ui, sans-serif)); color: var(--color-text);"[39m
+        [36m>[39m
+          [0mDashboard[0m
+        [36m</h1>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"max-w-xl"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"relative rounded-xl p-5 shadow-md border w-full"[39m
+            [33mstyle[39m=[32m"background-color: var(--color-bg-elevated); border-color: var(--color-border);"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"absolute left-0 top-0 right-0 h-1 rounded-t-xl tier-accent-1"[39m
+            [36m/>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-start justify-between gap-3"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33mclass[39m=[32m"flex-1 min-w-0"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex items-center gap-2 flex-wrap"[39m
+                [36m>[39m
+                  [36m<h2[39m
+                    [33mclass[39m=[32m"text-xl font-bold truncate"[39m
+                    [33mstyle[39m=[32m"color: var(--color-text); font-family: var(--font-display, inherit);"[39m
+                  [36m>[39m
+                    [0mGuitar[0m
+                  [36m</h2>[39m
+                [36m</div>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"flex items-center gap-2 mt-1.5 flex-wrap"[39m
+                [36m>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold "[39m
+                    [33mstyle[39m=[32m"background-color: rgba(156, 163, 175, 0.15); color: rgb(209, 213, 219); border: 1px solid rgba(156, 163, 175, 0.3);"[39m
+                  [36m>[39m
+                    [0mNovice[0m
+                  [36m</span>[39m
+                  [36m<span[39m
+                    [33mclass[39m=[32m"text-sm"[39m
+                    [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+                  [36m>[39m
+                    [0mLevel [0m
+                    [0m5[0m
+                  [36m</span>[39m
+                [36m</div>[39m
+              [36m</div>[39m
+              [36m<button[39m
+                [33maria-label[39m=[32m"Pin Guitar as focus"[39m
+                [33mclass[39m=[32m"flex items-center justify-center min-h-[44px] min-w-[44px] rounded-lg transition-colors"[39m
+                [33mstyle[39m=[32m"color: var(--color-muted); opacity: 1;"[39m
+              [36m>[39m
+                [36m<svg[39m
+                  [33maria-hidden[39m=[32m"true"[39m
+                  [33mfill[39m=[32m"none"[39m
+                  [33mheight[39m=[32m"24"[39m
+                  [33mstroke[39m=[32m"currentColor"[39m
+                  [33mstroke-width[39m=[32m"2"[39m
+                  [33mviewBox[39m=[32m"0 0 24 24"[39m
+                  [33mwidth[39m=[32m"24"[39m
+                [36m>[39m
+                  [36m<path[39m
+                    [33md[39m=[32m"M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"[39m
+                  [36m/>[39m
+                [36m</svg>[39m
+              [36m</button>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"text-xs font-medium mt-1"[39m
+              [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+            [36m>[39m
+              [0mSuggested[0m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"mt-3"[39m
+            [36m>[39m
+              [36m<div[39m
+                [33maria-valuemax[39m=[32m"100"[39m
+                [33maria-valuemin[39m=[32m"0"[39m
+                [33maria-valuenow[39m=[32m"50"[39m
+                [33mclass[39m=[32m"relative rounded-full overflow-hidden h-2"[39m
+                [33mrole[39m=[32m"progressbar"[39m
+                [33mstyle[39m=[32m"background-color: var(--color-xp-bg, rgba(212,168,83,0.1));"[39m
+              [36m>[39m
+                [36m<div[39m
+                  [33mclass[39m=[32m"h-full rounded-full transition-all duration-500"[39m
+                  [33mdata-testid[39m=[32m"xp-bar-fill"[39m
+                  [33mstyle[39m=[32m"width: 50%; background-color: rgb(156, 163, 175); box-shadow: 0 0 8px #9ca3af40;"[39m
+                [36m/>[39m
+              [36m</div>[39m
+              [36m<p[39m
+                [33mclass[39m=[32m"text-xs mt-1"[39m
+                [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+              [36m>[39m
+                [0m100[0m
+                [0m / [0m
+                [0m300[0m
+                [0m XP[0m
+              [36m</p>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"mt-4"[39m
+            [36m>[39m
+              [36m<a[39m
+                [33mclass[39m=[32m"inline-flex items-center justify-center w-full min-h-[48px] rounded-lg text-sm font-semibold transition-colors"[39m
+                [33mhref[39m=[32m"/skills/skill-1/session"[39m
+                [33mstyle[39m=[32m"background-color: var(--color-accent); color: var(--color-bg);"[39m
+              [36m>[39m
+                [0mStart Session[0m
+              [36m</a>[39m
+            [36m</div>[39m
+          [36m</div>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33maria-label[39m=[32m"Stats"[39m
+          [33mclass[39m=[32m"grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3"[39m
+          [33mdata-testid[39m=[32m"stats-grid"[39m
+          [33mrole[39m=[32m"region"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"stat-card rounded-xl border p-4 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 "[39m
+            [33mstyle[39m=[32m"background-color: var(--color-bg-elevated); border-color: var(--color-border); transition: transform calc(var(--duration-fast, 150ms) * var(--motion-scale, 1)), box-shadow calc(var(--duration-fast, 150ms) * var(--motion-scale, 1));"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex items-center gap-2 mb-1"[39m
+            [36m>[39m
+              [36m<span[39m
+                [33mclass[39m=[32m"text-xs uppercase tracking-wider"[39m
+                [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+  ...
+
+- Expected: 
+true
+
++ Received: 
+undefined
+
+ ❯ app/__tests__/dashboard.test.tsx:206:27
+    204|     // There should be at least 2: the SkillCard "+ Log" and the main …
+    205|     const mainLogButton = logButtons.find((btn) => btn.textContent ===…
+    206|     expect(mainLogButton).toBeTruthy()
+       |                           ^
+    207|   })
+    208| })
+ ❯ runWithExpensiveErrorDiagnosticsDisabled ../../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:47:12
+ ❯ checkCallback ../../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:124:77
+ ❯ Timeout.checkRealTimersCallback ../../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/wait-for.js:118:16
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/17]⎯
+
+ FAIL  app/__tests__/login.test.tsx > Login page > renders email and password fields
+TestingLibraryElementError: Found multiple elements with the role "button" and name `/sign in/i`
+
+Here are the matching elements:
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Sign in with Google"[39m
+  [33mclass[39m=[32m"social-auth-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]"[39m
+  [33mstyle[39m=[32m"background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text);"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mheight[39m=[32m"20"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"20"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"[39m
+      [33mfill[39m=[32m"#4285F4"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"[39m
+      [33mfill[39m=[32m"#34A853"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"[39m
+      [33mfill[39m=[32m"#FBBC05"[39m
+    [36m/>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"[39m
+      [33mfill[39m=[32m"#EA4335"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [36m<span>[39m
+    [0mContinue with Google[0m
+  [36m</span>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Sign in with GitHub"[39m
+  [33mclass[39m=[32m"social-auth-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]"[39m
+  [33mstyle[39m=[32m"background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text);"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mfill[39m=[32m"currentColor"[39m
+    [33mheight[39m=[32m"20"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"20"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [36m<span>[39m
+    [0mContinue with GitHub[0m
+  [36m</span>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33maria-label[39m=[32m"Sign in with Apple"[39m
+  [33mclass[39m=[32m"social-auth-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]"[39m
+  [33mstyle[39m=[32m"background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text);"[39m
+  [33mtype[39m=[32m"button"[39m
+[36m>[39m
+  [36m<svg[39m
+    [33maria-hidden[39m=[32m"true"[39m
+    [33mfill[39m=[32m"currentColor"[39m
+    [33mheight[39m=[32m"20"[39m
+    [33mviewBox[39m=[32m"0 0 24 24"[39m
+    [33mwidth[39m=[32m"20"[39m
+  [36m>[39m
+    [36m<path[39m
+      [33md[39m=[32m"M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-1.55 4.2-3.74 4.25z"[39m
+    [36m/>[39m
+  [36m</svg>[39m
+  [36m<span>[39m
+    [0mContinue with Apple[0m
+  [36m</span>[39m
+[36m</button>[39m
+
+Ignored nodes: comments, script, style
+[36m<button[39m
+  [33mclass[39m=[32m"w-full py-3 rounded-xl font-semibold text-white hover:opacity-90 disabled:opacity-50 transition-opacity min-h-[48px]"[39m
+  [33mstyle[39m=[32m"background-color: var(--color-accent);"[39m
+  [33mtype[39m=[32m"submit"[39m
+[36m>[39m
+  [0mSign in[0m
+[36m</button>[39m
+
+(If this is intentional, then use the `*AllBy*` variant of the query (like `queryAllByText`, `getAllByText`, or `findAllByText`)).
+
+Ignored nodes: comments, script, style
+[36m<body>[39m
+  [36m<div>[39m
+    [36m<main[39m
+      [33mclass[39m=[32m"auth-page min-h-screen flex items-center justify-center px-4"[39m
+      [33mstyle[39m=[32m"background-color: var(--color-bg);"[39m
+    [36m>[39m
+      [36m<div[39m
+        [33mclass[39m=[32m"w-full max-w-sm"[39m
+      [36m>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"mb-8 text-center"[39m
+        [36m>[39m
+          [36m<h1[39m
+            [33mclass[39m=[32m"text-3xl font-bold tracking-tight"[39m
+            [33mstyle[39m=[32m"font-family: var(--font-display); color: var(--color-text);"[39m
+          [36m>[39m
+            [0mRPG Tracker[0m
+          [36m</h1>[39m
+          [36m<p[39m
+            [33mclass[39m=[32m"mt-2 text-sm"[39m
+            [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+          [36m>[39m
+            [0mSign in to continue your journey[0m
+          [36m</p>[39m
+        [36m</div>[39m
+        [36m<div[39m
+          [33mclass[39m=[32m"auth-page__card rounded-2xl p-8 shadow-sm"[39m
+          [33mstyle[39m=[32m"background-color: var(--color-bg-elevated); border: 1px solid var(--color-border);"[39m
+        [36m>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex flex-col gap-3"[39m
+          [36m>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Sign in with Google"[39m
+              [33mclass[39m=[32m"social-auth-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]"[39m
+              [33mstyle[39m=[32m"background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text);"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mheight[39m=[32m"20"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"[39m
+                  [33mfill[39m=[32m"#4285F4"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"[39m
+                  [33mfill[39m=[32m"#34A853"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"[39m
+                  [33mfill[39m=[32m"#FBBC05"[39m
+                [36m/>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"[39m
+                  [33mfill[39m=[32m"#EA4335"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<span>[39m
+                [0mContinue with Google[0m
+              [36m</span>[39m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Sign in with GitHub"[39m
+              [33mclass[39m=[32m"social-auth-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]"[39m
+              [33mstyle[39m=[32m"background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text);"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mheight[39m=[32m"20"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.138 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<span>[39m
+                [0mContinue with GitHub[0m
+              [36m</span>[39m
+            [36m</button>[39m
+            [36m<button[39m
+              [33maria-label[39m=[32m"Sign in with Apple"[39m
+              [33mclass[39m=[32m"social-auth-btn w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium text-sm transition-all min-h-[48px]"[39m
+              [33mstyle[39m=[32m"background-color: transparent; border: 1px solid var(--color-border); color: var(--color-text);"[39m
+              [33mtype[39m=[32m"button"[39m
+            [36m>[39m
+              [36m<svg[39m
+                [33maria-hidden[39m=[32m"true"[39m
+                [33mfill[39m=[32m"currentColor"[39m
+                [33mheight[39m=[32m"20"[39m
+                [33mviewBox[39m=[32m"0 0 24 24"[39m
+                [33mwidth[39m=[32m"20"[39m
+              [36m>[39m
+                [36m<path[39m
+                  [33md[39m=[32m"M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.32 2.32-1.55 4.2-3.74 4.25z"[39m
+                [36m/>[39m
+              [36m</svg>[39m
+              [36m<span>[39m
+                [0mContinue with Apple[0m
+              [36m</span>[39m
+            [36m</button>[39m
+          [36m</div>[39m
+          [36m<div[39m
+            [33mclass[39m=[32m"flex items-center gap-3 my-5"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1 h-px"[39m
+              [33mstyle[39m=[32m"background-color: var(--color-border);"[39m
+            [36m/>[39m
+            [36m<span[39m
+              [33mclass[39m=[32m"text-xs"[39m
+              [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+            [36m>[39m
+              [0mor[0m
+            [36m</span>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"flex-1 h-px"[39m
+              [33mstyle[39m=[32m"background-color: var(--color-border);"[39m
+            [36m/>[39m
+          [36m</div>[39m
+          [36m<form[39m
+            [33mclass[39m=[32m"space-y-5"[39m
+          [36m>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"space-y-1.5"[39m
+            [36m>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m"block text-sm font-medium"[39m
+                [33mfor[39m=[32m"email"[39m
+                [33mstyle[39m=[32m"color: var(--color-text-secondary);"[39m
+              [36m>[39m
+                [0mEmail[0m
+              [36m</label>[39m
+              [36m<input[39m
+                [33mautocomplete[39m=[32m"email"[39m
+                [33mclass[39m=[32m"w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition-shadow"[39m
+                [33mid[39m=[32m"email"[39m
+                [33mplaceholder[39m=[32m"you@example.com"[39m
+                [33mrequired[39m=[32m""[39m
+                [33mstyle[39m=[32m"background-color: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text); box-shadow: none;"[39m
+                [33mtype[39m=[32m"email"[39m
+                [33mvalue[39m=[32m""[39m
+              [36m/>[39m
+            [36m</div>[39m
+            [36m<div[39m
+              [33mclass[39m=[32m"space-y-1.5"[39m
+            [36m>[39m
+              [36m<label[39m
+                [33mclass[39m=[32m"block text-sm font-medium"[39m
+                [33mfor[39m=[32m"password"[39m
+                [33mstyle[39m=[32m"color: var(--color-text-secondary);"[39m
+              [36m>[39m
+                [0mPassword[0m
+              [36m</label>[39m
+              [36m<input[39m
+                [33mautocomplete[39m=[32m"current-password"[39m
+                [33mclass[39m=[32m"w-full rounded-xl px-4 py-3 focus:outline-none focus:ring-2 transition-shadow"[39m
+                [33mid[39m=[32m"password"[39m
+                [33mplaceholder[39m=[32m"••••••••"[39m
+                [33mrequired[39m=[32m""[39m
+                [33mstyle[39m=[32m"background-color: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text); box-shadow: none;"[39m
+                [33mtype[39m=[32m"password"[39m
+                [33mvalue[39m=[32m""[39m
+              [36m/>[39m
+            [36m</div>[39m
+            [36m<button[39m
+              [33mclass[39m=[32m"w-full py-3 rounded-xl font-semibold text-white hover:opacity-90 disabled:opacity-50 transition-opacity min-h-[48px]"[39m
+              [33mstyle[39m=[32m"background-color: var(--color-accent);"[39m
+              [33mtype[39m=[32m"submit"[39m
+            [36m>[39m
+              [0mSign in[0m
+            [36m</button>[39m
+          [36m</form>[39m
+        [36m</div>[39m
+        [36m<p[39m
+          [33mclass[39m=[32m"mt-6 text-center text-sm"[39m
+          [33mstyle[39m=[32m"color: var(--color-muted);"[39m
+        [36m>[39m
+          [0mNo account?[0m
+          [0m [0m
+          [36m<a[39m
+            [33mclass[39m=[32m"font-medium hover:underline"[39m
+            [33mhref[39m=[32m"/register"[39m
+            [33mstyle[39m=[32m"color: var(--color-accent);"[39m
+          [36m>[39m
+            [0mCreate account[0m
+          [36m</a>[39m
+        [36m</p>[39m
+      [36m</div>[39m
+    [36m</main>[39m
+  [36m</div>[39m
+[36m</body>[39m
+ ❯ Object.getElementError ../../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ getElementError ../../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:20:35
+ ❯ getMultipleElementsFoundError ../../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:23:10
+ ❯ ../../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:55:13
+ ❯ ../../node_modules/.pnpm/@testing-library+dom@10.4.1/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ app/__tests__/login.test.tsx:10:19
+      8|     expect(screen.getByLabelText(/email/i)).toBeInTheDocument()
+      9|     expect(screen.getByLabelText(/password/i)).toBeInTheDocument()
+     10|     expect(screen.getByRole('button', { name: /sign in/i })).toBeInThe…
+       |                   ^
+     11|   })
+     12| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/17]⎯
+
+ FAIL  app/__tests__/skill-create.test.tsx > renders step 1 by default
+ FAIL  app/__tests__/skill-create.test.tsx > advances to step 2 on next
+ FAIL  app/__tests__/skill-create.test.tsx > step 1 next button is disabled when name is empty
+Error: [vitest] No "listCategories" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@rpgtracker/api-client"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ SkillCreatePage app/(app)/skills/new/page.tsx:51:14
+     49|   const { data: categories = [] } = useQuery({
+     50|     queryKey: ['categories'],
+     51|     queryFn: listCategories,
+       |              ^
+     52|     staleTime: Infinity,
+     53|   })
+ ❯ Object.react_stack_bottom_frame ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20
+ ❯ renderWithHooks ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22
+ ❯ updateFunctionComponent ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19
+ ❯ beginWork ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:11778:18
+ ❯ runWithFiberInDEV ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13
+ ❯ performUnitOfWork ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22
+ ❯ workLoopSync ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/17]⎯
+
+ FAIL  app/__tests__/skill-detail-sessions.test.tsx > "Start Session" is the primary button and "Log XP" is secondary
+ FAIL  app/__tests__/skill-detail-sessions.test.tsx > when current_streak=0, streak badge hidden and motivational prompt shown
+ FAIL  app/__tests__/skill-detail-sessions.test.tsx > when current_streak > 0, streak badge is shown and prompt is hidden
+ FAIL  app/__tests__/skill-detail.test.tsx > renders skill name and tier
+ FAIL  app/__tests__/skill-detail.test.tsx > shows Log XP button
+ FAIL  app/__tests__/skill-detail.test.tsx > shows XP History section header
+ FAIL  app/__tests__/skill-detail.test.tsx > shows date-grouped activity with Today header
+Error: [vitest] No "listTags" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@rpgtracker/api-client"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ SkillDetailPage app/(app)/skills/[id]/page.tsx:83:75
+     81|   })
+     82| 
+     83|   const { data: userTags = [] } = useQuery({ queryKey: ['tags'], query…
+       |                                                                           ^
+     84| 
+     85|   const [logSheetOpen, setLogSheetOpen] = useState(false)
+ ❯ Object.react_stack_bottom_frame ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20
+ ❯ renderWithHooks ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22
+ ❯ updateFunctionComponent ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19
+ ❯ beginWork ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:11778:18
+ ❯ runWithFiberInDEV ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13
+ ❯ performUnitOfWork ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22
+ ❯ workLoopSync ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/17]⎯
+
+ FAIL  app/__tests__/skills-list.test.tsx > shows empty state when no skills
+ FAIL  app/__tests__/skills-list.test.tsx > empty state includes CSS-based illustration (AC-11)
+ FAIL  app/__tests__/skills-list.test.tsx > renders sort controls with 4 options (AC-6)
+ FAIL  app/__tests__/skills-list.test.tsx > sorting by name reorders cards without network request (AC-7)
+ FAIL  app/__tests__/skills-list.test.tsx > tier filter shows only matching skills (AC-8)
+Error: [vitest] No "listCategories" export is defined on the "@rpgtracker/api-client" mock. Did you forget to return it from "vi.mock"?
+If you need to partially mock a module, you can use "importOriginal" helper inside:
+
+vi.mock(import("@rpgtracker/api-client"), async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    // your mocked methods
+  }
+})
+
+ ❯ SkillsPage app/(app)/skills/page.tsx:63:83
+     61|   const qc = useQueryClient()
+     62|   const { data: skills = [], isLoading } = useQuery({ queryKey: ['skil…
+     63|   const { data: categories = [] } = useQuery({ queryKey: ['categories'…
+       |                                                                                   ^
+     64|   const { data: userTags = [] } = useQuery({ queryKey: ['tags'], query…
+     65| 
+ ❯ Object.react_stack_bottom_frame ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20
+ ❯ renderWithHooks ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22
+ ❯ updateFunctionComponent ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19
+ ❯ beginWork ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:11778:18
+ ❯ runWithFiberInDEV ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:874:13
+ ❯ performUnitOfWork ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22
+ ❯ workLoopSync ../../node_modules/.pnpm/react-dom@19.2.3_react@19.2.3/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/17]⎯
+
+ Test Files  6 failed | 4 passed (10)
+      Tests  17 failed | 16 passed (33)
+   Start at  12:48:59
+   Duration  2.09s (transform 412ms, setup 314ms, collect 2.18s, tests 1.48s, environment 2.79s, prepare 544ms)
+
+ ELIFECYCLE  Test failed. See above for more details.

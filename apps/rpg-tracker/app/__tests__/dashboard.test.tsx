@@ -196,14 +196,12 @@ test('shows empty state when user has zero skills (AC-9)', async () => {
   expect(link).toHaveAttribute('href', '/skills/new')
 })
 
-test('shows Log XP quick action button', async () => {
+test('shows Quick Log panel button', async () => {
   render(<DashboardPage />, { wrapper })
   await waitFor(() => {
-    // The main "Log XP" button (full-width primary action)
-    const logButtons = screen.getAllByRole('button', { name: /log/i })
-    // There should be at least 2: the SkillCard "+ Log" and the main "Log XP" button
-    const mainLogButton = logButtons.find((btn) => btn.textContent === 'Log XP')
-    expect(mainLogButton).toBeTruthy()
+    // The QuickLogPanel collapsed button shows "Log XP — {skillName}"
+    const logButtons = screen.getAllByRole('button', { name: /log xp/i })
+    expect(logButtons.length).toBeGreaterThan(0)
   })
 })
 

@@ -3,27 +3,27 @@
 > Built from `style-guide/`, `page-guides/`, and `Design_Discussion.md`.
 > Each phase is independently shippable. Phases can overlap where noted.
 
-Last updated: 2026-03-23
+Last updated: 2026-03-23 (Phases 0–5 + 7 complete; Phases 6, 8 remaining)
 
 ---
 
 ## Overview
 
-| Phase | Name | Focus | Depends On |
-|-------|------|-------|------------|
-| 0 | Theme Foundation | CSS infrastructure, fonts, switcher | Nothing |
-| 1 | Restyle Existing Pages | Apply three themes to all current pages | Phase 0 |
-| 2 | Session Route | Extract timer to dedicated route, Pomodoro | Phase 1 (skill detail restyle) |
-| 3 | Skill Organisation | Categories, tags, favourites, search | Phase 1 |
-| 4 | Dashboard Evolution | Primary Skill Focus, Quick Session, Quick Log rework, hub placeholders | Phase 2 + 3 |
-| 5 | Identity & Profile | Avatar system, Player Card, account stats | Phase 1 |
-| 6 | Skill Create Overhaul | Preset/Custom split, Arbiter avatar, progression preview | Phase 1 + 3 (categories) |
-| 7 | Auth & Landing | Social auth, free trial, feature preview, landing rework | Phase 0 |
-| 8 | Immersion Features | Audio, browser notifications, narrative layer polish | Phase 2 |
+| Phase | Name | Focus | Depends On | Status |
+|-------|------|-------|------------|--------|
+| 0 | Theme Foundation | CSS infrastructure, fonts, switcher | Nothing | ✓ Done |
+| 1 | Restyle Existing Pages | Apply three themes to all current pages | Phase 0 | ✓ Done |
+| 2 | Session Route | Extract timer to dedicated route, Pomodoro | Phase 1 (skill detail restyle) | ✓ Done |
+| 3 | Skill Organisation | Categories, tags, favourites, search | Phase 1 | ✓ Done |
+| 4 | Dashboard Evolution | Primary Skill Focus, Quick Session, Quick Log rework, hub placeholders | Phase 2 + 3 | ✓ Done |
+| 5 | Identity & Profile | Avatar system, Player Card, account stats | Phase 1 ✓ | ✓ Done |
+| 6 | Skill Create Overhaul | Preset/Custom split, Arbiter avatar, progression preview | Phase 1 + 3 ✓ | Remaining |
+| 7 | Auth & Landing | Social auth, free trial, feature preview, landing rework | Phase 0 | ✓ Done |
+| 8 | Immersion Features | Audio, browser notifications, narrative layer polish | Phase 2 ✓ | Remaining |
 
 ---
 
-## Phase 0 — Theme Foundation
+## Phase 0 — Theme Foundation ✓ COMPLETE
 
 > **Goal:** The three-theme CSS infrastructure works. Switching themes changes the entire app's look. No page-specific restyling yet — just the system.
 
@@ -45,7 +45,7 @@ Last updated: 2026-03-23
 
 ---
 
-## Phase 1 — Restyle Existing Pages
+## Phase 1 — Restyle Existing Pages ✓ COMPLETE
 
 > **Goal:** Every existing page matches its page guide for all three themes. No new features — purely visual.
 
@@ -70,7 +70,7 @@ Last updated: 2026-03-23
 
 ---
 
-## Phase 2 — Session Route
+## Phase 2 — Session Route ✓ COMPLETE
 
 > **Goal:** Dedicated `/skills/[id]/session` route with full-screen immersion. Pomodoro support. Browser notifications.
 
@@ -125,49 +125,54 @@ Last updated: 2026-03-23
 
 ---
 
-## Phase 4 — Dashboard Evolution
+## Phase 4 — Dashboard Evolution ✓ COMPLETE (2026-03-23)
 
 > **Goal:** The Dashboard becomes the true home base with Primary Skill Focus, Quick Session, improved Quick Log, and hub placeholders.
 
 ### Work Items
 
-| ID | Item | Type | Area | Notes |
-|----|------|------|------|-------|
-| P4-1 | Primary Skill algorithm | Backend | API | Endpoint returning the user's "Next Quest" — pinned skill, or algorithmically chosen by goals/streaks/recency. |
-| P4-2 | Skill pinning API | Backend | API | PATCH `/skills/:id/pin`. Only one skill pinned at a time (or allow multiple with priority?). |
-| P4-3 | Primary Skill Focus component | Frontend | `/dashboard` | Centre-stage card showing pinned/suggested skill. Theme-specific: "Main Quest" (Retro), "Active Mission" (Modern), "Focus" (Minimal). |
-| P4-4 | Quick Session button | Frontend | `/dashboard` | Navigates to `/skills/[pinned-id]/session`. Only visible when a skill is pinned/suggested. |
-| P4-5 | Quick Log rework | Frontend | `/dashboard` | Convert from bottom sheet to collapsible panel between stats and skill grid. |
-| P4-6 | Hub stat placeholders | Frontend | `/dashboard` | "Coming Soon" teaser cards for NutriLog/MindTrack with metric preview mockups. |
-| P4-7 | Empty state overhaul | Frontend | `/dashboard` | Theme-specific "Tutorial Quest" / "Choose Your First Skill" invitation. |
-| P4-8 | XP chart rolling average | Frontend | `/skills/[id]` | Add trend line to existing bar chart. Reinforces "showing up" framing. |
+| ID | Item | Type | Area | Status |
+|----|------|------|------|--------|
+| P4-1 | Primary Skill algorithm | Frontend | `packages/ui` | **Done** — `computeFocusSkill()` client-side: pinned → streak → favourite → recency. 9 tests. |
+| P4-2 | Skill pinning API | Backend | API | **Done** — `PATCH /api/v1/account/primary-skill` toggle. `primary_skill_id` FK on users table (migration 000010). 6 tests. |
+| P4-3 | Primary Skill Focus component | Frontend | `/dashboard` | **Done** — `PrimarySkillCard` with tier badge, streak, pin toggle, "Start Session" CTA. |
+| P4-4 | Quick Session button | Frontend | `/dashboard` | **Done** — Link in PrimarySkillCard navigates to `/skills/[id]/session`. |
+| P4-5 | Quick Log rework | Frontend | `/dashboard` | **Done** — `QuickLogPanel` (controlled/uncontrolled) replaces `QuickLogSheet` bottom sheet. Inline between stats and skill grid. SkillCard "Log XP" opens panel for that skill. |
+| P4-6 | Hub stat placeholders | Frontend | `/dashboard` | **Done** — `HubPlaceholderCard` component. NutriLog + MindTrack teaser cards with "Coming Soon" badge and mock metrics. |
+| P4-7 | Empty state overhaul | Frontend | `/dashboard` | **Done** — CSS shield illustration, "Begin Your Quest" heading, themed CTA. |
+| P4-8 | XP chart rolling average | Frontend | `/skills/[id]` | **Done** — 3-point rolling average rendered as SVG polyline overlay on `XPBarChart`. Uses `vectorEffect="non-scaling-stroke"`. |
 
-**Dependencies:** Phase 2 (session route for Quick Session), Phase 3 (categories/pinning for Primary Skill).
+**Decision Resolved:** D-041 — Single pin only. `primary_skill_id` FK on users table. Favourites (F-033) serve the multi-pin role.
 
-**Exit Criteria:** Dashboard shows Primary Skill Focus with theme-appropriate framing. Quick Session works. Quick Log is a collapsible panel. Hub placeholders present. Empty state is themed. XP chart has rolling average.
+**Key Design Decisions:**
+- P4-D1: Focus algorithm is client-side (no dedicated API endpoint) — uses existing skill list + account data
+- P4-D2: Pin endpoint is a toggle (same skill ID = unpin)
+- P4-D3: Algorithm priority: pinned > highest streak > favourite tie-break > most recent
+- P4-D4: QuickLogPanel supports controlled mode (dashboard) and uncontrolled mode (standalone)
+- P4-D5: Rolling average uses 3-point window with SVG viewBox for resolution independence
 
 ---
 
-## Phase 5 — Identity & Profile
+## Phase 5 — Identity & Profile ✓ COMPLETE (2026-03-23)
 
 > **Goal:** Avatar system, Player Card, account stats. Users feel a sense of identity.
 
 ### Work Items
 
-| ID | Item | Type | Area | Notes |
-|----|------|------|------|-------|
-| P5-1 | Avatar storage | Backend | API + Infra | Image upload endpoint. Storage (Supabase Storage or S3). Resize/crop. |
-| P5-2 | Theme-dependent default avatars | Frontend | `packages/ui` | Silhouette/placeholder per theme. Minimal: neutral icon. Retro: pixel character. Modern: holographic frame. |
-| P5-3 | Avatar upload UI | Frontend | `/account` | Upload, crop, preview. |
-| P5-4 | Account stats aggregation API | Backend | API | Endpoint: total XP, longest streak, skill count, category distribution. |
-| P5-5 | Player Card / Operator Card component | Frontend | `/account` | Identity card with avatar, display name, stats. Theme-specific treatment. |
-| P5-6 | Theme picker with visual previews | Frontend | `/account` | Replace current theme toggle with side-by-side or carousel preview of all three themes. |
+| ID | Item | Type | Area | Status |
+|----|------|------|------|--------|
+| P5-1 | Avatar storage | Backend | API + Infra | **Done** — Supabase Storage REST client (Go `net/http`). `POST/DELETE /api/v1/account/avatar`. Migration 000011 (`avatar_url` TEXT on users). D-042 resolved. |
+| P5-2 | Theme-dependent default avatars | Frontend | `packages/ui` | **Done** — `DefaultAvatar` component. CSS/SVG: Minimal (initial circle), Retro (pixel silhouette + gold border), Modern (holographic conic-gradient ring). |
+| P5-3 | Avatar upload UI | Frontend | `/account` | **Done** — `AvatarCropModal` with client-side 256x256 JPEG crop. Touch support. Error recovery with blob retention and retry. |
+| P5-4 | Account stats aggregation API | Backend | API | **Done** — `GET /api/v1/account/stats`. Total XP, best streak, skill count, category distribution. COALESCE for NULL-safe aggregation. |
+| P5-5 | Player Card / Operator Card component | Frontend | `/account` | **Done** — `PlayerCard` with theme-specific styling, skeleton loading, "Set up your profile" CTA, remove avatar button, name truncation. |
+| P5-6 | Theme picker with visual previews | Frontend | `/account` | **Done** — `ThemePickerPreview` with accessible radiogroup, colour palette dots, responsive grid/stack layout. |
 
-**Feature Tracker:** F-028 (Character avatar) — change status from `deferred` to `in-progress`.
+**Feature Tracker:** F-036 (Avatar system) done, F-037 (Account stats aggregation) done.
 
-**Dependencies:** Phase 1 (account page restyled).
+**Dependencies:** Phase 1 ✓ (account page restyled).
 
-**Exit Criteria:** Users can upload an avatar, see their Player Card with stats, and switch themes via visual previews. Default avatars are themed.
+**Exit Criteria:** ✓ Users can upload an avatar, see their Player Card with stats, and switch themes via visual previews. Default avatars are themed.
 
 ---
 
@@ -191,7 +196,7 @@ Last updated: 2026-03-23
 
 ---
 
-## Phase 7 — Auth & Landing
+## Phase 7 — Auth & Landing ✓ COMPLETE
 
 > **Goal:** Social auth, free trial messaging, feature preview on registration, landing page suite sections.
 
@@ -244,17 +249,17 @@ Last updated: 2026-03-23
 Some phases can run simultaneously:
 
 ```
-Phase 0 ──→ Phase 1 ──→ Phase 2 ──→ Phase 4
-                    ├──→ Phase 3 ──→ Phase 4
-                    ├──→ Phase 5
-                    ├──→ Phase 6 (after Phase 3)
-             Phase 7 (landing/auth can start after Phase 0)
-                                      Phase 8 (after Phase 2)
+Phase 0 ✓ ──→ Phase 1 ✓ ──→ Phase 2 ✓ ──→ Phase 4 ✓
+                         ├──→ Phase 3 ✓ ──→ Phase 4 ✓
+                         ├──→ Phase 5
+                         ├──→ Phase 6 (after Phase 3 ✓)
+              Phase 7 ✓ (landing/auth can start after Phase 0)
+                                           Phase 8 (after Phase 2 ✓)
 ```
 
-**Critical path:** Phase 0 → Phase 1 → Phase 2 + Phase 3 → Phase 4
+**Critical path:** Phase 0 ✓ → Phase 1 ✓ → Phase 2 ✓ + Phase 3 ✓ → Phase 4 ✓ — **complete.**
 
-Phase 7 (auth/landing) is the most independent — it only needs Phase 0's theme switcher component.
+**Remaining:** Phase 6 (Skill Create Overhaul), Phase 8 (Immersion Features). All prerequisites met — these can start independently.
 
 ---
 
@@ -292,5 +297,5 @@ Decisions are made when the relevant phase begins — not before. This keeps the
 | D-038 | ~~Preset category list~~ **Resolved:** kept existing 9 categories | Phase 3 ✓ |
 | D-039 | Free trial enforcement — server-side (subscription table + RLS) or UI-only for now? | Phase 7 start |
 | D-040 | Session history schema — what fields? (start_time, end_time, duration, type, intervals_completed?) | Phase 2 start |
-| D-041 | Skill pinning — one pin at a time, or multiple with priority ordering? | Phase 4 start |
-| D-042 | Avatar storage — Supabase Storage, S3, or Cloudflare R2? | Phase 5 start |
+| D-041 | ~~Skill pinning~~ **Resolved:** single pin only, `primary_skill_id` FK on users table | Phase 4 ✓ |
+| D-042 | Avatar storage — **Resolved: Supabase Storage** (see decision-log.md) | ✓ Resolved |

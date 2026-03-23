@@ -8,13 +8,14 @@ import { listSkills, getAccount, getActivity, logXP, setPrimarySkill } from '@rp
 import type { SkillDetail, ActivityEvent } from '@rpgtracker/api-client'
 import {
   SkillCard,
-  QuickLogSheet,
+  QuickLogPanel,
   TierTransitionModal,
   StatCard,
   ActivityFeedItem,
   TierBadge,
   PrimarySkillCard,
   computeFocusSkill,
+  HubPlaceholderCard,
 } from '@rpgtracker/ui'
 import { XPGainAnimation } from '@/components/XPGainAnimation'
 
@@ -67,7 +68,8 @@ export default function DashboardPage() {
     queryFn: () => getActivity(10),
   })
 
-  const [logSheetSkill, setLogSheetSkill] = useState<SkillDetail | null>(null)
+  const [quickLogExpanded, setQuickLogExpanded] = useState(false)
+  const [quickLogSkillOverride, setQuickLogSkillOverride] = useState<SkillDetail | null>(null)
   const [tierTransition, setTierTransition] = useState<{
     tierName: string
     tierNumber: number
@@ -88,7 +90,8 @@ export default function DashboardPage() {
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['skills'] })
       qc.invalidateQueries({ queryKey: ['activity'] })
-      setLogSheetSkill(null)
+      setQuickLogExpanded(false)
+      setQuickLogSkillOverride(null)
       setXpGain({ amount: result.xp_added, key: Date.now() })
       if (result.tier_crossed) {
         setTierTransition({
@@ -229,6 +232,34 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Quick Log — collapsible panel between stats and skill grid (P4-5) */}
+      {(() => {
+        const panelSkill = quickLogSkillOverride ?? focusSkill ?? skills[0] ?? null
+        if (!panelSkill) return null
+        return (
+          <div className="relative max-w-xl">
+            <QuickLogPanel
+              skillName={panelSkill.name}
+              tierNumber={panelSkill.tier_number}
+              isLoading={logMutation.isPending}
+              expanded={quickLogExpanded}
+              onToggleExpanded={setQuickLogExpanded}
+              onSubmit={({ xpDelta, logNote, timeSpentMinutes }) =>
+                logMutation.mutate({
+                  skillId: panelSkill.id,
+                  xpDelta,
+                  logNote,
+                  timeSpentMinutes,
+                })
+              }
+            />
+            <div className="absolute -top-2 left-1/2 -translate-x-1/2">
+              <XPGainAnimation xpAmount={xpGain.amount} animationKey={xpGain.key} />
+            </div>
+          </div>
+        )
+      })()}
+
       {/* Two-column layout: skills left, activity right */}
       <div className="dashboard-main-grid gap-6">
         {/* Left column — Skills */}
@@ -250,27 +281,15 @@ export default function DashboardPage() {
               <SkillCard
                 key={skill.id}
                 skill={skill}
-                onLogXP={(id) =>
-                  setLogSheetSkill(skills.find((s) => s.id === id) ?? null)
-                }
+                onLogXP={(id) => {
+                  setQuickLogSkillOverride(skills.find((s) => s.id === id) ?? null)
+                  setQuickLogExpanded(true)
+                }}
                 onClick={(id) => router.push(`/skills/${id}`)}
               />
             ))}
           </div>
 
-          {/* Quick Action — Log XP (AC-V10: targets focus skill) */}
-          <div className="relative max-w-md">
-            <button
-              onClick={() => setLogSheetSkill(focusSkill ?? skills[0])}
-              className="w-full py-3 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity"
-              style={{ backgroundColor: 'var(--color-accent)' }}
-            >
-              Log XP
-            </button>
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2">
-              <XPGainAnimation xpAmount={xpGain.amount} animationKey={xpGain.key} />
-            </div>
-          </div>
         </div>
 
         {/* Right column — Activity Feed */}
@@ -321,24 +340,29 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      {/* QuickLogSheet */}
-      {logSheetSkill && (
-        <QuickLogSheet
-          skillName={logSheetSkill.name}
-          tierNumber={logSheetSkill.tier_number}
-          isOpen
-          isLoading={logMutation.isPending}
-          onClose={() => setLogSheetSkill(null)}
-          onSubmit={({ xpDelta, logNote, timeSpentMinutes }) =>
-            logMutation.mutate({
-              skillId: logSheetSkill.id,
-              xpDelta,
-              logNote,
-              timeSpentMinutes,
-            })
-          }
+      {/* Hub Stat Placeholders — P4-6 */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <HubPlaceholderCard
+          appName="NutriLog"
+          tagline="Nutrition tracking, gamified"
+          icon="🥗"
+          metrics={[
+            { label: 'Calories', value: '—' },
+            { label: 'Streak', value: '—' },
+            { label: 'Score', value: '—' },
+          ]}
         />
-      )}
+        <HubPlaceholderCard
+          appName="MindTrack"
+          tagline="Mental health check-ins"
+          icon="🧠"
+          metrics={[
+            { label: 'Mood', value: '—' },
+            { label: 'Streak', value: '—' },
+            { label: 'Entries', value: '—' },
+          ]}
+        />
+      </div>
 
       {/* Tier Transition Modal */}
       {tierTransition && (
