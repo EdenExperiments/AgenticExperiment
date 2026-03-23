@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { getSkill, logXP, deleteSkill, getActivity, getXPChart, createSession, updateSkill, toggleFavourite, setSkillTags, listTags } from '@rpgtracker/api-client'
+import { getSkill, getAccount, logXP, deleteSkill, getActivity, getXPChart, createSession, updateSkill, toggleFavourite, setPrimarySkill, setSkillTags, listTags } from '@rpgtracker/api-client'
 import type { BlockerGate, ActivityEvent } from '@rpgtracker/api-client'
 import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal, GrindOverlay, PostSessionScreen, XPBarChart, ConfirmModal, SkillEditModal } from '@rpgtracker/ui'
 import { XPGainAnimation } from '@/components/XPGainAnimation'
@@ -81,6 +81,15 @@ export default function SkillDetailPage() {
   })
 
   const { data: userTags = [] } = useQuery({ queryKey: ['tags'], queryFn: listTags })
+  const { data: account } = useQuery({ queryKey: ['account'], queryFn: getAccount })
+  const isPinned = account?.primary_skill_id === id
+
+  const pinMutation = useMutation({
+    mutationFn: () => setPrimarySkill(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['account'] })
+    },
+  })
 
   const [logSheetOpen, setLogSheetOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
@@ -208,24 +217,17 @@ export default function SkillDetailPage() {
           )}
         </div>
 
-        {/* Skill identity — name, category, level, tier badge, streak, favourite */}
+        {/* Skill identity — tier, name, category, description, stats + actions */}
         <div>
-          <div className="flex items-start justify-between gap-2">
-            <h1 className="heading text-3xl font-bold">
-              {skill.name}
-            </h1>
-            <button
-              aria-label={skill.is_favourite ? 'Remove from favourites' : 'Add to favourites'}
-              aria-pressed={skill.is_favourite}
-              onClick={() => favouriteMutation.mutate()}
-              className="flex items-center justify-center w-[44px] h-[44px] rounded-lg text-xl shrink-0 leading-none"
-              style={{ color: skill.is_favourite ? 'var(--color-accent)' : 'var(--color-muted)' }}
-            >
-              <span className="block -translate-y-1">{skill.is_favourite ? '★' : '☆'}</span>
-            </button>
-          </div>
+          {/* Tier badge — top context */}
+          <TierBadge tierName={skill.tier_name} tierNumber={skill.tier_number} />
 
-          {/* Category display */}
+          {/* Skill name — dominant */}
+          <h1 className="heading text-3xl font-bold mt-2">
+            {skill.name}
+          </h1>
+
+          {/* Category */}
           {skill.category_name && (
             <p
               className="text-sm mt-1"
@@ -235,15 +237,15 @@ export default function SkillDetailPage() {
             </p>
           )}
 
-          {/* Description — inline under identity */}
+          {/* Description */}
           {skill.description && (
             <p className="text-body text-sm leading-relaxed mt-2">
               {skill.description}
             </p>
           )}
 
-          <div className="flex items-center gap-3 mt-3 flex-wrap">
-            <TierBadge tierName={skill.tier_name} tierNumber={skill.tier_number} />
+          {/* Stats + actions row */}
+          <div className="flex items-center gap-3 mt-4 flex-wrap">
             <span className="heading text-2xl font-bold text-gradient">
               Level {skill.effective_level}
             </span>
@@ -267,6 +269,44 @@ export default function SkillDetailPage() {
                 Log today to start your streak
               </span>
             )}
+
+            {/* Spacer pushes pin/fav to the right on wide screens */}
+            <span className="flex-1" />
+
+            {/* Pin + Fav grouped so they always wrap together */}
+            <span className="flex items-center gap-2 shrink-0">
+              <button
+                aria-label={isPinned ? 'Remove as focus skill' : 'Set as focus skill'}
+                aria-pressed={isPinned}
+                onClick={() => pinMutation.mutate()}
+                disabled={pinMutation.isPending}
+                className={`chip flex items-center gap-1.5 px-3 py-1.5 text-xs${isPinned ? ' chip-active' : ''}`}
+                style={{
+                  opacity: pinMutation.isPending ? 0.5 : 1,
+                }}
+              >
+                {isPinned ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                    <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                    <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+                  </svg>
+                )}
+                Focus
+              </button>
+
+              <button
+                aria-label={skill.is_favourite ? 'Remove from favourites' : 'Add to favourites'}
+                aria-pressed={skill.is_favourite}
+                onClick={() => favouriteMutation.mutate()}
+                className={`chip flex items-center gap-1.5 px-3 py-1.5 text-xs${skill.is_favourite ? ' chip-active' : ''}`}
+              >
+                <span className="leading-none text-base -translate-y-0.5" style={{ fontFamily: 'system-ui, sans-serif' }}>{skill.is_favourite ? '★' : '☆'}</span>
+                Favourite
+              </button>
+            </span>
           </div>
         </div>
 
