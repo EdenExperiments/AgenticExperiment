@@ -1,4 +1,4 @@
-import type { Skill, SkillDetail, Preset, Account, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse } from './types'
+import type { Skill, SkillDetail, Preset, Account, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory } from './types'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -29,6 +29,7 @@ export function createSkill(data: {
   description?: string
   unit?: string
   preset_id?: string
+  category_id?: string
   starting_level?: number
   gate_descriptions?: string[]
 }): Promise<SkillDetail> {
@@ -37,6 +38,7 @@ export function createSkill(data: {
   if (data.description) entries.push(['description', data.description])
   if (data.unit) entries.push(['unit', data.unit])
   if (data.preset_id) entries.push(['preset_id', data.preset_id])
+  if (data.category_id) entries.push(['category_id', data.category_id])
   if (data.starting_level !== undefined) entries.push(['starting_level', String(data.starting_level)])
   if (data.gate_descriptions) entries.push(['gate_descriptions', JSON.stringify(data.gate_descriptions)])
   return request<SkillDetail>('/api/v1/skills', {
@@ -46,8 +48,11 @@ export function createSkill(data: {
   })
 }
 
-export function updateSkill(id: string, data: { name: string; description?: string }): Promise<SkillDetail> {
-  const entries = Object.entries(data).filter(([, v]) => v !== undefined) as [string, string][]
+export function updateSkill(id: string, data: { name: string; description?: string; category_id?: string | null }): Promise<SkillDetail> {
+  const entries: [string, string][] = []
+  entries.push(['name', data.name])
+  if (data.description !== undefined) entries.push(['description', data.description])
+  if (data.category_id !== undefined) entries.push(['category_id', data.category_id ?? ''])
   return request<SkillDetail>(`/api/v1/skills/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -176,6 +181,29 @@ export function updateAccount(data: { timezone?: string; display_name?: string }
     method: 'PATCH',
     body: JSON.stringify(data),
   })
+}
+
+// Favourites
+export function toggleFavourite(skillId: string): Promise<{ is_favourite: boolean }> {
+  return request(`/api/v1/skills/${skillId}/favourite`, { method: 'PATCH' })
+}
+
+// Tags
+export function setSkillTags(skillId: string, tagNames: string[]): Promise<Tag[]> {
+  return request<Tag[]>(`/api/v1/skills/${skillId}/tags`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ tag_names: tagNames.join(',') }).toString(),
+  })
+}
+
+export function listTags(): Promise<TagWithCount[]> {
+  return request<TagWithCount[]>('/api/v1/tags')
+}
+
+// Categories
+export function listCategories(): Promise<SkillCategory[]> {
+  return request<SkillCategory[]>('/api/v1/categories')
 }
 
 // Activity
