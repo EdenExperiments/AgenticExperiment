@@ -130,8 +130,18 @@ func (c *httpClaudeCaller) Call(ctx context.Context, apiKey, prompt string) (*Ca
 		return nil, 0, fmt.Errorf("empty response from claude")
 	}
 
+	// Strip markdown code fences if present (models sometimes wrap JSON in ```json ... ```)
+	rawText := strings.TrimSpace(anthropicResp.Content[0].Text)
+	if strings.HasPrefix(rawText, "```") {
+		if i := strings.Index(rawText, "\n"); i != -1 {
+			rawText = rawText[i+1:]
+		}
+		rawText = strings.TrimSuffix(strings.TrimSpace(rawText), "```")
+		rawText = strings.TrimSpace(rawText)
+	}
+
 	var result CalibrateResponse
-	if err := json.Unmarshal([]byte(anthropicResp.Content[0].Text), &result); err != nil {
+	if err := json.Unmarshal([]byte(rawText), &result); err != nil {
 		return nil, 0, fmt.Errorf("claude response parse error: %w", err)
 	}
 	if result.SuggestedLevel < 1 {
