@@ -218,10 +218,10 @@ export default function SkillDetailPage() {
               aria-label={skill.is_favourite ? 'Remove from favourites' : 'Add to favourites'}
               aria-pressed={skill.is_favourite}
               onClick={() => favouriteMutation.mutate()}
-              className="flex items-center justify-center w-[44px] h-[44px] rounded-lg text-xl shrink-0"
+              className="flex items-center justify-center w-[44px] h-[44px] rounded-lg text-xl shrink-0 leading-none"
               style={{ color: skill.is_favourite ? 'var(--color-accent)' : 'var(--color-muted)' }}
             >
-              {skill.is_favourite ? '★' : '☆'}
+              <span className="block -translate-y-1">{skill.is_favourite ? '★' : '☆'}</span>
             </button>
           </div>
 
@@ -232,6 +232,13 @@ export default function SkillDetailPage() {
               style={{ fontFamily: 'var(--font-body)', color: 'var(--color-muted)' }}
             >
               {skill.category_emoji} {skill.category_name}
+            </p>
+          )}
+
+          {/* Description — inline under identity */}
+          {skill.description && (
+            <p className="text-body text-sm leading-relaxed mt-2">
+              {skill.description}
             </p>
           )}
 
@@ -355,8 +362,7 @@ export default function SkillDetailPage() {
           ) : (
             <button
               onClick={() => setTagBuffer(skill.tags.map((t) => t.name))}
-              className="text-xs underline"
-              style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-body)' }}
+              className="link-accent text-xs underline"
             >
               {skill.tags.length > 0 ? 'Edit tags' : '+ Add tags'}
             </button>
@@ -445,30 +451,27 @@ export default function SkillDetailPage() {
           </section>
         )}
 
-        {/* Right: Description + XP History */}
+        {/* Right: XP History */}
         <div data-testid="history-section" className={xpChart ? '' : 'md:col-span-2'}>
-          {skill.description && (
-            <div className="card p-4 mb-6">
-              <p className="text-body text-sm leading-relaxed">
-                {skill.description}
-              </p>
-            </div>
-          )}
-
           <section>
             <h2 className="heading section-label mb-3">
               XP History
             </h2>
             <div className="activity-history">
             {dateGroups.length === 0 ? (
-              <p
-                className="activity-history__empty text-muted text-sm py-8 text-center"
-                data-empty-minimal="No activity yet. Log some XP to get started."
-                data-empty-retro="Your chronicle awaits... Begin your journey."
-                data-empty-modern="No data recorded. Initiate a session to begin logging."
-              >
-                No activity yet. Log some XP to get started.
-              </p>
+              <div className="activity-history__empty text-center py-10 space-y-3">
+                <div className="text-3xl" style={{ color: 'var(--color-muted)', opacity: 0.5 }} aria-hidden="true">
+                  &#x1F4DC;
+                </div>
+                <p
+                  className="text-muted text-sm"
+                  data-empty-minimal="No activity yet. Log some XP to get started."
+                  data-empty-retro="Your chronicle awaits... Begin your journey."
+                  data-empty-modern="No data recorded. Initiate a session to begin logging."
+                >
+                  No activity yet. Log some XP to get started.
+                </p>
+              </div>
             ) : (
               <div className="space-y-5">
                 {dateGroups.map((group) => (

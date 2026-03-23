@@ -188,14 +188,10 @@ export default function DashboardPage() {
   const topSkill = highestTierSkill(skills)
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-8">
       {/* Header */}
       <h1
-        className="text-2xl font-bold"
-        style={{
-          fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-          color: 'var(--color-text)',
-        }}
+        className="heading text-2xl font-bold"
       >
         Dashboard
       </h1>
@@ -259,17 +255,18 @@ export default function DashboardPage() {
         )
       })()}
 
+      {/* ── Section divider ───────────────────────────────── */}
+      <div className="section-divider">
+        <div className="section-rule" />
+        <span className="section-label">Overview</span>
+        <div className="section-rule" />
+      </div>
+
       {/* Two-column layout: skills left, activity right */}
       <div className="dashboard-main-grid gap-6">
         {/* Left column — Skills */}
         <div className="space-y-4">
-          <h2
-            className="text-lg font-semibold"
-            style={{
-              fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-              color: 'var(--color-text)',
-            }}
-          >
+          <h2 className="heading text-lg font-semibold">
             Your Skills
           </h2>
           <div
@@ -300,13 +297,7 @@ export default function DashboardPage() {
             border: '1px solid var(--color-border)',
           }}
         >
-          <h2
-            className="text-lg font-semibold mb-3"
-            style={{
-              fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-              color: 'var(--color-text)',
-            }}
-          >
+          <h2 className="heading text-lg font-semibold mb-3">
             Recent Activity
           </h2>
           {activityLoading ? (

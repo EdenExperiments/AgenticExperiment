@@ -54,8 +54,8 @@ export function QuickLogSheet({ skillName, tierNumber, isOpen, isLoading, onClos
       <div
         role="dialog"
         aria-label={`${skillName} — Quick Log`}
-        className="fixed bottom-0 inset-x-0 z-50 rounded-t-2xl p-6 safe-area-inset-bottom border
-                   md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-[calc(50%+8rem)] md:-translate-x-1/2 md:w-[480px] md:rounded-2xl md:max-h-[80vh] md:inset-x-auto"
+        className="fixed bottom-0 inset-x-0 z-50 rounded-t-2xl p-6 pb-24 safe-area-inset-bottom border
+                   md:bottom-auto md:pb-6 md:top-1/2 md:-translate-y-1/2 md:left-[calc(50%+8rem)] md:-translate-x-1/2 md:w-[480px] md:rounded-2xl md:max-h-[80vh] md:inset-x-auto"
         style={{
           background: 'var(--color-bg-elevated)',
           borderColor: 'var(--color-border-strong)',

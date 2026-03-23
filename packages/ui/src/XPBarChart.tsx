@@ -22,9 +22,12 @@ export function XPBarChart({ data, tierColor }: XPBarChartProps) {
     return (
       <div
         data-testid="xp-chart-empty-state"
-        className="flex items-center justify-center"
+        className="flex flex-col items-center justify-center text-center space-y-3"
         style={{ minHeight: '192px' }}
       >
+        <div className="text-3xl" style={{ color: 'var(--color-muted)', opacity: 0.5 }} aria-hidden="true">
+          &#x1F4CA;
+        </div>
         <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
           Start logging to see your progress here
         </p>

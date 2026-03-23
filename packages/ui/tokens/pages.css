@@ -1420,6 +1420,17 @@
   color: var(--color-accent);
 }
 
+.link-accent {
+  color: var(--color-accent);
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: opacity calc(var(--duration-fast) * var(--motion-scale, 1)) ease;
+}
+
+.link-accent:hover {
+  opacity: 0.7;
+}
+
 /* ── Section divider ───────────────────────────── */
 
 .section-divider {

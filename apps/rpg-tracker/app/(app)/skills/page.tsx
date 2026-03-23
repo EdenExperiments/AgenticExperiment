@@ -72,6 +72,7 @@ export default function SkillsPage() {
   const [showFavourites, setShowFavourites] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const searchQuery = useDebounce(searchInput, 200)
+  const [showFilterSheet, setShowFilterSheet] = useState(false)
 
   // Track skills that were just un-favourited while favourites filter is active (P3-D12)
   const [dimmedSkills, setDimmedSkills] = useState<Set<string>>(new Set())
@@ -130,6 +131,13 @@ export default function SkillsPage() {
     tagFilter !== 'All',
     showFavourites,
     searchQuery.length > 0,
+  ].filter(Boolean).length
+
+  // Filter-only count (excludes search, favourites, and sort) for mobile badge
+  const filterOnlyCount = [
+    tierFilter !== 'All',
+    categoryFilter !== 'All',
+    tagFilter !== 'All',
   ].filter(Boolean).length
 
   const clearFilters = () => {
@@ -237,7 +245,7 @@ export default function SkillsPage() {
         </div>
       ) : (
         <>
-          {/* Row 1: Search + Favourites (P3-D9) */}
+          {/* Search + Favourites + mobile filter trigger */}
           <div className="flex items-center gap-2 mb-2" role="toolbar" aria-label="Search and favourites">
             <div className="relative flex-1">
               <input
@@ -274,27 +282,39 @@ export default function SkillsPage() {
             >
               <span className="block -translate-y-1">{showFavourites ? '★' : '☆'}</span>
             </button>
+            {/* Mobile filter trigger */}
+            <button
+              aria-label="Open filters"
+              onClick={() => setShowFilterSheet(true)}
+              className="chip flex items-center justify-center w-[44px] h-[44px] shrink-0 lg:hidden relative"
+            >
+              <span aria-hidden="true">&#x2699;</span>
+              {filterOnlyCount > 0 && (
+                <span
+                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center"
+                  style={{ background: 'var(--color-accent)', color: 'var(--color-bg)' }}
+                >
+                  {filterOnlyCount}
+                </span>
+              )}
+            </button>
           </div>
 
-          {/* Row 2: Scrollable pills — sort, tier, category, tag (P3-D9) */}
-          <div className="flex items-center gap-2 mb-4 overflow-x-auto py-1.5" role="toolbar" aria-label="Sort and filter">
-            {/* Sort pills */}
-            <div className="flex gap-1.5 shrink-0">
+          {/* Desktop: inline filter dropdowns (lg+ to avoid sidebar squeeze) */}
+          <div className="hidden lg:flex items-center gap-2 mb-4 flex-wrap py-1.5" role="toolbar" aria-label="Sort and filter">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              aria-label="Sort by"
+              className="chip text-xs px-2 py-1.5 shrink-0"
+            >
               {SORT_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => setSortBy(opt.value)}
-                  aria-pressed={sortBy === opt.value}
-                  className={`chip px-3 py-1.5 text-xs${sortBy === opt.value ? ' chip-active' : ''}`}
-                >
-                  {opt.label}
-                </button>
+                <option key={opt.value} value={opt.value}>
+                  Sort: {opt.label}
+                </option>
               ))}
-            </div>
+            </select>
 
-            <div className="w-px h-6 shrink-0" style={{ backgroundColor: 'var(--color-border)' }} />
-
-            {/* Tier filter */}
             <select
               value={tierFilter}
               onChange={(e) => setTierFilter(e.target.value)}
@@ -308,7 +328,6 @@ export default function SkillsPage() {
               ))}
             </select>
 
-            {/* Category filter */}
             {categories.length > 0 && (
               <select
                 value={categoryFilter}
@@ -325,7 +344,6 @@ export default function SkillsPage() {
               </select>
             )}
 
-            {/* Tag filter — hidden when user has no tags (P3-D9) */}
             {userTags.length > 0 && (
               <select
                 value={tagFilter}
@@ -342,7 +360,6 @@ export default function SkillsPage() {
               </select>
             )}
 
-            {/* Clear filters button — shown when >1 filter active */}
             {activeFilterCount > 1 && (
               <button
                 onClick={clearFilters}
@@ -352,6 +369,134 @@ export default function SkillsPage() {
               </button>
             )}
           </div>
+
+          {/* Mobile: filter bottom sheet */}
+          {showFilterSheet && (
+            <>
+              <div
+                className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+                onClick={() => setShowFilterSheet(false)}
+              />
+              <div
+                role="dialog"
+                aria-label="Sort and filter"
+                className="fixed bottom-0 inset-x-0 z-50 rounded-t-2xl p-6 pb-24 md:pb-6 safe-area-inset-bottom lg:hidden"
+                style={{
+                  background: 'var(--color-bg-elevated)',
+                  borderTop: '1px solid var(--color-border-strong)',
+                  color: 'var(--color-text)',
+                }}
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <h2
+                    className="font-semibold"
+                    style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}
+                  >
+                    Sort & Filter
+                  </h2>
+                  <button
+                    onClick={() => setShowFilterSheet(false)}
+                    aria-label="Close"
+                    className="text-2xl leading-none"
+                    style={{ color: 'var(--color-muted)' }}
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-xs uppercase tracking-wider mb-1 block" style={{ color: 'var(--color-muted)' }}>
+                      Sort by
+                    </label>
+                    <select
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as SortOption)}
+                      className="chip w-full px-3 py-2.5 text-sm"
+                    >
+                      {SORT_OPTIONS.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs uppercase tracking-wider mb-1 block" style={{ color: 'var(--color-muted)' }}>
+                      Tier
+                    </label>
+                    <select
+                      value={tierFilter}
+                      onChange={(e) => setTierFilter(e.target.value)}
+                      className={`chip w-full px-3 py-2.5 text-sm${tierFilter !== 'All' ? ' chip-active' : ''}`}
+                    >
+                      {TIER_NAMES.map((tier) => (
+                        <option key={tier} value={tier}>
+                          {tier === 'All' ? 'All Tiers' : tier}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {categories.length > 0 && (
+                    <div>
+                      <label className="text-xs uppercase tracking-wider mb-1 block" style={{ color: 'var(--color-muted)' }}>
+                        Category
+                      </label>
+                      <select
+                        value={categoryFilter}
+                        onChange={(e) => setCategoryFilter(e.target.value)}
+                        className={`chip w-full px-3 py-2.5 text-sm${categoryFilter !== 'All' ? ' chip-active' : ''}`}
+                      >
+                        <option value="All">All Categories</option>
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.slug}>
+                            {cat.emoji} {cat.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {userTags.length > 0 && (
+                    <div>
+                      <label className="text-xs uppercase tracking-wider mb-1 block" style={{ color: 'var(--color-muted)' }}>
+                        Tag
+                      </label>
+                      <select
+                        value={tagFilter}
+                        onChange={(e) => setTagFilter(e.target.value)}
+                        className={`chip w-full px-3 py-2.5 text-sm${tagFilter !== 'All' ? ' chip-active' : ''}`}
+                      >
+                        <option value="All">All Tags</option>
+                        {userTags.map((tag) => (
+                          <option key={tag.id} value={tag.name}>
+                            {tag.name} ({tag.skill_count})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-2">
+                    {activeFilterCount > 0 && (
+                      <button
+                        onClick={() => { clearFilters(); setShowFilterSheet(false) }}
+                        className="btn btn-danger flex-1 py-3 text-sm"
+                      >
+                        Clear all
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowFilterSheet(false)}
+                      className="btn btn-primary flex-1 py-3 text-sm"
+                    >
+                      Apply
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Skill cards */}
           {filteredAndSorted.length === 0 ? (
