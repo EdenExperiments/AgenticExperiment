@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -111,7 +113,9 @@ func (c *httpClaudeCaller) Call(ctx context.Context, apiKey, prompt string) (*Ca
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return nil, resp.StatusCode, fmt.Errorf("claude returned %d", resp.StatusCode)
+		var errBody []byte
+		errBody, _ = io.ReadAll(io.LimitReader(resp.Body, 512))
+		return nil, resp.StatusCode, fmt.Errorf("claude returned %d: %s", resp.StatusCode, string(errBody))
 	}
 
 	var anthropicResp struct {
@@ -172,6 +176,7 @@ func (h *CalibrateHandler) HandlePostCalibrate(w http.ResponseWriter, r *http.Re
 	prompt := fmt.Sprintf(calibratePrompt, name, description)
 	result, status, err := h.caller.Call(r.Context(), apiKey, prompt)
 	if err != nil {
+		log.Printf("ERROR: Calibrate user=%s: claude status=%d err=%v", userID, status, err)
 		switch status {
 		case http.StatusUnauthorized:
 			api.RespondError(w, http.StatusUnauthorized, "invalid claude api key")

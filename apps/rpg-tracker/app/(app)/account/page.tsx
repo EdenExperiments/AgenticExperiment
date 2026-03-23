@@ -119,7 +119,11 @@ export default function AccountPage() {
             Claude API Key
           </h2>
           <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
-            {keyStatus?.has_key ? `Key saved (ending in ****${keyStatus.key_hint ?? ''})` : 'No key saved'}
+            {keyStatus?.has_key
+              ? keyStatus.key_hint
+                ? `Key saved (…${keyStatus.key_hint})`
+                : 'Key saved'
+              : 'No key saved'}
           </p>
           <Link
             href="/account/api-key"

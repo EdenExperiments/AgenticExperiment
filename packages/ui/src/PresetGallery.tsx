@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ProgressionPreview } from './ProgressionPreview'
 
 export interface PresetItem {
   id: string
@@ -28,8 +27,6 @@ export function PresetGallery({
   isLoading = false,
 }: PresetGalleryProps) {
   const [search, setSearch] = useState('')
-  const [expandedId, setExpandedId] = useState<string | null>(null)
-
   const grouped = useMemo(() => {
     const filtered = search
       ? presets.filter(p =>
@@ -144,53 +141,32 @@ export function PresetGallery({
               </div>
               {cat.presets.map(preset => {
                 const isSelected = selectedId === preset.id
-                const isExpanded = expandedId === preset.id
 
                 return (
-                  <div key={preset.id}>
-                    <button
-                      onClick={() => setExpandedId(isExpanded ? null : preset.id)}
-                      aria-expanded={isExpanded}
-                      className="w-full text-left px-4 py-3 transition-colors"
-                      style={{
-                        borderTop: '1px solid var(--color-border)',
-                        backgroundColor: isSelected ? 'var(--color-accent-muted)' : undefined,
-                      }}
+                  <button
+                    key={preset.id}
+                    onClick={() => onSelect({
+                      id: preset.id,
+                      name: preset.name,
+                      description: preset.description,
+                      category_id: preset.category_id,
+                    })}
+                    className="w-full text-left px-4 py-3 transition-colors"
+                    style={{
+                      borderTop: '1px solid var(--color-border)',
+                      backgroundColor: isSelected ? 'var(--color-accent-muted)' : undefined,
+                    }}
+                  >
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: isSelected ? 'var(--color-accent)' : 'var(--color-text)' }}
                     >
-                      <p
-                        className="text-sm font-medium"
-                        style={{ color: isSelected ? 'var(--color-accent)' : 'var(--color-text)' }}
-                      >
-                        {preset.name}
-                      </p>
-                      <p className="text-xs mt-0.5 line-clamp-1" style={{ color: 'var(--color-muted)' }}>
-                        {preset.description}
-                      </p>
-                    </button>
-
-                    {/* Expanded: show progression preview + select button */}
-                    {isExpanded && (
-                      <div className="px-4 pb-3 space-y-2">
-                        <ProgressionPreview />
-                        <button
-                          onClick={() => onSelect({
-                            id: preset.id,
-                            name: preset.name,
-                            description: preset.description,
-                            category_id: preset.category_id,
-                          })}
-                          className="w-full py-2 rounded-lg text-sm font-semibold"
-                          style={{
-                            backgroundColor: 'var(--color-accent)',
-                            color: 'var(--color-text-on-accent, #fff)',
-                            minHeight: 'var(--tap-target-min, 44px)',
-                          }}
-                        >
-                          Select {preset.name}
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                      {preset.name}
+                    </p>
+                    <p className="text-xs mt-0.5 line-clamp-1" style={{ color: 'var(--color-muted)' }}>
+                      {preset.description}
+                    </p>
+                  </button>
                 )
               })}
             </div>
