@@ -1,11 +1,19 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { createSkill, calibrateSkill, getAPIKeyStatus, getPresets, listCategories } from '@rpgtracker/api-client'
-import type { Preset } from '@rpgtracker/api-client'
+import {
+  PathSelector,
+  PresetGallery,
+  ProgressionPreview,
+  ArbiterAvatar,
+  ArbiterDialogue,
+  getTierForLevel,
+} from '@rpgtracker/ui'
 
+type Path = 'preset' | 'custom' | null
 type Step = 1 | 2 | 3
 
 interface SkillDraft {
@@ -16,31 +24,43 @@ interface SkillDraft {
   categoryId: string | null
   startingLevel: number
   gateDescriptions: string[]
-  aiRationale: string | null
 }
 
-const GATE_LEVELS = [9, 19, 29, 39, 49, 59, 69, 79, 89, 99]
+function useTheme() {
+  const [theme, setTheme] = useState('minimal')
+  useEffect(() => {
+    const el = document.documentElement
+    const update = () => setTheme(el.getAttribute('data-theme') ?? 'minimal')
+    update()
+    const obs = new MutationObserver(update)
+    obs.observe(el, { attributes: true, attributeFilter: ['data-theme'] })
+    return () => obs.disconnect()
+  }, [])
+  return theme
+}
 
-const CATEGORY_EMOJI: Record<string, string> = {
-  fitness: '🏋️', programming: '💻', creative: '🎨', wellness: '🧘',
-  learning: '📚', social: '💬', finance: '💰', nutrition: '🥗', productivity: '⚡',
+const INITIAL_DRAFT: SkillDraft = {
+  name: '',
+  description: '',
+  presetId: null,
+  presetName: null,
+  categoryId: null,
+  startingLevel: 1,
+  gateDescriptions: [],
 }
 
 export default function SkillCreatePage() {
   const router = useRouter()
+  const theme = useTheme()
+  const [path, setPath] = useState<Path>(null)
   const [step, setStep] = useState<Step>(1)
-  const [draft, setDraft] = useState<SkillDraft>({
-    name: '', description: '', presetId: null, presetName: null, categoryId: null,
-    startingLevel: 1, gateDescriptions: [], aiRationale: null,
-  })
-  const [aiError, setAiError] = useState<string | null>(null)
-  const [showPresets, setShowPresets] = useState(false)
-  const [presetSearch, setPresetSearch] = useState('')
+  const [draft, setDraft] = useState<SkillDraft>({ ...INITIAL_DRAFT })
+  const [acceptedArbiterLevel, setAcceptedArbiterLevel] = useState<number | null>(null)
 
   const { data: keyStatus } = useQuery({ queryKey: ['api-key-status'], queryFn: getAPIKeyStatus })
   const hasKey = keyStatus?.has_key ?? false
 
-  const { data: presets = [] } = useQuery({
+  const { data: presets = [], isLoading: presetsLoading } = useQuery({
     queryKey: ['presets'],
     queryFn: () => getPresets({}),
     staleTime: Infinity,
@@ -52,60 +72,11 @@ export default function SkillCreatePage() {
     staleTime: Infinity,
   })
 
-  // Group presets by category
-  const presetsByCategory = useMemo(() => {
-    const filtered = presetSearch
-      ? presets.filter(p =>
-          p.name.toLowerCase().includes(presetSearch.toLowerCase()) ||
-          p.category_name.toLowerCase().includes(presetSearch.toLowerCase())
-        )
-      : presets
-    const map = new Map<string, { name: string; slug: string; presets: Preset[] }>()
-    for (const p of filtered) {
-      if (!map.has(p.category_name)) {
-        map.set(p.category_name, { name: p.category_name, slug: p.category_slug, presets: [] })
-      }
-      map.get(p.category_name)!.presets.push(p)
-    }
-    return Array.from(map.values())
-  }, [presets, presetSearch])
-
-  function selectPreset(preset: Preset) {
-    setDraft(d => ({
-      ...d,
-      presetId: preset.id,
-      presetName: preset.name,
-      categoryId: preset.category_id,
-      name: preset.name,
-      description: preset.description,
-    }))
-    setShowPresets(false)
-    setPresetSearch('')
-  }
-
-  function clearPreset() {
-    setDraft(d => ({ ...d, presetId: null, presetName: null, categoryId: null, name: '', description: '' }))
-  }
-
   const calibrateMutation = useMutation({
     mutationFn: () => calibrateSkill({ name: draft.name, description: draft.description }),
     onSuccess: (result) => {
-      setDraft(d => ({
-        ...d,
-        startingLevel: result.suggested_level,
-        gateDescriptions: result.gate_descriptions,
-        aiRationale: result.rationale,
-      }))
-      setStep(2)
-    },
-    onError: (err: Error) => {
-      const msg = err.message.includes('rate limit')
-        ? 'Claude API rate limit reached. Setting level manually.'
-        : err.message.includes('invalid')
-        ? 'Your Claude API key appears to be invalid. Check your key in Account settings.'
-        : 'AI calibration is unavailable right now. Setting level manually.'
-      setAiError(msg)
-      setStep(2)
+      // ACV-24: Arbiter's suggestion is pre-selected by default
+      setAcceptedArbiterLevel(result.suggested_level)
     },
   })
 
@@ -115,253 +86,264 @@ export default function SkillCreatePage() {
       description: draft.description,
       preset_id: draft.presetId ?? undefined,
       category_id: draft.categoryId ?? undefined,
-      starting_level: draft.startingLevel,
+      starting_level: getFinalLevel(),
       gate_descriptions: draft.gateDescriptions.length > 0 ? draft.gateDescriptions : undefined,
     }),
     onSuccess: (skill) => router.push(`/skills/${skill.id}`),
   })
 
+  // Reset everything when navigating back to path selector (P6-D11)
+  const resetToPathSelector = useCallback(() => {
+    setPath(null)
+    setStep(1)
+    setDraft({ ...INITIAL_DRAFT })
+    setAcceptedArbiterLevel(null)
+    calibrateMutation.reset()
+  }, [calibrateMutation])
+
+  function getFinalLevel(): number {
+    if (acceptedArbiterLevel != null) return acceptedArbiterLevel
+    return draft.startingLevel
+  }
+
+  // Arbiter greeting text per theme
+  function getArbiterGreeting(): string {
+    switch (theme) {
+      case 'retro': return 'Tell me of your experience with this art...'
+      case 'modern': return 'Initiating proficiency scan...'
+      default: return "Let's assess your starting point."
+    }
+  }
+
+  function getArbiterResult(level: number, rationale: string): string {
+    switch (theme) {
+      case 'retro': {
+        const tier = getTierForLevel(level)
+        return `I sense you are of the ${tier.name} order... Level ${level} befits your experience. ${rationale}`
+      }
+      case 'modern':
+        return `Scan complete. Proficiency level: ${level}. Analysis: ${rationale}`
+      default:
+        return `Based on your description, I'd suggest Level ${level}. ${rationale}`
+    }
+  }
+
+  function getArbiterError(): string {
+    switch (theme) {
+      case 'retro': return 'The spirits are silent today... Proceed with your own judgement, adventurer.'
+      case 'modern': return 'Scan interrupted — external service offline. Manual configuration active.'
+      default: return 'Calibration unavailable. You can create your skill with your selected level.'
+    }
+  }
+
+  // ── Path Selector ──
+  if (path === null) {
+    return (
+      <PathSelector
+        onSelectPreset={() => setPath('preset')}
+        onSelectCustom={() => setPath('custom')}
+        backHref="/skills"
+      />
+    )
+  }
+
+  // ── Step Flow (step indicator visible from here) ──
   return (
     <div className="max-w-xl mx-auto p-4 md:p-8 min-h-screen">
-      {/* Step indicator */}
-      {(() => {
-        const STEP_LABELS: Record<number, string> = { 1: 'Identity', 2: 'Appraisal', 3: 'The Arbiter' }
-        return (
-          <div className="step-indicator flex items-end gap-2 mb-8" role="list" aria-label="Steps">
-            <span className="sr-only">Step {step} of 3</span>
-            {([1, 2, 3] as Step[]).map((s) => (
-              <div
-                key={s}
-                role="listitem"
-                className={`step-indicator__step flex-1 flex flex-col items-center gap-1.5${
-                  step === s ? ' step-indicator__step--active' : ''
-                }${step > s ? ' step-indicator__step--complete' : ''}`}
-              >
-                <div
-                  className="step-indicator__dot w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
-                  style={step >= s
-                    ? { background: 'var(--color-accent)', color: '#fff' }
-                    : { background: 'var(--color-bg-elevated)', color: 'var(--color-muted)', border: '1px solid var(--color-border)' }
-                  }
-                >
-                  {step > s ? '✓' : s}
-                </div>
-                <span
-                  className="step-indicator__label text-[10px] text-center leading-tight"
-                  style={{
-                    fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-                    color: step === s ? 'var(--color-accent)' : 'var(--color-muted)',
-                    fontWeight: step === s ? 600 : undefined,
-                  }}
-                >
-                  {STEP_LABELS[s]}
-                </span>
-              </div>
-            ))}
-          </div>
-        )
-      })()}
+      {/* Step indicator — ACV-6, ACV-22 */}
+      <StepIndicator currentStep={step} />
 
-      {/* ── Step 1: Choose skill ── */}
+      {/* ── Step 1: Identity ── */}
       {step === 1 && (
         <div className="space-y-4">
           <h1
             className="text-2xl font-bold"
             style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}
           >
-            New Skill
+            {path === 'preset' ? 'Choose a Preset' : 'Define Your Skill'}
           </h1>
 
-          {/* Selected preset chip */}
-          {draft.presetId && (
-            <div
-              className="flex items-center gap-2 rounded-xl border-2 px-4 py-2"
-              style={{ borderColor: 'var(--color-accent)', background: 'var(--color-accent-muted)' }}
-            >
-              <span className="text-sm font-medium flex-1" style={{ color: 'var(--color-accent)' }}>
-                Preset: {draft.presetName}
-              </span>
-              <button
-                onClick={clearPreset}
-                className="text-xs hover:underline"
-                style={{ color: 'var(--color-accent)' }}
-              >
-                Change
-              </button>
-            </div>
-          )}
+          {path === 'preset' ? (
+            <>
+              {/* Selected preset chip */}
+              {draft.presetId && (
+                <div
+                  className="flex items-center gap-2 rounded-xl border-2 px-4 py-2"
+                  style={{ borderColor: 'var(--color-accent)', background: 'var(--color-accent-muted)' }}
+                >
+                  <span className="text-sm font-medium flex-1" style={{ color: 'var(--color-accent)' }}>
+                    Preset: {draft.presetName}
+                  </span>
+                  <button
+                    onClick={() => setDraft(d => ({ ...d, presetId: null, presetName: null, categoryId: null, name: '', description: '' }))}
+                    className="text-xs hover:underline"
+                    style={{ color: 'var(--color-accent)' }}
+                  >
+                    Change
+                  </button>
+                </div>
+              )}
 
-          {/* Browse presets toggle */}
-          {!draft.presetId && (
-            <button
-              type="button"
-              onClick={() => setShowPresets(v => !v)}
-              className="w-full py-3 rounded-xl border border-dashed text-sm transition-colors"
-              style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}
-            >
-              {showPresets ? '▴ Hide presets' : '▾ Browse presets — start from a template'}
-            </button>
-          )}
-
-          {/* Preset browser */}
-          {showPresets && !draft.presetId && (
-            <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--color-border)' }}>
-              <div className="p-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
-                <input
-                  type="search"
-                  placeholder="Search presets…"
-                  value={presetSearch}
-                  onChange={e => setPresetSearch(e.target.value)}
-                  className="w-full text-sm rounded-lg px-3 py-2"
-                  style={{
-                    background: 'var(--color-surface)',
-                    color: 'var(--color-text)',
-                    border: '1px solid var(--color-border)',
+              {/* Preset gallery */}
+              {!draft.presetId && (
+                <PresetGallery
+                  presets={presets}
+                  isLoading={presetsLoading}
+                  selectedId={draft.presetId}
+                  onSelect={(preset) => {
+                    setDraft(d => ({
+                      ...d,
+                      presetId: preset.id,
+                      presetName: preset.name,
+                      categoryId: preset.category_id,
+                      name: preset.name,
+                      description: preset.description,
+                    }))
+                  }}
+                  onSwitchToCustom={() => {
+                    setDraft({ ...INITIAL_DRAFT })
+                    setPath('custom')
                   }}
                 />
-              </div>
-              <div className="max-h-72 overflow-y-auto">
-                {presetsByCategory.length === 0 ? (
-                  <p className="text-sm text-center py-6" style={{ color: 'var(--color-muted)' }}>No presets match your search</p>
-                ) : (
-                  presetsByCategory.map(cat => (
-                    <div key={cat.name}>
-                      <div
-                        className="px-3 py-1.5 text-xs font-semibold uppercase tracking-wider sticky top-0"
-                        style={{ background: 'var(--color-surface)', color: 'var(--color-muted)' }}
-                      >
-                        {CATEGORY_EMOJI[cat.slug] ?? '•'} {cat.name}
-                      </div>
-                      {cat.presets.map(preset => (
-                        <button
-                          key={preset.id}
-                          onClick={() => selectPreset(preset)}
-                          className="w-full text-left px-4 py-3 transition-colors"
-                          style={{ borderTop: '1px solid var(--color-border)' }}
-                        >
-                          <p className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>{preset.name}</p>
-                          <p className="text-xs mt-0.5 line-clamp-1" style={{ color: 'var(--color-muted)' }}>{preset.description}</p>
-                        </button>
-                      ))}
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
+              )}
 
-          {/* Name + description */}
-          <div className="space-y-3">
-            <input
-              type="text"
-              placeholder="Skill name (required)"
-              value={draft.name}
-              maxLength={60}
-              onChange={(e) => setDraft(d => ({ ...d, name: e.target.value }))}
-              className="w-full rounded-xl px-4 py-3"
-              style={{
-                background: 'var(--color-surface)',
-                color: 'var(--color-text)',
-                border: '1px solid var(--color-border)',
-              }}
-            />
-            <textarea
-              placeholder="Description (optional — helps AI calibrate your starting level)"
-              value={draft.description}
-              maxLength={400}
-              rows={3}
-              onChange={(e) => setDraft(d => ({ ...d, description: e.target.value }))}
-              className="w-full rounded-xl px-4 py-3 resize-none"
-              style={{
-                background: 'var(--color-surface)',
-                color: 'var(--color-text)',
-                border: '1px solid var(--color-border)',
-              }}
-            />
-          </div>
-
-          {/* Category picker (P3-D7) — locked when preset selected */}
-          {categories.length > 0 && !draft.presetId && (
-            <div className="space-y-2">
-              <label
-                className="text-xs font-medium uppercase tracking-wider"
-                style={{ color: 'var(--color-muted)', fontFamily: 'var(--font-body)' }}
-              >
-                Category (optional)
-              </label>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => setDraft(d => ({ ...d, categoryId: null }))}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                  style={{
-                    minHeight: 'var(--tap-target-min, 44px)',
-                    fontFamily: 'var(--font-body)',
-                    backgroundColor: draft.categoryId === null ? 'var(--color-accent)' : 'var(--color-surface)',
-                    color: draft.categoryId === null ? 'white' : 'var(--color-text-secondary)',
-                  }}
-                >
-                  None
-                </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setDraft(d => ({ ...d, categoryId: cat.id }))}
-                    className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+              {/* Editable name/description after preset selected */}
+              {draft.presetId && (
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Skill name (required)"
+                    value={draft.name}
+                    maxLength={60}
+                    onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
+                    className="w-full rounded-xl px-4 py-3"
                     style={{
-                      minHeight: 'var(--tap-target-min, 44px)',
-                      fontFamily: 'var(--font-body)',
-                      backgroundColor: draft.categoryId === cat.id ? 'var(--color-accent)' : 'var(--color-surface)',
-                      color: draft.categoryId === cat.id ? 'white' : 'var(--color-text-secondary)',
+                      background: 'var(--color-surface)',
+                      color: 'var(--color-text)',
+                      border: '1px solid var(--color-border)',
                     }}
+                  />
+                  <textarea
+                    placeholder="Description (optional)"
+                    value={draft.description}
+                    maxLength={400}
+                    rows={3}
+                    onChange={e => setDraft(d => ({ ...d, description: e.target.value }))}
+                    className="w-full rounded-xl px-4 py-3 resize-none"
+                    style={{
+                      background: 'var(--color-surface)',
+                      color: 'var(--color-text)',
+                      border: '1px solid var(--color-border)',
+                    }}
+                  />
+                </div>
+              )}
+            </>
+          ) : (
+            /* Custom path */
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Skill name (required)"
+                value={draft.name}
+                maxLength={60}
+                onChange={e => setDraft(d => ({ ...d, name: e.target.value }))}
+                className="w-full rounded-xl px-4 py-3"
+                style={{
+                  background: 'var(--color-surface)',
+                  color: 'var(--color-text)',
+                  border: '1px solid var(--color-border)',
+                }}
+              />
+              <textarea
+                placeholder="Description (optional — helps AI calibrate your starting level)"
+                value={draft.description}
+                maxLength={400}
+                rows={3}
+                onChange={e => setDraft(d => ({ ...d, description: e.target.value }))}
+                className="w-full rounded-xl px-4 py-3 resize-none"
+                style={{
+                  background: 'var(--color-surface)',
+                  color: 'var(--color-text)',
+                  border: '1px solid var(--color-border)',
+                }}
+              />
+
+              {/* Category picker (custom path only — ACV-17) */}
+              {categories.length > 0 && (
+                <div className="space-y-2">
+                  <label
+                    className="text-xs font-medium uppercase tracking-wider"
+                    style={{ color: 'var(--color-muted)', fontFamily: 'var(--font-body)' }}
                   >
-                    {cat.emoji} {cat.name}
-                  </button>
-                ))}
-              </div>
+                    Category (optional)
+                  </label>
+                  <div className="flex flex-wrap gap-2" role="group" aria-label="Category selection">
+                    <button
+                      onClick={() => setDraft(d => ({ ...d, categoryId: null }))}
+                      aria-pressed={draft.categoryId === null}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                      style={{
+                        minHeight: 'var(--tap-target-min, 44px)',
+                        fontFamily: 'var(--font-body)',
+                        backgroundColor: draft.categoryId === null ? 'var(--color-accent)' : 'var(--color-surface)',
+                        color: draft.categoryId === null ? 'white' : 'var(--color-text-secondary)',
+                      }}
+                    >
+                      None
+                    </button>
+                    {categories.map(cat => (
+                      <button
+                        key={cat.id}
+                        onClick={() => setDraft(d => ({ ...d, categoryId: cat.id }))}
+                        aria-pressed={draft.categoryId === cat.id}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                        style={{
+                          minHeight: 'var(--tap-target-min, 44px)',
+                          fontFamily: 'var(--font-body)',
+                          backgroundColor: draft.categoryId === cat.id ? 'var(--color-accent)' : 'var(--color-surface)',
+                          color: draft.categoryId === cat.id ? 'white' : 'var(--color-text-secondary)',
+                        }}
+                      >
+                        {cat.emoji} {cat.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {/* AI calibration */}
-          {hasKey && (
-            <div className="rounded-xl p-4 space-y-3" style={{ background: 'var(--color-accent-muted)', border: '1px solid var(--color-border)' }}>
-              <p className="text-sm font-medium" style={{ color: 'var(--color-accent)' }}>
-                Want AI to help set your starting level?
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => calibrateMutation.mutate()}
-                  disabled={!draft.name || calibrateMutation.isPending}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50"
-                  style={{ background: 'var(--color-accent)', color: '#fff' }}
-                >
-                  {calibrateMutation.isPending ? 'Calibrating…' : 'Yes, use AI'}
-                </button>
-                <button
-                  onClick={() => setStep(2)}
-                  disabled={!draft.name}
-                  className="flex-1 py-2.5 rounded-xl text-sm font-semibold border disabled:opacity-50"
-                  style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}
-                >
-                  Set manually
-                </button>
-              </div>
-            </div>
-          )}
-
-          {!hasKey && (
+          {/* Navigation */}
+          <div className="flex gap-2">
+            <button
+              onClick={resetToPathSelector}
+              className="flex-1 py-3 rounded-xl border text-sm"
+              style={{
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-secondary)',
+                minHeight: 'var(--tap-target-min, 44px)',
+              }}
+            >
+              Back
+            </button>
             <button
               onClick={() => setStep(2)}
-              disabled={!draft.name}
-              className="w-full py-4 rounded-xl font-semibold disabled:opacity-50 min-h-[48px]"
-              style={{ background: 'var(--color-accent)', color: '#fff' }}
+              disabled={!draft.name.trim()}
+              className="flex-1 py-3 rounded-xl font-semibold disabled:opacity-50"
+              style={{
+                background: 'var(--color-accent)',
+                color: '#fff',
+                minHeight: 'var(--tap-target-min, 44px)',
+              }}
             >
               Next
             </button>
-          )}
+          </div>
         </div>
       )}
 
-      {/* ── Step 2: Starting Level ── */}
+      {/* ── Step 2: Appraisal ── */}
       {step === 2 && (
         <div className="space-y-4">
           <h1
@@ -374,88 +356,52 @@ export default function SkillCreatePage() {
             Where are you starting? Be honest — this is for you, not a leaderboard.
           </p>
 
-          {aiError && (
-            <div className="rounded-xl p-4 text-sm" style={{ background: 'rgba(251,191,36,0.1)', color: 'var(--color-warning)', border: '1px solid rgba(251,191,36,0.3)' }}>
-              {aiError}
+          {/* Level picker — scroll-wheel style stepper */}
+          <LevelPicker
+            value={draft.startingLevel}
+            onChange={level => setDraft(d => ({ ...d, startingLevel: level }))}
+          />
+
+          {/* Gate info banner */}
+          {draft.startingLevel > 9 && (
+            <div
+              className="rounded-xl p-4 text-sm"
+              style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--color-text-secondary)' }}
+            >
+              <p className="font-medium mb-1">One gate challenge required</p>
+              <p>
+                Starting at level {draft.startingLevel} means you&apos;ll need to submit one gate
+                assessment. Lower gates are auto-cleared. Your XP always keeps accruing.
+              </p>
             </div>
           )}
 
-          {draft.aiRationale && (
-            <div className="rounded-xl p-4 text-sm" style={{ background: 'var(--color-accent-muted)', border: '1px solid var(--color-border)' }}>
-              <p className="font-medium mb-1" style={{ color: 'var(--color-accent)' }}>AI suggestion: Level {draft.startingLevel}</p>
-              <p style={{ color: 'var(--color-text-secondary)' }}>{draft.aiRationale}</p>
-            </div>
+          {/* Progression preview — preset path only (ACV-5, page guide) */}
+          {path === 'preset' && (
+            <ProgressionPreview highlightLevel={draft.startingLevel} />
           )}
 
-          {/* Level picker: scrollable list 1–50 */}
-          <div className="rounded-xl overflow-y-auto max-h-64" style={{ border: '1px solid var(--color-border)' }}>
-            {Array.from({ length: 50 }, (_, i) => i + 1).map((level) => {
-              const tierBoundaries: Record<number, string> = {
-                10: 'Apprentice tier starts here', 20: 'Adept tier starts here',
-                30: 'Journeyman tier starts here', 40: 'Practitioner tier starts here',
-              }
-              const boundary = tierBoundaries[level]
-              const selected = draft.startingLevel === level
-              return (
-                <div key={level}>
-                  {boundary && (
-                    <div
-                      className="text-[10px] text-center py-1"
-                      style={{
-                        background: 'var(--color-surface)',
-                        color: 'var(--color-muted)',
-                        borderTop: '1px solid var(--color-border)',
-                      }}
-                    >
-                      — {boundary} —
-                    </div>
-                  )}
-                  <button
-                    onClick={() => setDraft(d => ({ ...d, startingLevel: level }))}
-                    className="w-full text-left px-4 py-3 text-sm flex justify-between items-center transition-colors min-h-[44px]"
-                    style={{
-                      background: selected ? 'var(--color-accent-muted)' : undefined,
-                      color: selected ? 'var(--color-accent)' : 'var(--color-text)',
-                      fontWeight: selected ? 600 : undefined,
-                    }}
-                  >
-                    <span>Level {level}</span>
-                    {selected && <span>✓</span>}
-                  </button>
-                </div>
-              )
-            })}
-          </div>
-
-          {draft.startingLevel > 9 && (() => {
-            const gateBoundaries = [9, 19, 29, 39, 49, 59, 69, 79, 89, 99]
-            const hit = gateBoundaries.filter(g => draft.startingLevel >= g)
-            const requiredGate = hit.length > 0 ? hit[hit.length - 1] : null
-            if (!requiredGate) return null
-            return (
-              <div className="rounded-xl p-4 text-sm" style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--color-text-secondary)' }}>
-                <p className="font-medium mb-1">One gate challenge required</p>
-                <p>
-                  Starting at level {draft.startingLevel} means you&apos;ll need to submit one gate assessment
-                  (Level {requiredGate} — the tier boundary you&apos;re sitting above). Lower gates are
-                  auto-cleared. Your XP always keeps accruing.
-                </p>
-              </div>
-            )
-          })()}
-
+          {/* Navigation */}
           <div className="flex gap-2">
             <button
               onClick={() => setStep(1)}
               className="flex-1 py-3 rounded-xl border text-sm"
-              style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}
+              style={{
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-text-secondary)',
+                minHeight: 'var(--tap-target-min, 44px)',
+              }}
             >
               Back
             </button>
             <button
               onClick={() => setStep(3)}
               className="flex-1 py-3 rounded-xl font-semibold"
-              style={{ background: 'var(--color-accent)', color: '#fff' }}
+              style={{
+                background: 'var(--color-accent)',
+                color: '#fff',
+                minHeight: 'var(--tap-target-min, 44px)',
+              }}
             >
               Next
             </button>
@@ -463,72 +409,395 @@ export default function SkillCreatePage() {
         </div>
       )}
 
-      {/* ── Step 3: Confirm ── */}
+      {/* ── Step 3: The Arbiter ── */}
       {step === 3 && (
         <div className="space-y-4">
           <h1
             className="text-2xl font-bold"
             style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}
           >
-            Confirm
+            The Arbiter
           </h1>
-          <div className="rounded-xl p-4 space-y-2" style={{ border: '1px solid var(--color-border)', background: 'var(--color-bg-elevated)' }}>
-            {draft.presetId && (
-              <div>
-                <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Preset</span>
-                <p className="text-sm font-medium" style={{ color: 'var(--color-accent)' }}>{draft.presetName}</p>
-              </div>
-            )}
-            <div>
-              <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Skill</span>
-              <p className="font-semibold" style={{ color: 'var(--color-text)' }}>{draft.name}</p>
-            </div>
-            {draft.description && (
-              <div>
-                <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Description</span>
-                <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>{draft.description}</p>
-              </div>
-            )}
-            <div>
-              <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Starting Level</span>
-              <p className="font-semibold" style={{ color: 'var(--color-text)' }}>Level {draft.startingLevel}</p>
-            </div>
-          </div>
 
-          <details className="rounded-xl" style={{ border: '1px solid var(--color-border)' }}>
-            <summary className="px-4 py-3 text-sm font-medium cursor-pointer" style={{ color: 'var(--color-text-secondary)' }}>What are Blocker Gates?</summary>
-            <div className="px-4 pb-4 space-y-2 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-              <p>Gates pause your level display at tier boundaries (levels 9, 19, 29…). Your XP keeps accruing. Complete the gate challenge to unlock the next tier.</p>
-              {GATE_LEVELS.slice(0, 3).map((gl, i) => (
-                <div key={gl} className="pt-2" style={{ borderTop: '1px solid var(--color-border)' }}>
-                  <span className="font-medium" style={{ color: 'var(--color-text)' }}>Gate at Level {gl}:</span>{' '}
-                  {draft.gateDescriptions[i] || `Default gate — ${gl === 9 ? 'Novice' : gl === 19 ? 'Apprentice' : 'Adept'} completion challenge`}
-                </div>
-              ))}
-              <p className="text-xs" style={{ color: 'var(--color-muted)' }}>…plus gates at levels 39, 49, 59, 69, 79, 89, and 99</p>
-            </div>
-          </details>
+          {hasKey ? (
+            /* With API key — full Arbiter experience */
+            <ArbiterStep
+              theme={theme}
+              draft={draft}
+              calibrateMutation={calibrateMutation}
+              acceptedArbiterLevel={acceptedArbiterLevel}
+              setAcceptedArbiterLevel={setAcceptedArbiterLevel}
+              getArbiterGreeting={getArbiterGreeting}
+              getArbiterResult={getArbiterResult}
+              getArbiterError={getArbiterError}
+              getFinalLevel={getFinalLevel}
+              createMutation={createMutation}
+            />
+          ) : (
+            /* Without API key — summary + soft upsell */
+            <div className="space-y-4">
+              <SkillSummary name={draft.name} level={draft.startingLevel} categoryId={draft.categoryId} categories={categories} />
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => setStep(2)}
-              className="flex-1 py-3 rounded-xl border text-sm"
-              style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}
-            >
-              Back
-            </button>
-            <button
-              onClick={() => createMutation.mutate()}
-              disabled={createMutation.isPending}
-              className="flex-1 py-3 rounded-xl font-semibold disabled:opacity-50"
-              style={{ background: 'var(--color-accent)', color: '#fff' }}
-            >
-              {createMutation.isPending ? 'Creating…' : 'Create Skill'}
-            </button>
-          </div>
-          {createMutation.isError && (
-            <p className="text-sm text-center" style={{ color: 'var(--color-error)' }}>Failed to create skill. Please try again.</p>
+              <div
+                className="rounded-xl p-4 text-sm"
+                style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
+              >
+                <p style={{ color: 'var(--color-muted)' }}>
+                  Add a Claude API key to unlock The Arbiter — AI-powered level calibration.{' '}
+                  <a
+                    href="/account/api-key"
+                    className="font-medium hover:underline"
+                    style={{ color: 'var(--color-accent)' }}
+                  >
+                    Add API key
+                  </a>
+                </p>
+              </div>
+
+              <button
+                onClick={() => createMutation.mutate()}
+                disabled={createMutation.isPending}
+                className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
+                style={{
+                  background: 'var(--color-accent)',
+                  color: '#fff',
+                  minHeight: 'var(--tap-target-min, 44px)',
+                }}
+              >
+                {createMutation.isPending ? 'Creating…' : 'Create Skill'}
+              </button>
+            </div>
           )}
+
+          {/* Create error — ACV-25 */}
+          {createMutation.isError && (
+            <p className="text-sm text-center" style={{ color: 'var(--color-error)' }}>
+              Failed to create skill. Please try again.
+            </p>
+          )}
+
+          {/* Back button */}
+          <button
+            onClick={() => setStep(2)}
+            className="w-full py-3 rounded-xl border text-sm"
+            style={{
+              borderColor: 'var(--color-border)',
+              color: 'var(--color-text-secondary)',
+              minHeight: 'var(--tap-target-min, 44px)',
+            }}
+          >
+            Back
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Step indicator with narrative labels — ACV-6 */
+function StepIndicator({ currentStep }: { currentStep: Step }) {
+  const STEP_LABELS: Record<number, string> = { 1: 'Identity', 2: 'Appraisal', 3: 'The Arbiter' }
+
+  return (
+    <div className="flex items-end gap-2 mb-8" role="list" aria-label="Steps">
+      <span className="sr-only">Step {currentStep} of 3</span>
+      {([1, 2, 3] as Step[]).map(s => (
+        <div
+          key={s}
+          role="listitem"
+          aria-current={currentStep === s ? 'step' : undefined}
+          className="flex-1 flex flex-col items-center gap-1.5"
+        >
+          <div
+            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold"
+            style={currentStep >= s
+              ? { background: 'var(--color-accent)', color: '#fff' }
+              : { background: 'var(--color-bg-elevated)', color: 'var(--color-muted)', border: '1px solid var(--color-border)' }
+            }
+          >
+            {currentStep > s ? '✓' : s}
+          </div>
+          <span
+            className="text-[10px] text-center leading-tight"
+            style={{
+              fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+              color: currentStep === s ? 'var(--color-accent)' : 'var(--color-muted)',
+              fontWeight: currentStep === s ? 600 : undefined,
+            }}
+          >
+            {STEP_LABELS[s]}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Level picker — stepper with tier boundary labels */
+function LevelPicker({ value, onChange }: { value: number; onChange: (level: number) => void }) {
+  const tier = getTierForLevel(value)
+
+  return (
+    <div
+      className="rounded-xl p-4 space-y-3"
+      style={{ border: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}
+    >
+      {/* Current value display */}
+      <div className="text-center">
+        <div
+          className="text-4xl font-bold tabular-nums"
+          style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-display)' }}
+        >
+          {value}
+        </div>
+        <div className="text-xs mt-1" style={{ color: tier.color }}>
+          {tier.name} tier
+        </div>
+      </div>
+
+      {/* Stepper controls */}
+      <div className="flex items-center justify-center gap-4">
+        <button
+          onClick={() => onChange(Math.max(1, value - 10))}
+          disabled={value <= 1}
+          className="w-10 h-10 rounded-lg text-sm font-bold disabled:opacity-30"
+          style={{
+            backgroundColor: 'var(--color-bg-elevated)',
+            color: 'var(--color-text)',
+            border: '1px solid var(--color-border)',
+          }}
+          aria-label="Decrease by 10"
+        >
+          −10
+        </button>
+        <button
+          onClick={() => onChange(Math.max(1, value - 1))}
+          disabled={value <= 1}
+          className="w-10 h-10 rounded-lg text-lg font-bold disabled:opacity-30"
+          style={{
+            backgroundColor: 'var(--color-bg-elevated)',
+            color: 'var(--color-text)',
+            border: '1px solid var(--color-border)',
+          }}
+          aria-label="Decrease by 1"
+        >
+          −
+        </button>
+
+        {/* Range input for quick scrubbing */}
+        <input
+          type="range"
+          min={1}
+          max={50}
+          value={value}
+          onChange={e => onChange(Number(e.target.value))}
+          className="flex-1 accent-[var(--color-accent)]"
+          aria-label="Starting level"
+        />
+
+        <button
+          onClick={() => onChange(Math.min(50, value + 1))}
+          disabled={value >= 50}
+          className="w-10 h-10 rounded-lg text-lg font-bold disabled:opacity-30"
+          style={{
+            backgroundColor: 'var(--color-bg-elevated)',
+            color: 'var(--color-text)',
+            border: '1px solid var(--color-border)',
+          }}
+          aria-label="Increase by 1"
+        >
+          +
+        </button>
+        <button
+          onClick={() => onChange(Math.min(50, value + 10))}
+          disabled={value >= 50}
+          className="w-10 h-10 rounded-lg text-sm font-bold disabled:opacity-30"
+          style={{
+            backgroundColor: 'var(--color-bg-elevated)',
+            color: 'var(--color-text)',
+            border: '1px solid var(--color-border)',
+          }}
+          aria-label="Increase by 10"
+        >
+          +10
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/** Arbiter step — with API key */
+function ArbiterStep({
+  theme,
+  draft,
+  calibrateMutation,
+  acceptedArbiterLevel,
+  setAcceptedArbiterLevel,
+  getArbiterGreeting,
+  getArbiterResult,
+  getArbiterError,
+  getFinalLevel,
+  createMutation,
+}: {
+  theme: string
+  draft: SkillDraft
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  calibrateMutation: any
+  acceptedArbiterLevel: number | null
+  setAcceptedArbiterLevel: (level: number | null) => void
+  getArbiterGreeting: () => string
+  getArbiterResult: (level: number, rationale: string) => string
+  getArbiterError: () => string
+  getFinalLevel: () => number
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  createMutation: any
+}) {
+  const categories = useQuery({ queryKey: ['categories'], queryFn: listCategories, staleTime: Infinity }).data ?? []
+
+  return (
+    <div className="space-y-4">
+      {/* Avatar + greeting */}
+      <div className="flex items-start gap-4">
+        <ArbiterAvatar
+          state={calibrateMutation.isPending ? 'thinking' : calibrateMutation.data ? 'speaking' : 'idle'}
+          size="lg"
+        />
+        <div className="flex-1 space-y-3">
+          <ArbiterDialogue
+            text={
+              calibrateMutation.isError
+                ? getArbiterError()
+                : calibrateMutation.data
+                  ? getArbiterResult(calibrateMutation.data.suggested_level, calibrateMutation.data.rationale)
+                  : getArbiterGreeting()
+            }
+            animate={!calibrateMutation.isPending}
+            variant={
+              calibrateMutation.isError ? 'error'
+                : calibrateMutation.data ? 'result'
+                : 'greeting'
+            }
+          />
+        </div>
+      </div>
+
+      {/* Consult button — ACV-9 */}
+      {!calibrateMutation.data && !calibrateMutation.isError && (
+        <button
+          onClick={() => calibrateMutation.mutate()}
+          disabled={calibrateMutation.isPending}
+          aria-busy={calibrateMutation.isPending}
+          className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
+          style={{
+            background: 'var(--color-accent)',
+            color: '#fff',
+            minHeight: 'var(--tap-target-min, 44px)',
+          }}
+        >
+          {calibrateMutation.isPending ? 'Consulting The Arbiter…' : 'Consult The Arbiter'}
+        </button>
+      )}
+
+      {/* Accept/Keep actions — ACV-11, ACV-24 */}
+      {calibrateMutation.data && (
+        <div className="flex gap-2">
+          <button
+            onClick={() => setAcceptedArbiterLevel(calibrateMutation.data.suggested_level)}
+            className="flex-1 py-3 rounded-xl font-semibold text-sm"
+            style={{
+              background: acceptedArbiterLevel === calibrateMutation.data.suggested_level
+                ? 'var(--color-accent)'
+                : 'var(--color-surface)',
+              color: acceptedArbiterLevel === calibrateMutation.data.suggested_level
+                ? '#fff'
+                : 'var(--color-text)',
+              border: '1px solid var(--color-border)',
+              minHeight: 'var(--tap-target-min, 44px)',
+            }}
+          >
+            Accept (Level {calibrateMutation.data.suggested_level})
+          </button>
+          <button
+            onClick={() => setAcceptedArbiterLevel(null)}
+            className="flex-1 py-3 rounded-xl text-sm"
+            style={{
+              background: acceptedArbiterLevel === null
+                ? 'var(--color-accent)'
+                : 'var(--color-surface)',
+              color: acceptedArbiterLevel === null
+                ? '#fff'
+                : 'var(--color-text-secondary)',
+              border: '1px solid var(--color-border)',
+              minHeight: 'var(--tap-target-min, 44px)',
+            }}
+          >
+            Keep my level ({draft.startingLevel})
+          </button>
+        </div>
+      )}
+
+      {/* Summary panel */}
+      <SkillSummary
+        name={draft.name}
+        level={getFinalLevel()}
+        categoryId={draft.categoryId}
+        categories={categories}
+      />
+
+      {/* Create button — ACV-12 */}
+      <button
+        onClick={() => createMutation.mutate()}
+        disabled={createMutation.isPending}
+        className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
+        style={{
+          background: 'var(--color-accent)',
+          color: '#fff',
+          minHeight: 'var(--tap-target-min, 44px)',
+        }}
+      >
+        {createMutation.isPending ? 'Creating…' : 'Create Skill'}
+      </button>
+    </div>
+  )
+}
+
+/** Brief summary panel showing skill name, level, category */
+function SkillSummary({
+  name,
+  level,
+  categoryId,
+  categories,
+}: {
+  name: string
+  level: number
+  categoryId: string | null
+  categories: Array<{ id: string; name: string; emoji: string }>
+}) {
+  const tier = getTierForLevel(level)
+  const category = categories.find(c => c.id === categoryId)
+
+  return (
+    <div
+      className="rounded-xl p-4 space-y-2"
+      style={{ border: '1px solid var(--color-border)', background: 'var(--color-bg-elevated)' }}
+    >
+      <div>
+        <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Skill</span>
+        <p className="font-semibold" style={{ color: 'var(--color-text)' }}>{name}</p>
+      </div>
+      <div>
+        <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Starting Level</span>
+        <p className="font-semibold" style={{ color: 'var(--color-text)' }}>
+          Level {level}{' '}
+          <span className="text-xs font-normal" style={{ color: tier.color }}>({tier.name})</span>
+        </p>
+      </div>
+      {category && (
+        <div>
+          <span className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Category</span>
+          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+            {category.emoji} {category.name}
+          </p>
         </div>
       )}
     </div>
