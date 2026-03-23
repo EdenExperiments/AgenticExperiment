@@ -190,9 +190,9 @@ func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, 
 		}
 		if _, err = tx.Exec(ctx, `
 			INSERT INTO public.gate_submissions
-				(gate_id, user_id, evidence_what, evidence_how, evidence_feeling,
+				(gate_id, user_id, path, evidence_what, evidence_how, evidence_feeling,
 				 verdict, attempt_number, submitted_at)
-			VALUES ($1, $2, $3, $3, $3, 'self_reported', 1, now())
+			VALUES ($1, $2, 'self_report', $3, $3, $3, 'self_reported', 1, now())
 		`, g.id, userID, autoClearEvidence); err != nil {
 			return nil, fmt.Errorf("skills: auto-clear submission gate %d: %w", g.level, err)
 		}
