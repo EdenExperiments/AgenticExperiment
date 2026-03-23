@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-03-23 (added Release 2+ features F-023–F-031 from design exploration; updated test count to 170). Prior: 2026-03-19 Phase 2 complete.
+Last updated: 2026-03-23 (F-032 done, F-033 done — Phase 3 Skill Organisation complete; 155 UI + 112 Go tests green). Prior: 2026-03-22 F-023/F-024/F-041 done.
 
 Status values:
 
@@ -52,8 +52,8 @@ Status values:
 
 | ID | Feature | Area | Status | Owner | Dependencies | Open Questions | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| F-023 | Three-theme system (Minimal, Retro, Modern) | Platform | deferred | unassigned | Style guides; page guides; three-layer token architecture | Theme-specific component variant list; which components need L3 variants vs CSS-only? | Three switchable themes. Same features, different visual identity. See product-requirements.md Three-Theme System section. |
-| F-024 | Focus timer / pomodoro | LifeQuest | deferred | unassigned | Skill system | Timer → XP conversion rate; session history schema | Timed practice sessions tied to skill XP. Visible in all three theme designs. |
+| F-023 | Three-theme system (Minimal, Retro, Modern) | Platform | **done** | delivery-agent | Style guides; page guides; three-layer token architecture | None | Three switchable themes shipped. Phase 0 (foundation) + Phase 1 (restyle all pages) complete. Three-layer architecture: L1 CSS tokens, L2 theme-scoped CSS, L3 component variants. |
+| F-024 | Focus timer / pomodoro | LifeQuest | **done** | delivery-agent | Skill system | None | Phase 2 complete. Dedicated `/skills/[id]/session` route with Pomodoro state machine, three theme timer variants (Minimal breathing, Retro pixel, Modern HUD), browser notifications, post-session summary with reflections, XP calculation, context-aware return navigation. Schema extended with 4 Pomodoro columns. |
 | F-025 | Skill trees | LifeQuest | deferred | unassigned | Meta-skills (F-011); skill relationships model | Skill relationship types; tree vs graph vs linear paths? | Visual progression paths showing skill relationships and specialisation. |
 | F-026 | Social features (activity stream, party, leaderboard) | Social | deferred | unassigned | Character system; privacy model | Privacy defaults; opt-in vs opt-out; what's visible to others? | Activity stream, party system, global tier rankings. D-008 defers social from release 1. |
 | F-027 | Intel / knowledge base | LifeQuest | deferred | unassigned | Skill system; content curation pipeline | Content sourcing; expert validation process; how to keep current? | Curated learning resources per skill. Expert-informed guidance, book recommendations. |
@@ -61,6 +61,18 @@ Status values:
 | F-029 | Mastery system (sub-skills, technical arsenal) | LifeQuest | deferred | unassigned | F-011 meta-skills | Sub-skill granularity; how deep? | Deep-dive skill breakdown visible in modern theme design. |
 | F-030 | Location-aware guidance | Platform | deferred | unassigned | Skill system; geolocation API; venue data source | Data source for local classes/centres; privacy implications | E.g. "snow sports" → nearest snow centre. Part of long-term guidance platform vision. |
 | F-031 | Narrative layer | LifeQuest | deferred | unassigned | Character system; theme system (retro) | How much narrative varies by theme? All themes or retro-only? | RPG story framing. Wizard onboarding dialogue, boss battle framing, .EXE naming. Strongest in retro theme. |
+| F-032 | Skill categories and tags | LifeQuest | **done** | delivery-agent | None remaining | None | Phase 3. Preset categories (9 from existing skill_categories table, D-038 resolved: keep current). User-defined tags (max 5 per skill). Category/tag filters on skills list. Tags on detail hero. Category picker in skill create. |
+| F-033 | Skill favourites / pinning | LifeQuest | **done** | delivery-agent | None remaining | None | Phase 3. `is_favourite` boolean, PATCH toggle endpoint with optimistic UI + rollback. Favourites quick-filter on skills list. Dimming pattern on un-favourite in filtered view (P3-D12). |
+| F-034 | Primary Skill Focus / Next Quest | LifeQuest | deferred | unassigned | F-033 + algorithm | D-041: single vs multi-pin | Phase 4. Dashboard centre-stage card. Pinned or algorithmically chosen skill. |
+| F-035 | Quick Session from Dashboard | LifeQuest | deferred | unassigned | F-024 + F-034 | None | Phase 4. One-tap session start from dashboard for pinned skill. |
+| F-036 | Avatar system | Platform | deferred | unassigned | Storage infra | D-042: storage provider | Phase 5. Upload, crop, themed defaults. Maps to old F-028. |
+| F-037 | Account stats aggregation | Platform | deferred | unassigned | API endpoint | None | Phase 5. Total XP, streaks, skill count, category distribution. Player Card component. |
+| F-038 | Skill create overhaul (Preset/Custom/Arbiter) | LifeQuest | deferred | unassigned | F-032 | None | Phase 6. Character creation experience. Arbiter avatar with themed dialogue. |
+| F-039 | Social auth (Google/GitHub/Apple) | Platform | in-progress | delivery-agent | Supabase config | Provider setup on Supabase pending | Phase 7. UI buttons shipped. Supabase provider config not yet enabled. |
+| F-040 | Free trial system | Platform | deferred | unassigned | Subscription model | D-039: server-side vs UI-only | Phase 7. 14-day trial messaging. Enforcement TBD. |
+| F-041 | Landing page overhaul | Platform | **done** | delivery-agent | F-023 | None | Phase 7. Auth pages restyled, landing reworked with theme-specific sections, suite app previews, social proof, hero theme switcher. |
+| F-042 | Ambient audio for sessions | LifeQuest | deferred | unassigned | F-024, audio assets | Licensing for tracks | Phase 8. Lo-fi/chiptune/synthwave per theme. |
+| F-043 | Narrative copy system | LifeQuest | deferred | unassigned | F-023 | None | Phase 8. Per-theme copy variants across all pages. |
 
 ---
 

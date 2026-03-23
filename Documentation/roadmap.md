@@ -3,7 +3,7 @@
 > Built from `style-guide/`, `page-guides/`, and `Design_Discussion.md`.
 > Each phase is independently shippable. Phases can overlap where noted.
 
-Last updated: 2026-03-22
+Last updated: 2026-03-23
 
 ---
 
@@ -94,30 +94,34 @@ Last updated: 2026-03-22
 
 ---
 
-## Phase 3 — Skill Organisation
+## Phase 3 — Skill Organisation ✓ COMPLETE (2026-03-23)
 
 > **Goal:** Categories, tags, favourites, and search. Skills list scales to 100+.
 
 ### Work Items
 
-| ID | Item | Type | Area | Notes |
-|----|------|------|------|-------|
-| P3-1 | Category schema and API | Backend | API | Preset categories table (Physical, Mental, Creative, Professional, etc.). Skills have a category FK. |
-| P3-2 | User-defined tags schema and API | Backend | API | Tags table, skill_tags join table. CRUD endpoints. |
-| P3-3 | Favourite/pin field on skills | Backend | API | Boolean `is_favourite` or `is_pinned` column. PATCH endpoint. |
-| P3-4 | Category filter UI | Frontend | `/skills` | Dropdown or pill filter. Preset categories. |
-| P3-5 | Tag filter UI | Frontend | `/skills` | Tag pills on cards, filter by tag. |
-| P3-6 | Favourites quick-filter | Frontend | `/skills` | Always-accessible toggle. |
-| P3-7 | Search | Frontend | `/skills` | Client-side search for skill names. For 50+ skills. |
-| P3-8 | Category/tags display on skill detail hero | Frontend | `/skills/[id]` | Show category and tags in the hero section. |
-| P3-9 | Inline mini-form on skill cards | Frontend | `/skills` | Quick XP log without navigating to skill detail. Replaces navigation on "+ Log" button. |
-| P3-10 | Category selection in skill create | Frontend + Backend | `/skills/new` | Add category picker to "Identity" step. |
+| ID | Item | Type | Area | Status |
+|----|------|------|------|--------|
+| P3-1 | Category schema and API | Backend | API | **Done** — Skills have `category_id` FK to existing `skill_categories`. Backfill migration from presets. |
+| P3-2 | User-defined tags schema and API | Backend | API | **Done** — `tags` + `skill_tags` tables. PUT replace-all endpoint. Max 5 per skill. Transactional upsert. |
+| P3-3 | Favourite/pin field on skills | Backend | API | **Done** — `is_favourite` boolean. PATCH toggle endpoint. |
+| P3-4 | Category filter UI | Frontend | `/skills` | **Done** — Select dropdown in toolbar row 2. |
+| P3-5 | Tag filter UI | Frontend | `/skills` | **Done** — Select dropdown in toolbar row 2. |
+| P3-6 | Favourites quick-filter | Frontend | `/skills` | **Done** — Star toggle in toolbar row 1. |
+| P3-7 | Search | Frontend | `/skills` | **Done** — Client-side debounced search (200ms) in toolbar row 1. |
+| P3-8 | Category/tags display on skill detail hero | Frontend | `/skills/[id]` | **Done** — Category emoji + name, tag pills with edit/save gesture. |
+| P3-9 | Inline mini-form on skill cards | Frontend | `/skills` | **Deferred** — existing Quick Log bottom sheet works well enough. |
+| P3-10 | Category selection in skill create | Frontend + Backend | `/skills/new` | **Done** — Category pill picker in Step 1. Preset category auto-assigned. |
 
-**New Decision Needed:** D-038 — Preset category list. Suggested: Physical, Mental, Creative, Professional, Social, Lifestyle. Confirm or modify.
+**Decision Resolved:** D-038 — Kept existing 9 categories from `skill_categories` table (Physical, Mental, Creative, Professional, Social, Lifestyle, Spiritual, Financial, Academic).
 
-**Dependencies:** None from other phases (can run in parallel with Phase 2).
-
-**Exit Criteria:** Skills can be categorised, tagged, and favourited. Skills list filters by category, tag, and favourites. Skill cards show category/tags. Inline mini-form works. All three themes render correctly.
+**Key Design Decisions:**
+- P3-D8: AND filter combination (all filters compose)
+- P3-D9: Two-row toolbar (row 1: search + favourites; row 2: sort, tier, category, tag pills)
+- P3-D10: Tags NOT on SkillCard — only category emoji on list cards
+- P3-D11: Tag save gesture — Enter/comma commits to buffer, Save button writes to server
+- P3-D12: Optimistic favourite toggle with rollback + dimming on un-favourite in filtered view
+- P3-D13: Tag/category text uses `--font-body` not `--font-display`
 
 ---
 
@@ -285,7 +289,7 @@ Decisions are made when the relevant phase begins — not before. This keeps the
 
 | ID | Question | Resolve At |
 |----|----------|------------|
-| D-038 | Preset category list (Physical, Mental, Creative, Professional, Social, Lifestyle?) | Phase 3 start |
+| D-038 | ~~Preset category list~~ **Resolved:** kept existing 9 categories | Phase 3 ✓ |
 | D-039 | Free trial enforcement — server-side (subscription table + RLS) or UI-only for now? | Phase 7 start |
 | D-040 | Session history schema — what fields? (start_time, end_time, duration, type, intervals_completed?) | Phase 2 start |
 | D-041 | Skill pinning — one pin at a time, or multiple with priority ordering? | Phase 4 start |
