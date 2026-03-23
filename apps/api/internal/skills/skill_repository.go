@@ -98,9 +98,9 @@ const autoClearEvidence = "Skill created at a higher starting level — this tie
 // startingLevel must be 1–99 (D-018). gateDescs[i] overrides the default description for gate i
 // when non-empty; pass [10]string{} to use all defaults.
 //
-// D-033: If startingLevel crosses multiple gate boundaries, all gates below the highest
-// applicable boundary are auto-cleared with verdict='self_reported'. Only the highest
-// boundary gate remains open and must be submitted by the user.
+// D-033 (revised): All gates at or below startingLevel are auto-cleared with
+// verdict='self_reported'. The first gate above startingLevel is the next challenge.
+// e.g. startingLevel=28 → gates 9,19 cleared, gate 29 is next.
 func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID, categoryID *uuid.UUID, startingLevel int, gateDescs [10]string) (*Skill, error) {
 	if startingLevel < 1 || startingLevel > 99 {
 		return nil, ErrInvalidStartingLevel
@@ -144,15 +144,6 @@ func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, 
 		return nil, fmt.Errorf("skills: insert: %w", err)
 	}
 
-	// Find highest gate boundary the starting level crosses (D-033).
-	// e.g. startingLevel=26 → highestHit=19 (gate at 9 will be auto-cleared).
-	highestHit := -1
-	for _, gl := range gateLevels {
-		if startingLevel >= gl {
-			highestHit = gl
-		}
-	}
-
 	// Insert the 10 blocker gates, collecting IDs so we can auto-clear the right ones.
 	type gateInsert struct {
 		id    uuid.UUID
@@ -177,9 +168,10 @@ func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, 
 		inserted[i].level = gl
 	}
 
-	// Auto-clear all gates strictly below highestHit (D-033).
+	// Auto-clear all gates at or below starting level (D-033 revised).
+	// e.g. startingLevel=28 → gates 9 and 19 auto-cleared, gate 29 is next challenge.
 	for _, g := range inserted {
-		if highestHit <= 0 || g.level >= highestHit {
+		if g.level > startingLevel {
 			continue
 		}
 		if _, err = tx.Exec(ctx, `
