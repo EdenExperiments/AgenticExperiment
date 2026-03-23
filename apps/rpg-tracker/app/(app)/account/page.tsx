@@ -58,8 +58,15 @@ export default function AccountPage() {
         stats={accountStats ?? null}
         onAvatarClick={() => setShowCropModal(true)}
         onRemoveAvatar={() => removeAvatarMutation.mutate()}
-        onSetDisplayName={() => {
-          document.getElementById('display-name-field')?.focus()
+        onSaveDisplayName={async (name) => {
+          const body = new URLSearchParams({ display_name: name })
+          const res = await fetch('/api/v1/account', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString(),
+          })
+          if (!res.ok) throw new Error('Failed to update display name')
+          queryClient.invalidateQueries({ queryKey: ['account'] })
         }}
         isRemovingAvatar={removeAvatarMutation.isPending}
       />
@@ -76,7 +83,6 @@ export default function AccountPage() {
         >
           <div>
             <label
-              id="display-name-field"
               className="text-xs uppercase tracking-wider"
               style={{ color: 'var(--color-muted)' }}
             >

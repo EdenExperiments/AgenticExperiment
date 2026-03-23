@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { type Theme, VALID_THEMES } from './ThemeProvider'
 import { DefaultAvatar } from './DefaultAvatar'
 
@@ -22,7 +22,7 @@ export interface PlayerCardProps {
   stats: AccountStats | null
   onAvatarClick?: () => void
   onRemoveAvatar?: () => void
-  onSetDisplayName?: () => void
+  onSaveDisplayName?: (name: string) => Promise<void>
   isRemovingAvatar?: boolean
 }
 
@@ -126,10 +126,14 @@ export function PlayerCard({
   stats,
   onAvatarClick,
   onRemoveAvatar,
-  onSetDisplayName,
+  onSaveDisplayName,
   isRemovingAvatar = false,
 }: PlayerCardProps) {
   const [theme, setThemeState] = useState<Theme>('minimal')
+  const [editingName, setEditingName] = useState(false)
+  const [nameValue, setNameValue] = useState('')
+  const [savingName, setSavingName] = useState(false)
+  const nameInputRef = useRef<HTMLInputElement>(null)
   const isLoading = stats === null
   const hasNoProfile = !displayName && !avatarUrl
 
@@ -228,23 +232,119 @@ export function PlayerCard({
 
         {/* Name + avatar actions */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          {displayName ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              <h2
+          {editingName ? (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault()
+                if (!onSaveDisplayName) return
+                setSavingName(true)
+                try {
+                  await onSaveDisplayName(nameValue)
+                  setEditingName(false)
+                } finally {
+                  setSavingName(false)
+                }
+              }}
+              style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+            >
+              <input
+                ref={nameInputRef}
+                type="text"
+                value={nameValue}
+                onChange={(e) => setNameValue(e.target.value)}
+                maxLength={100}
+                placeholder="Display name"
+                disabled={savingName}
                 style={{
-                  fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-                  fontWeight: 700,
-                  fontSize: '1.125rem',
+                  flex: 1,
+                  minWidth: 0,
+                  padding: '0.375rem 0.625rem',
+                  borderRadius: 'var(--radius-sm, 4px)',
+                  backgroundColor: 'var(--color-bg)',
                   color: 'var(--color-text)',
-                  margin: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
+                  border: '1px solid var(--color-accent)',
+                  fontSize: '0.9375rem',
+                  fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+                  fontWeight: 600,
+                  outline: 'none',
+                }}
+              />
+              <button
+                type="submit"
+                disabled={savingName}
+                style={{
+                  padding: '0.375rem 0.75rem',
+                  borderRadius: 'var(--radius-sm, 4px)',
+                  backgroundColor: 'var(--color-accent)',
+                  color: 'var(--color-bg, #fff)',
+                  border: 'none',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: savingName ? 'not-allowed' : 'pointer',
+                  opacity: savingName ? 0.6 : 1,
                   whiteSpace: 'nowrap',
                 }}
-                title={displayName}
               >
-                {truncatedName}
-              </h2>
+                {savingName ? 'Saving…' : 'Save'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingName(false)}
+                disabled={savingName}
+                style={{
+                  padding: '0.375rem 0.5rem',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '0.75rem',
+                  color: 'var(--color-muted)',
+                  cursor: 'pointer',
+                }}
+              >
+                Cancel
+              </button>
+            </form>
+          ) : displayName ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <button
+                type="button"
+                onClick={onSaveDisplayName ? () => {
+                  setNameValue(displayName)
+                  setEditingName(true)
+                  setTimeout(() => nameInputRef.current?.focus(), 0)
+                } : undefined}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: onSaveDisplayName ? 'pointer' : 'default',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.375rem',
+                }}
+              >
+                <h2
+                  style={{
+                    fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+                    fontWeight: 700,
+                    fontSize: '1.125rem',
+                    color: 'var(--color-text)',
+                    margin: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                  title={displayName}
+                >
+                  {truncatedName}
+                </h2>
+                {onSaveDisplayName && (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, opacity: 0.5 }}>
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                )}
+              </button>
               {/* Remove avatar link */}
               {avatarUrl && onRemoveAvatar && (
                 <button
@@ -283,7 +383,7 @@ export function PlayerCard({
       </div>
 
       {/* Empty profile CTA */}
-      {hasNoProfile && (onAvatarClick || onSetDisplayName) && (
+      {hasNoProfile && (onAvatarClick || onSaveDisplayName) && (
         <div
           style={{
             border: '1px dashed var(--color-border)',
@@ -318,10 +418,14 @@ export function PlayerCard({
                 Add a photo
               </button>
             )}
-            {onSetDisplayName && (
+            {onSaveDisplayName && (
               <button
                 type="button"
-                onClick={onSetDisplayName}
+                onClick={() => {
+                  setNameValue('')
+                  setEditingName(true)
+                  setTimeout(() => nameInputRef.current?.focus(), 0)
+                }}
                 style={{
                   padding: '0.5rem 1rem',
                   borderRadius: 'var(--radius-sm, 4px)',
