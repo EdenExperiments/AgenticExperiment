@@ -214,9 +214,8 @@ export function SkillEditModal({
             <button
               type="submit"
               disabled={isSubmitting || !name.trim()}
-              className="w-full rounded-xl font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+              className="btn btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
-                backgroundColor: 'var(--color-accent)',
                 minHeight: 'var(--tap-target-min, 44px)',
                 padding: '12px 16px',
               }}
@@ -227,10 +226,8 @@ export function SkillEditModal({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="w-full rounded-xl font-medium border disabled:opacity-50 transition-colors"
+              className="btn btn-ghost w-full disabled:opacity-50"
               style={{
-                borderColor: 'var(--color-border)',
-                color: 'var(--color-text-secondary)',
                 minHeight: 'var(--tap-target-min, 44px)',
                 padding: '10px 16px',
               }}

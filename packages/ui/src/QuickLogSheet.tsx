@@ -83,12 +83,7 @@ export function QuickLogSheet({ skillName, tierNumber, isOpen, isLoading, onClos
               aria-label={`${mins} min`}
               aria-pressed={selected === mins}
               onClick={() => setSelected(mins)}
-              className="flex-1 min-w-[60px] py-3 rounded-xl text-sm font-semibold transition-colors min-h-[44px]"
-              style={
-                selected === mins
-                  ? { background: 'var(--color-accent)', color: '#fff' }
-                  : { background: 'var(--color-surface)', color: 'var(--color-text-secondary)' }
-              }
+              className={`chip flex-1 min-w-[60px] py-3 min-h-[44px]${selected === mins ? ' chip-active' : ''}`}
             >
               {mins} min
             </button>
@@ -97,12 +92,7 @@ export function QuickLogSheet({ skillName, tierNumber, isOpen, isLoading, onClos
             aria-label="Custom duration"
             aria-pressed={selected === 'custom'}
             onClick={() => setSelected('custom')}
-            className="flex-1 min-w-[60px] py-3 rounded-xl text-sm font-semibold transition-colors min-h-[44px]"
-            style={
-              selected === 'custom'
-                ? { background: 'var(--color-accent)', color: '#fff' }
-                : { background: 'var(--color-surface)', color: 'var(--color-text-secondary)' }
-            }
+            className={`chip flex-1 min-w-[60px] py-3 min-h-[44px]${selected === 'custom' ? ' chip-active' : ''}`}
           >
             Custom
           </button>
@@ -154,8 +144,7 @@ export function QuickLogSheet({ skillName, tierNumber, isOpen, isLoading, onClos
           aria-label="Log XP"
           onClick={handleSubmit}
           disabled={isLoading || effectiveMinutes <= 0}
-          className="w-full py-4 rounded-xl font-semibold min-h-[48px] disabled:opacity-50 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
-          style={{ background: 'var(--color-accent)', color: '#fff' }}
+          className="btn btn-primary w-full py-4 min-h-[48px] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Logging…' : `Log ${effectiveMinutes > 0 ? effectiveMinutes + ' min' : ''}`}
         </button>

@@ -159,12 +159,7 @@ export default function AccountPage() {
           </Link>
           <button
             onClick={handleSignOut}
-            className="text-sm font-medium rounded-lg px-3 py-2 border"
-            style={{
-              color: 'var(--color-error)',
-              borderColor: 'var(--color-error)',
-              minHeight: 'var(--tap-target-min, 44px)',
-            }}
+            className="btn btn-danger text-sm px-3 py-2"
           >
             Sign Out
           </button>

@@ -131,8 +131,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl font-semibold text-white hover:opacity-90 disabled:opacity-50 transition-opacity min-h-[48px]"
-              style={{ backgroundColor: 'var(--color-accent)' }}
+              className="btn btn-primary w-full py-3 disabled:opacity-50 min-h-[48px]"
             >
               {loading ? 'Signing in…' : 'Sign in'}
             </button>

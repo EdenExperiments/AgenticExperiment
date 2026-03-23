@@ -138,21 +138,13 @@ export function SessionSummary({
         <div className="space-y-3">
           <button
             onClick={() => onSubmit({ what, how, feeling })}
-            className="w-full py-4 rounded-xl font-semibold min-h-[48px] transition-opacity hover:opacity-90"
-            style={{
-              background: 'var(--color-accent)',
-              color: '#fff',
-            }}
+            className="btn btn-primary w-full py-4 min-h-[48px]"
           >
             Log Session
           </button>
           <Link
             href={returnUrl}
-            className="w-full py-3 rounded-xl font-medium min-h-[44px] border transition-colors block text-center"
-            style={{
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-secondary)',
-            }}
+            className="btn btn-ghost w-full py-3 min-h-[44px] block text-center"
           >
             Dismiss
           </Link>

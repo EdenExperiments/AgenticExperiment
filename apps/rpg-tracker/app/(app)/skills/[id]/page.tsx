@@ -330,15 +330,13 @@ export default function SkillDetailPage() {
                 <button
                   onClick={() => tagMutation.mutate(tagBuffer)}
                   disabled={tagMutation.isPending}
-                  className="px-4 py-2 rounded-lg text-sm font-medium min-h-[44px]"
-                  style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
+                  className="btn btn-primary px-4 py-2 text-sm min-h-[44px]"
                 >
                   {tagMutation.isPending ? '...' : 'Save'}
                 </button>
                 <button
                   onClick={() => { setTagBuffer(null); setTagError(null) }}
-                  className="px-3 py-2 rounded-lg text-sm min-h-[44px]"
-                  style={{ color: 'var(--color-muted)' }}
+                  className="btn btn-ghost px-3 py-2 text-sm min-h-[44px]"
                 >
                   Cancel
                 </button>

@@ -60,14 +60,12 @@ export default function APIKeyPage() {
         <button
           type="submit"
           disabled={saving || !key}
-          className="w-full py-4 rounded-xl font-semibold text-white disabled:opacity-50 min-h-[48px]"
-          style={{ backgroundColor: 'var(--color-accent)' }}
+          className="btn btn-primary w-full py-4 disabled:opacity-50 min-h-[48px]"
         >
           {saving ? 'Saving…' : 'Verify and Save'}
         </button>
         <button type="button" onClick={() => router.back()}
-          className="w-full text-sm py-2"
-          style={{ color: 'var(--color-muted)' }}>
+          className="btn btn-ghost w-full text-sm py-2">
           Cancel
         </button>
       </form>

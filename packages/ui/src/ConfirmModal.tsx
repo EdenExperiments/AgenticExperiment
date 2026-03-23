@@ -55,23 +55,15 @@ export function ConfirmModal({
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className="w-full py-4 rounded-xl font-semibold text-white min-h-[48px] disabled:opacity-50 hover:opacity-90 transition-opacity"
-            style={{
-              backgroundColor: destructive
-                ? 'var(--color-error)'
-                : 'var(--color-accent)',
-            }}
+            className={`btn ${destructive ? 'btn-danger' : 'btn-primary'} w-full py-4`}
+            style={destructive ? { backgroundColor: 'var(--color-error)', color: 'white', borderColor: 'var(--color-error)' } : undefined}
           >
             {isLoading ? 'Working…' : confirmLabel}
           </button>
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="w-full py-3 rounded-xl font-medium min-h-[44px] border"
-            style={{
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-secondary)',
-            }}
+            className="btn btn-ghost w-full py-3"
           >
             {cancelLabel}
           </button>

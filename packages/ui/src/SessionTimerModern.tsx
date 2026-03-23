@@ -46,7 +46,7 @@ export function SessionTimerModern({
     >
       {/* Phase label */}
       <p
-        className="text-xs tracking-[0.3em] uppercase mb-8"
+        className="text-xs md:text-sm tracking-[0.3em] uppercase mb-8"
         style={{
           fontFamily: 'var(--font-display)',
           color: isBreak ? 'var(--color-muted)' : 'var(--color-accent)',
@@ -56,7 +56,7 @@ export function SessionTimerModern({
       </p>
 
       {/* Progress ring with timer */}
-      <div className="relative w-56 h-56 mb-6">
+      <div className="relative w-56 h-56 md:w-72 md:h-72 lg:w-96 lg:h-96 mb-6">
         <svg className="w-full h-full" viewBox="0 0 200 200">
           {/* Background ring */}
           <circle
@@ -86,7 +86,7 @@ export function SessionTimerModern({
         {/* Timer text centered in ring */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span
-            className="text-4xl font-bold tabular-nums"
+            className="text-4xl md:text-5xl lg:text-6xl font-bold tabular-nums"
             style={{
               fontFamily: 'var(--font-display)',
               color: 'var(--color-text)',
@@ -95,7 +95,7 @@ export function SessionTimerModern({
           >
             {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
           </span>
-          <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>
+          <span className="text-[10px] md:text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>
             Round {currentRound}/{totalRounds}
           </span>
         </div>
@@ -113,7 +113,7 @@ export function SessionTimerModern({
       </div>
 
       {/* Skill name */}
-      <p className="text-sm mb-8" style={{ color: 'var(--color-text-secondary)', opacity: isBreak ? 0.5 : 1 }}>
+      <p className="text-sm md:text-base mb-8" style={{ color: 'var(--color-text-secondary)', opacity: isBreak ? 0.5 : 1 }}>
         {skillName}
       </p>
 
@@ -121,21 +121,13 @@ export function SessionTimerModern({
       <div className="flex gap-3">
         <button
           onClick={isPaused ? onResume : onPause}
-          className="px-6 py-3 rounded-xl font-medium border min-h-[44px]"
-          style={{
-            borderColor: 'var(--color-border)',
-            color: 'var(--color-text-secondary)',
-          }}
+          className="btn btn-ghost px-6 py-3 min-h-[44px]"
         >
           {isPaused ? 'Resume' : 'Pause'}
         </button>
         <button
           onClick={onEndEarly}
-          className="px-6 py-3 rounded-xl font-medium border min-h-[44px]"
-          style={{
-            borderColor: 'var(--color-border)',
-            color: 'var(--color-text-secondary)',
-          }}
+          className="btn btn-ghost px-6 py-3 min-h-[44px]"
         >
           End Session
         </button>

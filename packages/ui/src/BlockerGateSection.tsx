@@ -100,7 +100,7 @@ export function BlockerGateSection({
 
       {/* Gate title */}
       <p
-        className="font-semibold text-lg"
+        className="gate-section__title font-semibold text-lg"
         style={{
           fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
           color: 'var(--color-text)',
@@ -175,15 +175,7 @@ export function BlockerGateSection({
         <button
           data-testid="submit-gate-btn"
           onClick={onSubmitForAssessment}
-          className="w-full py-3.5 rounded-xl font-semibold min-h-[44px] transition-all"
-          style={{
-            backgroundColor: 'var(--color-warning)',
-            color: 'var(--color-text-inverse)',
-            minHeight: '44px',
-            boxShadow: '0 0 20px rgba(250,204,21,0.2)',
-          }}
-          onMouseOver={(e) => { e.currentTarget.style.opacity = '0.9'; e.currentTarget.style.boxShadow = '0 0 30px rgba(250,204,21,0.35)' }}
-          onMouseOut={(e) => { e.currentTarget.style.opacity = '1'; e.currentTarget.style.boxShadow = '0 0 20px rgba(250,204,21,0.2)' }}
+          className="btn btn-warning w-full py-3.5 min-h-[44px]"
         >
           Submit for Assessment
         </button>

@@ -173,8 +173,7 @@ export default function DashboardPage() {
           </p>
           <Link
             href="/skills/new"
-            className="inline-block px-6 py-3 rounded-xl font-semibold text-white min-h-[48px]"
-            style={{ backgroundColor: 'var(--color-accent)' }}
+            className="btn btn-primary inline-block px-6 py-3 min-h-[48px]"
           >
             Create your first skill
           </Link>
@@ -203,7 +202,7 @@ export default function DashboardPage() {
 
       {/* AC-V1: Focus Card — above stats, below header */}
       {focusSkill && (
-        <div className="max-w-xl">
+        <div className="max-w-2xl">
           <PrimarySkillCard
             skill={focusSkill}
             isPinned={isPinned}

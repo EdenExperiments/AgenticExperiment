@@ -46,22 +46,19 @@ export function SessionEndEarly({
         <div className="flex flex-col gap-3 pt-2">
           <button
             onClick={onKeepGoing}
-            className="w-full py-3 rounded-xl font-medium min-h-[44px]"
-            style={{ background: 'var(--color-surface)', color: 'var(--color-text)' }}
+            className="btn btn-ghost w-full py-3 min-h-[44px]"
           >
             Keep Going
           </button>
           <button
             onClick={onClaim}
-            className="w-full py-3 rounded-xl font-semibold min-h-[44px] transition-opacity hover:opacity-90"
-            style={{ background: tierColor, color: '#fff' }}
+            className="btn btn-primary w-full py-3 min-h-[44px]"
           >
             Claim Session
           </button>
           <button
             onClick={onAbandon}
-            className="w-full py-3 rounded-xl font-medium min-h-[44px] border"
-            style={{ borderColor: 'var(--color-error)', color: 'var(--color-error)' }}
+            className="btn btn-danger w-full py-3 min-h-[44px]"
           >
             Abandon
           </button>

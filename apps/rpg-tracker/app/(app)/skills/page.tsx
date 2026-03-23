@@ -173,12 +173,7 @@ export default function SkillsPage() {
 
   if (isLoading) return <div className="p-8" style={{ color: 'var(--color-muted)' }}>Loading...</div>
 
-  const pillStyle = (active: boolean) => ({
-    minHeight: 'var(--tap-target-min, 44px)' as const,
-    fontFamily: 'var(--font-body)' as const,
-    backgroundColor: active ? 'var(--color-accent)' : 'var(--color-surface)',
-    color: active ? 'white' : 'var(--color-text-secondary)',
-  })
+  // pillStyle removed — sort/filter pills now use .chip/.chip-active CSS classes
 
   return (
     <div className="p-4 md:p-8">
@@ -194,8 +189,7 @@ export default function SkillsPage() {
         </h1>
         <Link
           href="/skills/new"
-          className="px-4 py-2 rounded-xl font-semibold text-white text-sm min-h-[44px] flex items-center"
-          style={{ backgroundColor: 'var(--color-accent)' }}
+          className="btn btn-primary px-4 py-2 text-sm min-h-[44px] flex items-center"
         >
           + Add Skill
         </Link>
@@ -236,8 +230,7 @@ export default function SkillsPage() {
           </p>
           <Link
             href="/skills/new"
-            className="inline-block px-6 py-3 rounded-xl font-semibold text-white min-h-[48px]"
-            style={{ backgroundColor: 'var(--color-accent)' }}
+            className="btn btn-primary inline-block px-6 py-3 min-h-[48px]"
           >
             Create your first skill
           </Link>
@@ -276,13 +269,10 @@ export default function SkillsPage() {
               aria-label={showFavourites ? 'Show all skills' : 'Show favourites only'}
               aria-pressed={showFavourites}
               onClick={() => setShowFavourites(!showFavourites)}
-              className="flex items-center justify-center w-[44px] h-[44px] rounded-lg text-lg shrink-0"
-              style={{
-                backgroundColor: showFavourites ? 'var(--color-accent)' : 'var(--color-surface)',
-                color: showFavourites ? 'white' : 'var(--color-muted)',
-              }}
+              className={`chip flex items-center justify-center w-[44px] h-[44px] shrink-0 leading-none${showFavourites ? ' chip-active' : ''}`}
+              style={{ fontSize: '1.25rem' }}
             >
-              {showFavourites ? '★' : '☆'}
+              <span className="block -translate-y-1">{showFavourites ? '★' : '☆'}</span>
             </button>
           </div>
 
@@ -295,8 +285,7 @@ export default function SkillsPage() {
                   key={opt.value}
                   onClick={() => setSortBy(opt.value)}
                   aria-pressed={sortBy === opt.value}
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                  style={pillStyle(sortBy === opt.value)}
+                  className={`chip px-3 py-1.5 text-xs${sortBy === opt.value ? ' chip-active' : ''}`}
                 >
                   {opt.label}
                 </button>
@@ -310,11 +299,7 @@ export default function SkillsPage() {
               value={tierFilter}
               onChange={(e) => setTierFilter(e.target.value)}
               aria-label="Filter by tier"
-              className="text-xs rounded-lg px-2 py-1.5 border-none shrink-0"
-              style={{
-                ...pillStyle(tierFilter !== 'All'),
-                fontFamily: 'var(--font-body)',
-              }}
+              className={`chip text-xs px-2 py-1.5 shrink-0${tierFilter !== 'All' ? ' chip-active' : ''}`}
             >
               {TIER_NAMES.map((tier) => (
                 <option key={tier} value={tier}>
@@ -329,11 +314,7 @@ export default function SkillsPage() {
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 aria-label="Filter by category"
-                className="text-xs rounded-lg px-2 py-1.5 border-none shrink-0"
-                style={{
-                  ...pillStyle(categoryFilter !== 'All'),
-                  fontFamily: 'var(--font-body)',
-                }}
+                className={`chip text-xs px-2 py-1.5 shrink-0${categoryFilter !== 'All' ? ' chip-active' : ''}`}
               >
                 <option value="All">All Categories</option>
                 {categories.map((cat) => (
@@ -350,11 +331,7 @@ export default function SkillsPage() {
                 value={tagFilter}
                 onChange={(e) => setTagFilter(e.target.value)}
                 aria-label="Filter by tag"
-                className="text-xs rounded-lg px-2 py-1.5 border-none shrink-0"
-                style={{
-                  ...pillStyle(tagFilter !== 'All'),
-                  fontFamily: 'var(--font-body)',
-                }}
+                className={`chip text-xs px-2 py-1.5 shrink-0${tagFilter !== 'All' ? ' chip-active' : ''}`}
               >
                 <option value="All">All Tags</option>
                 {userTags.map((tag) => (
@@ -369,13 +346,7 @@ export default function SkillsPage() {
             {activeFilterCount > 1 && (
               <button
                 onClick={clearFilters}
-                className="px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 transition-colors"
-                style={{
-                  minHeight: 'var(--tap-target-min, 44px)',
-                  fontFamily: 'var(--font-body)',
-                  backgroundColor: 'var(--color-error, #ef4444)',
-                  color: 'white',
-                }}
+                className="btn btn-danger px-3 py-1.5 text-xs shrink-0"
               >
                 Clear filters
               </button>
@@ -423,8 +394,7 @@ export default function SkillsPage() {
       <Link
         href="/skills/new"
         aria-label="Add new skill"
-        className="fixed bottom-20 right-4 w-14 h-14 rounded-full text-white text-2xl flex items-center justify-center shadow-lg md:hidden"
-        style={{ backgroundColor: 'var(--color-accent)' }}
+        className="btn btn-primary fixed bottom-20 right-4 w-14 h-14 !rounded-full text-2xl shadow-lg md:hidden"
       >
         +
       </Link>

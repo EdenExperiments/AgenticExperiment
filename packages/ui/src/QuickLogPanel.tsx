@@ -53,8 +53,7 @@ export function QuickLogPanel({ skillName, tierNumber, isLoading, onSubmit, expa
     return (
       <button
         onClick={() => setExpanded(true)}
-        className="w-full py-3 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity"
-        style={{ backgroundColor: 'var(--color-accent)' }}
+        className="btn btn-primary w-full py-3 min-h-[48px]"
       >
         Log XP — {skillName}
       </button>
@@ -97,12 +96,7 @@ export function QuickLogPanel({ skillName, tierNumber, isLoading, onSubmit, expa
             aria-label={`${mins} min`}
             aria-pressed={selected === mins}
             onClick={() => setSelected(mins)}
-            className="flex-1 min-w-[60px] py-2.5 rounded-lg text-sm font-semibold transition-colors min-h-[44px]"
-            style={
-              selected === mins
-                ? { background: 'var(--color-accent)', color: '#fff' }
-                : { background: 'var(--color-surface)', color: 'var(--color-text-secondary)' }
-            }
+            className={`chip flex-1 min-w-[60px] py-2.5 min-h-[44px]${selected === mins ? ' chip-active' : ''}`}
           >
             {mins} min
           </button>
@@ -111,12 +105,7 @@ export function QuickLogPanel({ skillName, tierNumber, isLoading, onSubmit, expa
           aria-label="Custom duration"
           aria-pressed={selected === 'custom'}
           onClick={() => setSelected('custom')}
-          className="flex-1 min-w-[60px] py-2.5 rounded-lg text-sm font-semibold transition-colors min-h-[44px]"
-          style={
-            selected === 'custom'
-              ? { background: 'var(--color-accent)', color: '#fff' }
-              : { background: 'var(--color-surface)', color: 'var(--color-text-secondary)' }
-          }
+          className={`chip flex-1 min-w-[60px] py-2.5 min-h-[44px]${selected === 'custom' ? ' chip-active' : ''}`}
         >
           Custom
         </button>
@@ -167,8 +156,7 @@ export function QuickLogPanel({ skillName, tierNumber, isLoading, onSubmit, expa
           aria-label="Log XP"
           onClick={handleSubmit}
           disabled={isLoading || effectiveMinutes <= 0}
-          className="px-5 py-2.5 rounded-lg font-semibold text-sm min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
-          style={{ background: 'var(--color-accent)', color: '#fff' }}
+          className="btn btn-primary px-5 py-2.5 text-sm min-h-[44px] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isLoading ? 'Logging…' : 'Log'}
         </button>

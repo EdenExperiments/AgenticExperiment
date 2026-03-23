@@ -154,16 +154,14 @@ export function PostSessionScreen({
         <button
           data-testid="log-session-btn"
           onClick={handleSubmit}
-          className="w-full py-4 rounded-xl font-semibold min-h-[48px] transition-opacity hover:opacity-90"
-          style={{ background: 'var(--color-accent)', color: '#fff' }}
+          className="btn btn-primary w-full py-4 min-h-[48px]"
         >
           Log Session (+{earnedXP} XP)
         </button>
         <button
           data-testid="dismiss-log-later"
           onClick={onDismiss}
-          className="w-full py-2 text-sm"
-          style={{ color: 'var(--color-muted)' }}
+          className="btn btn-ghost w-full py-2 text-sm"
         >
           Dismiss / Log Later
         </button>

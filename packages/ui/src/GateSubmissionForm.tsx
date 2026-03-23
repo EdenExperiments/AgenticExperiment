@@ -78,8 +78,7 @@ export function GateSubmissionForm({
         <button
           data-testid="retry-btn"
           disabled
-          className="w-full py-3 rounded-xl font-semibold cursor-not-allowed"
-          style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-muted)' }}
+          className="btn btn-secondary w-full py-3 cursor-not-allowed"
         >
           Retry Assessment
         </button>
@@ -216,8 +215,7 @@ export function GateSubmissionForm({
       <button
         onClick={handleSubmit}
         disabled={isLoading}
-        className="w-full py-3 rounded-xl font-semibold text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{ backgroundColor: 'var(--color-accent)' }}
+        className="btn btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isLoading ? 'Assessing...' : path === 'ai' ? 'Submit for AI Assessment' : 'Submit Self-Report'}
       </button>

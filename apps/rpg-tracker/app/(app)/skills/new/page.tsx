@@ -298,13 +298,7 @@ export default function SkillCreatePage() {
                     <button
                       onClick={() => setDraft(d => ({ ...d, categoryId: null }))}
                       aria-pressed={draft.categoryId === null}
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                      style={{
-                        minHeight: 'var(--tap-target-min, 44px)',
-                        fontFamily: 'var(--font-body)',
-                        backgroundColor: draft.categoryId === null ? 'var(--color-accent)' : 'var(--color-surface)',
-                        color: draft.categoryId === null ? 'var(--color-text-on-accent, #fff)' : 'var(--color-text-secondary)',
-                      }}
+                      className={`chip px-3 py-1.5 text-xs${draft.categoryId === null ? ' chip-active' : ''}`}
                     >
                       None
                     </button>
@@ -313,13 +307,7 @@ export default function SkillCreatePage() {
                         key={cat.id}
                         onClick={() => setDraft(d => ({ ...d, categoryId: cat.id }))}
                         aria-pressed={draft.categoryId === cat.id}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
-                        style={{
-                          minHeight: 'var(--tap-target-min, 44px)',
-                          fontFamily: 'var(--font-body)',
-                          backgroundColor: draft.categoryId === cat.id ? 'var(--color-accent)' : 'var(--color-surface)',
-                          color: draft.categoryId === cat.id ? 'var(--color-text-on-accent, #fff)' : 'var(--color-text-secondary)',
-                        }}
+                        className={`chip px-3 py-1.5 text-xs${draft.categoryId === cat.id ? ' chip-active' : ''}`}
                       >
                         {cat.emoji} {cat.name}
                       </button>
@@ -334,24 +322,14 @@ export default function SkillCreatePage() {
           <div className="flex gap-2">
             <button
               onClick={resetToPathSelector}
-              className="flex-1 py-3 rounded-xl border text-sm"
-              style={{
-                borderColor: 'var(--color-border)',
-                color: 'var(--color-text-secondary)',
-                minHeight: 'var(--tap-target-min, 44px)',
-              }}
+              className="btn btn-ghost flex-1 py-3 text-sm"
             >
               Back
             </button>
             <button
               onClick={() => setStep(2)}
               disabled={!draft.name.trim()}
-              className="flex-1 py-3 rounded-xl font-semibold disabled:opacity-50"
-              style={{
-                background: 'var(--color-accent)',
-                color: 'var(--color-text-on-accent, #fff)',
-                minHeight: 'var(--tap-target-min, 44px)',
-              }}
+              className="btn btn-primary flex-1 py-3 disabled:opacity-50"
             >
               Next
             </button>
@@ -439,12 +417,7 @@ export default function SkillCreatePage() {
               <button
                 onClick={() => createMutation.mutate()}
                 disabled={createMutation.isPending}
-                className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
-                style={{
-                  background: 'var(--color-accent)',
-                  color: 'var(--color-text-on-accent, #fff)',
-                  minHeight: 'var(--tap-target-min, 44px)',
-                }}
+                className="btn btn-primary w-full py-3 disabled:opacity-50"
               >
                 {createMutation.isPending ? 'Creating…' : 'Create Skill'}
               </button>
@@ -461,12 +434,7 @@ export default function SkillCreatePage() {
           {/* Back button */}
           <button
             onClick={() => setStep(1)}
-            className="w-full py-3 rounded-xl border text-sm"
-            style={{
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-secondary)',
-              minHeight: 'var(--tap-target-min, 44px)',
-            }}
+            className="btn btn-ghost w-full py-3 text-sm"
           >
             Back
           </button>
@@ -691,12 +659,7 @@ function ArbiterStep({
             onClick={() => calibrateMutation.mutate()}
             disabled={calibrateMutation.isPending || !experience.trim()}
             aria-busy={calibrateMutation.isPending}
-            className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
-            style={{
-              background: 'var(--color-accent)',
-              color: 'var(--color-text-on-accent, #fff)',
-              minHeight: 'var(--tap-target-min, 44px)',
-            }}
+            className="btn btn-primary w-full py-3 disabled:opacity-50"
           >
             {calibrateMutation.isPending ? 'Consulting The Arbiter…' : 'Consult The Arbiter'}
           </button>
@@ -712,17 +675,7 @@ function ArbiterStep({
                 setAcceptedArbiterLevel(calibrateMutation.data.suggested_level)
                 setShowAdjust(false)
               }}
-              className="flex-1 py-3 rounded-xl font-semibold text-sm"
-              style={{
-                background: acceptedArbiterLevel != null && !showAdjust
-                  ? 'var(--color-accent)'
-                  : 'var(--color-surface)',
-                color: acceptedArbiterLevel != null && !showAdjust
-                  ? 'var(--color-text-on-accent, #fff)'
-                  : 'var(--color-text)',
-                border: '1px solid var(--color-border)',
-                minHeight: 'var(--tap-target-min, 44px)',
-              }}
+              className={`chip flex-1 py-3 text-sm font-semibold${acceptedArbiterLevel != null && !showAdjust ? ' chip-active' : ''}`}
             >
               Accept (Level {calibrateMutation.data.suggested_level})
             </button>
@@ -731,17 +684,7 @@ function ArbiterStep({
                 setAcceptedArbiterLevel(null)
                 setShowAdjust(true)
               }}
-              className="flex-1 py-3 rounded-xl text-sm"
-              style={{
-                background: showAdjust
-                  ? 'var(--color-accent)'
-                  : 'var(--color-surface)',
-                color: showAdjust
-                  ? 'var(--color-text-on-accent, #fff)'
-                  : 'var(--color-text-secondary)',
-                border: '1px solid var(--color-border)',
-                minHeight: 'var(--tap-target-min, 44px)',
-              }}
+              className={`chip flex-1 py-3 text-sm${showAdjust ? ' chip-active' : ''}`}
             >
               Adjust manually
             </button>
@@ -789,12 +732,7 @@ function ArbiterStep({
           <button
             onClick={() => createMutation.mutate()}
             disabled={createMutation.isPending}
-            className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
-            style={{
-              background: 'var(--color-accent)',
-              color: 'var(--color-text-on-accent, #fff)',
-              minHeight: 'var(--tap-target-min, 44px)',
-            }}
+            className="btn btn-primary w-full py-3 disabled:opacity-50"
           >
             {createMutation.isPending ? 'Creating…' : 'Create Skill'}
           </button>

@@ -1015,3 +1015,495 @@
   0%, 100% { opacity: 0.4; }
   50%       { opacity: 0.7; }
 }
+
+
+/* ================================================================== */
+/* BUTTONS (.btn, .btn-primary, .btn-secondary, .btn-danger)           */
+/* Shared button system for in-app pages (skill detail, modals, etc.) */
+/* ================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-target-min, 44px);
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-decoration: none;
+  transition: background-color calc(var(--duration-fast) * var(--motion-scale, 1)) ease,
+              box-shadow calc(var(--duration-normal) * var(--motion-scale, 1)) ease,
+              border-color calc(var(--duration-fast) * var(--motion-scale, 1)) ease,
+              opacity calc(var(--duration-fast) * var(--motion-scale, 1)) ease,
+              transform calc(var(--duration-fast) * var(--motion-scale, 1)) ease;
+}
+
+.btn:active {
+  transform: translateY(0) !important;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── .btn-primary ──────────────────────────────── */
+
+/* Minimal — solid flat accent */
+[data-theme="minimal"] .btn-primary {
+  background-color: var(--color-accent);
+  color: #ffffff;
+  border-radius: var(--radius-md);
+}
+
+[data-theme="minimal"] .btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+/* Retro — gold gradient, pixel display font */
+[data-theme="retro"] .btn-primary {
+  background: linear-gradient(135deg, #b8860b, #d4a853, #f0c060, #d4a853, #b8860b);
+  background-size: 250% auto;
+  color: var(--color-text-inverse);
+  border: 2px solid var(--color-accent);
+  border-radius: 2px;
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-theme="retro"] .btn-primary {
+    animation: shimmer 4s linear infinite;
+  }
+}
+
+[data-theme="retro"] .btn-primary:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(212, 168, 83, 0.4), 0 4px 12px rgba(0,0,0,0.3);
+  transform: translateY(-1px);
+}
+
+/* Modern — cyan glow */
+[data-theme="modern"] .btn-primary {
+  background-color: var(--color-accent);
+  color: var(--color-text-inverse);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.25);
+}
+
+[data-theme="modern"] .btn-primary:hover:not(:disabled) {
+  box-shadow: 0 0 24px rgba(0, 212, 255, 0.45), 0 4px 12px rgba(0,0,0,0.3);
+  transform: translateY(-1px);
+}
+
+/* ── .btn-secondary ────────────────────────────── */
+
+/* Minimal — outlined accent */
+[data-theme="minimal"] .btn-secondary {
+  background-color: var(--color-surface);
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="minimal"] .btn-secondary:hover:not(:disabled) {
+  background-color: var(--color-accent-muted);
+  transform: translateY(-1px);
+}
+
+/* Retro — bordered with display font */
+[data-theme="retro"] .btn-secondary {
+  background-color: transparent;
+  color: var(--color-accent);
+  border: 2px solid var(--color-border);
+  border-radius: 2px;
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+[data-theme="retro"] .btn-secondary:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  background-color: rgba(212, 168, 83, 0.08);
+  transform: translateY(-1px);
+}
+
+/* Modern — glass border */
+[data-theme="modern"] .btn-secondary {
+  background-color: transparent;
+  color: var(--color-accent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="modern"] .btn-secondary:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+/* ── .btn-danger ───────────────────────────────── */
+
+/* Minimal — text danger with border */
+[data-theme="minimal"] .btn-danger {
+  background-color: transparent;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="minimal"] .btn-danger:hover:not(:disabled) {
+  background-color: rgba(239, 68, 68, 0.06);
+}
+
+/* Retro — danger with display font */
+[data-theme="retro"] .btn-danger {
+  background-color: transparent;
+  color: var(--color-error);
+  border: 2px solid var(--color-error);
+  border-radius: 2px;
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+[data-theme="retro"] .btn-danger:hover:not(:disabled) {
+  background-color: rgba(239, 68, 68, 0.1);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);
+}
+
+/* Modern — danger with red glow on hover */
+[data-theme="modern"] .btn-danger {
+  background-color: transparent;
+  color: var(--color-error);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="modern"] .btn-danger:hover:not(:disabled) {
+  background-color: rgba(239, 68, 68, 0.06);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.2);
+}
+
+/* ── .btn-ghost ─────────────────────────────── */
+
+/* Minimal — text-only with hover fill */
+[data-theme="minimal"] .btn-ghost {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="minimal"] .btn-ghost:hover:not(:disabled) {
+  background-color: var(--color-surface);
+}
+
+/* Retro — text-only with display font */
+[data-theme="retro"] .btn-ghost {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+[data-theme="retro"] .btn-ghost:hover:not(:disabled) {
+  background-color: rgba(212, 168, 83, 0.06);
+  border-color: var(--color-accent);
+}
+
+/* Modern — glass text-only */
+[data-theme="modern"] .btn-ghost {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="modern"] .btn-ghost:hover:not(:disabled) {
+  background-color: rgba(0, 212, 255, 0.04);
+  border-color: var(--color-accent);
+}
+
+/* ── .btn-warning ──────────────────────────── */
+
+/* Minimal — solid warning */
+[data-theme="minimal"] .btn-warning {
+  background-color: var(--color-warning);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="minimal"] .btn-warning:hover:not(:disabled) {
+  opacity: 0.9;
+  box-shadow: var(--shadow-md);
+}
+
+/* Retro — gold warning with glow */
+[data-theme="retro"] .btn-warning {
+  background-color: var(--color-warning);
+  color: var(--color-text-inverse);
+  border: 2px solid var(--color-warning);
+  border-radius: 2px;
+  font-family: var(--font-display);
+  font-size: 0.625rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  box-shadow: 0 0 16px rgba(250, 204, 21, 0.2);
+}
+
+[data-theme="retro"] .btn-warning:hover:not(:disabled) {
+  box-shadow: 0 0 28px rgba(250, 204, 21, 0.35);
+}
+
+/* Modern — warning with amber glow */
+[data-theme="modern"] .btn-warning {
+  background-color: var(--color-warning);
+  color: var(--color-text-inverse);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 12px rgba(250, 204, 21, 0.2);
+}
+
+[data-theme="modern"] .btn-warning:hover:not(:disabled) {
+  box-shadow: 0 0 24px rgba(250, 204, 21, 0.35);
+}
+
+/* ── .chip (toggle chips / selector pills) ──── */
+/* Used for time-chips, session-type toggles, preset selectors.
+   Two states: default (inactive) and .chip-active (selected). */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  border-radius: var(--radius-md, 8px);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition:
+    background-color calc(150ms * var(--motion-scale, 0.3)),
+    border-color calc(150ms * var(--motion-scale, 0.3)),
+    color calc(150ms * var(--motion-scale, 0.3)),
+    box-shadow calc(150ms * var(--motion-scale, 0.3));
+}
+
+/* Minimal */
+[data-theme="minimal"] .chip {
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border-color: var(--color-border);
+}
+[data-theme="minimal"] .chip-active {
+  background: var(--color-accent);
+  color: #fff;
+  border-color: var(--color-accent);
+}
+[data-theme="minimal"] .chip:hover:not(.chip-active) {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+/* Retro */
+[data-theme="retro"] .chip {
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 2px solid var(--color-border);
+  font-family: var(--font-display, "Press Start 2P", monospace);
+  font-size: 10px;
+}
+[data-theme="retro"] .chip-active {
+  background: var(--color-accent);
+  color: var(--color-bg, #0a0a12);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 8px rgba(212, 168, 83, 0.3);
+}
+[data-theme="retro"] .chip:hover:not(.chip-active) {
+  border-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+/* Modern */
+[data-theme="modern"] .chip {
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+}
+[data-theme="modern"] .chip-active {
+  background: color-mix(in srgb, var(--color-accent) 15%, transparent);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--color-accent) 20%, transparent);
+}
+[data-theme="modern"] .chip:hover:not(.chip-active) {
+  border-color: color-mix(in srgb, var(--color-accent) 40%, transparent);
+  color: var(--color-text);
+}
+
+
+/* Shimmer keyframes (shared with landing) */
+@keyframes shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+
+/* ================================================================== */
+/* UTILITY CLASSES                                                     */
+/* Typography + layout helpers used across in-app pages               */
+/* ================================================================== */
+
+/* ── Typography ────────────────────────────────── */
+
+.heading {
+  font-family: var(--font-display, var(--font-body, system-ui, sans-serif));
+  color: var(--color-text);
+}
+
+.text-accent {
+  color: var(--color-accent);
+}
+
+.text-muted {
+  color: var(--color-muted);
+}
+
+.text-body {
+  color: var(--color-text-secondary);
+}
+
+/* Gradient text — per-theme accent gradient on display text */
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+[data-theme="minimal"] .text-gradient {
+  background-image: linear-gradient(135deg, var(--color-accent), #1d4ed8);
+}
+
+[data-theme="retro"] .text-gradient {
+  background-image: linear-gradient(135deg, #d4a853, #f0c060);
+  text-shadow: none;
+}
+
+[data-theme="modern"] .text-gradient {
+  background-image: linear-gradient(135deg, var(--color-accent), #818cf8);
+  text-shadow: none;
+}
+
+/* ── Links ─────────────────────────────────────── */
+
+.link-muted {
+  color: var(--color-muted);
+  text-decoration: none;
+  transition: color calc(var(--duration-fast) * var(--motion-scale, 1)) ease;
+}
+
+.link-muted:hover {
+  color: var(--color-accent);
+}
+
+/* ── Section divider ───────────────────────────── */
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.section-rule {
+  flex: 1;
+  height: 1px;
+  background-color: var(--color-border);
+}
+
+[data-theme="retro"] .section-rule {
+  background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+}
+
+[data-theme="modern"] .section-rule {
+  background: linear-gradient(90deg, transparent, var(--color-border), transparent);
+  box-shadow: 0 0 4px rgba(0, 212, 255, 0.1);
+}
+
+.section-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+[data-theme="retro"] .section-label {
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  color: var(--color-accent);
+  letter-spacing: 0.15em;
+}
+
+[data-theme="modern"] .section-label {
+  color: var(--color-accent);
+  letter-spacing: 0.12em;
+}
+
+/* ── Gold rule (footer separator) ──────────────── */
+
+.gold-rule {
+  height: 1px;
+  background-color: var(--color-border);
+}
+
+[data-theme="retro"] .gold-rule {
+  background: linear-gradient(90deg, transparent 10%, var(--color-accent) 50%, transparent 90%);
+  opacity: 0.4;
+}
+
+[data-theme="modern"] .gold-rule {
+  background: linear-gradient(90deg, transparent 10%, var(--color-accent) 50%, transparent 90%);
+  opacity: 0.3;
+  box-shadow: 0 0 6px rgba(0, 212, 255, 0.15);
+}
+
+/* ── Badge accent ──────────────────────────────── */
+
+.badge-accent {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  background-color: var(--color-accent-muted);
+  color: var(--color-accent);
+}
+
+/* ── Card base ─────────────────────────────────── */
+/* components.css defines Modern glassmorphism for .card.
+   These rules provide base styling for Minimal/Retro. */
+
+.card {
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+[data-theme="retro"] .card {
+  border-width: 2px;
+  border-radius: var(--radius-md);
+}

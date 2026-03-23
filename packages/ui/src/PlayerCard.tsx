@@ -403,15 +403,10 @@ export function PlayerCard({
               <button
                 type="button"
                 onClick={onAvatarClick}
+                className="btn btn-primary"
                 style={{
                   padding: '0.5rem 1rem',
-                  borderRadius: 'var(--radius-sm, 4px)',
-                  backgroundColor: 'var(--color-accent)',
-                  color: 'var(--color-bg, #fff)',
-                  border: 'none',
                   fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
                   minHeight: 44,
                 }}
               >
@@ -426,15 +421,10 @@ export function PlayerCard({
                   setEditingName(true)
                   setTimeout(() => nameInputRef.current?.focus(), 0)
                 }}
+                className="btn btn-secondary"
                 style={{
                   padding: '0.5rem 1rem',
-                  borderRadius: 'var(--radius-sm, 4px)',
-                  backgroundColor: 'transparent',
-                  color: 'var(--color-accent)',
-                  border: '1px solid var(--color-accent)',
                   fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
                   minHeight: 44,
                 }}
               >

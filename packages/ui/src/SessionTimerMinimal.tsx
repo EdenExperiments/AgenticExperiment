@@ -37,7 +37,7 @@ export function SessionTimerMinimal({
     >
       {/* Breathing circle */}
       <div
-        className="w-48 h-48 rounded-full flex items-center justify-center mb-8"
+        className="w-48 h-48 md:w-64 md:h-64 lg:w-80 lg:h-80 rounded-full flex items-center justify-center mb-8"
         style={{
           border: `3px solid var(--color-accent)`,
           opacity,
@@ -45,7 +45,7 @@ export function SessionTimerMinimal({
         }}
       >
         <span
-          className="text-5xl font-bold tabular-nums"
+          className="text-5xl md:text-6xl lg:text-7xl font-bold tabular-nums"
           style={{
             fontFamily: 'var(--font-body)',
             color: 'var(--color-text)',
@@ -56,10 +56,10 @@ export function SessionTimerMinimal({
       </div>
 
       {/* Phase + round info */}
-      <p className="text-sm mb-1" style={{ color: 'var(--color-muted)' }}>
+      <p className="text-sm md:text-base mb-1" style={{ color: 'var(--color-muted)' }}>
         {isBreak ? 'Break' : 'Work'} · Round {currentRound} of {totalRounds}
       </p>
-      <p className="text-lg font-medium mb-8" style={{ color: 'var(--color-text)', opacity }}>
+      <p className="text-lg md:text-xl font-medium mb-8" style={{ color: 'var(--color-text)', opacity }}>
         {skillName}
       </p>
 
@@ -67,21 +67,13 @@ export function SessionTimerMinimal({
       <div className="flex gap-3">
         <button
           onClick={isPaused ? onResume : onPause}
-          className="px-6 py-3 rounded-xl font-medium border min-h-[44px]"
-          style={{
-            borderColor: 'var(--color-border)',
-            color: 'var(--color-text-secondary)',
-          }}
+          className="btn btn-ghost px-6 py-3 min-h-[44px]"
         >
           {isPaused ? 'Resume' : 'Pause'}
         </button>
         <button
           onClick={onEndEarly}
-          className="px-6 py-3 rounded-xl font-medium border min-h-[44px]"
-          style={{
-            borderColor: 'var(--color-border)',
-            color: 'var(--color-text-secondary)',
-          }}
+          className="btn btn-ghost px-6 py-3 min-h-[44px]"
         >
           End Session
         </button>

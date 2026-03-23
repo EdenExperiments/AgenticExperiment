@@ -131,23 +131,13 @@ export function GrindOverlay({
             <button
               data-testid="session-begin"
               onClick={onBegin}
-              className="w-full py-4 rounded-xl font-semibold tracking-wide min-h-[48px] transition-opacity hover:opacity-90"
-              style={{
-                fontFamily: 'var(--font-display)',
-                background: tierColor,
-                color: '#fff',
-                letterSpacing: '0.05em',
-              }}
+              className="btn btn-primary w-full py-4 tracking-wide min-h-[48px]"
             >
               Begin Session
             </button>
             <button
               onClick={onCancel}
-              className="w-full py-3 rounded-xl font-medium min-h-[44px] border transition-colors"
-              style={{
-                borderColor: 'var(--color-border)',
-                color: 'var(--color-text-secondary)',
-              }}
+              className="btn btn-ghost w-full py-3 min-h-[44px]"
             >
               Cancel
             </button>
@@ -179,24 +169,21 @@ export function GrindOverlay({
             <button
               data-testid="option-keep-going"
               onClick={() => setInternalPhase('work')}
-              className="w-full py-3 rounded-xl font-medium min-h-[44px]"
-              style={{ background: 'var(--color-surface)', color: 'var(--color-text)' }}
+              className="btn btn-ghost w-full py-3 min-h-[44px]"
             >
               Keep Going
             </button>
             <button
               data-testid="option-claim"
               onClick={() => handleSessionEnd('completed')}
-              className="w-full py-3 rounded-xl font-semibold min-h-[44px] transition-opacity hover:opacity-90"
-              style={{ background: tierColor, color: '#fff' }}
+              className="btn btn-primary w-full py-3 min-h-[44px]"
             >
               Claim Session
             </button>
             <button
               data-testid="option-abandon"
               onClick={() => handleSessionEnd('abandoned')}
-              className="w-full py-3 rounded-xl font-medium min-h-[44px] border"
-              style={{ borderColor: 'var(--color-error)', color: 'var(--color-error)' }}
+              className="btn btn-danger w-full py-3 min-h-[44px]"
             >
               Abandon
             </button>
@@ -225,8 +212,7 @@ export function GrindOverlay({
         )}
         <button
           onClick={() => setInternalPhase('end-early')}
-          className="mt-8 px-6 py-3 rounded-xl font-medium border min-h-[44px]"
-          style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}
+          className="btn btn-ghost mt-8 px-6 py-3 min-h-[44px]"
         >
           End Session
         </button>
@@ -248,8 +234,7 @@ export function GrindOverlay({
         </p>
         <button
           onClick={() => handleSessionEnd('completed')}
-          className="mt-8 px-6 py-3 rounded-xl font-medium border min-h-[44px]"
-          style={{ borderColor: 'var(--color-border)', color: 'var(--color-text-secondary)' }}
+          className="btn btn-ghost mt-8 px-6 py-3 min-h-[44px]"
         >
           Skip Break
         </button>

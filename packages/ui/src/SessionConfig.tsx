@@ -79,11 +79,7 @@ export function SessionConfig({ skillName, tierColor, onBegin, onCancel }: Sessi
             <button
               key={t}
               onClick={() => setSessionType(t)}
-              className="flex-1 py-2 rounded-xl text-sm font-medium transition-colors min-h-[44px]"
-              style={{
-                background: sessionType === t ? 'var(--color-accent)' : 'var(--color-surface)',
-                color: sessionType === t ? '#fff' : 'var(--color-text-secondary)',
-              }}
+              className={`chip flex-1 py-2 min-h-[44px]${sessionType === t ? ' chip-active' : ''}`}
             >
               {t === 'simple' ? 'Simple' : 'Pomodoro'}
             </button>
@@ -103,12 +99,7 @@ export function SessionConfig({ skillName, tierColor, onBegin, onCancel }: Sessi
                   <button
                     key={p.value}
                     onClick={() => setWorkSec(p.value)}
-                    className="flex-1 py-2 rounded-lg text-sm font-medium min-h-[40px]"
-                    style={{
-                      background: workSec === p.value ? 'var(--color-accent-muted)' : 'var(--color-surface)',
-                      color: workSec === p.value ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                      border: `1px solid ${workSec === p.value ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                    }}
+                    className={`chip flex-1 py-2${workSec === p.value ? ' chip-active' : ''}`}
                   >
                     {p.label}
                   </button>
@@ -126,12 +117,7 @@ export function SessionConfig({ skillName, tierColor, onBegin, onCancel }: Sessi
                   <button
                     key={p.value}
                     onClick={() => setBreakSec(p.value)}
-                    className="flex-1 py-2 rounded-lg text-sm font-medium min-h-[40px]"
-                    style={{
-                      background: breakSec === p.value ? 'var(--color-accent-muted)' : 'var(--color-surface)',
-                      color: breakSec === p.value ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                      border: `1px solid ${breakSec === p.value ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                    }}
+                    className={`chip flex-1 py-2${breakSec === p.value ? ' chip-active' : ''}`}
                   >
                     {p.label}
                   </button>
@@ -149,12 +135,7 @@ export function SessionConfig({ skillName, tierColor, onBegin, onCancel }: Sessi
                   <button
                     key={p.value}
                     onClick={() => setRounds(p.value)}
-                    className="flex-1 py-2 rounded-lg text-sm font-medium min-h-[40px]"
-                    style={{
-                      background: rounds === p.value ? 'var(--color-accent-muted)' : 'var(--color-surface)',
-                      color: rounds === p.value ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                      border: `1px solid ${rounds === p.value ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                    }}
+                    className={`chip flex-1 py-2${rounds === p.value ? ' chip-active' : ''}`}
                   >
                     {p.label}
                   </button>
@@ -174,23 +155,13 @@ export function SessionConfig({ skillName, tierColor, onBegin, onCancel }: Sessi
         <div className="space-y-3">
           <button
             onClick={handleBegin}
-            className="w-full py-4 rounded-xl font-semibold tracking-wide min-h-[48px] transition-opacity hover:opacity-90"
-            style={{
-              fontFamily: 'var(--font-display)',
-              background: tierColor,
-              color: '#fff',
-              letterSpacing: '0.05em',
-            }}
+            className="btn btn-primary w-full py-4 tracking-wide min-h-[48px]"
           >
             Begin Session
           </button>
           <button
             onClick={onCancel}
-            className="w-full py-3 rounded-xl font-medium min-h-[44px] border transition-colors"
-            style={{
-              borderColor: 'var(--color-border)',
-              color: 'var(--color-text-secondary)',
-            }}
+            className="btn btn-ghost w-full py-3 min-h-[44px]"
           >
             Cancel
           </button>

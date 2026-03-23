@@ -488,19 +488,13 @@ export function AvatarCropModal({ open, onClose, onUpload, isUploading = false, 
                 type="button"
                 onClick={handleUpload}
                 disabled={isUploading}
+                className="btn btn-primary w-full"
                 style={{
-                  width: '100%',
                   padding: '0.875rem',
-                  borderRadius: 'var(--radius-md, 12px)',
-                  backgroundColor: 'var(--color-accent)',
-                  color: 'var(--color-bg, #fff)',
-                  border: 'none',
-                  fontWeight: 600,
                   fontSize: '0.9375rem',
                   cursor: isUploading ? 'not-allowed' : 'pointer',
                   opacity: isUploading ? 0.7 : 1,
                   minHeight: 48,
-                  transition: 'opacity calc(150ms * var(--motion-scale, 0.3))',
                 }}
               >
                 {isUploading ? 'Uploading…' : pendingBlob ? 'Retry upload' : 'Upload photo'}
@@ -510,14 +504,9 @@ export function AvatarCropModal({ open, onClose, onUpload, isUploading = false, 
               type="button"
               onClick={onClose}
               disabled={isUploading}
+              className="btn btn-ghost w-full"
               style={{
-                width: '100%',
                 padding: '0.75rem',
-                borderRadius: 'var(--radius-md, 12px)',
-                backgroundColor: 'transparent',
-                color: 'var(--color-muted)',
-                border: '1px solid var(--color-border)',
-                fontWeight: 500,
                 fontSize: '0.9375rem',
                 cursor: isUploading ? 'not-allowed' : 'pointer',
                 minHeight: 44,

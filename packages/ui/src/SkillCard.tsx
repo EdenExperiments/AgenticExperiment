@@ -25,7 +25,7 @@ export function SkillCard({ skill, onLogXP, onClick, onToggleFavourite, dimmed }
       role="button"
       tabIndex={0}
       aria-label={skill.name}
-      className="skill-card card relative rounded-xl p-4 shadow-sm border cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg min-h-[44px]"
+      className="skill-card card relative rounded-xl p-4 shadow-sm border cursor-pointer focus:outline-none focus-visible:outline-2 focus-visible:outline-[var(--color-accent)] focus-visible:outline-offset-2 [@media(hover:hover)]:hover:-translate-y-1 [@media(hover:hover)]:hover:shadow-lg min-h-[44px]"
       style={{
         backgroundColor: 'var(--color-bg-elevated)',
         borderColor: 'var(--color-border)',
@@ -63,10 +63,10 @@ export function SkillCard({ skill, onLogXP, onClick, onToggleFavourite, dimmed }
               aria-label={skill.is_favourite ? 'Remove from favourites' : 'Add to favourites'}
               aria-pressed={skill.is_favourite}
               onClick={(e) => { e.stopPropagation(); onToggleFavourite(skill.id) }}
-              className="flex items-center justify-center w-[44px] h-[44px] -m-2 rounded-lg"
+              className="flex items-center justify-center w-[44px] h-[44px] -m-2 rounded-lg text-xl leading-none"
               style={{ color: skill.is_favourite ? 'var(--color-accent)' : 'var(--color-muted)' }}
             >
-              {skill.is_favourite ? '★' : '☆'}
+              <span className="block -translate-y-1">{skill.is_favourite ? '★' : '☆'}</span>
             </button>
           )}
           {currentStreak >= 2 && (

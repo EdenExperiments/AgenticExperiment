@@ -42,7 +42,7 @@ export function SessionTimerRetro({
     >
       {/* Phase label */}
       <p
-        className="text-[10px] tracking-[0.3em] uppercase mb-6"
+        className="text-[10px] md:text-xs tracking-[0.3em] uppercase mb-6"
         style={{
           fontFamily: 'var(--font-display)',
           color: isBreak ? 'var(--color-muted)' : 'var(--color-accent)',
@@ -53,7 +53,7 @@ export function SessionTimerRetro({
 
       {/* Timer display */}
       <div
-        className="text-4xl tabular-nums mb-4"
+        className="text-4xl md:text-6xl lg:text-7xl tabular-nums mb-4"
         style={{
           fontFamily: 'var(--font-display)',
           color: 'var(--color-accent)',
@@ -66,7 +66,7 @@ export function SessionTimerRetro({
 
       {/* Round counter */}
       <p
-        className="text-[8px] tracking-[0.2em] uppercase mb-2"
+        className="text-[8px] md:text-[10px] tracking-[0.2em] uppercase mb-2"
         style={{ fontFamily: 'var(--font-display)', color: 'var(--color-muted)' }}
       >
         Round {currentRound} / {totalRounds}
@@ -75,7 +75,7 @@ export function SessionTimerRetro({
       {/* XP ticking counter */}
       {!isBreak && (
         <div
-          className="text-sm tabular-nums mb-6"
+          className="text-sm md:text-base tabular-nums mb-6"
           style={{
             fontFamily: 'var(--font-display)',
             color: 'var(--color-accent)',
@@ -88,7 +88,7 @@ export function SessionTimerRetro({
 
       {/* Skill name */}
       <p
-        className="text-xs mb-8"
+        className="text-xs md:text-sm mb-8"
         style={{
           fontFamily: 'var(--font-display)',
           color: 'var(--color-text-secondary)',
@@ -100,7 +100,7 @@ export function SessionTimerRetro({
 
       {/* Pixel progress bar */}
       <div
-        className="w-48 h-3 rounded mb-8"
+        className="w-48 md:w-64 lg:w-80 h-3 md:h-4 rounded mb-8"
         style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
       >
         <div
@@ -116,25 +116,13 @@ export function SessionTimerRetro({
       <div className="flex gap-3">
         <button
           onClick={isPaused ? onResume : onPause}
-          className="px-5 py-3 rounded-xl font-medium min-h-[44px] border"
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '10px',
-            borderColor: 'var(--color-border)',
-            color: 'var(--color-text-secondary)',
-          }}
+          className="btn btn-ghost px-5 py-3 min-h-[44px]"
         >
           {isPaused ? 'Resume' : 'Pause'}
         </button>
         <button
           onClick={onEndEarly}
-          className="px-5 py-3 rounded-xl font-medium min-h-[44px] border"
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: '10px',
-            borderColor: 'var(--color-border)',
-            color: 'var(--color-text-secondary)',
-          }}
+          className="btn btn-ghost px-5 py-3 min-h-[44px]"
         >
           End Session
         </button>
