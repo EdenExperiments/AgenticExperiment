@@ -94,12 +94,8 @@ describe('SessionPage — AC-L6: Session completion flow', () => {
     fireEvent.click(await screen.findByRole('button', { name: /end session/i }))
     fireEvent.click(await screen.findByRole('button', { name: /claim session/i }))
 
-    const dismissButton = await screen.findByRole('button', { name: /dismiss|return/i })
-    fireEvent.click(dismissButton)
-
-    await waitFor(() => {
-      expect(mockOnLogSession).not.toHaveBeenCalled()
-      expect(mockPush).toHaveBeenCalledWith('/skills/skill-test-id')
-    })
+    const dismissLink = await screen.findByRole('link', { name: /dismiss/i })
+    expect(dismissLink).toHaveAttribute('href', '/skills/skill-test-id')
+    expect(mockOnLogSession).not.toHaveBeenCalled()
   })
 })

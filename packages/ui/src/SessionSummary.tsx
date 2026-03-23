@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 
 interface SessionSummaryProps {
   earnedXP: number
@@ -11,7 +12,6 @@ interface SessionSummaryProps {
   intervalsPlanned?: number
   returnUrl: string
   onSubmit: (reflections: { what: string; how: string; feeling: string }) => void
-  onDismiss: () => void
 }
 
 export function SessionSummary({
@@ -21,8 +21,8 @@ export function SessionSummary({
   durationSeconds,
   intervalsCompleted,
   intervalsPlanned,
+  returnUrl,
   onSubmit,
-  onDismiss,
 }: SessionSummaryProps) {
   const [what, setWhat] = useState('')
   const [how, setHow] = useState('')
@@ -103,7 +103,7 @@ export function SessionSummary({
             placeholder="What did you work on?"
             value={what}
             onChange={(e) => setWhat(e.target.value)}
-            className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 transition-shadow"
+            className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-shadow"
             style={{
               background: 'var(--color-surface)',
               border: '1px solid var(--color-border)',
@@ -114,7 +114,7 @@ export function SessionSummary({
             placeholder="How did it go?"
             value={how}
             onChange={(e) => setHow(e.target.value)}
-            className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 transition-shadow"
+            className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-shadow"
             style={{
               background: 'var(--color-surface)',
               border: '1px solid var(--color-border)',
@@ -125,7 +125,7 @@ export function SessionSummary({
             placeholder="How do you feel?"
             value={feeling}
             onChange={(e) => setFeeling(e.target.value)}
-            className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 transition-shadow"
+            className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)] transition-shadow"
             style={{
               background: 'var(--color-surface)',
               border: '1px solid var(--color-border)',
@@ -146,16 +146,16 @@ export function SessionSummary({
           >
             Log Session
           </button>
-          <button
-            onClick={onDismiss}
-            className="w-full py-3 rounded-xl font-medium min-h-[44px] border transition-colors"
+          <Link
+            href={returnUrl}
+            className="w-full py-3 rounded-xl font-medium min-h-[44px] border transition-colors block text-center"
             style={{
               borderColor: 'var(--color-border)',
               color: 'var(--color-text-secondary)',
             }}
           >
             Dismiss
-          </button>
+          </Link>
         </div>
       </div>
     </div>

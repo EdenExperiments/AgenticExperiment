@@ -190,10 +190,6 @@ export function SessionPage({
     router.push(returnUrl)
   }
 
-  function handleDismiss() {
-    router.push(returnUrl)
-  }
-
   // ── Render based on phase ───────────────────────────────
 
   if (pagePhase === 'config') {
@@ -230,7 +226,6 @@ export function SessionPage({
         intervalsPlanned={sessionConfig?.rounds}
         returnUrl={returnUrl}
         onSubmit={handleLogSession}
-        onDismiss={handleDismiss}
       />
     )
   }
