@@ -15,7 +15,7 @@ import (
 func TestLogXP_UpdatesSkillAtomically(t *testing.T) {
 	db := testDB(t)
 	skill, _ := skills.CreateSkill(context.Background(), db, seedUserID,
-		"XP Test", "", "session", nil, 1, [10]string{})
+		"XP Test", "", "session", nil, nil, 1, [10]string{})
 
 	result, err := skills.LogXP(context.Background(), db, seedUserID, skill.ID, 200, "")
 	if err != nil {
@@ -38,7 +38,7 @@ func TestLogXP_SetsFirstNotifiedAt_OnGateHit(t *testing.T) {
 	db := testDB(t)
 	// Create a level-1 skill; gate at L9. Log enough XP to reach L9.
 	skill, _ := skills.CreateSkill(context.Background(), db, seedUserID,
-		"Gate Hit Test", "", "session", nil, 1, [10]string{})
+		"Gate Hit Test", "", "session", nil, nil, 1, [10]string{})
 
 	xpToGate := xpcurve.XPToReachLevel(9) - skill.CurrentXP + 1
 	result, err := skills.LogXP(context.Background(), db, seedUserID, skill.ID, xpToGate, "")
@@ -65,7 +65,7 @@ func TestLogXP_SetsFirstNotifiedAt_OnGateHit(t *testing.T) {
 func TestLogXP_RejectsNegativeDelta(t *testing.T) {
 	db := testDB(t)
 	skill, _ := skills.CreateSkill(context.Background(), db, seedUserID,
-		"Neg Delta", "", "session", nil, 1, [10]string{})
+		"Neg Delta", "", "session", nil, nil, 1, [10]string{})
 	_, err := skills.LogXP(context.Background(), db, seedUserID, skill.ID, -50, "")
 	if err == nil {
 		t.Fatal("expected error for negative xp_delta, got nil")
@@ -75,7 +75,7 @@ func TestLogXP_RejectsNegativeDelta(t *testing.T) {
 func TestLogXP_RejectsZeroDelta(t *testing.T) {
 	db := testDB(t)
 	skill, _ := skills.CreateSkill(context.Background(), db, seedUserID,
-		"Zero Delta", "", "session", nil, 1, [10]string{})
+		"Zero Delta", "", "session", nil, nil, 1, [10]string{})
 	_, err := skills.LogXP(context.Background(), db, seedUserID, skill.ID, 0, "")
 	if err == nil {
 		t.Fatal("expected error for zero xp_delta, got nil")

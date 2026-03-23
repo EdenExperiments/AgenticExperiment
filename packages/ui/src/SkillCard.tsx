@@ -6,6 +6,8 @@ interface SkillCardProps {
   skill: SkillDetail & { current_streak?: number }
   onLogXP: (skillId: string) => void
   onClick: (skillId: string) => void
+  onToggleFavourite?: (skillId: string) => void
+  dimmed?: boolean
 }
 
 function activeGate(skill: SkillDetail): BlockerGate | undefined {
@@ -14,7 +16,7 @@ function activeGate(skill: SkillDetail): BlockerGate | undefined {
     .sort((a, b) => a.gate_level - b.gate_level)[0]
 }
 
-export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
+export function SkillCard({ skill, onLogXP, onClick, onToggleFavourite, dimmed }: SkillCardProps) {
   const gate = activeGate(skill)
   const currentStreak = skill.current_streak ?? 0
 
@@ -27,7 +29,8 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
       style={{
         backgroundColor: 'var(--color-bg-elevated)',
         borderColor: 'var(--color-border)',
-        transition: 'transform calc(var(--duration-fast, 150ms) * var(--motion-scale, 0)), box-shadow calc(var(--duration-fast, 150ms) * var(--motion-scale, 0))',
+        opacity: dimmed ? 0.5 : 1,
+        transition: 'transform calc(var(--duration-fast, 150ms) * var(--motion-scale, 0)), box-shadow calc(var(--duration-fast, 150ms) * var(--motion-scale, 0)), opacity 200ms ease',
       }}
       onClick={() => onClick(skill.id)}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(skill.id) } }}
@@ -38,6 +41,9 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
       <div className="flex items-start justify-between gap-2 pl-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
+            {skill.category_emoji && (
+              <span className="text-sm" aria-hidden="true">{skill.category_emoji}</span>
+            )}
             <h3
               className="font-semibold truncate"
               style={{ color: 'var(--color-text)' }}
@@ -52,6 +58,17 @@ export function SkillCard({ skill, onLogXP, onClick }: SkillCardProps) {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
+          {onToggleFavourite && (
+            <button
+              aria-label={skill.is_favourite ? 'Remove from favourites' : 'Add to favourites'}
+              aria-pressed={skill.is_favourite}
+              onClick={(e) => { e.stopPropagation(); onToggleFavourite(skill.id) }}
+              className="flex items-center justify-center w-[44px] h-[44px] -m-2 rounded-lg"
+              style={{ color: skill.is_favourite ? 'var(--color-accent)' : 'var(--color-muted)' }}
+            >
+              {skill.is_favourite ? '★' : '☆'}
+            </button>
+          )}
           {currentStreak >= 2 && (
             <span
               data-testid="streak-badge"

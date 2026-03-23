@@ -54,6 +54,10 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Get("/skills/{id}", skillHandler.HandleGetSkill)
 		r.Put("/skills/{id}", skillHandler.HandlePutSkill)
 		r.Delete("/skills/{id}", skillHandler.HandleDeleteSkill)
+		r.Patch("/skills/{id}/favourite", skillHandler.HandlePatchFavourite)
+		r.Put("/skills/{id}/tags", skillHandler.HandlePutSkillTags)
+		r.Get("/tags", skillHandler.HandleGetTags)
+		r.Get("/categories", skillHandler.HandleGetCategories)
 
 		xpHandler := handlers.NewXPHandler(db)
 		r.Post("/skills/{id}/xp", xpHandler.HandlePostXP)

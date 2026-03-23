@@ -1,3 +1,20 @@
+export interface Tag {
+  id: string
+  name: string
+}
+
+export interface TagWithCount extends Tag {
+  skill_count: number
+}
+
+export interface SkillCategory {
+  id: string
+  name: string
+  slug: string
+  emoji: string
+  sort_order: number
+}
+
 export interface Skill {
   id: string
   user_id: string
@@ -5,6 +22,12 @@ export interface Skill {
   description: string
   unit: string
   preset_id: string | null
+  category_id: string | null
+  category_name: string | null
+  category_slug: string | null
+  category_emoji: string | null
+  is_favourite: boolean
+  tags: Tag[]
   starting_level: number
   current_xp: number
   current_level: number

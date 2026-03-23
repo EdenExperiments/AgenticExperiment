@@ -4,7 +4,7 @@ import { useState, useRef } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { getSkill, logXP, deleteSkill, getActivity, getXPChart, createSession, updateSkill } from '@rpgtracker/api-client'
+import { getSkill, logXP, deleteSkill, getActivity, getXPChart, createSession, updateSkill, toggleFavourite, setSkillTags, listTags } from '@rpgtracker/api-client'
 import type { BlockerGate, ActivityEvent } from '@rpgtracker/api-client'
 import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal, GrindOverlay, PostSessionScreen, XPBarChart, ConfirmModal, SkillEditModal } from '@rpgtracker/ui'
 import { XPGainAnimation } from '@/components/XPGainAnimation'
@@ -80,8 +80,13 @@ export default function SkillDetailPage() {
     enabled: !!id,
   })
 
+  const { data: userTags = [] } = useQuery({ queryKey: ['tags'], queryFn: listTags })
+
   const [logSheetOpen, setLogSheetOpen] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const [tagBuffer, setTagBuffer] = useState<string[] | null>(null) // null = not editing
+  const [tagInput, setTagInput] = useState('')
+  const [tagError, setTagError] = useState<string | null>(null)
   const [tierTransition, setTierTransition] = useState<{ tierName: string; tierNumber: number } | null>(null)
   const [gateFirstHit, setGateFirstHit] = useState<BlockerGate | null>(null)
   const [xpGain, setXpGain] = useState<{ amount: number; key: number }>({ amount: 0, key: 0 })
@@ -120,6 +125,43 @@ export default function SkillDetailPage() {
       setPostSession(null)
     },
   })
+
+  const favouriteMutation = useMutation({
+    mutationFn: () => toggleFavourite(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['skill', id] })
+      qc.invalidateQueries({ queryKey: ['skills'] })
+    },
+  })
+
+  const tagMutation = useMutation({
+    mutationFn: (tagNames: string[]) => setSkillTags(id, tagNames),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['skill', id] })
+      qc.invalidateQueries({ queryKey: ['skills'] })
+      qc.invalidateQueries({ queryKey: ['tags'] })
+      setTagBuffer(null)
+      setTagError(null)
+    },
+    onError: (err: Error) => {
+      setTagError(err.message)
+    },
+  })
+
+  function handleTagCommit() {
+    if (!tagInput.trim()) return
+    const name = tagInput.trim().toLowerCase()
+    setTagBuffer((prev) => {
+      const buf = prev ?? skill?.tags.map((t) => t.name) ?? []
+      if (buf.includes(name) || buf.length >= 5) return buf
+      return [...buf, name]
+    })
+    setTagInput('')
+  }
+
+  function handleTagRemove(name: string) {
+    setTagBuffer((prev) => (prev ?? []).filter((t) => t !== name))
+  }
 
   function handleSessionEnd({ status, elapsedSeconds }: { status: 'completed' | 'abandoned'; elapsedSeconds: number }) {
     const elapsed = elapsedSeconds > 0 ? elapsedSeconds : (sessionStartRef.current ? Math.floor((Date.now() - sessionStartRef.current) / 1000) : 0)
@@ -166,11 +208,33 @@ export default function SkillDetailPage() {
           )}
         </div>
 
-        {/* Skill identity — name, level in gold gradient, tier badge, streak */}
+        {/* Skill identity — name, category, level, tier badge, streak, favourite */}
         <div>
-          <h1 className="heading text-3xl font-bold">
-            {skill.name}
-          </h1>
+          <div className="flex items-start justify-between gap-2">
+            <h1 className="heading text-3xl font-bold">
+              {skill.name}
+            </h1>
+            <button
+              aria-label={skill.is_favourite ? 'Remove from favourites' : 'Add to favourites'}
+              aria-pressed={skill.is_favourite}
+              onClick={() => favouriteMutation.mutate()}
+              className="flex items-center justify-center w-[44px] h-[44px] rounded-lg text-xl shrink-0"
+              style={{ color: skill.is_favourite ? 'var(--color-accent)' : 'var(--color-muted)' }}
+            >
+              {skill.is_favourite ? '★' : '☆'}
+            </button>
+          </div>
+
+          {/* Category display */}
+          {skill.category_name && (
+            <p
+              className="text-sm mt-1"
+              style={{ fontFamily: 'var(--font-body)', color: 'var(--color-muted)' }}
+            >
+              {skill.category_emoji} {skill.category_name}
+            </p>
+          )}
+
           <div className="flex items-center gap-3 mt-3 flex-wrap">
             <TierBadge tierName={skill.tier_name} tierNumber={skill.tier_number} />
             <span className="heading text-2xl font-bold text-gradient">
@@ -197,6 +261,108 @@ export default function SkillDetailPage() {
               </span>
             )}
           </div>
+        </div>
+
+        {/* Tags display + management (AC-V5, AC-V7, AC-V8) */}
+        <div>
+          {/* Current tags */}
+          {(skill.tags.length > 0 || tagBuffer !== null) && (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {(tagBuffer ?? skill.tags.map((t) => t.name)).map((name) => (
+                <span
+                  key={name}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs"
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    backgroundColor: 'var(--color-surface)',
+                    color: 'var(--color-text-secondary)',
+                  }}
+                >
+                  {name}
+                  {tagBuffer !== null && (
+                    <button
+                      aria-label={`Remove tag ${name}`}
+                      onClick={() => handleTagRemove(name)}
+                      className="ml-0.5 hover:opacity-70"
+                      style={{ color: 'var(--color-muted)' }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Tag editing controls */}
+          {tagBuffer !== null ? (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                      e.preventDefault()
+                      handleTagCommit()
+                    }
+                  }}
+                  onBlur={() => handleTagCommit()}
+                  placeholder={tagBuffer.length >= 5 ? 'Max 5 tags' : 'Add a tag...'}
+                  disabled={tagBuffer.length >= 5}
+                  list="tag-suggestions"
+                  className="flex-1 rounded-lg px-3 py-2 text-sm border-none"
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    backgroundColor: 'var(--color-surface)',
+                    color: 'var(--color-text)',
+                    minHeight: 'var(--tap-target-min, 44px)',
+                  }}
+                />
+                <datalist id="tag-suggestions">
+                  {userTags
+                    .filter((t) => !tagBuffer.includes(t.name))
+                    .map((t) => (
+                      <option key={t.id} value={t.name} />
+                    ))}
+                </datalist>
+                <button
+                  onClick={() => tagMutation.mutate(tagBuffer)}
+                  disabled={tagMutation.isPending}
+                  className="px-4 py-2 rounded-lg text-sm font-medium min-h-[44px]"
+                  style={{ backgroundColor: 'var(--color-accent)', color: 'white' }}
+                >
+                  {tagMutation.isPending ? '...' : 'Save'}
+                </button>
+                <button
+                  onClick={() => { setTagBuffer(null); setTagError(null) }}
+                  className="px-3 py-2 rounded-lg text-sm min-h-[44px]"
+                  style={{ color: 'var(--color-muted)' }}
+                >
+                  Cancel
+                </button>
+              </div>
+              {tagBuffer.length >= 5 && (
+                <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+                  Maximum 5 tags per skill
+                </p>
+              )}
+              {tagError && (
+                <p className="text-xs" style={{ color: 'var(--color-error)' }}>
+                  {tagError}
+                </p>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => setTagBuffer(skill.tags.map((t) => t.name))}
+              className="text-xs underline"
+              style={{ color: 'var(--color-accent)', fontFamily: 'var(--font-body)' }}
+            >
+              {skill.tags.length > 0 ? 'Edit tags' : '+ Add tags'}
+            </button>
+          )}
         </div>
 
         {/* Gate / XP progress — protected components */}

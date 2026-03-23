@@ -21,12 +21,17 @@ import (
 
 // SkillStore is the full interface the handler needs from the DB layer.
 type SkillStore interface {
-	CreateSkill(ctx context.Context, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID, startingLevel int, gateDescs [10]string) (*skills.Skill, error)
+	CreateSkill(ctx context.Context, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID, categoryID *uuid.UUID, startingLevel int, gateDescs [10]string) (*skills.Skill, error)
 	ListSkills(ctx context.Context, userID uuid.UUID) ([]skills.Skill, error)
 	GetSkill(ctx context.Context, userID, skillID uuid.UUID) (*skills.Skill, error)
 	GetBlockerGates(ctx context.Context, skillID uuid.UUID) ([]skills.BlockerGate, error)
-	UpdateSkill(ctx context.Context, userID, skillID uuid.UUID, name, description string) (*skills.Skill, error)
+	UpdateSkill(ctx context.Context, userID, skillID uuid.UUID, name, description string, categoryID *uuid.UUID) (*skills.Skill, error)
 	SoftDeleteSkill(ctx context.Context, userID, skillID uuid.UUID) error
+	ToggleFavourite(ctx context.Context, userID, skillID uuid.UUID) (bool, error)
+	SetSkillTags(ctx context.Context, userID, skillID uuid.UUID, tagNames []string) ([]skills.Tag, error)
+	ListTags(ctx context.Context, userID uuid.UUID) ([]skills.TagWithCount, error)
+	ListCategories(ctx context.Context) ([]skills.Category, error)
+	ValidateCategoryID(ctx context.Context, categoryID uuid.UUID) error
 }
 
 // SkillDetail is the JSON shape returned for GET /skills and GET /skills/{id}.
@@ -57,8 +62,8 @@ func NewSkillHandlerWithStore(s SkillStore) *SkillHandler {
 
 type dbSkillStore struct{ db *pgxpool.Pool }
 
-func (s *dbSkillStore) CreateSkill(ctx context.Context, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID, startingLevel int, gateDescs [10]string) (*skills.Skill, error) {
-	return skills.CreateSkill(ctx, s.db, userID, name, description, unit, presetID, startingLevel, gateDescs)
+func (s *dbSkillStore) CreateSkill(ctx context.Context, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID, categoryID *uuid.UUID, startingLevel int, gateDescs [10]string) (*skills.Skill, error) {
+	return skills.CreateSkill(ctx, s.db, userID, name, description, unit, presetID, categoryID, startingLevel, gateDescs)
 }
 func (s *dbSkillStore) ListSkills(ctx context.Context, userID uuid.UUID) ([]skills.Skill, error) {
 	return skills.ListSkills(ctx, s.db, userID)
@@ -69,11 +74,26 @@ func (s *dbSkillStore) GetSkill(ctx context.Context, userID, skillID uuid.UUID) 
 func (s *dbSkillStore) GetBlockerGates(ctx context.Context, skillID uuid.UUID) ([]skills.BlockerGate, error) {
 	return skills.GetBlockerGates(ctx, s.db, skillID)
 }
-func (s *dbSkillStore) UpdateSkill(ctx context.Context, userID, skillID uuid.UUID, name, description string) (*skills.Skill, error) {
-	return skills.UpdateSkill(ctx, s.db, userID, skillID, name, description)
+func (s *dbSkillStore) UpdateSkill(ctx context.Context, userID, skillID uuid.UUID, name, description string, categoryID *uuid.UUID) (*skills.Skill, error) {
+	return skills.UpdateSkill(ctx, s.db, userID, skillID, name, description, categoryID)
 }
 func (s *dbSkillStore) SoftDeleteSkill(ctx context.Context, userID, skillID uuid.UUID) error {
 	return skills.SoftDeleteSkill(ctx, s.db, userID, skillID)
+}
+func (s *dbSkillStore) ToggleFavourite(ctx context.Context, userID, skillID uuid.UUID) (bool, error) {
+	return skills.ToggleFavourite(ctx, s.db, userID, skillID)
+}
+func (s *dbSkillStore) SetSkillTags(ctx context.Context, userID, skillID uuid.UUID, tagNames []string) ([]skills.Tag, error) {
+	return skills.SetSkillTags(ctx, s.db, userID, skillID, tagNames)
+}
+func (s *dbSkillStore) ListTags(ctx context.Context, userID uuid.UUID) ([]skills.TagWithCount, error) {
+	return skills.ListTags(ctx, s.db, userID)
+}
+func (s *dbSkillStore) ListCategories(ctx context.Context) ([]skills.Category, error) {
+	return skills.ListCategories(ctx, s.db)
+}
+func (s *dbSkillStore) ValidateCategoryID(ctx context.Context, categoryID uuid.UUID) error {
+	return skills.ValidateCategoryID(ctx, s.db, categoryID)
 }
 
 // HandlePostSkill handles POST /api/v1/skills.
@@ -117,6 +137,20 @@ func (h *SkillHandler) HandlePostSkill(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	var categoryID *uuid.UUID
+	if rawCat := r.FormValue("category_id"); rawCat != "" {
+		if catID, err := uuid.Parse(rawCat); err != nil {
+			api.RespondError(w, http.StatusUnprocessableEntity, "invalid category")
+			return
+		} else {
+			if err := h.store.ValidateCategoryID(r.Context(), catID); err != nil {
+				api.RespondError(w, http.StatusUnprocessableEntity, "invalid category")
+				return
+			}
+			categoryID = &catID
+		}
+	}
+
 	var gateDescs [10]string
 	if raw := r.FormValue("gate_descriptions"); raw != "" {
 		var descs []string
@@ -127,7 +161,7 @@ func (h *SkillHandler) HandlePostSkill(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	skill, err := h.store.CreateSkill(r.Context(), userID, name, description, unit, presetID, startingLevel, gateDescs)
+	skill, err := h.store.CreateSkill(r.Context(), userID, name, description, unit, presetID, categoryID, startingLevel, gateDescs)
 	if err != nil {
 		if errors.Is(err, skills.ErrInvalidStartingLevel) {
 			api.RespondError(w, http.StatusUnprocessableEntity, err.Error())
@@ -214,7 +248,22 @@ func (h *SkillHandler) HandlePutSkill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	description := strings.TrimSpace(r.FormValue("description"))
-	skill, err := h.store.UpdateSkill(r.Context(), userID, skillID, name, description)
+
+	var categoryID *uuid.UUID
+	if rawCat := r.FormValue("category_id"); rawCat != "" {
+		if catID, err := uuid.Parse(rawCat); err != nil {
+			api.RespondError(w, http.StatusUnprocessableEntity, "invalid category")
+			return
+		} else {
+			if err := h.store.ValidateCategoryID(r.Context(), catID); err != nil {
+				api.RespondError(w, http.StatusUnprocessableEntity, "invalid category")
+				return
+			}
+			categoryID = &catID
+		}
+	}
+
+	skill, err := h.store.UpdateSkill(r.Context(), userID, skillID, name, description, categoryID)
 	if err != nil {
 		if errors.Is(err, skills.ErrNotFound) {
 			api.RespondError(w, http.StatusNotFound, "skill not found")
@@ -279,4 +328,102 @@ func parsePositiveInt(s string) (int, error) {
 		return 0, fmt.Errorf("not a positive int: %s", s)
 	}
 	return n, nil
+}
+
+// HandlePatchFavourite handles PATCH /api/v1/skills/{id}/favourite.
+func (h *SkillHandler) HandlePatchFavourite(w http.ResponseWriter, r *http.Request) {
+	userID, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	skillID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		api.RespondError(w, http.StatusBadRequest, "invalid skill id")
+		return
+	}
+	newVal, err := h.store.ToggleFavourite(r.Context(), userID, skillID)
+	if err != nil {
+		if errors.Is(err, skills.ErrNotFound) {
+			api.RespondError(w, http.StatusNotFound, "skill not found")
+			return
+		}
+		log.Printf("ERROR: ToggleFavourite user=%s skill=%s: %v", userID, skillID, err)
+		api.RespondError(w, http.StatusInternalServerError, "failed to toggle favourite")
+		return
+	}
+	api.RespondJSON(w, http.StatusOK, map[string]bool{"is_favourite": newVal})
+}
+
+// HandlePutSkillTags handles PUT /api/v1/skills/{id}/tags.
+func (h *SkillHandler) HandlePutSkillTags(w http.ResponseWriter, r *http.Request) {
+	userID, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	skillID, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		api.RespondError(w, http.StatusBadRequest, "invalid skill id")
+		return
+	}
+	if err := r.ParseForm(); err != nil {
+		api.RespondError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	raw := strings.TrimSpace(r.FormValue("tag_names"))
+	var tagNames []string
+	if raw != "" {
+		for _, t := range strings.Split(raw, ",") {
+			t = strings.TrimSpace(t)
+			if t != "" {
+				tagNames = append(tagNames, t)
+			}
+		}
+	}
+	tags, err := h.store.SetSkillTags(r.Context(), userID, skillID, tagNames)
+	if err != nil {
+		if errors.Is(err, skills.ErrTooManyTags) {
+			api.RespondError(w, http.StatusUnprocessableEntity, err.Error())
+			return
+		}
+		if errors.Is(err, skills.ErrNotFound) {
+			api.RespondError(w, http.StatusNotFound, "skill not found")
+			return
+		}
+		log.Printf("ERROR: SetSkillTags user=%s skill=%s: %v", userID, skillID, err)
+		api.RespondError(w, http.StatusInternalServerError, "failed to set tags")
+		return
+	}
+	api.RespondJSON(w, http.StatusOK, tags)
+}
+
+// HandleGetTags handles GET /api/v1/tags.
+func (h *SkillHandler) HandleGetTags(w http.ResponseWriter, r *http.Request) {
+	userID, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	tags, err := h.store.ListTags(r.Context(), userID)
+	if err != nil {
+		log.Printf("ERROR: ListTags user=%s: %v", userID, err)
+		api.RespondError(w, http.StatusInternalServerError, "failed to list tags")
+		return
+	}
+	if tags == nil {
+		tags = []skills.TagWithCount{}
+	}
+	api.RespondJSON(w, http.StatusOK, tags)
+}
+
+// HandleGetCategories handles GET /api/v1/categories.
+func (h *SkillHandler) HandleGetCategories(w http.ResponseWriter, r *http.Request) {
+	cats, err := h.store.ListCategories(r.Context())
+	if err != nil {
+		log.Printf("ERROR: ListCategories: %v", err)
+		api.RespondError(w, http.StatusInternalServerError, "failed to list categories")
+		return
+	}
+	api.RespondJSON(w, http.StatusOK, cats)
 }

@@ -10,11 +10,11 @@ import (
 
 // Category is a skill meta-category from the skill_categories table.
 type Category struct {
-	ID        uuid.UUID
-	Name      string
-	Slug      string
-	Emoji     string
-	SortOrder int
+	ID        uuid.UUID `json:"id"`
+	Name      string    `json:"name"`
+	Slug      string    `json:"slug"`
+	Emoji     string    `json:"emoji"`
+	SortOrder int       `json:"sort_order"`
 }
 
 // Preset is a preset skill template from the skill_presets table.

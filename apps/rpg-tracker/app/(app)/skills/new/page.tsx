@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { createSkill, calibrateSkill, getAPIKeyStatus, getPresets } from '@rpgtracker/api-client'
+import { createSkill, calibrateSkill, getAPIKeyStatus, getPresets, listCategories } from '@rpgtracker/api-client'
 import type { Preset } from '@rpgtracker/api-client'
 
 type Step = 1 | 2 | 3
@@ -13,6 +13,7 @@ interface SkillDraft {
   description: string
   presetId: string | null
   presetName: string | null
+  categoryId: string | null
   startingLevel: number
   gateDescriptions: string[]
   aiRationale: string | null
@@ -29,7 +30,7 @@ export default function SkillCreatePage() {
   const router = useRouter()
   const [step, setStep] = useState<Step>(1)
   const [draft, setDraft] = useState<SkillDraft>({
-    name: '', description: '', presetId: null, presetName: null,
+    name: '', description: '', presetId: null, presetName: null, categoryId: null,
     startingLevel: 1, gateDescriptions: [], aiRationale: null,
   })
   const [aiError, setAiError] = useState<string | null>(null)
@@ -42,6 +43,12 @@ export default function SkillCreatePage() {
   const { data: presets = [] } = useQuery({
     queryKey: ['presets'],
     queryFn: () => getPresets({}),
+    staleTime: Infinity,
+  })
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: listCategories,
     staleTime: Infinity,
   })
 
@@ -68,6 +75,7 @@ export default function SkillCreatePage() {
       ...d,
       presetId: preset.id,
       presetName: preset.name,
+      categoryId: preset.category_id,
       name: preset.name,
       description: preset.description,
     }))
@@ -76,7 +84,7 @@ export default function SkillCreatePage() {
   }
 
   function clearPreset() {
-    setDraft(d => ({ ...d, presetId: null, presetName: null, name: '', description: '' }))
+    setDraft(d => ({ ...d, presetId: null, presetName: null, categoryId: null, name: '', description: '' }))
   }
 
   const calibrateMutation = useMutation({
@@ -106,6 +114,7 @@ export default function SkillCreatePage() {
       name: draft.name,
       description: draft.description,
       preset_id: draft.presetId ?? undefined,
+      category_id: draft.categoryId ?? undefined,
       starting_level: draft.startingLevel,
       gate_descriptions: draft.gateDescriptions.length > 0 ? draft.gateDescriptions : undefined,
     }),
@@ -270,6 +279,47 @@ export default function SkillCreatePage() {
               }}
             />
           </div>
+
+          {/* Category picker (P3-D7) */}
+          {categories.length > 0 && (
+            <div className="space-y-2">
+              <label
+                className="text-xs font-medium uppercase tracking-wider"
+                style={{ color: 'var(--color-muted)', fontFamily: 'var(--font-body)' }}
+              >
+                Category (optional)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setDraft(d => ({ ...d, categoryId: null }))}
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                  style={{
+                    minHeight: 'var(--tap-target-min, 44px)',
+                    fontFamily: 'var(--font-body)',
+                    backgroundColor: draft.categoryId === null ? 'var(--color-accent)' : 'var(--color-surface)',
+                    color: draft.categoryId === null ? 'white' : 'var(--color-text-secondary)',
+                  }}
+                >
+                  None
+                </button>
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setDraft(d => ({ ...d, categoryId: cat.id }))}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors"
+                    style={{
+                      minHeight: 'var(--tap-target-min, 44px)',
+                      fontFamily: 'var(--font-body)',
+                      backgroundColor: draft.categoryId === cat.id ? 'var(--color-accent)' : 'var(--color-surface)',
+                      color: draft.categoryId === cat.id ? 'white' : 'var(--color-text-secondary)',
+                    }}
+                  >
+                    {cat.emoji} {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* AI calibration */}
           {hasKey && (
