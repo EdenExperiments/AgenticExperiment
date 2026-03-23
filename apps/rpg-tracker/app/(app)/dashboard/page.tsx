@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { listSkills, getActivity, logXP } from '@rpgtracker/api-client'
+import { listSkills, getAccount, getActivity, logXP, setPrimarySkill } from '@rpgtracker/api-client'
 import type { SkillDetail, ActivityEvent } from '@rpgtracker/api-client'
 import {
   SkillCard,
@@ -13,6 +13,8 @@ import {
   StatCard,
   ActivityFeedItem,
   TierBadge,
+  PrimarySkillCard,
+  computeFocusSkill,
 } from '@rpgtracker/ui'
 import { XPGainAnimation } from '@/components/XPGainAnimation'
 
@@ -55,6 +57,11 @@ export default function DashboardPage() {
     queryFn: listSkills,
   })
 
+  const { data: account } = useQuery({
+    queryKey: ['account'],
+    queryFn: getAccount,
+  })
+
   const { data: activity = [], isLoading: activityLoading } = useQuery({
     queryKey: ['activity'],
     queryFn: () => getActivity(10),
@@ -92,12 +99,25 @@ export default function DashboardPage() {
     },
   })
 
+  const pinMutation = useMutation({
+    mutationFn: (skillId: string) => setPrimarySkill(skillId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['account'] })
+    },
+  })
+
+  // Compute the focus skill
+  const focusSkill = computeFocusSkill(skills, account?.primary_skill_id ?? null)
+  const isPinned = !!(account?.primary_skill_id && focusSkill && account.primary_skill_id === focusSkill.id)
+
   // Loading state
   if (skillsLoading) {
     return (
       <div className="p-4 md:p-8">
         <div className="animate-pulse space-y-6">
           <div className="h-8 w-40 rounded" style={{ backgroundColor: 'var(--color-bg-elevated)' }} />
+          {/* AC-V9: Focus card skeleton placeholder */}
+          <div className="h-40 rounded-xl" style={{ backgroundColor: 'var(--color-bg-elevated)' }} />
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-20 rounded-xl" style={{ backgroundColor: 'var(--color-bg-elevated)' }} />
@@ -110,7 +130,7 @@ export default function DashboardPage() {
     )
   }
 
-  // Empty state — no skills yet
+  // Empty state — no skills yet (AC-V8: no focus card when 0 skills)
   if (skills.length === 0) {
     return (
       <div className="p-4 md:p-8">
@@ -161,7 +181,6 @@ export default function DashboardPage() {
   }
 
   // Dashboard with data
-  const featuredSkill = skills[0] // Most recently updated (skills sorted by updated_at DESC)
   const activeGatesCount = countActiveGates(skills)
   const todayXP = xpToday(activity)
   const topSkill = highestTierSkill(skills)
@@ -178,6 +197,18 @@ export default function DashboardPage() {
       >
         Dashboard
       </h1>
+
+      {/* AC-V1: Focus Card — above stats, below header */}
+      {focusSkill && (
+        <div className="max-w-xl">
+          <PrimarySkillCard
+            skill={focusSkill}
+            isPinned={isPinned}
+            onTogglePin={() => pinMutation.mutate(focusSkill.id)}
+            isPinning={pinMutation.isPending}
+          />
+        </div>
+      )}
 
       {/* Stats Row */}
       <div data-testid="stats-grid" className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3" role="region" aria-label="Stats">
@@ -227,10 +258,10 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* Quick Action — Log XP */}
+          {/* Quick Action — Log XP (AC-V10: targets focus skill) */}
           <div className="relative max-w-md">
             <button
-              onClick={() => setLogSheetSkill(featuredSkill)}
+              onClick={() => setLogSheetSkill(focusSkill ?? skills[0])}
               className="w-full py-3 rounded-xl font-semibold text-white min-h-[48px] hover:opacity-90 transition-opacity"
               style={{ backgroundColor: 'var(--color-accent)' }}
             >

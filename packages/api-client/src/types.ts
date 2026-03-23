@@ -50,6 +50,7 @@ export interface Account {
   email: string
   display_name: string | null
   timezone?: string
+  primary_skill_id: string | null
 }
 
 export interface APIKeyStatus {
@@ -129,7 +130,7 @@ export interface SkillDetail extends Skill {
   active_gate_submission?: GateSubmission | null
   requires_active_use?: boolean
   animation_theme?: string
-  current_streak?: number
+  current_streak: number
   is_custom?: boolean
 }
 

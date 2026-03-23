@@ -45,3 +45,7 @@ export { GateSubmissionForm } from './GateSubmissionForm'
 export { GateVerdictCard } from './GateVerdictCard'
 export { ConfirmModal } from './ConfirmModal'
 export { SkillEditModal } from './SkillEditModal'
+// Primary Skill Focus
+export { PrimarySkillCard } from './PrimarySkillCard'
+export type { PrimarySkillCardProps } from './PrimarySkillCard'
+export { computeFocusSkill } from './computeFocusSkill'
