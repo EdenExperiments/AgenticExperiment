@@ -6,10 +6,7 @@
 
  RUN  v2.1.9 /home/meden/GolandProjects/RpgTracker/packages/ui
 
- ✓ src/XPBarChart.test.tsx (4 tests) 34ms
- ✓ src/__tests__/ThemeProvider.test.tsx (3 tests) 33ms
- ✓ src/XPProgressBar.test.tsx (4 tests) 58ms
- ✓ src/StatCard.test.tsx (5 tests) 50ms
+ ✓ src/XPBarChart.test.tsx (4 tests) 112ms
 stderr | src/useMotionPreference.test.ts > updates when data-theme attribute changes
 An update to TestComponent inside a test was not wrapped in act(...).
 
@@ -22,10 +19,9 @@ act(() => {
 
 This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
 
- ✓ src/BlockerGateSection.test.tsx (6 tests) 102ms
- ✓ src/ActivityFeedItem.test.tsx (10 tests) 95ms
- ✓ src/TierTransitionModal.test.tsx (2 tests) 86ms
- ✓ src/BottomTabBar.test.tsx (3 tests) 101ms
+ ✓ src/ActivityFeedItem.test.tsx (13 tests) 146ms
+ ✓ src/XPProgressBar.test.tsx (5 tests) 104ms
+ ✓ src/PostSessionScreen.test.tsx (4 tests) 200ms
 stderr | src/useMotionPreference.test.ts > updates when data-theme attribute changes
 An update to TestComponent inside a test was not wrapped in act(...).
 
@@ -38,17 +34,5 @@ act(() => {
 
 This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
 
- ✓ src/useMotionPreference.test.ts (4 tests) 114ms
- ✓ src/GateSubmissionForm.test.tsx (5 tests) 139ms
- ✓ src/GrindOverlay.test.tsx (4 tests) 147ms
- ✓ src/PostSessionScreen.test.tsx (4 tests) 109ms
- ✓ src/Sidebar.test.tsx (2 tests) 111ms
- ✓ src/QuickLogSheet.test.tsx (4 tests) 177ms
- ✓ src/SkillCard.test.tsx (8 tests) 172ms
- ✓ src/TierBadge.test.tsx (2 tests) 16ms
-
- Test Files  16 passed (16)
-      Tests  70 passed (70)
-   Start at  16:39:22
-   Duration  1.29s (transform 506ms, setup 737ms, collect 2.07s, tests 1.54s, environment 6.26s, prepare 1.01s)
-
+ ✓ src/useMotionPreference.test.ts (4 tests) 145ms
+ ✓ src/__tests__/BlockerGateSection.test.tsx (10 tests) 215ms

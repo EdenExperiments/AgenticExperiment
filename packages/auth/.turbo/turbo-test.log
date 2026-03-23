@@ -18,10 +18,10 @@ act(() => {
 
 This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
 
- ✓ src/__tests__/hooks.test.tsx (1 test) 23ms
+ ✓ src/__tests__/hooks.test.tsx (1 test) 16ms
 
  Test Files  1 passed (1)
       Tests  1 passed (1)
-   Start at  21:53:23
-   Duration  1.28s (transform 58ms, setup 60ms, collect 132ms, tests 23ms, environment 468ms, prepare 90ms)
+   Start at  19:00:10
+   Duration  1.71s (transform 109ms, setup 74ms, collect 123ms, tests 16ms, environment 750ms, prepare 281ms)
 

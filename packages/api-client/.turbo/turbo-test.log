@@ -5,10 +5,10 @@
 
  RUN  v2.1.9 /home/meden/GolandProjects/RpgTracker/packages/api-client
 
- ✓ src/__tests__/client.test.ts (3 tests) 6ms
+ ✓ src/__tests__/client.test.ts (3 tests) 23ms
 
  Test Files  1 passed (1)
       Tests  3 passed (3)
-   Start at  21:53:23
-   Duration  650ms (transform 76ms, setup 0ms, collect 64ms, tests 6ms, environment 0ms, prepare 192ms)
+   Start at  19:00:10
+   Duration  923ms (transform 170ms, setup 0ms, collect 129ms, tests 23ms, environment 0ms, prepare 318ms)
 
