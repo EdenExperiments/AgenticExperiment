@@ -46,12 +46,19 @@ All Release 1 + Release 2 features through Phase 7.
 
 ---
 
-## New — Phase 9: Theme Fidelity & Polish
+## New — Phase 9A: Clean UI Polish
 
 | ID | Feature | Area | Status | Notes |
 |----|---------|------|--------|-------|
-| F-044 | Per-theme visual fidelity | Frontend | ready-for-build | Gate mood per theme, activity history styles, skill card variants, dashboard treatment, background textures, empty state copy, density tokens. See `style-guide/` and `page-guides/`. |
-| F-045 | Landing page cinematic experience | Frontend | ready-for-build | Full section flow: Hero (theme switcher) → Key Features (per-theme animations) → Suite Apps → Social Proof → CTA. Audit `apps/landing/` first. |
+| F-044 | Clean UI cleanup | Frontend | ready-for-build | Remove deprecated session components (GrindOverlay, PostSessionScreen), XP chart day differentiation, basic functional landing page. Small scope. |
+
+## New — Phase 9B: Stylish Mode (D-043)
+
+| ID | Feature | Area | Status | Notes |
+|----|---------|------|--------|-------|
+| F-045 | Clean/Stylish mode infrastructure | Frontend | ready-for-build | `data-mode="clean\|stylish"` on `<html>`. Cookie persistence. Mode switcher on account page. CSS selector pattern `[data-theme][data-mode="stylish"]`. Default: clean. Both modes WCAG AA. |
+| F-046 | Per-theme Stylish treatments | Frontend | ready-for-build | Background atmosphere, dashboard/skill card/gate/history variants, density tokens, nav atmosphere. Additive CSS layers — same HTML, different visual treatment. See `style-guide/` and `page-guides/`. |
+| F-047 | Cinematic landing page (Stylish) | Frontend | ready-for-build | Full section flow: Hero (theme switcher) → Key Features (per-theme animations) → Suite Apps → Social Proof → CTA. Only in Stylish mode — Clean gets basic landing from F-044. |
 
 ---
 

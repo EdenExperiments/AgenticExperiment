@@ -3,7 +3,7 @@
 > Built from `style-guide/`, `page-guides/`, and `Design_Discussion.md`.
 > Each phase is independently shippable.
 
-Last updated: 2026-03-23 (audit pass — condensed completed phases, added Phase 9)
+Last updated: 2026-03-23 (split Phase 9 into 9A Clean / 9B Stylish, added D-043 mode infrastructure)
 
 ---
 
@@ -20,7 +20,8 @@ Last updated: 2026-03-23 (audit pass — condensed completed phases, added Phase
 | 6 | Skill Create Overhaul | Preset/Custom split, Arbiter AI dialogue, 2-step flow, gate auto-clear | ✓ Done |
 | 7 | Auth & Landing | Social auth buttons, free trial messaging, feature preview on register | ✓ Done |
 | 8 | Immersion Features | Audio, narrative copy, session visual effects | Remaining |
-| 9 | Theme Fidelity & Polish | Per-theme visual treatments, landing page, density, dead code cleanup | Remaining |
+| 9A | Clean UI Polish | Dead code cleanup, XP chart, basic landing page | Remaining |
+| 9B | Stylish Mode | D-043 mode infrastructure + full atmospheric vision per theme | Remaining |
 
 ---
 
@@ -81,47 +82,65 @@ Social auth buttons (Google/GitHub/Apple) — UI shipped, Supabase provider conf
 
 ---
 
-## Phase 9 — Theme Fidelity & Polish
+## Phase 9A — Clean UI Polish
 
-> **Goal:** Close the gap between "structurally correct" and "visually matches the Design Discussion." Per-theme treatments, density, landing page, and dead code cleanup.
-> **Status:** Remaining. No blocking dependencies — all prerequisites met.
+> **Goal:** Finish the Clean UI to a shippable standard. Dead code cleanup, minor visual improvements, basic landing page. Clean is the default mode — functional, accessible, theme-aware but not atmospheric.
+> **Status:** Remaining. Small scope — can be done quickly.
 
-### 9A: Per-Theme Visual Treatments
+| ID | Item | Type | Area | Notes |
+|----|------|------|------|-------|
+| P9A-1 | Remove deprecated session components | Frontend | `packages/ui` | GrindOverlay, GrindAnimation, PostSessionScreen — still imported in `/skills/[id]/page.tsx` and exported from index.ts. Replace with navigation to `/skills/[id]/session`. |
+| P9A-2 | Audit edit route | Frontend | `/skills/[id]/edit` | **Already confirmed:** redirect to skill detail. Fine to keep. ✓ |
+| P9A-3 | XP chart day differentiation | Frontend | `/skills/[id]` | "Empty days fade; active days glow." Currently no visual distinction between zero and non-zero days in the bar chart. |
+| P9A-4 | Landing page audit | Research | `apps/landing/` | Confirm current state. Currently `/` redirects to `/login` or `/dashboard`. |
+| P9A-5 | Basic functional landing page | Frontend | Landing | Clean, informative page explaining what LifeQuest is. Not cinematic — just clear and professional. Works for all three themes via tokens. |
 
-Apply the style guides (`Documentation/style-guide/`) and page guides (`Documentation/page-guides/`) to each page. Currently all pages share the same layout/spacing/visual treatment regardless of theme.
+**Exit Criteria:** No dead code in exports. XP chart visually distinguishes active vs inactive days. A functional landing page exists for unauthenticated users.
+
+---
+
+## Phase 9B — Stylish Mode (D-043)
+
+> **Goal:** Implement the Clean/Stylish visual fidelity system and build the full atmospheric vision from the Design Discussion as the Stylish layer. Users opt in — Clean remains the default.
+> **Status:** Remaining. This is the big visual pass.
+
+### Infrastructure
+
+| ID | Item | Type | Area | Notes |
+|----|------|------|------|-------|
+| P9B-1 | Mode infrastructure | Frontend | `packages/ui` | `data-mode="clean\|stylish"` attribute on `<html>` alongside `data-theme`. Cookie persistence. Default: `clean`. Mode switcher on account page (alongside theme picker). |
+| P9B-2 | CSS selector pattern | Frontend | `packages/ui/tokens/` | `[data-theme="retro"][data-mode="stylish"]` selectors for additive layers. Stylish builds ON TOP of Clean — never replaces it. Both modes must maintain WCAG AA. |
+| P9B-3 | Mode-aware motion scale | Frontend | `packages/ui/tokens/` | Stylish mode can increase `--motion-scale` beyond Clean defaults. Respects `prefers-reduced-motion` regardless of mode. |
+
+### Per-Theme Stylish Treatments
+
+Apply the full Design Discussion vision. Each item only activates when `data-mode="stylish"`.
 
 | ID | Item | Type | Page | Notes |
 |----|------|------|------|-------|
-| P9-1 | Gate section per-theme mood | Frontend | `/skills/[id]` | Retro: "A barrier blocks your path..." dramatic borders. Modern: "clearance required" security-scan aesthetic. Minimal: clean motivating card. |
-| P9-2 | Activity history per-theme treatment | Frontend | `/skills/[id]` | Retro: pixel icons + narrative ("You trained for 45 min"). Modern: vertical timeline with nodes + timestamps. Minimal: simple chronological list. |
-| P9-3 | Skill cards per-theme variants | Frontend | `/skills` | Retro: pixel-art borders, chunky tactile. Modern: animated cards, glow indicators, hover reveals. Minimal: list-heavy, compact rows, high density. |
-| P9-4 | Dashboard per-theme treatment | Frontend | `/dashboard` | Retro: quest log / save-state feel, narrative language. Modern: command centre HUD, stats as readouts. Minimal: data-forward, whitespace, compact. |
-| P9-5 | Background atmosphere | Frontend | Layout | Retro: scanlines + grids (repeating-linear-gradient). Modern: gradients + glow zones + depth layers. Minimal: stark whitespace. Currently only token-based colours, no texture. |
-| P9-6 | Empty state per-theme copy | Frontend | All pages | Theme-specific empty state messages and illustrations. Currently generic copy everywhere. |
-| P9-7 | Per-theme density tokens | Frontend | `packages/ui/tokens/` | Minimal: tight spacing, data-dense. Retro: generous padding, chunky. Modern: balanced/immersive. Currently all themes share identical spacing. |
+| P9B-4 | Background atmosphere | Frontend | Layout | Retro: scanlines + grids (repeating-linear-gradient). Modern: gradients + glow zones + depth layers. Minimal: subtle whitespace depth. |
+| P9B-5 | Dashboard treatments | Frontend | `/dashboard` | Retro: quest log / save-state feel, narrative language. Modern: command centre HUD, stats as readouts. Minimal: data-forward, extra whitespace, compact stat cards. |
+| P9B-6 | Skill cards variants | Frontend | `/skills` | Retro: pixel-art borders, chunky tactile. Modern: animated cards, glow indicators, hover reveals. Minimal: list-heavy compact rows, high density. |
+| P9B-7 | Gate section mood | Frontend | `/skills/[id]` | Retro: "A barrier blocks your path..." dramatic borders, boss-fight energy. Modern: "clearance required" security-scan aesthetic. Minimal: clean motivating card. |
+| P9B-8 | Activity history variants | Frontend | `/skills/[id]` | Retro: pixel icons + narrative ("You trained for 45 min"). Modern: vertical timeline with nodes + timestamps. Minimal: simple clean list (may be same as Clean). |
+| P9B-9 | Empty state per-theme copy | Frontend | All pages | Theme-specific dramatic empty state messages and illustrations. |
+| P9B-10 | Per-theme density tokens | Frontend | `packages/ui/tokens/` | Minimal: tight spacing, data-dense. Retro: generous padding, chunky elements. Modern: balanced/immersive. Only in Stylish — Clean keeps uniform spacing. |
+| P9B-11 | Navigation atmosphere | Frontend | Sidebar + tabs | Retro: warm borders, textured panel. Modern: glassmorphic sidebar, glow edges. Minimal: ultra-clean, borderless. |
 
-### 9B: Landing Page — Full Experience
+### Cinematic Landing Page
 
-The Design Discussion calls for a cinematic "Call to Adventure" landing page:
-> Hero (with theme switcher) → Key Features → Suite Apps → Social Proof → CTA
-
-| ID | Item | Type | Area | Notes |
-|----|------|------|------|-------|
-| P9-8 | Landing page audit | Research | `apps/landing/` | Confirm current state of the separate landing app. Currently `/` in rpg-tracker redirects to `/login` or `/dashboard`. |
-| P9-9 | Full landing section flow | Frontend | Landing | Hero with theme switcher, key features with per-theme animations, suite app previews, social proof / mission statement, CTA. |
-| P9-10 | Theme-specific landing animations | Frontend | Landing | Pixel-art reveals (Retro), holographic fades (Modern), clean fades (Minimal). |
-
-### 9C: Cleanup
+Only activates in Stylish mode. Clean mode gets the basic landing from P9A-5.
 
 | ID | Item | Type | Area | Notes |
 |----|------|------|------|-------|
-| P9-11 | Remove deprecated components | Frontend | `packages/ui` | GrindOverlay, GrindAnimation, PostSessionScreen — replaced by SessionPage. Still exported from index.ts. |
-| P9-12 | Audit `/skills/[id]/edit` route | Frontend | `/skills/[id]/edit` | Design Discussion says edit should be modal only. Route file exists — confirm it's dead code or still used. |
-| P9-13 | XP chart day differentiation | Frontend | `/skills/[id]` | Design says "empty days fade; active days glow." Currently no visual distinction between zero and non-zero days. |
+| P9B-12 | Full landing section flow | Frontend | Landing | Hero (theme switcher) → Key Features → Suite Apps → Social Proof → CTA. "Call to Adventure" cinematic feel. |
+| P9B-13 | Theme-specific landing animations | Frontend | Landing | Pixel-art reveals (Retro), holographic fades (Modern), clean fades (Minimal). |
 
 **Pipeline:** UI/Visual path (style guide → page brief → implement → visual review). No TDD gate.
 
-**Exit Criteria:** Each page looks distinctly different across all three themes per the style guides and page guides. Landing page has full section flow. No dead code in UI exports.
+**Key Principle:** Stylish is **additive** — it layers atmosphere on top of Clean via CSS selectors. No structural changes, no different components. Same HTML, different visual treatment. Mobile layouts largely converge between modes (atmospheric differences are most impactful on desktop).
+
+**Exit Criteria:** Mode switcher works. Each theme has distinct Stylish treatments per the style guides. Landing page has cinematic version in Stylish. Both modes pass WCAG AA. Users default to Clean.
 
 ---
 
@@ -130,9 +149,11 @@ The Design Discussion calls for a cinematic "Call to Adventure" landing page:
 ```
 Phase 0–7 ✓ (all complete)
     ├──→ Phase 8: Immersion (audio, narrative, session effects)
-    └──→ Phase 9: Theme Fidelity (visual treatments, landing, cleanup)
+    ├──→ Phase 9A: Clean UI Polish (cleanup, XP chart, basic landing)
+    └──→ Phase 9B: Stylish Mode (D-043 infrastructure + atmospheric treatments)
 
-Phase 8 and 9 are independent — can run in parallel.
+Phase 8, 9A, and 9B are all independent — can run in any order.
+9A before 9B recommended (clean up before adding layers).
 ```
 
-**Recommended order:** Phase 9 first (visual polish makes the app feel finished), then Phase 8 (immersion is the delight layer on top).
+**Recommended order:** 9A (quick cleanup) → 9B (big visual pass) → 8 (immersion/audio on top).
