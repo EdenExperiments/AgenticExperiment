@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-03-23 (F-036 done, F-037 done — Phase 5 Identity & Profile complete). Prior: 2026-03-23 F-034/F-035 done (Phase 4). Prior: 2026-03-23 F-032/F-033 done (Phase 3). Prior: 2026-03-22 F-023/F-024/F-041 done.
+Last updated: 2026-03-23 (F-038 done — Phase 6 Skill Create Overhaul complete; bug fixes: D-033 revised, calibrate endpoint fixed, preset filtering). Prior: 2026-03-23 F-036/F-037 done (Phase 5). Prior: 2026-03-23 F-034/F-035 done (Phase 4). Prior: 2026-03-23 F-032/F-033 done (Phase 3). Prior: 2026-03-22 F-023/F-024/F-041 done.
 
 Status values:
 
@@ -67,7 +67,7 @@ Status values:
 | F-035 | Quick Session from Dashboard | LifeQuest | **done** | delivery-agent | None remaining | None | Phase 4 complete. "Start Session" CTA in PrimarySkillCard navigates to `/skills/[id]/session`. QuickLogPanel replaces bottom sheet. HubPlaceholderCard teasers for NutriLog/MindTrack. XPBarChart rolling average trend line. |
 | F-036 | Avatar system | Platform | **done** | delivery-agent | None remaining | None | Phase 5 complete. Supabase Storage upload/delete via Go REST client. Client-side 256x256 JPEG crop. Three themed default avatars (CSS/SVG). D-042 resolved. Migration 000011. |
 | F-037 | Account stats aggregation | Platform | **done** | delivery-agent | None remaining | None | Phase 5 complete. `GET /api/v1/account/stats` endpoint. PlayerCard component with Total XP, Best Streak, skill count, category pills. ThemePickerPreview replaces theme toggle on account page. |
-| F-038 | Skill create overhaul (Preset/Custom/Arbiter) | LifeQuest | deferred | unassigned | F-032 | None | Phase 6. Character creation experience. Arbiter avatar with themed dialogue. |
+| F-038 | Skill create overhaul (Preset/Custom/Arbiter) | LifeQuest | **done** | delivery-agent | F-032 | None | Phase 6 complete. 2-step flow (Identity → Starting Level). PathSelector (preset/custom), PresetGallery with search and already-added filtering, ArbiterAvatar + ArbiterDialogue with themed variants, experience input for calibration, LevelPicker with ±1/±10 stepper. D-033 revised: all gates ≤ starting level auto-cleared. |
 | F-039 | Social auth (Google/GitHub/Apple) | Platform | in-progress | delivery-agent | Supabase config | Provider setup on Supabase pending | Phase 7. UI buttons shipped. Supabase provider config not yet enabled. |
 | F-040 | Free trial system | Platform | deferred | unassigned | Subscription model | D-039: server-side vs UI-only | Phase 7. 14-day trial messaging. Enforcement TBD. |
 | F-041 | Landing page overhaul | Platform | **done** | delivery-agent | F-023 | None | Phase 7. Auth pages restyled, landing reworked with theme-specific sections, suite app previews, social proof, hero theme switcher. |

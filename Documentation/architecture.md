@@ -339,6 +339,10 @@ CREATE INDEX idx_blocker_gates_skill_id ON public.blocker_gates(skill_id);
 
 **Non-AI creation defaults:** When a skill is created without AI calibration (or when AI calibration is skipped/unavailable), the delivery-agent must insert gate rows with standard placeholder values: `title = "Level {gate_level} Gate"` and `description = "Reach this level to unlock the next stage of your skill journey."` (where `{gate_level}` is substituted with the actual gate level number, e.g. 9, 19, 29). These values can be overridden by AI calibration output if the user opts in to AI assistance.
 
+**Gate auto-clear on skill creation (D-033 revised 2026-03-23):**
+
+When a skill is created with `starting_level > 9`, all gates at or below the starting level are auto-cleared (`is_cleared = true`, `gate_submissions` row with `verdict = 'self_reported'`). The first gate above the starting level is the user's next challenge. Example: `starting_level = 28` → gates 9 and 19 auto-cleared, gate 29 is next.
+
 **Application logic for level advancement:**
 
 ```

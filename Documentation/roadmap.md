@@ -176,23 +176,26 @@ Last updated: 2026-03-23 (Phases 0–5 + 7 complete; Phases 6, 8 remaining)
 
 ---
 
-## Phase 6 — Skill Create Overhaul
+## Phase 6 — Skill Create Overhaul ✓ COMPLETE
 
 > **Goal:** Character creation experience with Preset/Custom split, Arbiter avatar, and progression previews.
 
 ### Work Items
 
-| ID | Item | Type | Area | Notes |
-|----|------|------|------|-------|
-| P6-1 | Path selector (Preset vs Custom) | Frontend | `/skills/new` | Entry point splitting the two creation paths. |
-| P6-2 | Preset gallery with progression preview | Frontend | `/skills/new` | Show expected gates and progression path before committing. |
-| P6-3 | Arbiter avatar component | Frontend | `/skills/new` | Theme-dependent: sage (Retro), AI entity (Modern), clean dialog (Minimal). Layer 3 component variant. |
-| P6-4 | Arbiter dialogue treatment | Frontend | `/skills/new` | Typewriter text (Retro), scan reveal (Modern), clean chat (Minimal). |
-| P6-5 | Category picker in Identity step | Frontend | `/skills/new` | Select preset category + optional tags during creation. |
+| ID | Item | Type | Area | Status |
+|----|------|------|------|--------|
+| P6-1 | Path selector (Preset vs Custom) | Frontend | `/skills/new` | ✓ Done — `PathSelector` component with themed cards |
+| P6-2 | Preset gallery with search & filtering | Frontend | `/skills/new` | ✓ Done — `PresetGallery` with single-click selection, already-added presets filtered out |
+| P6-3 | Arbiter avatar component | Frontend | `/skills/new` | ✓ Done — `ArbiterAvatar` with three SVG variants (compass/pixel sage/hex wireframe) |
+| P6-4 | Arbiter dialogue treatment | Frontend | `/skills/new` | ✓ Done — `ArbiterDialogue` with clip-path/opacity reveal animations per theme |
+| P6-5 | Category picker in Identity step | Frontend | `/skills/new` | ✓ Done — category chip selector on custom path |
 
-**Dependencies:** Phase 1 (restyled create page), Phase 3 (categories exist).
-
-**Exit Criteria:** Skill creation feels like character creation. Preset and Custom paths are clearly separated. Arbiter has themed avatar and dialogue treatment. Category selected at creation.
+**Post-merge fixes (2026-03-23):**
+- D-033 revised: auto-clear all gates ≤ starting level (was: strictly below highest hit boundary)
+- Calibrate endpoint: strip markdown code fences from Claude response, add experience field
+- Flow simplified from 3 steps to 2 steps (Identity → Starting Level)
+- Preset gallery simplified from expand-then-select to single-click
+- `skill_repository.go`: fixed missing `path` and `submitted_at` columns in gate auto-clear INSERT
 
 ---
 
@@ -252,14 +255,14 @@ Some phases can run simultaneously:
 Phase 0 ✓ ──→ Phase 1 ✓ ──→ Phase 2 ✓ ──→ Phase 4 ✓
                          ├──→ Phase 3 ✓ ──→ Phase 4 ✓
                          ├──→ Phase 5
-                         ├──→ Phase 6 (after Phase 3 ✓)
+                         ├──→ Phase 6 ✓ (after Phase 3 ✓)
               Phase 7 ✓ (landing/auth can start after Phase 0)
                                            Phase 8 (after Phase 2 ✓)
 ```
 
-**Critical path:** Phase 0 ✓ → Phase 1 ✓ → Phase 2 ✓ + Phase 3 ✓ → Phase 4 ✓ — **complete.**
+**Critical path:** Phase 0 ✓ → Phase 1 ✓ → Phase 2 ✓ + Phase 3 ✓ → Phase 4 ✓ → Phase 5 ✓ → Phase 6 ✓ — **complete.**
 
-**Remaining:** Phase 6 (Skill Create Overhaul), Phase 8 (Immersion Features). All prerequisites met — these can start independently.
+**Remaining:** Phase 8 (Immersion Features). All prerequisites met.
 
 ---
 
