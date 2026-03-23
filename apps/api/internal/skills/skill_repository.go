@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -112,21 +113,32 @@ func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, 
 	}
 	defer tx.Rollback(ctx)
 
+	// P3-D5: If preset_id is set and category_id is not, inherit category from preset.
+	if categoryID == nil && presetID != nil {
+		var inheritedCat *uuid.UUID
+		err = tx.QueryRow(ctx, `SELECT category_id FROM public.skill_presets WHERE id = $1`, *presetID).Scan(&inheritedCat)
+		if err == nil && inheritedCat != nil {
+			categoryID = inheritedCat
+		}
+	}
+
 	s := &Skill{
 		UserID:        userID,
 		Name:          name,
 		Description:   description,
 		Unit:          unit,
 		PresetID:      presetID,
+		CategoryID:    categoryID,
+		Tags:          []Tag{},
 		StartingLevel: startingLevel,
 		CurrentXP:     startXP,
 		CurrentLevel:  startingLevel,
 	}
 	err = tx.QueryRow(ctx, `
-		INSERT INTO public.skills (user_id, name, description, unit, preset_id, starting_level, current_xp, current_level)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO public.skills (user_id, name, description, unit, preset_id, category_id, starting_level, current_xp, current_level)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING id, created_at, updated_at
-	`, userID, name, description, unit, presetID, startingLevel, startXP, startingLevel).
+	`, userID, name, description, unit, presetID, categoryID, startingLevel, startXP, startingLevel).
 		Scan(&s.ID, &s.CreatedAt, &s.UpdatedAt)
 	if err != nil {
 		return nil, fmt.Errorf("skills: insert: %w", err)
@@ -193,13 +205,17 @@ func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, 
 }
 
 // ListSkills returns all non-deleted skills for a user, sorted by most recently updated.
+// Includes category fields (via LEFT JOIN) and is_favourite. Tags are loaded in a second query.
 func ListSkills(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) ([]Skill, error) {
 	rows, err := db.Query(ctx, `
-		SELECT id, user_id, name, description, unit, preset_id,
-		       starting_level, current_xp, current_level, created_at, updated_at
-		FROM public.skills
-		WHERE user_id = $1 AND deleted_at IS NULL
-		ORDER BY updated_at DESC
+		SELECT s.id, s.user_id, s.name, s.description, s.unit, s.preset_id,
+		       s.category_id, c.name, c.slug, c.emoji,
+		       s.is_favourite,
+		       s.starting_level, s.current_xp, s.current_level, s.created_at, s.updated_at
+		FROM public.skills s
+		LEFT JOIN public.skill_categories c ON c.id = s.category_id
+		WHERE s.user_id = $1 AND s.deleted_at IS NULL
+		ORDER BY s.updated_at DESC
 	`, userID)
 	if err != nil {
 		return nil, fmt.Errorf("skills: list: %w", err)
@@ -210,24 +226,70 @@ func ListSkills(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) ([]Skil
 	for rows.Next() {
 		var s Skill
 		if err := rows.Scan(&s.ID, &s.UserID, &s.Name, &s.Description, &s.Unit, &s.PresetID,
+			&s.CategoryID, &s.CategoryName, &s.CategorySlug, &s.CategoryEmoji,
+			&s.IsFavourite,
 			&s.StartingLevel, &s.CurrentXP, &s.CurrentLevel, &s.CreatedAt, &s.UpdatedAt); err != nil {
 			return nil, err
 		}
+		s.Tags = []Tag{} // ensure JSON [] not null
 		out = append(out, s)
 	}
-	return out, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Load tags for all skills in one query
+	if len(out) > 0 {
+		skillIDs := make([]uuid.UUID, len(out))
+		idxMap := make(map[uuid.UUID]int, len(out))
+		for i, s := range out {
+			skillIDs[i] = s.ID
+			idxMap[s.ID] = i
+		}
+		tagRows, err := db.Query(ctx, `
+			SELECT st.skill_id, t.id, t.name
+			FROM public.skill_tags st
+			JOIN public.tags t ON t.id = st.tag_id
+			WHERE st.skill_id = ANY($1)
+			ORDER BY t.name
+		`, skillIDs)
+		if err != nil {
+			return nil, fmt.Errorf("skills: list tags: %w", err)
+		}
+		defer tagRows.Close()
+		for tagRows.Next() {
+			var skillID, tagID uuid.UUID
+			var tagName string
+			if err := tagRows.Scan(&skillID, &tagID, &tagName); err != nil {
+				return nil, err
+			}
+			if idx, ok := idxMap[skillID]; ok {
+				out[idx].Tags = append(out[idx].Tags, Tag{ID: tagID, Name: tagName})
+			}
+		}
+		if err := tagRows.Err(); err != nil {
+			return nil, err
+		}
+	}
+
+	return out, nil
 }
 
-// GetSkill returns a single non-deleted skill owned by userID.
+// GetSkill returns a single non-deleted skill owned by userID, enriched with category and tags.
 func GetSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID) (*Skill, error) {
 	var s Skill
 	err := db.QueryRow(ctx, `
-		SELECT id, user_id, name, description, unit, preset_id,
-		       starting_level, current_xp, current_level, created_at, updated_at
-		FROM public.skills
-		WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
+		SELECT s.id, s.user_id, s.name, s.description, s.unit, s.preset_id,
+		       s.category_id, c.name, c.slug, c.emoji,
+		       s.is_favourite,
+		       s.starting_level, s.current_xp, s.current_level, s.created_at, s.updated_at
+		FROM public.skills s
+		LEFT JOIN public.skill_categories c ON c.id = s.category_id
+		WHERE s.id = $1 AND s.user_id = $2 AND s.deleted_at IS NULL
 	`, skillID, userID).Scan(
 		&s.ID, &s.UserID, &s.Name, &s.Description, &s.Unit, &s.PresetID,
+		&s.CategoryID, &s.CategoryName, &s.CategorySlug, &s.CategoryEmoji,
+		&s.IsFavourite,
 		&s.StartingLevel, &s.CurrentXP, &s.CurrentLevel, &s.CreatedAt, &s.UpdatedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
@@ -236,20 +298,42 @@ func GetSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID) 
 	if err != nil {
 		return nil, fmt.Errorf("skills: get: %w", err)
 	}
-	return &s, nil
+
+	// Load tags
+	s.Tags = []Tag{}
+	tagRows, err := db.Query(ctx, `
+		SELECT t.id, t.name
+		FROM public.skill_tags st
+		JOIN public.tags t ON t.id = st.tag_id
+		WHERE st.skill_id = $1
+		ORDER BY t.name
+	`, skillID)
+	if err != nil {
+		return nil, fmt.Errorf("skills: get tags: %w", err)
+	}
+	defer tagRows.Close()
+	for tagRows.Next() {
+		var tag Tag
+		if err := tagRows.Scan(&tag.ID, &tag.Name); err != nil {
+			return nil, err
+		}
+		s.Tags = append(s.Tags, tag)
+	}
+
+	return &s, tagRows.Err()
 }
 
-// UpdateSkill updates name and description of a skill owned by userID.
+// UpdateSkill updates name, description, and category of a skill owned by userID.
 func UpdateSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, name, description string, categoryID *uuid.UUID) (*Skill, error) {
 	var s Skill
 	err := db.QueryRow(ctx, `
-		UPDATE public.skills SET name=$3, description=$4, updated_at=NOW()
+		UPDATE public.skills SET name=$3, description=$4, category_id=$5, updated_at=NOW()
 		WHERE id=$1 AND user_id=$2 AND deleted_at IS NULL
-		RETURNING id, user_id, name, description, unit, preset_id,
-		          starting_level, current_xp, current_level, created_at, updated_at
-	`, skillID, userID, name, description).Scan(
-		&s.ID, &s.UserID, &s.Name, &s.Description, &s.Unit, &s.PresetID,
-		&s.StartingLevel, &s.CurrentXP, &s.CurrentLevel, &s.CreatedAt, &s.UpdatedAt,
+		RETURNING id, user_id, name, description, unit, preset_id, category_id,
+		          is_favourite, starting_level, current_xp, current_level, created_at, updated_at
+	`, skillID, userID, name, description, categoryID).Scan(
+		&s.ID, &s.UserID, &s.Name, &s.Description, &s.Unit, &s.PresetID, &s.CategoryID,
+		&s.IsFavourite, &s.StartingLevel, &s.CurrentXP, &s.CurrentLevel, &s.CreatedAt, &s.UpdatedAt,
 	)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNotFound
@@ -257,6 +341,7 @@ func UpdateSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUI
 	if err != nil {
 		return nil, fmt.Errorf("skills: update: %w", err)
 	}
+	s.Tags = []Tag{}
 	return &s, nil
 }
 
@@ -314,26 +399,139 @@ func EffectiveLevel(currentLevel int, gates []BlockerGate) int {
 }
 
 // ToggleFavourite flips the is_favourite flag on a skill and returns the new value.
-// TODO(T2): implement
 func ToggleFavourite(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID) (bool, error) {
-	return false, fmt.Errorf("ToggleFavourite: not implemented")
+	var newVal bool
+	err := db.QueryRow(ctx, `
+		UPDATE public.skills SET is_favourite = NOT is_favourite, updated_at = NOW()
+		WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL
+		RETURNING is_favourite
+	`, skillID, userID).Scan(&newVal)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return false, ErrNotFound
+	}
+	if err != nil {
+		return false, fmt.Errorf("skills: toggle favourite: %w", err)
+	}
+	return newVal, nil
 }
 
 // SetSkillTags replaces all tags on a skill with the given names (max 5).
 // Tags are created if they don't exist (user-scoped, lowercase, trimmed).
-// TODO(T2): implement
 func SetSkillTags(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, tagNames []string) ([]Tag, error) {
-	return nil, fmt.Errorf("SetSkillTags: not implemented")
+	if len(tagNames) > 5 {
+		return nil, ErrTooManyTags
+	}
+
+	// Verify skill ownership
+	var exists bool
+	err := db.QueryRow(ctx, `
+		SELECT EXISTS(SELECT 1 FROM public.skills WHERE id = $1 AND user_id = $2 AND deleted_at IS NULL)
+	`, skillID, userID).Scan(&exists)
+	if err != nil {
+		return nil, fmt.Errorf("skills: check ownership: %w", err)
+	}
+	if !exists {
+		return nil, ErrNotFound
+	}
+
+	tx, err := db.Begin(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("skills: begin tx: %w", err)
+	}
+	defer tx.Rollback(ctx)
+
+	// Normalise tag names: lowercase, trim, deduplicate
+	seen := make(map[string]struct{})
+	var normalised []string
+	for _, name := range tagNames {
+		name = strings.ToLower(strings.TrimSpace(name))
+		if name == "" {
+			continue
+		}
+		if _, ok := seen[name]; ok {
+			continue
+		}
+		seen[name] = struct{}{}
+		normalised = append(normalised, name)
+	}
+
+	// Re-check after dedup
+	if len(normalised) > 5 {
+		return nil, ErrTooManyTags
+	}
+
+	// Delete existing skill_tags
+	if _, err := tx.Exec(ctx, `DELETE FROM public.skill_tags WHERE skill_id = $1`, skillID); err != nil {
+		return nil, fmt.Errorf("skills: clear tags: %w", err)
+	}
+
+	result := make([]Tag, 0, len(normalised))
+	for _, name := range normalised {
+		// Upsert tag (user-scoped)
+		var tagID uuid.UUID
+		err := tx.QueryRow(ctx, `
+			INSERT INTO public.tags (user_id, name)
+			VALUES ($1, $2)
+			ON CONFLICT (user_id, name) DO UPDATE SET name = EXCLUDED.name
+			RETURNING id
+		`, userID, name).Scan(&tagID)
+		if err != nil {
+			return nil, fmt.Errorf("skills: upsert tag %q: %w", name, err)
+		}
+
+		// Link to skill
+		if _, err := tx.Exec(ctx, `
+			INSERT INTO public.skill_tags (skill_id, tag_id) VALUES ($1, $2)
+		`, skillID, tagID); err != nil {
+			return nil, fmt.Errorf("skills: link tag %q: %w", name, err)
+		}
+
+		result = append(result, Tag{ID: tagID, Name: name})
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return nil, fmt.Errorf("skills: commit tags: %w", err)
+	}
+	return result, nil
 }
 
 // ListTags returns all tags for a user with skill counts.
-// TODO(T2): implement
 func ListTags(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) ([]TagWithCount, error) {
-	return nil, fmt.Errorf("ListTags: not implemented")
+	rows, err := db.Query(ctx, `
+		SELECT t.id, t.name, COUNT(st.skill_id) AS skill_count
+		FROM public.tags t
+		LEFT JOIN public.skill_tags st ON st.tag_id = t.id
+		WHERE t.user_id = $1
+		GROUP BY t.id, t.name
+		ORDER BY t.name
+	`, userID)
+	if err != nil {
+		return nil, fmt.Errorf("skills: list tags: %w", err)
+	}
+	defer rows.Close()
+
+	var out []TagWithCount
+	for rows.Next() {
+		var twc TagWithCount
+		if err := rows.Scan(&twc.ID, &twc.Name, &twc.SkillCount); err != nil {
+			return nil, err
+		}
+		out = append(out, twc)
+	}
+	return out, rows.Err()
 }
 
 // ValidateCategoryID checks that a category ID exists in skill_categories.
-// TODO(T2): implement
 func ValidateCategoryID(ctx context.Context, db *pgxpool.Pool, categoryID uuid.UUID) error {
-	return fmt.Errorf("ValidateCategoryID: not implemented")
+	var exists bool
+	err := db.QueryRow(ctx, `
+		SELECT EXISTS(SELECT 1 FROM public.skill_categories WHERE id = $1)
+	`, categoryID).Scan(&exists)
+	if err != nil {
+		return fmt.Errorf("skills: validate category: %w", err)
+	}
+	if !exists {
+		return ErrInvalidCategory
+	}
+	return nil
 }
