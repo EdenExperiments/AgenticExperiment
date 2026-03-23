@@ -370,7 +370,7 @@ export default function SkillCreatePage() {
           {draft.startingLevel > 9 && (
             <div
               className="rounded-xl p-4 text-sm"
-              style={{ backgroundColor: 'rgba(99, 102, 241, 0.1)', color: 'var(--color-text-secondary)' }}
+              style={{ backgroundColor: 'var(--color-accent-muted, color-mix(in srgb, var(--color-accent) 10%, transparent))', color: 'var(--color-text-secondary)' }}
             >
               <p className="font-medium mb-1">One gate challenge required</p>
               <p>
@@ -713,7 +713,7 @@ function ArbiterStep({
                 ? 'var(--color-accent)'
                 : 'var(--color-surface)',
               color: acceptedArbiterLevel === calibrateMutation.data.suggested_level
-                ? '#fff'
+                ? 'var(--color-text-on-accent, #fff)'
                 : 'var(--color-text)',
               border: '1px solid var(--color-border)',
               minHeight: 'var(--tap-target-min, 44px)',
@@ -729,7 +729,7 @@ function ArbiterStep({
                 ? 'var(--color-accent)'
                 : 'var(--color-surface)',
               color: acceptedArbiterLevel === null
-                ? '#fff'
+                ? 'var(--color-text-on-accent, #fff)'
                 : 'var(--color-text-secondary)',
               border: '1px solid var(--color-border)',
               minHeight: 'var(--tap-target-min, 44px)',
