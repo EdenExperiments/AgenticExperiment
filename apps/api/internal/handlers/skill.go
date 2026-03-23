@@ -263,6 +263,24 @@ func (h *SkillHandler) HandlePutSkill(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Preset skills have their category locked to the preset's default.
+	if categoryID != nil {
+		existing, err := h.store.GetSkill(r.Context(), userID, skillID)
+		if err != nil {
+			if errors.Is(err, skills.ErrNotFound) {
+				api.RespondError(w, http.StatusNotFound, "skill not found")
+				return
+			}
+			log.Printf("ERROR: GetSkill user=%s skill=%s: %v", userID, skillID, err)
+			api.RespondError(w, http.StatusInternalServerError, "failed to update skill")
+			return
+		}
+		if existing.PresetID != nil {
+			api.RespondError(w, http.StatusUnprocessableEntity, "cannot change category of a preset skill")
+			return
+		}
+	}
+
 	skill, err := h.store.UpdateSkill(r.Context(), userID, skillID, name, description, categoryID)
 	if err != nil {
 		if errors.Is(err, skills.ErrNotFound) {

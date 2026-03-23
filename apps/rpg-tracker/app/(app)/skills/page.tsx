@@ -77,7 +77,7 @@ export default function SkillsPage() {
   const [dimmedSkills, setDimmedSkills] = useState<Set<string>>(new Set())
 
   const logMutation = useMutation({
-    mutationFn: ({ skillId, xpDelta, logNote }: { skillId: string; xpDelta: number; logNote: string }) =>
+    mutationFn: ({ skillId, xpDelta, logNote }: { skillId: string; xpDelta: number; logNote: string; timeSpentMinutes?: number }) =>
       logXP(skillId, xpDelta, logNote),
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['skills'] })
@@ -287,7 +287,7 @@ export default function SkillsPage() {
           </div>
 
           {/* Row 2: Scrollable pills — sort, tier, category, tag (P3-D9) */}
-          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1" role="toolbar" aria-label="Sort and filter">
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto py-1.5" role="toolbar" aria-label="Sort and filter">
             {/* Sort pills */}
             <div className="flex gap-1.5 shrink-0">
               {SORT_OPTIONS.map((opt) => (
@@ -432,12 +432,12 @@ export default function SkillsPage() {
       {logSheetSkill && (
         <QuickLogSheet
           skillName={logSheetSkill.name}
-          chips={logSheetSkill.quick_log_chips}
+          tierNumber={logSheetSkill.tier_number}
           isOpen
           isLoading={logMutation.isPending}
           onClose={() => setLogSheetSkill(null)}
-          onSubmit={({ xpDelta, logNote }) =>
-            logMutation.mutate({ skillId: logSheetSkill.id, xpDelta, logNote })
+          onSubmit={({ xpDelta, logNote, timeSpentMinutes }) =>
+            logMutation.mutate({ skillId: logSheetSkill.id, xpDelta, logNote, timeSpentMinutes })
           }
         />
       )}

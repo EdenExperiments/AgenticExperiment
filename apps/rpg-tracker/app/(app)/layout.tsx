@@ -10,7 +10,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
       {!hideNav && (
-        <div className="nav-panel">
+        <div className="nav-panel sticky top-0 h-screen">
           <Sidebar currentPath={pathname} />
         </div>
       )}

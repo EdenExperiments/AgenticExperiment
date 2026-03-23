@@ -23,6 +23,7 @@ export function SessionTimerModern({
   skillName,
   isPaused,
   totalWorkSec,
+  totalBreakSec,
   onEndEarly,
   onPause,
   onResume,

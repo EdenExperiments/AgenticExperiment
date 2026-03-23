@@ -9,7 +9,7 @@ interface SidebarProps {
 export function Sidebar({ currentPath }: SidebarProps) {
   return (
     <aside
-      className="nav-panel sidebar hidden md:flex flex-col w-64 min-h-screen border-r p-4"
+      className="nav-panel sidebar hidden md:flex flex-col w-64 h-full border-r p-4"
       style={{ background: 'var(--color-bg-elevated)', borderColor: 'var(--color-border)' }}
     >
       <div className="mb-8">

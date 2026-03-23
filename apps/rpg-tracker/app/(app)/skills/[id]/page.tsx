@@ -96,7 +96,7 @@ export default function SkillDetailPage() {
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   const logMutation = useMutation({
-    mutationFn: ({ xpDelta, logNote }: { xpDelta: number; logNote: string }) =>
+    mutationFn: ({ xpDelta, logNote }: { xpDelta: number; logNote: string; timeSpentMinutes?: number }) =>
       logXP(id, xpDelta, logNote),
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['skill', id] })

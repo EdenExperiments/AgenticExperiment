@@ -280,8 +280,8 @@ export default function SkillCreatePage() {
             />
           </div>
 
-          {/* Category picker (P3-D7) */}
-          {categories.length > 0 && (
+          {/* Category picker (P3-D7) — locked when preset selected */}
+          {categories.length > 0 && !draft.presetId && (
             <div className="space-y-2">
               <label
                 className="text-xs font-medium uppercase tracking-wider"

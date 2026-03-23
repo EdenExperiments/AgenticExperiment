@@ -76,6 +76,7 @@ export default function DashboardPage() {
       skillId: string
       xpDelta: number
       logNote: string
+      timeSpentMinutes?: number
     }) => logXP(skillId, xpDelta, logNote),
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: ['skills'] })
@@ -293,15 +294,16 @@ export default function DashboardPage() {
       {logSheetSkill && (
         <QuickLogSheet
           skillName={logSheetSkill.name}
-          chips={logSheetSkill.quick_log_chips}
+          tierNumber={logSheetSkill.tier_number}
           isOpen
           isLoading={logMutation.isPending}
           onClose={() => setLogSheetSkill(null)}
-          onSubmit={({ xpDelta, logNote }) =>
+          onSubmit={({ xpDelta, logNote, timeSpentMinutes }) =>
             logMutation.mutate({
               skillId: logSheetSkill.id,
               xpDelta,
               logNote,
+              timeSpentMinutes,
             })
           }
         />
