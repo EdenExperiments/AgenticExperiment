@@ -8,6 +8,7 @@ interface SessionTimerMinimalProps {
   skillName: string
   elapsedWorkSeconds: number
   isPaused: boolean
+  isSimple?: boolean
   onEndEarly: () => void
   onPause: () => void
   onResume: () => void
@@ -19,13 +20,16 @@ export function SessionTimerMinimal({
   currentRound,
   totalRounds,
   skillName,
+  elapsedWorkSeconds,
   isPaused,
+  isSimple,
   onEndEarly,
   onPause,
   onResume,
 }: SessionTimerMinimalProps) {
-  const mins = Math.floor(remainingSeconds / 60)
-  const secs = remainingSeconds % 60
+  const displaySeconds = isSimple ? elapsedWorkSeconds : remainingSeconds
+  const mins = Math.floor(displaySeconds / 60)
+  const secs = displaySeconds % 60
 
   const isBreak = phase === 'break'
   const opacity = isBreak ? 0.6 : 1
@@ -41,7 +45,7 @@ export function SessionTimerMinimal({
         style={{
           border: `3px solid var(--color-accent)`,
           opacity,
-          animation: isPaused ? 'none' : `minimal-breathe calc(4s * var(--motion-scale, 1)) ease-in-out infinite`,
+          animation: isPaused ? 'none' : `minimal-breathe 4s ease-in-out infinite`,
         }}
       >
         <span
@@ -57,7 +61,7 @@ export function SessionTimerMinimal({
 
       {/* Phase + round info */}
       <p className="text-sm md:text-base mb-1" style={{ color: 'var(--color-muted)' }}>
-        {isBreak ? 'Break' : 'Work'} · Round {currentRound} of {totalRounds}
+        {isSimple ? 'Focus' : `${isBreak ? 'Break' : 'Work'} · Round ${currentRound} of ${totalRounds}`}
       </p>
       <p className="text-lg md:text-xl font-medium mb-8" style={{ color: 'var(--color-text)', opacity }}>
         {skillName}
@@ -83,6 +87,9 @@ export function SessionTimerMinimal({
         @keyframes minimal-breathe {
           0%, 100% { transform: scale(1); opacity: ${isBreak ? 0.4 : 0.8}; }
           50% { transform: scale(1.05); opacity: 1; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          * { animation-duration: 0s !important; }
         }
       `}</style>
     </div>

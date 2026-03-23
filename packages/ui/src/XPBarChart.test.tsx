@@ -1,6 +1,5 @@
 import { render, screen } from '@testing-library/react'
 import { XPBarChart } from './XPBarChart'
-import { GrindAnimation } from './GrindAnimation'
 
 // Helper: build 30 days of zero XP data
 function buildZeroData(days = 30) {
@@ -55,60 +54,3 @@ test('non-empty data renders bars, not the empty state copy', () => {
   expect(screen.getAllByTestId('xp-bar').length).toBeGreaterThan(0)
 })
 
-// AC-B6: GrindAnimation renders with phase="work" prop, applying tier colour ring
-test('GrindAnimation renders with phase="work" and applies tier colour class/style', () => {
-  render(
-    <GrindAnimation
-      theme="general"
-      phase="work"
-      tierColor="var(--tier-2-color)"
-      tierNumber={2}
-    />
-  )
-
-  const animation = screen.getByTestId('grind-animation')
-  expect(animation).toBeInTheDocument()
-
-  // Must have work-phase class or data attribute
-  const hasWorkPhase =
-    animation.getAttribute('data-phase') === 'work' ||
-    animation.classList.contains('phase-work')
-  expect(hasWorkPhase).toBe(true)
-
-  // Tier colour ring must be applied (via CSS var or inline style)
-  const style = animation.getAttribute('style') || ''
-  const hasRingColor =
-    style.includes('tier') ||
-    animation.classList.contains('tier-ring') ||
-    animation.getAttribute('data-tier') !== null
-  expect(hasRingColor).toBe(true)
-})
-
-// AC-B6: GrindAnimation renders with phase="break" applying --color-break CSS variable
-test('GrindAnimation renders with phase="break" and applies --color-break CSS variable', () => {
-  render(
-    <GrindAnimation
-      theme="general"
-      phase="break"
-      tierColor="var(--tier-2-color)"
-      tierNumber={2}
-    />
-  )
-
-  const animation = screen.getByTestId('grind-animation')
-  expect(animation).toBeInTheDocument()
-
-  // Must have break-phase class or data attribute
-  const hasBreakPhase =
-    animation.getAttribute('data-phase') === 'break' ||
-    animation.classList.contains('phase-break')
-  expect(hasBreakPhase).toBe(true)
-
-  // --color-break CSS variable must be referenced (in style or class)
-  const style = animation.getAttribute('style') || ''
-  const hasBreakColor =
-    style.includes('--color-break') ||
-    animation.classList.contains('break-color') ||
-    animation.getAttribute('data-break-color') !== null
-  expect(hasBreakColor).toBe(true)
-})

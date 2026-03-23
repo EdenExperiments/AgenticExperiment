@@ -15,11 +15,6 @@ export { StatCard } from './StatCard'
 export type { StatCardProps } from './StatCard'
 export { ActivityFeedItem, formatRelativeTime } from './ActivityFeedItem'
 export type { ActivityFeedItemProps } from './ActivityFeedItem'
-export { GrindAnimation } from './GrindAnimation'
-/** @deprecated Use SessionPage instead */
-export { GrindOverlay } from './GrindOverlay'
-/** @deprecated Use SessionSummary instead */
-export { PostSessionScreen } from './PostSessionScreen'
 // Session route components
 export { SessionPage } from './SessionPage'
 export type { SessionLogData, SessionLogResult } from './SessionPage'

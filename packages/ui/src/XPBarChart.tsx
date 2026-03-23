@@ -84,10 +84,11 @@ export function XPBarChart({ data, tierColor }: XPBarChartProps) {
                 data-testid="xp-bar"
                 className="flex-1 rounded-t transition-opacity hover:opacity-80"
                 style={{
-                  height: `${height}%`,
+                  height: entry.xp_total > 0 ? `${height}%` : '2px',
                   backgroundColor: tierColor,
-                  minHeight: entry.xp_total > 0 ? '4px' : '0px',
-                  boxShadow: entry.xp_total > 0 ? `0 0 4px ${tierColor}30` : 'none',
+                  opacity: entry.xp_total > 0 ? 1 : 0.15,
+                  minHeight: entry.xp_total > 0 ? '4px' : '2px',
+                  boxShadow: entry.xp_total > 0 ? `0 0 6px ${tierColor}40` : 'none',
                 }}
                 title={label}
                 aria-label={label}

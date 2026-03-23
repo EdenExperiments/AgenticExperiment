@@ -62,9 +62,12 @@ export function SessionPage({
   const [streakStatus, setStreakStatus] = useState<{ current: number; longest: number } | null>(null)
   const [isAbandoned, setIsAbandoned] = useState(false)
 
+  const isSimple = sessionConfig?.type === 'simple'
   const pomodoro = usePomodoro(
     sessionConfig
-      ? { workSec: sessionConfig.workSec, breakSec: sessionConfig.breakSec, rounds: sessionConfig.rounds }
+      ? isSimple
+        ? { workSec: 14400, breakSec: 0, rounds: 1 } // Simple: 4h cap, count-up, no breaks
+        : { workSec: sessionConfig.workSec, breakSec: sessionConfig.breakSec, rounds: sessionConfig.rounds }
       : undefined
   )
 
@@ -113,13 +116,20 @@ export function SessionPage({
     return () => window.removeEventListener('beforeunload', handleBeforeUnload)
   }, [pagePhase, pomodoro.state])
 
+  // Start the pomodoro after config state has propagated through the re-render
+  const pendingStartRef = useRef(false)
+  useEffect(() => {
+    if (pendingStartRef.current && sessionConfig && pagePhase === 'timer') {
+      pendingStartRef.current = false
+      pomodoro.start()
+    }
+  }, [sessionConfig, pagePhase, pomodoro.start])
+
   function handleBegin(config: SessionConfigResult) {
     setSessionConfig(config)
     setPagePhase('timer')
     notification.requestPermission()
-    // Start will be called after config state update triggers re-render with new pomodoro config
-    // We need to start after the usePomodoro hook re-initializes with new config
-    setTimeout(() => pomodoro.start(), 0)
+    pendingStartRef.current = true
   }
 
   // Need stable ref for session complete handler
@@ -149,9 +159,27 @@ export function SessionPage({
     handleSessionComplete(false)
   }
 
-  function handleAbandon() {
+  async function handleAbandon() {
     pomodoro.abandon()
-    handleSessionComplete(true)
+    // Log the abandoned session and navigate away — no summary screen
+    const data: SessionLogData = {
+      session_type: sessionConfig?.type ?? 'pomodoro',
+      status: 'abandoned',
+      planned_duration_sec: sessionConfig
+        ? sessionConfig.workSec * sessionConfig.rounds + sessionConfig.breakSec * (sessionConfig.rounds - 1)
+        : 0,
+      actual_duration_sec: pomodoro.elapsedWorkSeconds,
+      pomodoro_work_sec: sessionConfig?.workSec,
+      pomodoro_break_sec: sessionConfig?.breakSec,
+      pomodoro_intervals_completed: pomodoro.currentRound,
+      pomodoro_intervals_planned: sessionConfig?.rounds,
+    }
+    try {
+      if (onLogSession) await onLogSession(data)
+    } catch {
+      // If API fails, still navigate
+    }
+    router.push(returnUrl)
   }
 
   async function handleLogSession(reflections: { what: string; how: string; feeling: string }) {
@@ -244,6 +272,7 @@ export function SessionPage({
       isPaused={pomodoro.state === 'paused'}
       totalWorkSec={sessionConfig?.workSec ?? 1500}
       totalBreakSec={sessionConfig?.breakSec ?? 300}
+      isSimple={isSimple}
       onEndEarly={handleEndEarly}
       onPause={pomodoro.pause}
       onResume={pomodoro.resume}

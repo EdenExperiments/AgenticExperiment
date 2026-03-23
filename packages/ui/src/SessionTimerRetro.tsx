@@ -11,6 +11,7 @@ interface SessionTimerRetroProps {
   tierNumber: number
   elapsedWorkSeconds: number
   isPaused: boolean
+  isSimple?: boolean
   onEndEarly: () => void
   onPause: () => void
   onResume: () => void
@@ -25,12 +26,14 @@ export function SessionTimerRetro({
   tierNumber,
   elapsedWorkSeconds,
   isPaused,
+  isSimple,
   onEndEarly,
   onPause,
   onResume,
 }: SessionTimerRetroProps) {
-  const mins = Math.floor(remainingSeconds / 60)
-  const secs = remainingSeconds % 60
+  const displaySeconds = isSimple ? elapsedWorkSeconds : remainingSeconds
+  const mins = Math.floor(displaySeconds / 60)
+  const secs = displaySeconds % 60
   const isBreak = phase === 'break'
 
   const currentXP = computeSessionXP(workMinutesFromSeconds(elapsedWorkSeconds), tierNumber)
@@ -48,7 +51,7 @@ export function SessionTimerRetro({
           color: isBreak ? 'var(--color-muted)' : 'var(--color-accent)',
         }}
       >
-        {isBreak ? '— Rest Phase —' : '— Battle Phase —'}
+        {isSimple ? '— Grinding —' : isBreak ? '— Rest Phase —' : '— Battle Phase —'}
       </p>
 
       {/* Timer display */}
@@ -65,12 +68,14 @@ export function SessionTimerRetro({
       </div>
 
       {/* Round counter */}
-      <p
-        className="text-[8px] md:text-[10px] tracking-[0.2em] uppercase mb-2"
-        style={{ fontFamily: 'var(--font-display)', color: 'var(--color-muted)' }}
-      >
-        Round {currentRound} / {totalRounds}
-      </p>
+      {!isSimple && (
+        <p
+          className="text-[8px] md:text-[10px] tracking-[0.2em] uppercase mb-2"
+          style={{ fontFamily: 'var(--font-display)', color: 'var(--color-muted)' }}
+        >
+          Round {currentRound} / {totalRounds}
+        </p>
+      )}
 
       {/* XP ticking counter */}
       {!isBreak && (
@@ -107,7 +112,9 @@ export function SessionTimerRetro({
           className="h-full rounded transition-all"
           style={{
             background: 'var(--color-accent)',
-            width: `${Math.max(0, 100 - (remainingSeconds / (phase === 'work' ? 1500 : 300)) * 100)}%`,
+            width: isSimple
+              ? `${Math.min(elapsedWorkSeconds / 3600, 1) * 100}%`
+              : `${Math.max(0, 100 - (remainingSeconds / (phase === 'work' ? 1500 : 300)) * 100)}%`,
           }}
         />
       </div>

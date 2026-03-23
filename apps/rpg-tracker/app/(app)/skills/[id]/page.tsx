@@ -1,27 +1,17 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { getSkill, getAccount, logXP, deleteSkill, getActivity, getXPChart, createSession, updateSkill, toggleFavourite, setPrimarySkill, setSkillTags, listTags } from '@rpgtracker/api-client'
+import { getSkill, getAccount, logXP, deleteSkill, getActivity, getXPChart, updateSkill, toggleFavourite, setPrimarySkill, setSkillTags, listTags } from '@rpgtracker/api-client'
 import type { BlockerGate, ActivityEvent } from '@rpgtracker/api-client'
-import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal, GrindOverlay, PostSessionScreen, XPBarChart, ConfirmModal, SkillEditModal } from '@rpgtracker/ui'
+import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal, XPBarChart, ConfirmModal, SkillEditModal } from '@rpgtracker/ui'
 import { XPGainAnimation } from '@/components/XPGainAnimation'
-
-const PLANNED_SESSION_SECONDS = 25 * 60
 
 const TIER_HEX: Record<number, string> = {
   1: '#9ca3af', 2: '#3b82f6', 3: '#14b8a6', 4: '#22c55e', 5: '#84cc16',
   6: '#9333ea', 7: '#c026d3', 8: '#d97706', 9: '#ea580c', 10: '#dc2626', 11: '#facc15',
-}
-
-function computeBonusPct(elapsedSec: number, requiresActiveUse: boolean): number {
-  const ratio = Math.min(elapsedSec / PLANNED_SESSION_SECONDS, 1)
-  if (ratio < 0.5) return 0
-  const full = requiresActiveUse ? 10 : 25
-  if (ratio >= 0.95) return full
-  return Math.round(full * ratio)
 }
 
 /** Group activity events by date buckets */
@@ -99,9 +89,6 @@ export default function SkillDetailPage() {
   const [tierTransition, setTierTransition] = useState<{ tierName: string; tierNumber: number } | null>(null)
   const [gateFirstHit, setGateFirstHit] = useState<BlockerGate | null>(null)
   const [xpGain, setXpGain] = useState<{ amount: number; key: number }>({ amount: 0, key: 0 })
-  const [grindPhase, setGrindPhase] = useState<'config' | 'work' | 'break' | 'end-early' | null>(null)
-  const [postSession, setPostSession] = useState<{ elapsedSec: number } | null>(null)
-  const sessionStartRef = useRef<number | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   const logMutation = useMutation({
@@ -121,18 +108,6 @@ export default function SkillDetailPage() {
   const deleteMutation = useMutation({
     mutationFn: () => deleteSkill(id),
     onSuccess: () => router.push('/skills'),
-  })
-
-  const sessionMutation = useMutation({
-    mutationFn: (body: Parameters<typeof createSession>[1]) => createSession(id, body),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['skill', id] })
-      qc.invalidateQueries({ queryKey: ['skills'] })
-      qc.invalidateQueries({ queryKey: ['activity'] })
-      qc.invalidateQueries({ queryKey: ['xp-chart', id] })
-      setGrindPhase(null)
-      setPostSession(null)
-    },
   })
 
   const favouriteMutation = useMutation({
@@ -170,17 +145,6 @@ export default function SkillDetailPage() {
 
   function handleTagRemove(name: string) {
     setTagBuffer((prev) => (prev ?? []).filter((t) => t !== name))
-  }
-
-  function handleSessionEnd({ status, elapsedSeconds }: { status: 'completed' | 'abandoned'; elapsedSeconds: number }) {
-    const elapsed = elapsedSeconds > 0 ? elapsedSeconds : (sessionStartRef.current ? Math.floor((Date.now() - sessionStartRef.current) / 1000) : 0)
-    if (status === 'abandoned') {
-      sessionMutation.mutate({ status: 'abandoned', session_type: 'pomodoro', planned_duration_sec: PLANNED_SESSION_SECONDS, actual_duration_sec: elapsed })
-      setGrindPhase(null)
-    } else {
-      setGrindPhase(null)
-      setPostSession({ elapsedSec: elapsed })
-    }
   }
 
   if (isLoading || !skill) return <div className="p-8 text-muted">Loading...</div>
@@ -591,52 +555,6 @@ export default function SkillDetailPage() {
           onContinue={() => setTierTransition(null)}
         />
       )}
-
-      {grindPhase && (
-        <GrindOverlay
-          skillId={id}
-          skillName={skill.name}
-          animationTheme={skill.animation_theme ?? 'general'}
-          tierColor={tierColor}
-          tierNumber={skill.tier_number}
-          requiresActiveUse={skill.requires_active_use ?? false}
-          phase={grindPhase}
-          onBegin={() => {
-            sessionStartRef.current = Date.now()
-            setGrindPhase('work')
-          }}
-          onCancel={() => setGrindPhase(null)}
-          onSessionEnd={handleSessionEnd}
-        />
-      )}
-
-      {postSession && (() => {
-        const bonusPct = computeBonusPct(postSession.elapsedSec, skill.requires_active_use ?? false)
-        const baseXP = Math.round((postSession.elapsedSec / 60) * 3 * (1 + 0.4 * (skill.tier_number - 1)))
-        const earnedXP = Math.max(1, Math.round(baseXP * (1 + bonusPct / 100)))
-        return (
-          <div className="fixed inset-0 z-50">
-            <PostSessionScreen
-              sessionDurationSeconds={postSession.elapsedSec}
-              earnedXP={earnedXP}
-              bonusPercentage={bonusPct}
-              onSubmit={({ reflectionWhat, reflectionHow, reflectionFeeling }) => {
-                sessionMutation.mutate({
-                  session_type: 'pomodoro',
-                  status: postSession.elapsedSec >= PLANNED_SESSION_SECONDS * 0.95 ? 'completed' : 'partial',
-                  xp_delta: earnedXP,
-                  planned_duration_sec: PLANNED_SESSION_SECONDS,
-                  actual_duration_sec: postSession.elapsedSec,
-                  reflection_what: reflectionWhat,
-                  reflection_how: reflectionHow,
-                  reflection_feeling: reflectionFeeling,
-                })
-              }}
-              onDismiss={() => setPostSession(null)}
-            />
-          </div>
-        )
-      })()}
 
       {gateFirstHit && (
         <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center md:pl-64">

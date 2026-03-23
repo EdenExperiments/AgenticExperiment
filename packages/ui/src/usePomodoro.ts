@@ -141,6 +141,26 @@ export function usePomodoro(config?: PomodoroConfig): PomodoroResult {
   }, [rerender])
 
   const endEarly = useCallback(() => {
+    // Snapshot progress (same as pause) so resume restores correctly
+    const now = Date.now()
+    const elapsed = Math.floor((now - phaseStartRef.current) / 1000)
+    const s = stateRef.current
+
+    if (s === 'work') {
+      const newRemaining = Math.max(0, phaseRemainingRef.current - elapsed)
+      const workThisPhase = Math.min(elapsed, phaseRemainingRef.current)
+      workAccRef.current += workThisPhase
+      phaseRemainingRef.current = newRemaining
+      setRemainingSeconds(newRemaining)
+      setElapsedWorkSeconds(workAccRef.current)
+      pausedFromRef.current = 'work'
+    } else if (s === 'break') {
+      const newRemaining = Math.max(0, phaseRemainingRef.current - elapsed)
+      phaseRemainingRef.current = newRemaining
+      setRemainingSeconds(newRemaining)
+      pausedFromRef.current = 'break'
+    }
+
     stateRef.current = 'end-early'
     rerender()
   }, [rerender])

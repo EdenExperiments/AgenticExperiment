@@ -17,6 +17,7 @@ interface SessionTimerProps {
   isPaused: boolean
   totalWorkSec: number
   totalBreakSec: number
+  isSimple?: boolean
   onEndEarly: () => void
   onPause: () => void
   onResume: () => void
@@ -51,6 +52,7 @@ export function SessionTimer(props: SessionTimerProps) {
     skillName: props.skillName,
     elapsedWorkSeconds: props.elapsedWorkSeconds,
     isPaused: props.isPaused,
+    isSimple: props.isSimple,
     onEndEarly: props.onEndEarly,
     onPause: props.onPause,
     onResume: props.onResume,

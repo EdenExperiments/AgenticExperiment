@@ -10,6 +10,7 @@ interface SessionTimerModernProps {
   isPaused: boolean
   totalWorkSec: number
   totalBreakSec: number
+  isSimple?: boolean
   onEndEarly: () => void
   onPause: () => void
   onResume: () => void
@@ -21,22 +22,27 @@ export function SessionTimerModern({
   currentRound,
   totalRounds,
   skillName,
+  elapsedWorkSeconds,
   isPaused,
   totalWorkSec,
   totalBreakSec,
+  isSimple,
   onEndEarly,
   onPause,
   onResume,
 }: SessionTimerModernProps) {
-  const mins = Math.floor(remainingSeconds / 60)
-  const secs = remainingSeconds % 60
+  const displaySeconds = isSimple ? elapsedWorkSeconds : remainingSeconds
+  const mins = Math.floor(displaySeconds / 60)
+  const secs = displaySeconds % 60
   const isBreak = phase === 'break'
 
   // SVG progress ring
   const radius = 90
   const circumference = 2 * Math.PI * radius
   const phaseDuration = isBreak ? totalBreakSec : totalWorkSec
-  const progress = phaseDuration > 0 ? 1 - remainingSeconds / phaseDuration : 0
+  const progress = isSimple
+    ? Math.min(elapsedWorkSeconds / 3600, 1) // Fill over 1 hour for simple mode
+    : phaseDuration > 0 ? 1 - remainingSeconds / phaseDuration : 0
   const strokeDashoffset = circumference * (1 - progress)
 
   return (
@@ -52,7 +58,7 @@ export function SessionTimerModern({
           color: isBreak ? 'var(--color-muted)' : 'var(--color-accent)',
         }}
       >
-        {isBreak ? 'Standby' : 'Operation Active'}
+        {isSimple ? 'Focus Mode' : isBreak ? 'Standby' : 'Operation Active'}
       </p>
 
       {/* Progress ring with timer */}
@@ -95,9 +101,11 @@ export function SessionTimerModern({
           >
             {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
           </span>
-          <span className="text-[10px] md:text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>
-            Round {currentRound}/{totalRounds}
-          </span>
+          {!isSimple && (
+            <span className="text-[10px] md:text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>
+              Round {currentRound}/{totalRounds}
+            </span>
+          )}
         </div>
 
         {/* Ambient glow */}
