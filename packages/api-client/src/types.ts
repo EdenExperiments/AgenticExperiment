@@ -157,6 +157,7 @@ export interface XPLogResponse {
 export interface CalibrateRequest {
   name: string
   description: string
+  experience: string
 }
 
 export interface CalibrateResponse {

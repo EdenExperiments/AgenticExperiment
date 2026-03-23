@@ -20,7 +20,7 @@ import (
 	"github.com/meden/rpgtracker/internal/keys"
 )
 
-const calibratePrompt = `You are helping calibrate a skill tracker. Given the skill name and description, provide:
+const calibratePrompt = `You are helping calibrate a skill tracker. Given the skill name, description, and the user's self-reported experience, provide:
 1. A suggested starting level (integer, 1-99, where 1=complete beginner, 50=advanced practitioner, 99=near-peak mastery)
 2. A 2-3 sentence rationale explaining your suggestion
 3. Exactly 10 gate descriptions (one per tier boundary) appropriate to this skill. Each gate description should be 1-2 sentences describing what mastery looks like at that tier boundary.
@@ -33,7 +33,8 @@ Respond with ONLY a valid JSON object in this exact format:
 }
 
 Skill name: %s
-Skill description: %s`
+Skill description: %s
+User's experience: %s`
 
 // CalibrateResponse is what the handler returns to clients.
 type CalibrateResponse struct {
@@ -168,6 +169,7 @@ func (h *CalibrateHandler) HandlePostCalibrate(w http.ResponseWriter, r *http.Re
 	}
 	name := strings.TrimSpace(r.FormValue("name"))
 	description := strings.TrimSpace(r.FormValue("description"))
+	experience := strings.TrimSpace(r.FormValue("experience"))
 	if name == "" {
 		api.RespondError(w, http.StatusUnprocessableEntity, "name is required")
 		return
@@ -183,7 +185,7 @@ func (h *CalibrateHandler) HandlePostCalibrate(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	prompt := fmt.Sprintf(calibratePrompt, name, description)
+	prompt := fmt.Sprintf(calibratePrompt, name, description, experience)
 	result, status, err := h.caller.Call(r.Context(), apiKey, prompt)
 	if err != nil {
 		log.Printf("ERROR: Calibrate user=%s: claude status=%d err=%v", userID, status, err)

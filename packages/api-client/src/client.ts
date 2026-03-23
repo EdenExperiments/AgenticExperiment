@@ -78,7 +78,7 @@ export function calibrateSkill(req: CalibrateRequest): Promise<CalibrateResponse
   return request<CalibrateResponse>('/api/v1/calibrate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ name: req.name, description: req.description }).toString(),
+    body: new URLSearchParams({ name: req.name, description: req.description, experience: req.experience }).toString(),
   })
 }
 

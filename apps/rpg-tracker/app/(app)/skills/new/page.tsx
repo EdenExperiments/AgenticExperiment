@@ -15,7 +15,7 @@ import {
 } from '@rpgtracker/ui'
 
 type Path = 'preset' | 'custom' | null
-type Step = 1 | 2 | 3
+type Step = 1 | 2
 
 interface SkillDraft {
   name: string
@@ -57,6 +57,7 @@ export default function SkillCreatePage() {
   const [step, setStep] = useState<Step>(1)
   const [draft, setDraft] = useState<SkillDraft>({ ...INITIAL_DRAFT })
   const [acceptedArbiterLevel, setAcceptedArbiterLevel] = useState<number | null>(null)
+  const [experience, setExperience] = useState('')
 
   const { data: keyStatus } = useQuery({ queryKey: ['api-key-status'], queryFn: getAPIKeyStatus })
   const hasKey = keyStatus?.has_key ?? false
@@ -85,7 +86,7 @@ export default function SkillCreatePage() {
   })
 
   const calibrateMutation = useMutation({
-    mutationFn: () => calibrateSkill({ name: draft.name, description: draft.description }),
+    mutationFn: () => calibrateSkill({ name: draft.name, description: draft.description, experience }),
     onSuccess: (result) => {
       // ACV-24: Arbiter's suggestion is pre-selected by default
       setAcceptedArbiterLevel(result.suggested_level)
@@ -110,6 +111,7 @@ export default function SkillCreatePage() {
     setStep(1)
     setDraft({ ...INITIAL_DRAFT })
     setAcceptedArbiterLevel(null)
+    setExperience('')
     calibrateMutation.reset()
   }, [calibrateMutation])
 
@@ -357,7 +359,7 @@ export default function SkillCreatePage() {
         </div>
       )}
 
-      {/* ── Step 2: Appraisal ── */}
+      {/* ── Step 2: Starting Level ── */}
       {step === 2 && (
         <div className="space-y-4">
           <h1
@@ -366,73 +368,14 @@ export default function SkillCreatePage() {
           >
             Starting Level
           </h1>
-          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
-            Where are you starting? Be honest — this is for you, not a leaderboard.
-          </p>
-
-          {/* Level picker — scroll-wheel style stepper */}
-          <LevelPicker
-            value={draft.startingLevel}
-            onChange={level => setDraft(d => ({ ...d, startingLevel: level }))}
-          />
-
-          {/* Gate info banner */}
-          {draft.startingLevel > 9 && (
-            <div
-              className="rounded-xl p-4 text-sm"
-              style={{ backgroundColor: 'var(--color-accent-muted, color-mix(in srgb, var(--color-accent) 10%, transparent))', color: 'var(--color-text-secondary)' }}
-            >
-              <p className="font-medium mb-1">One gate challenge required</p>
-              <p>
-                Starting at level {draft.startingLevel} means you&apos;ll need to submit one gate
-                assessment. Lower gates are auto-cleared. Your XP always keeps accruing.
-              </p>
-            </div>
-          )}
-
-          {/* Navigation */}
-          <div className="flex gap-2">
-            <button
-              onClick={() => setStep(1)}
-              className="flex-1 py-3 rounded-xl border text-sm"
-              style={{
-                borderColor: 'var(--color-border)',
-                color: 'var(--color-text-secondary)',
-                minHeight: 'var(--tap-target-min, 44px)',
-              }}
-            >
-              Back
-            </button>
-            <button
-              onClick={() => setStep(3)}
-              className="flex-1 py-3 rounded-xl font-semibold"
-              style={{
-                background: 'var(--color-accent)',
-                color: 'var(--color-text-on-accent, #fff)',
-                minHeight: 'var(--tap-target-min, 44px)',
-              }}
-            >
-              Next
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Step 3: The Arbiter ── */}
-      {step === 3 && (
-        <div className="space-y-4">
-          <h1
-            className="text-2xl font-bold"
-            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}
-          >
-            The Arbiter
-          </h1>
 
           {hasKey ? (
-            /* With API key — full Arbiter experience */
+            /* With API key — Arbiter-first flow */
             <ArbiterStep
               theme={theme}
               draft={draft}
+              experience={experience}
+              setExperience={setExperience}
               calibrateMutation={calibrateMutation}
               acceptedArbiterLevel={acceptedArbiterLevel}
               setAcceptedArbiterLevel={setAcceptedArbiterLevel}
@@ -441,12 +384,40 @@ export default function SkillCreatePage() {
               getArbiterError={getArbiterError}
               getFinalLevel={getFinalLevel}
               createMutation={createMutation}
+              levelPicker={
+                <LevelPicker
+                  value={draft.startingLevel}
+                  onChange={level => setDraft(d => ({ ...d, startingLevel: level }))}
+                />
+              }
             />
           ) : (
-            /* Without API key — summary + soft upsell */
+            /* Without API key — manual level picker */
             <div className="space-y-4">
-              <SkillSummary name={draft.name} level={draft.startingLevel} categoryId={draft.categoryId} categories={categories} />
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                Where are you starting? Be honest — this is for you, not a leaderboard.
+              </p>
 
+              <LevelPicker
+                value={draft.startingLevel}
+                onChange={level => setDraft(d => ({ ...d, startingLevel: level }))}
+              />
+
+              {/* Gate info banner */}
+              {draft.startingLevel > 9 && (
+                <div
+                  className="rounded-xl p-4 text-sm"
+                  style={{ backgroundColor: 'var(--color-accent-muted, color-mix(in srgb, var(--color-accent) 10%, transparent))', color: 'var(--color-text-secondary)' }}
+                >
+                  <p className="font-medium mb-1">One gate challenge required</p>
+                  <p>
+                    Starting at level {draft.startingLevel} means you&apos;ll need to submit one gate
+                    assessment. Lower gates are auto-cleared. Your XP always keeps accruing.
+                  </p>
+                </div>
+              )}
+
+              {/* Arbiter upsell */}
               <div
                 className="rounded-xl p-4 text-sm"
                 style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
@@ -463,6 +434,8 @@ export default function SkillCreatePage() {
                 </p>
               </div>
 
+              <SkillSummary name={draft.name} level={draft.startingLevel} categoryId={draft.categoryId} categories={categories} />
+
               <button
                 onClick={() => createMutation.mutate()}
                 disabled={createMutation.isPending}
@@ -478,7 +451,7 @@ export default function SkillCreatePage() {
             </div>
           )}
 
-          {/* Create error — ACV-25 */}
+          {/* Create error */}
           {createMutation.isError && (
             <p className="text-sm text-center" style={{ color: 'var(--color-error)' }}>
               Failed to create skill. Please try again.
@@ -487,7 +460,7 @@ export default function SkillCreatePage() {
 
           {/* Back button */}
           <button
-            onClick={() => setStep(2)}
+            onClick={() => setStep(1)}
             className="w-full py-3 rounded-xl border text-sm"
             style={{
               borderColor: 'var(--color-border)',
@@ -505,12 +478,12 @@ export default function SkillCreatePage() {
 
 /** Step indicator with narrative labels — ACV-6 */
 function StepIndicator({ currentStep }: { currentStep: Step }) {
-  const STEP_LABELS: Record<number, string> = { 1: 'Identity', 2: 'Appraisal', 3: 'The Arbiter' }
+  const STEP_LABELS: Record<number, string> = { 1: 'Identity', 2: 'Starting Level' }
 
   return (
     <div className="flex items-end gap-2 mb-8" role="list" aria-label="Steps">
-      <span className="sr-only">Step {currentStep} of 3</span>
-      {([1, 2, 3] as Step[]).map(s => (
+      <span className="sr-only">Step {currentStep} of 2</span>
+      {([1, 2] as Step[]).map(s => (
         <div
           key={s}
           role="listitem"
@@ -639,6 +612,8 @@ function LevelPicker({ value, onChange }: { value: number; onChange: (level: num
 function ArbiterStep({
   theme,
   draft,
+  experience,
+  setExperience,
   calibrateMutation,
   acceptedArbiterLevel,
   setAcceptedArbiterLevel,
@@ -647,9 +622,12 @@ function ArbiterStep({
   getArbiterError,
   getFinalLevel,
   createMutation,
+  levelPicker,
 }: {
   theme: string
   draft: SkillDraft
+  experience: string
+  setExperience: (v: string) => void
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   calibrateMutation: any
   acceptedArbiterLevel: number | null
@@ -660,12 +638,14 @@ function ArbiterStep({
   getFinalLevel: () => number
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   createMutation: any
+  levelPicker: React.ReactNode
 }) {
+  const [showAdjust, setShowAdjust] = useState(false)
   const categories = useQuery({ queryKey: ['categories'], queryFn: listCategories, staleTime: Infinity }).data ?? []
 
   return (
     <div className="space-y-4">
-      {/* Avatar + greeting */}
+      {/* Avatar + dialogue */}
       <div className="flex items-start gap-4">
         <ArbiterAvatar
           state={calibrateMutation.isPending ? 'thinking' : calibrateMutation.data ? 'speaking' : 'idle'}
@@ -690,82 +670,136 @@ function ArbiterStep({
         </div>
       </div>
 
-      {/* Consult button — ACV-9 */}
+      {/* Experience input + Consult button (before calibration) */}
       {!calibrateMutation.data && !calibrateMutation.isError && (
-        <button
-          onClick={() => calibrateMutation.mutate()}
-          disabled={calibrateMutation.isPending}
-          aria-busy={calibrateMutation.isPending}
-          className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
-          style={{
-            background: 'var(--color-accent)',
-            color: 'var(--color-text-on-accent, #fff)',
-            minHeight: 'var(--tap-target-min, 44px)',
-          }}
-        >
-          {calibrateMutation.isPending ? 'Consulting The Arbiter…' : 'Consult The Arbiter'}
-        </button>
-      )}
-
-      {/* Accept/Keep actions — ACV-11, ACV-24 */}
-      {calibrateMutation.data && (
-        <div className="flex gap-2">
-          <button
-            onClick={() => setAcceptedArbiterLevel(calibrateMutation.data.suggested_level)}
-            className="flex-1 py-3 rounded-xl font-semibold text-sm"
+        <div className="space-y-3">
+          <textarea
+            placeholder="Describe your experience or knowledge level with this skill — e.g. 'I've been playing guitar for 3 years but mostly self-taught' or 'Complete beginner, never tried it'"
+            value={experience}
+            onChange={e => setExperience(e.target.value)}
+            maxLength={500}
+            rows={3}
+            disabled={calibrateMutation.isPending}
+            className="w-full text-sm rounded-xl px-4 py-3 resize-none"
             style={{
-              background: acceptedArbiterLevel === calibrateMutation.data.suggested_level
-                ? 'var(--color-accent)'
-                : 'var(--color-surface)',
-              color: acceptedArbiterLevel === calibrateMutation.data.suggested_level
-                ? 'var(--color-text-on-accent, #fff)'
-                : 'var(--color-text)',
+              background: 'var(--color-surface)',
+              color: 'var(--color-text)',
               border: '1px solid var(--color-border)',
+            }}
+          />
+          <button
+            onClick={() => calibrateMutation.mutate()}
+            disabled={calibrateMutation.isPending || !experience.trim()}
+            aria-busy={calibrateMutation.isPending}
+            className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
+            style={{
+              background: 'var(--color-accent)',
+              color: 'var(--color-text-on-accent, #fff)',
               minHeight: 'var(--tap-target-min, 44px)',
             }}
           >
-            Accept (Level {calibrateMutation.data.suggested_level})
-          </button>
-          <button
-            onClick={() => setAcceptedArbiterLevel(null)}
-            className="flex-1 py-3 rounded-xl text-sm"
-            style={{
-              background: acceptedArbiterLevel === null
-                ? 'var(--color-accent)'
-                : 'var(--color-surface)',
-              color: acceptedArbiterLevel === null
-                ? 'var(--color-text-on-accent, #fff)'
-                : 'var(--color-text-secondary)',
-              border: '1px solid var(--color-border)',
-              minHeight: 'var(--tap-target-min, 44px)',
-            }}
-          >
-            Keep my level ({draft.startingLevel})
+            {calibrateMutation.isPending ? 'Consulting The Arbiter…' : 'Consult The Arbiter'}
           </button>
         </div>
       )}
 
-      {/* Summary panel */}
-      <SkillSummary
-        name={draft.name}
-        level={getFinalLevel()}
-        categoryId={draft.categoryId}
-        categories={categories}
-      />
+      {/* After calibration: Accept / Adjust toggle */}
+      {calibrateMutation.data && (
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setAcceptedArbiterLevel(calibrateMutation.data.suggested_level)
+                setShowAdjust(false)
+              }}
+              className="flex-1 py-3 rounded-xl font-semibold text-sm"
+              style={{
+                background: acceptedArbiterLevel != null && !showAdjust
+                  ? 'var(--color-accent)'
+                  : 'var(--color-surface)',
+                color: acceptedArbiterLevel != null && !showAdjust
+                  ? 'var(--color-text-on-accent, #fff)'
+                  : 'var(--color-text)',
+                border: '1px solid var(--color-border)',
+                minHeight: 'var(--tap-target-min, 44px)',
+              }}
+            >
+              Accept (Level {calibrateMutation.data.suggested_level})
+            </button>
+            <button
+              onClick={() => {
+                setAcceptedArbiterLevel(null)
+                setShowAdjust(true)
+              }}
+              className="flex-1 py-3 rounded-xl text-sm"
+              style={{
+                background: showAdjust
+                  ? 'var(--color-accent)'
+                  : 'var(--color-surface)',
+                color: showAdjust
+                  ? 'var(--color-text-on-accent, #fff)'
+                  : 'var(--color-text-secondary)',
+                border: '1px solid var(--color-border)',
+                minHeight: 'var(--tap-target-min, 44px)',
+              }}
+            >
+              Adjust manually
+            </button>
+          </div>
 
-      {/* Create button — ACV-12 */}
-      <button
-        onClick={() => createMutation.mutate()}
-        disabled={createMutation.isPending}
-        className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
-        style={{
-          background: 'var(--color-accent)',
-          color: 'var(--color-text-on-accent, #fff)',
-          minHeight: 'var(--tap-target-min, 44px)',
-        }}
-      >
-        {createMutation.isPending ? 'Creating…' : 'Create Skill'}
-      </button>
+          {/* Level picker for manual adjustment */}
+          {showAdjust && levelPicker}
+        </div>
+      )}
+
+      {/* On error: show level picker as fallback */}
+      {calibrateMutation.isError && (
+        <div className="space-y-3">
+          <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+            Set your starting level manually:
+          </p>
+          {levelPicker}
+        </div>
+      )}
+
+      {/* Gate info banner */}
+      {getFinalLevel() > 9 && (calibrateMutation.data || calibrateMutation.isError || showAdjust) && (
+        <div
+          className="rounded-xl p-4 text-sm"
+          style={{ backgroundColor: 'var(--color-accent-muted, color-mix(in srgb, var(--color-accent) 10%, transparent))', color: 'var(--color-text-secondary)' }}
+        >
+          <p className="font-medium mb-1">One gate challenge required</p>
+          <p>
+            Starting at level {getFinalLevel()} means you&apos;ll need to submit one gate
+            assessment. Lower gates are auto-cleared. Your XP always keeps accruing.
+          </p>
+        </div>
+      )}
+
+      {/* Summary + Create (shown after calibration or error) */}
+      {(calibrateMutation.data || calibrateMutation.isError) && (
+        <>
+          <SkillSummary
+            name={draft.name}
+            level={getFinalLevel()}
+            categoryId={draft.categoryId}
+            categories={categories}
+          />
+
+          <button
+            onClick={() => createMutation.mutate()}
+            disabled={createMutation.isPending}
+            className="w-full py-3 rounded-xl font-semibold disabled:opacity-50"
+            style={{
+              background: 'var(--color-accent)',
+              color: 'var(--color-text-on-accent, #fff)',
+              minHeight: 'var(--tap-target-min, 44px)',
+            }}
+          >
+            {createMutation.isPending ? 'Creating…' : 'Create Skill'}
+          </button>
+        </>
+      )}
     </div>
   )
 }
