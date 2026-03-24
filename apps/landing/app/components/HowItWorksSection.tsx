@@ -35,14 +35,14 @@ const steps = [
     numeral: 'I',
     icon: <IconSword />,
     title: 'Choose a Skill',
-    desc: 'Pick from 100+ presets or build your own. Use AI calibration to find your true starting level — no inflated beginnings.',
+    desc: 'Pick from a library of presets or build your own. Use AI calibration to find your true starting level — no inflated beginnings.',
     delay: 0,
   },
   {
     numeral: 'II',
     icon: <IconScroll />,
     title: 'Log Your Sessions',
-    desc: 'Each real-world session earns XP. Add a note, pick an amount, watch your level climb. The dashboard shows your recent momentum at a glance.',
+    desc: 'Use the built-in Pomodoro timer or log XP directly. Each session earns XP toward your next level. The dashboard shows your recent momentum at a glance.',
     delay: 120,
   },
   {

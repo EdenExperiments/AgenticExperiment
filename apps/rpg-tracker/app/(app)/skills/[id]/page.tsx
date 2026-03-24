@@ -442,7 +442,7 @@ export default function SkillDetailPage() {
       </div>
 
       {/* ── Content grid — chart + history ─────────────────── */}
-      <div data-testid="detail-grid" className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div data-testid="detail-grid" className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {/* Left: XP Progress Chart */}
         {xpChart && (
           <section>
@@ -456,7 +456,7 @@ export default function SkillDetailPage() {
         )}
 
         {/* Right: XP History */}
-        <div data-testid="history-section" className={xpChart ? '' : 'md:col-span-2'}>
+        <div data-testid="history-section" className={xpChart ? '' : 'xl:col-span-2'}>
           <section>
             <h2 className="heading section-label mb-3">
               XP History

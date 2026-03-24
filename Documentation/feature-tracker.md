@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-03-23 (audit pass — condensed shipped features, added F-044/F-045 for Phase 9)
+Last updated: 2026-03-25 (Phase 9A complete — F-044 done, F-045/F-046/F-047 ready for Phase 9B)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -46,11 +46,11 @@ All Release 1 + Release 2 features through Phase 7.
 
 ---
 
-## New — Phase 9A: Clean UI Polish
+## Phase 9A: Clean UI Polish (done)
 
 | ID | Feature | Area | Status | Notes |
 |----|---------|------|--------|-------|
-| F-044 | Clean UI cleanup | Frontend | ready-for-build | Remove deprecated session components (GrindOverlay, PostSessionScreen), XP chart day differentiation, basic functional landing page. Small scope. |
+| F-044 | Clean UI cleanup | Frontend | done | Removed GrindOverlay/GrindAnimation/PostSessionScreen. XP chart day differentiation (empty days fade, active glow). Landing page copy updated. Theme switcher styled. Pomodoro bugs fixed (config apply, Keep Going reset, Simple mode, Abandon flow). Chart/history layout breakpoint raised to xl. |
 
 ## New — Phase 9B: Stylish Mode (D-043)
 

@@ -49,7 +49,7 @@ export default function SuiteAppsSection({ appUrl }: Props) {
                 </li>
                 <li className="app-feature">
                   <span className="app-feature-dot app-feature-dot-accent" />
-                  <span><strong style={{ color: 'var(--color-text)' }}>100+ skill presets</strong> across 15 categories to start instantly</span>
+                  <span><strong style={{ color: 'var(--color-text)' }}>Skill presets</strong> across 9 categories to start instantly</span>
                 </li>
                 <li className="app-feature">
                   <span className="app-feature-dot app-feature-dot-accent" />
@@ -63,8 +63,8 @@ export default function SuiteAppsSection({ appUrl }: Props) {
                   <span className="app-stat-label">Tiers</span>
                 </div>
                 <div className="app-stat">
-                  <span className="app-stat-value">100+</span>
-                  <span className="app-stat-label">Presets</span>
+                  <span className="app-stat-value">9</span>
+                  <span className="app-stat-label">Categories</span>
                 </div>
                 <div className="app-stat">
                   <span className="app-stat-value">10</span>

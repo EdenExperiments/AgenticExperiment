@@ -17,10 +17,12 @@ function IconGate() {
     </svg>
   )
 }
-function IconPresets() {
+function IconTimer() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18" />
+      <circle cx="12" cy="13" r="8" />
+      <path d="M12 9v4l2.5 2.5" />
+      <path d="M5 3l1.5 1.5M19 3l-1.5 1.5M12 2v3" />
     </svg>
   )
 }
@@ -48,9 +50,9 @@ const features = [
     delay: 100,
   },
   {
-    icon: <IconPresets />,
-    name: 'Skill Presets',
-    desc: 'Over 100 pre-built skill templates across 15 categories — fitness, music, languages, tech, cooking, and more. Start a skill in seconds with sensible defaults.',
+    icon: <IconTimer />,
+    name: 'Focus Sessions',
+    desc: 'Built-in Pomodoro timer with configurable work and break intervals, or a simple count-up timer. Per-theme immersive visuals keep you in the zone. End each session with optional reflections.',
     delay: 150,
   },
   {

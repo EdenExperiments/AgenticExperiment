@@ -3,7 +3,7 @@
 > Built from `style-guide/`, `page-guides/`, and `Design_Discussion.md`.
 > Each phase is independently shippable.
 
-Last updated: 2026-03-23 (split Phase 9 into 9A Clean / 9B Stylish, added D-043 mode infrastructure)
+Last updated: 2026-03-25 (Phase 9A complete, Pomodoro bug fixes, landing page copy updates)
 
 ---
 
@@ -20,7 +20,7 @@ Last updated: 2026-03-23 (split Phase 9 into 9A Clean / 9B Stylish, added D-043 
 | 6 | Skill Create Overhaul | Preset/Custom split, Arbiter AI dialogue, 2-step flow, gate auto-clear | ✓ Done |
 | 7 | Auth & Landing | Social auth buttons, free trial messaging, feature preview on register | ✓ Done |
 | 8 | Immersion Features | Audio, narrative copy, session visual effects | Remaining |
-| 9A | Clean UI Polish | Dead code cleanup, XP chart, basic landing page | Remaining |
+| 9A | Clean UI Polish | Dead code cleanup, XP chart, basic landing page | ✓ Done |
 | 9B | Stylish Mode | D-043 mode infrastructure + full atmospheric vision per theme | Remaining |
 
 ---
@@ -85,17 +85,22 @@ Social auth buttons (Google/GitHub/Apple) — UI shipped, Supabase provider conf
 ## Phase 9A — Clean UI Polish
 
 > **Goal:** Finish the Clean UI to a shippable standard. Dead code cleanup, minor visual improvements, basic landing page. Clean is the default mode — functional, accessible, theme-aware but not atmospheric.
-> **Status:** Remaining. Small scope — can be done quickly.
+> **Status:** ✓ Done.
 
-| ID | Item | Type | Area | Notes |
-|----|------|------|------|-------|
-| P9A-1 | Remove deprecated session components | Frontend | `packages/ui` | GrindOverlay, GrindAnimation, PostSessionScreen — still imported in `/skills/[id]/page.tsx` and exported from index.ts. Replace with navigation to `/skills/[id]/session`. |
-| P9A-2 | Audit edit route | Frontend | `/skills/[id]/edit` | **Already confirmed:** redirect to skill detail. Fine to keep. ✓ |
-| P9A-3 | XP chart day differentiation | Frontend | `/skills/[id]` | "Empty days fade; active days glow." Currently no visual distinction between zero and non-zero days in the bar chart. |
-| P9A-4 | Landing page audit | Research | `apps/landing/` | Confirm current state. Currently `/` redirects to `/login` or `/dashboard`. |
-| P9A-5 | Basic functional landing page | Frontend | Landing | Clean, informative page explaining what LifeQuest is. Not cinematic — just clear and professional. Works for all three themes via tokens. |
+| ID | Item | Type | Area | Status | Notes |
+|----|------|------|------|--------|-------|
+| P9A-1 | Remove deprecated session components | Frontend | `packages/ui` | ✓ Done | GrindOverlay, GrindAnimation, PostSessionScreen removed. Dead state/handlers stripped from skill detail (~80 lines). |
+| P9A-2 | Audit edit route | Frontend | `/skills/[id]/edit` | ✓ Done | Confirmed: redirect to skill detail. Fine to keep. |
+| P9A-3 | XP chart day differentiation | Frontend | `/skills/[id]` | ✓ Done | Empty days show faded 2px baseline (15% opacity). Active days get stronger glow. Labels repositioned with absolute positioning. |
+| P9A-4 | Landing page audit | Research | `apps/landing/` | ✓ Done | Full landing page already existed. Copy updated for accuracy (9 categories, Focus Sessions card, softened preset numbers). |
+| P9A-5 | Basic functional landing page | Frontend | Landing | ✓ Done | Theme switcher styled with label ("Preview the in-app experience"). Copy reflects shipped features. |
 
-**Exit Criteria:** No dead code in exports. XP chart visually distinguishes active vs inactive days. A functional landing page exists for unauthenticated users.
+**Additional fixes shipped during Phase 9A:**
+- Pomodoro timer: fixed config not applying (stale closure), timer reset on "Keep Going", added Simple timer mode (count-up), Abandon now exits directly
+- Minimal breathing animation: bypassed motion-scale (was 0.3× = 1.2s instead of intended 4s)
+- Skill detail: chart/history grid breakpoint raised to `xl` (1280px) — stacks below, side-by-side above
+
+**Exit Criteria:** ✓ All met. No dead code in exports. XP chart distinguishes active vs inactive days. Functional landing page exists.
 
 ---
 
@@ -148,12 +153,11 @@ Only activates in Stylish mode. Clean mode gets the basic landing from P9A-5.
 
 ```
 Phase 0–7 ✓ (all complete)
-    ├──→ Phase 8: Immersion (audio, narrative, session effects)
-    ├──→ Phase 9A: Clean UI Polish (cleanup, XP chart, basic landing)
-    └──→ Phase 9B: Stylish Mode (D-043 infrastructure + atmospheric treatments)
+    ├──→ Phase 9A ✓ (Clean UI Polish — done)
+    ├──→ Phase 8: Immersion (audio, narrative, session effects) — deferred
+    └──→ Phase 9B: Stylish Mode (D-043 infrastructure + atmospheric treatments) — next
 
-Phase 8, 9A, and 9B are all independent — can run in any order.
-9A before 9B recommended (clean up before adding layers).
+Phase 8 and 9B are independent — can run in either order.
 ```
 
-**Recommended order:** 9A (quick cleanup) → 9B (big visual pass) → 8 (immersion/audio on top).
+**Recommended next:** 9B (Stylish Mode — the big visual pass) → 8 (immersion/audio on top).

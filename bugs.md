@@ -1,3 +1,3 @@
-# bugs
+# Bugs / Testing Notes
 
-- No clean way to leave the skills/new page.
+No open bugs.

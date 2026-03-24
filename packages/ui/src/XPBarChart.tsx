@@ -120,21 +120,27 @@ export function XPBarChart({ data, tierColor }: XPBarChartProps) {
       </div>
 
       {/* X-axis labels row */}
-      <div className="flex gap-[3px] mt-2">
-        {data.map((entry, i) => (
-          <div
-            key={entry.date}
-            data-testid="xp-chart-label"
-            className="flex-1 text-center overflow-hidden"
-            style={{
-              fontSize: '10px',
-              color: 'var(--color-muted)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {i % stride === 0 ? formatLabel(entry.date) : ''}
-          </div>
-        ))}
+      <div className="relative mt-2" style={{ height: '16px' }}>
+        {data.map((entry, i) => {
+          if (i % stride !== 0) return null
+          const leftPct = ((i + 0.5) / data.length) * 100
+          return (
+            <span
+              key={entry.date}
+              data-testid="xp-chart-label"
+              className="absolute"
+              style={{
+                left: `${leftPct}%`,
+                transform: 'translateX(-50%)',
+                fontSize: '10px',
+                color: 'var(--color-muted)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {formatLabel(entry.date)}
+            </span>
+          )
+        })}
       </div>
     </div>
   )

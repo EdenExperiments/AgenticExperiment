@@ -73,6 +73,9 @@ export default function HeroSection({ appUrl }: Props) {
         </div>
 
         <div className="hero-theme-switcher">
+          <p className="hero-theme-label">
+            Preview the in-app experience
+          </p>
           <ThemeSwitcher />
         </div>
       </div>

@@ -2,8 +2,8 @@ import ScrollReveal from './ScrollReveal'
 
 const highlights = [
   { value: '11', label: 'Progression Tiers' },
-  { value: '100+', label: 'Skill Presets' },
-  { value: '15', label: 'Categories' },
+  { value: '200', label: 'Max Level' },
+  { value: '9', label: 'Categories' },
   { value: '10', label: 'Gates per Skill' },
 ]
 
@@ -31,7 +31,7 @@ export default function SocialProofSection() {
               <span className="theme-copy theme-copy-minimal">
                 Real progression based on logged effort, not streaks or points.
                 Calibrated starting levels so you never begin at zero when you
-                shouldn&apos;t. Over 100 skill presets across 15 categories, ready to go.
+                shouldn&apos;t. Skill presets across 9 categories, ready to go.
               </span>
               <span className="theme-copy theme-copy-retro">
                 Every quest starts with a single step. RpgTracker was built by
