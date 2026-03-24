@@ -1,6 +1,6 @@
 # Theme Foundation — Spec
 
-**Status:** DRAFT
+**Status:** SHIPPED
 **Feature:** F-023 (Three-theme system) — Phase 0
 **Type:** visual
 **Date:** 2026-03-22

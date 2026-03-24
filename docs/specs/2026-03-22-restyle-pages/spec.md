@@ -1,6 +1,6 @@
 # Restyle Existing Pages — Spec
 
-**Status:** DRAFT
+**Status:** SHIPPED
 **Feature:** F-023 (Three-theme system) — Phase 1
 **Type:** visual
 **Date:** 2026-03-22

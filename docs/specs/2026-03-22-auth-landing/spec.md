@@ -1,6 +1,6 @@
 # Spec: Phase 7 — Auth & Landing Restyle
 
-Status: APPROVED
+Status: SHIPPED
 Type: mixed (logic: social auth; visual: landing restyle + auth restyle)
 Date: 2026-03-22
 Roadmap: P7-1 through P7-8

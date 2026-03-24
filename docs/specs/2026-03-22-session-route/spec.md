@@ -1,6 +1,6 @@
 # Spec: Session Route (Phase 2)
 
-**Status:** APPROVED
+**Status:** SHIPPED
 **Type:** mixed (logic + visual)
 **Date:** 2026-03-22
 **Roadmap:** P2-1 through P2-7

@@ -1,6 +1,6 @@
 # Spec: Skills — Training Sessions, Progress Visualisation & Gate Mastery
 
-**Status:** APPROVED
+**Status:** SHIPPED
 **Date:** 2026-03-21
 **Feature slug:** `skills-training-progress-gates`
 **Spec author:** Orchestrator

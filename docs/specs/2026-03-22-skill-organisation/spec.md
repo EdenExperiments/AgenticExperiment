@@ -1,6 +1,6 @@
 # Spec: Skill Organisation (Phase 3)
 
-**Status:** DRAFT
+**Status:** SHIPPED
 **Date:** 2026-03-22
 **Work Type:** mixed (logic: backend schema/API; visual: frontend filters/display)
 **Feature Tracker:** F-032 (categories/tags), F-033 (favourites/pinning)

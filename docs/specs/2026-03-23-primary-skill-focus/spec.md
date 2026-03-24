@@ -1,6 +1,6 @@
 # Spec: Primary Skill Focus + Quick Session (Phase 4)
 
-**Status:** APPROVED
+**Status:** SHIPPED
 **Features:** F-034 (Primary Skill Focus / Next Quest), F-035 (Quick Session from Dashboard)
 **Work type:** mixed (logic: pin API + algorithm; visual: focus card + session button)
 **Date:** 2026-03-23

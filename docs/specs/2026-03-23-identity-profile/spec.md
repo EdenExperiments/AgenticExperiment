@@ -1,6 +1,6 @@
 # Spec: Identity & Profile (Phase 5)
 
-**Status:** APPROVED
+**Status:** SHIPPED
 **Features:** F-036 (Avatar system), F-037 (Account stats aggregation)
 **Work type:** mixed (logic: avatar upload API + stats aggregation API + schema; visual: Player Card, default avatars, avatar upload UI, theme picker upgrade)
 **Date:** 2026-03-23

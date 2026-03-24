@@ -1,6 +1,6 @@
 # Spec: Skill Create Overhaul (Phase 6)
 
-**Status:** DRAFT
+**Status:** SHIPPED
 **Features:** F-038 (Skill create overhaul — Preset/Custom/Arbiter)
 **Work type:** visual
 **Date:** 2026-03-23
