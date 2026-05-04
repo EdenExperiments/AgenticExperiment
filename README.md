@@ -50,14 +50,18 @@ Each app runs on its own port. The Next.js apps proxy API requests to the Go ser
 ## Tests
 
 ```bash
-# Frontend (Vitest + React Testing Library)
+# Install JS dependencies first if needed
+pnpm install
+
+# JS workspace build and test checks (matches CI)
+pnpm build
 pnpm test
 
 # Go API
 cd apps/api && go test ./...
 ```
 
-78 tests total — all green.
+GitHub Actions runs the same practical checks on pull requests to `main` and pushes to `main` or `cursor/**`: `pnpm build`, `pnpm test`, and `go test ./...` in `apps/api`.
 
 ## Project Structure
 
