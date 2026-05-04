@@ -98,6 +98,19 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Delete("/account/api-key", keyHandler.HandleDeleteAPIKey)
 
 		r.Post("/auth/signout", authHandler.HandlePostSignout)
+
+		goalHandler := handlers.NewGoalHandler(db)
+		r.Post("/goals", goalHandler.HandlePostGoal)
+		r.Get("/goals", goalHandler.HandleGetGoals)
+		r.Get("/goals/{id}", goalHandler.HandleGetGoal)
+		r.Put("/goals/{id}", goalHandler.HandlePutGoal)
+		r.Delete("/goals/{id}", goalHandler.HandleDeleteGoal)
+		r.Post("/goals/{id}/milestones", goalHandler.HandlePostMilestone)
+		r.Get("/goals/{id}/milestones", goalHandler.HandleGetMilestones)
+		r.Put("/goals/{id}/milestones/{mid}", goalHandler.HandlePutMilestone)
+		r.Delete("/goals/{id}/milestones/{mid}", goalHandler.HandleDeleteMilestone)
+		r.Post("/goals/{id}/checkins", goalHandler.HandlePostCheckin)
+		r.Get("/goals/{id}/checkins", goalHandler.HandleGetCheckins)
 	})
 
 	httpServer := &http.Server{
