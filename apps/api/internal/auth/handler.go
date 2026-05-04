@@ -27,6 +27,13 @@ func NewAuthHandler(supabaseProjectURL, supabaseAnonKey string) *AuthHandler {
 	}
 }
 
+// SetHTTPClientTimeout overrides the internal HTTP client timeout.
+// Intended for testing only — allows tests to point at httptest servers
+// without waiting for the production 15-second timeout.
+func (h *AuthHandler) SetHTTPClientTimeout(d time.Duration) {
+	h.httpClient = &http.Client{Timeout: d}
+}
+
 // loginRequest is the JSON body sent to the Supabase token endpoint.
 type loginRequest struct {
 	Email    string `json:"email"`
