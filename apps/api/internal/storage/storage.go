@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 )
+
+// storageClientTimeout is the per-request deadline for Supabase Storage HTTP calls.
+const storageClientTimeout = 30 * time.Second
 
 // SupabaseStorageClient uploads and removes avatar files using the Supabase Storage REST API.
 // It satisfies the handlers.StorageClient interface.
@@ -22,7 +26,7 @@ func NewSupabaseStorageClient(supabaseURL, serviceRoleKey string) *SupabaseStora
 	return &SupabaseStorageClient{
 		supabaseURL:    supabaseURL,
 		serviceRoleKey: serviceRoleKey,
-		httpClient:     &http.Client{},
+		httpClient:     &http.Client{Timeout: storageClientTimeout},
 	}
 }
 
