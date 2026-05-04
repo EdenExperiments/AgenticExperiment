@@ -239,6 +239,26 @@ export function getAccountStats(): Promise<AccountStats> {
   return request<AccountStats>('/api/v1/account/stats')
 }
 
+// Password change
+export function changePassword(data: {
+  current_password: string
+  new_password: string
+  confirm_new_password?: string
+}): Promise<{ status: string }> {
+  const entries: [string, string][] = [
+    ['current_password', data.current_password],
+    ['new_password', data.new_password],
+  ]
+  if (data.confirm_new_password !== undefined) {
+    entries.push(['confirm_new_password', data.confirm_new_password])
+  }
+  return request<{ status: string }>('/api/v1/account/password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(entries).toString(),
+  })
+}
+
 // Activity
 export function getActivity(limit?: number, skillId?: string): Promise<ActivityEvent[]> {
   const params = new URLSearchParams()
