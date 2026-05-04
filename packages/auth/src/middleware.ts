@@ -1,6 +1,7 @@
 import { createServerClient, type CookieMethodsServer } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
 import { type Theme } from '@rpgtracker/ui'
+import { getSupabaseUrl, getSupabaseAnonKey } from './env'
 
 type CookieToSet = Parameters<NonNullable<CookieMethodsServer['setAll']>>[0][number]
 
@@ -23,8 +24,8 @@ export function createAuthMiddleware(options: MiddlewareOptions) {
     const response = NextResponse.next({ request })
 
     const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
+      getSupabaseUrl(),
+      getSupabaseAnonKey(),
       {
         cookies: {
           getAll() { return request.cookies.getAll() },
