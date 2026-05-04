@@ -174,3 +174,87 @@ export interface ActivityEvent {
   log_note: string
   created_at: string
 }
+
+// Goals
+
+export type GoalStatus = 'active' | 'completed' | 'abandoned'
+
+export interface Goal {
+  id: string
+  user_id: string
+  skill_id: string | null
+  title: string
+  description: string | null
+  status: GoalStatus
+  target_date: string | null
+  current_value: number | null
+  target_value: number | null
+  unit: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Milestone {
+  id: string
+  goal_id: string
+  title: string
+  description: string | null
+  position: number
+  is_done: boolean
+  due_date: string | null
+  done_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface CheckIn {
+  id: string
+  goal_id: string
+  note: string
+  value: number | null
+  checked_in_at: string
+  created_at: string
+}
+
+export interface CreateGoalRequest {
+  title: string
+  description?: string
+  skill_id?: string
+  status?: GoalStatus
+  target_date?: string
+  current_value?: number
+  target_value?: number
+  unit?: string
+}
+
+export interface UpdateGoalRequest {
+  title?: string
+  description?: string
+  skill_id?: string | null
+  status?: GoalStatus
+  target_date?: string | null
+  current_value?: number | null
+  target_value?: number | null
+  unit?: string | null
+}
+
+export interface CreateMilestoneRequest {
+  title: string
+  description?: string
+  position?: number
+  due_date?: string
+}
+
+export interface UpdateMilestoneRequest {
+  title?: string
+  description?: string
+  position?: number
+  is_done?: boolean
+  due_date?: string | null
+}
+
+export interface CreateCheckInRequest {
+  note: string
+  value?: number
+  checked_in_at?: string
+}
