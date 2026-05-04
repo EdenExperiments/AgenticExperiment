@@ -3,7 +3,6 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 	"time"
@@ -128,9 +127,11 @@ func (h *AuthHandler) HandlePostRegister(w http.ResponseWriter, r *http.Request)
 	resp, err := h.httpClient.Do(req)
 	if err != nil || resp.StatusCode != http.StatusOK {
 		if resp != nil {
-			body, _ := io.ReadAll(resp.Body)
+			statusCode := resp.StatusCode
 			resp.Body.Close()
-			log.Printf("supabase signup error: status=%d body=%s", resp.StatusCode, body)
+			log.Printf("auth: supabase signup returned non-200 status: %d", statusCode)
+		} else {
+			log.Printf("auth: supabase signup request failed: %v", err)
 		}
 		api.RespondError(w, http.StatusUnprocessableEntity, "registration failed")
 		return
@@ -198,7 +199,18 @@ func (h *AuthHandler) HandlePostPasswordChange(w http.ResponseWriter, r *http.Re
 	newPassword := r.FormValue("new_password")
 	confirmNewPassword := r.FormValue("confirm_new_password")
 
-	if newPassword != confirmNewPassword {
+	if currentPassword == "" {
+		api.RespondError(w, http.StatusUnprocessableEntity, "current_password is required")
+		return
+	}
+
+	if len(newPassword) < 8 {
+		api.RespondError(w, http.StatusUnprocessableEntity, "new_password must be at least 8 characters")
+		return
+	}
+
+	// confirm_new_password is optional; when provided it must match.
+	if confirmNewPassword != "" && newPassword != confirmNewPassword {
 		api.RespondError(w, http.StatusUnprocessableEntity, "new passwords do not match")
 		return
 	}
