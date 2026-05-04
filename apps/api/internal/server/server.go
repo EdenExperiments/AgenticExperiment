@@ -98,6 +98,8 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Delete("/account/api-key", keyHandler.HandleDeleteAPIKey)
 
 		r.Post("/auth/signout", authHandler.HandlePostSignout)
+
+		r.Post("/account/password", authHandler.HandlePostPasswordChange)
 	})
 
 	httpServer := &http.Server{
