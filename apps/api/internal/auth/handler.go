@@ -74,7 +74,7 @@ func (h *AuthHandler) HandlePostLogin(w http.ResponseWriter, r *http.Request) {
 		Secure:   secure,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
-		MaxAge:   3600, // 1 hour
+		MaxAge:   3600,
 	})
 	http.SetCookie(w, &http.Cookie{
 		Name:     "refresh_token",
@@ -83,7 +83,7 @@ func (h *AuthHandler) HandlePostLogin(w http.ResponseWriter, r *http.Request) {
 		Secure:   secure,
 		SameSite: http.SameSiteLaxMode,
 		Path:     "/",
-		MaxAge:   60 * 60 * 24 * 30, // 30 days
+		MaxAge:   60 * 60 * 24 * 30,
 	})
 
 	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
