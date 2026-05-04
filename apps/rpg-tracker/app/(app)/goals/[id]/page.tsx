@@ -13,8 +13,9 @@ import {
   deleteMilestone,
   createCheckIn,
   updateGoal,
+  getGoalForecast,
 } from '@rpgtracker/api-client'
-import type { Goal, GoalStatus, Milestone, CheckIn } from '@rpgtracker/api-client'
+import type { Goal, GoalStatus, Milestone, CheckIn, GoalForecast, TrackState } from '@rpgtracker/api-client'
 
 function formatDate(iso: string | null): string {
   if (!iso) return ''
@@ -332,6 +333,183 @@ function CheckInCard({ checkIn, unit }: { checkIn: CheckIn; unit: string | null 
   )
 }
 
+const TRACK_STATE_CONFIG: Record<TrackState, { label: string; color: string; icon: string }> = {
+  on_track: { label: 'On Track', color: 'var(--color-success, #22c55e)', icon: '✓' },
+  at_risk: { label: 'At Risk', color: 'var(--color-warning, #f59e0b)', icon: '⚠' },
+  behind: { label: 'Behind', color: 'var(--color-error, #ef4444)', icon: '↓' },
+  complete: { label: 'Complete', color: 'var(--color-success, #22c55e)', icon: '★' },
+  unknown: { label: 'Not enough data', color: 'var(--color-muted)', icon: '?' },
+}
+
+function GoalForecastSection({ goalId }: { goalId: string }) {
+  const { data: forecast, isLoading, isError } = useQuery<GoalForecast>({
+    queryKey: ['forecast', goalId],
+    queryFn: () => getGoalForecast(goalId),
+    staleTime: 5 * 60 * 1000,
+  })
+
+  if (isLoading) {
+    return (
+      <div
+        className="rounded-xl p-4 animate-pulse"
+        style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}
+        aria-label="Loading forecast"
+        aria-busy="true"
+      >
+        <div className="h-4 w-24 rounded mb-3" style={{ background: 'var(--color-surface)' }} />
+        <div className="h-8 w-32 rounded" style={{ background: 'var(--color-surface)' }} />
+      </div>
+    )
+  }
+
+  if (isError || !forecast) {
+    return (
+      <div
+        className="rounded-xl p-4 text-sm"
+        style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)', color: 'var(--color-muted)' }}
+        role="status"
+      >
+        Forecast unavailable — check back after logging more check-ins.
+      </div>
+    )
+  }
+
+  const config = TRACK_STATE_CONFIG[forecast.track_state] ?? TRACK_STATE_CONFIG.unknown
+  const confidencePct = Math.round(forecast.confidence_score * 100)
+  const driftAbs = Math.abs(forecast.drift_pct)
+  const driftLabel =
+    forecast.drift_direction === 'ahead'
+      ? `${driftAbs}% ahead`
+      : forecast.drift_direction === 'behind'
+      ? `${driftAbs}% behind`
+      : 'On pace'
+
+  return (
+    <div
+      className="rounded-xl p-4 space-y-4"
+      style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}
+      aria-label="Weekly review"
+    >
+      <div className="flex items-center justify-between">
+        <h2
+          className="text-sm font-semibold uppercase tracking-wider"
+          style={{ color: 'var(--color-muted)', fontFamily: 'var(--font-display)' }}
+        >
+          Weekly Review
+        </h2>
+        {forecast.days_remaining > 0 && (
+          <span className="text-xs" style={{ color: 'var(--color-muted)' }}>
+            {forecast.days_remaining}d remaining
+          </span>
+        )}
+      </div>
+
+      {/* Track state */}
+      <div className="flex items-center gap-3">
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center text-base font-bold shrink-0"
+          style={{ background: config.color, color: '#fff' }}
+          aria-hidden="true"
+        >
+          {config.icon}
+        </div>
+        <div>
+          <p
+            className="font-semibold text-base"
+            style={{ color: config.color, fontFamily: 'var(--font-display)' }}
+            data-testid="track-state-label"
+          >
+            {config.label}
+          </p>
+          <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+            {driftLabel} · {confidencePct}% confidence
+          </p>
+        </div>
+      </div>
+
+      {/* Progress comparison */}
+      <div className="space-y-2">
+        <div className="flex justify-between text-xs" style={{ color: 'var(--color-muted)' }}>
+          <span>Expected: {Math.round(forecast.expected_progress)}%</span>
+          <span>Actual: {Math.round(forecast.actual_progress)}%</span>
+        </div>
+        <div
+          className="relative h-2 rounded-full overflow-hidden"
+          style={{ background: 'var(--color-surface)' }}
+          role="img"
+          aria-label={`Expected ${Math.round(forecast.expected_progress)}% actual ${Math.round(forecast.actual_progress)}%`}
+        >
+          {/* Expected marker */}
+          <div
+            className="absolute top-0 bottom-0 w-0.5 rounded"
+            style={{
+              left: `${Math.min(100, forecast.expected_progress)}%`,
+              background: 'var(--color-muted)',
+            }}
+            aria-hidden="true"
+          />
+          {/* Actual progress */}
+          <div
+            className="h-full rounded-full transition-all"
+            style={{ width: `${Math.min(100, forecast.actual_progress)}%`, background: config.color }}
+          />
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <div>
+          <p className="text-base font-bold" style={{ color: 'var(--color-text)' }}>
+            {forecast.checkin_count}
+          </p>
+          <p className="text-[10px]" style={{ color: 'var(--color-muted)' }}>check-ins</p>
+        </div>
+        <div>
+          <p className="text-base font-bold" style={{ color: 'var(--color-text)' }}>
+            {Math.round(forecast.milestone_done_ratio * 100)}%
+          </p>
+          <p className="text-[10px]" style={{ color: 'var(--color-muted)' }}>milestones done</p>
+        </div>
+        <div>
+          <p className="text-base font-bold" style={{ color: 'var(--color-text)' }}>
+            {confidencePct}%
+          </p>
+          <p className="text-[10px]" style={{ color: 'var(--color-muted)' }}>confidence</p>
+        </div>
+      </div>
+
+      {/* Recommendations */}
+      {(forecast.recommend_checkin || forecast.recommend_review || forecast.recommend_stretch) && (
+        <div className="space-y-1.5 pt-1">
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>
+            Recommendations
+          </p>
+          <ul className="space-y-1" aria-label="AI recommendations">
+            {forecast.recommend_checkin && (
+              <li className="text-sm flex items-start gap-2" style={{ color: 'var(--color-text-secondary)' }}>
+                <span aria-hidden="true" style={{ color: 'var(--color-accent)' }}>→</span>
+                Log a check-in to keep your streak going.
+              </li>
+            )}
+            {forecast.recommend_review && (
+              <li className="text-sm flex items-start gap-2" style={{ color: 'var(--color-text-secondary)' }}>
+                <span aria-hidden="true" style={{ color: 'var(--color-accent)' }}>→</span>
+                Review your milestones — you may need to adjust the plan.
+              </li>
+            )}
+            {forecast.recommend_stretch && (
+              <li className="text-sm flex items-start gap-2" style={{ color: 'var(--color-text-secondary)' }}>
+                <span aria-hidden="true" style={{ color: 'var(--color-accent)' }}>→</span>
+                You&apos;re ahead of pace — consider stretching your goal.
+              </li>
+            )}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function GoalDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
@@ -580,6 +758,9 @@ export default function GoalDetailPage() {
           </button>
         )}
       </div>
+
+      {/* Forecast / Weekly Review */}
+      {goal.status === 'active' && <GoalForecastSection goalId={id} />}
 
       {/* Check-ins section */}
       <div className="space-y-3">

@@ -258,3 +258,50 @@ export interface CreateCheckInRequest {
   value?: number
   checked_in_at?: string
 }
+
+// AI Goal Planner (T12)
+
+export interface GoalPlanMilestone {
+  title: string
+  description?: string
+  due_date?: string
+}
+
+export interface GoalPlan {
+  objective: string
+  milestones: GoalPlanMilestone[]
+  weekly_cadence: string[]
+  risks: string[]
+  fallback_plan: string
+}
+
+export interface PlanGoalRequest {
+  goal_statement: string
+  deadline?: string
+  context?: string
+}
+
+export interface PlanGoalResponse {
+  plan: GoalPlan
+  degraded_response: boolean
+}
+
+// Goal Forecast (T13)
+
+export type TrackState = 'on_track' | 'at_risk' | 'behind' | 'complete' | 'unknown'
+export type DriftDirection = 'ahead' | 'behind' | 'neutral'
+
+export interface GoalForecast {
+  track_state: TrackState
+  confidence_score: number
+  drift_pct: number
+  drift_direction: DriftDirection
+  expected_progress: number
+  actual_progress: number
+  milestone_done_ratio: number
+  checkin_count: number
+  days_remaining: number
+  recommend_checkin: boolean
+  recommend_review: boolean
+  recommend_stretch: boolean
+}

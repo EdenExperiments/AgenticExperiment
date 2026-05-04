@@ -1,4 +1,4 @@
-import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest } from './types'
+import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast } from './types'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -329,4 +329,17 @@ export function createCheckIn(goalId: string, data: CreateCheckInRequest): Promi
     method: 'POST',
     body: JSON.stringify(data),
   })
+}
+
+// AI Goal Planner (T12)
+export function planGoal(data: PlanGoalRequest): Promise<PlanGoalResponse> {
+  return request<PlanGoalResponse>('/api/v1/goals/plan', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+// Goal Forecast (T13)
+export function getGoalForecast(goalId: string): Promise<GoalForecast> {
+  return request<GoalForecast>(`/api/v1/goals/${goalId}/forecast`)
 }
