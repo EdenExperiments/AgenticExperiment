@@ -5,12 +5,14 @@ import AiGoalWizardPage from '../(app)/goals/ai/new/page'
 const mockPlanGoal = vi.fn()
 const mockCreateGoal = vi.fn()
 const mockCreateMilestone = vi.fn()
+const mockGetAIEntitlement = vi.fn()
 const mockPush = vi.fn()
 
 vi.mock('@rpgtracker/api-client', () => ({
   planGoal: (...args: unknown[]) => mockPlanGoal(...args),
   createGoal: (...args: unknown[]) => mockCreateGoal(...args),
   createMilestone: (...args: unknown[]) => mockCreateMilestone(...args),
+  getAIEntitlement: (...args: unknown[]) => mockGetAIEntitlement(...args),
 }))
 
 vi.mock('next/navigation', () => ({
@@ -45,6 +47,7 @@ function makePlanResponse(overrides = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'api_key_set' })
   mockPlanGoal.mockResolvedValue(makePlanResponse())
   mockCreateGoal.mockResolvedValue({
     id: 'new-goal-id',

@@ -4,11 +4,13 @@ import GoalsPage from '../(app)/goals/page'
 
 const mockListGoals = vi.fn()
 const mockDeleteGoal = vi.fn()
+const mockGetAIEntitlement = vi.fn()
 const mockPush = vi.fn()
 
 vi.mock('@rpgtracker/api-client', () => ({
   listGoals: (...args: unknown[]) => mockListGoals(...args),
   deleteGoal: (...args: unknown[]) => mockDeleteGoal(...args),
+  getAIEntitlement: (...args: unknown[]) => mockGetAIEntitlement(...args),
 }))
 
 vi.mock('next/navigation', () => ({
@@ -43,6 +45,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'api_key_set' })
   mockListGoals.mockResolvedValue([makeGoal()])
   mockDeleteGoal.mockResolvedValue(undefined)
 })

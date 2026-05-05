@@ -6,6 +6,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { planGoal, createGoal, createMilestone } from '@rpgtracker/api-client'
 import type { PlanGoalResponse, GoalPlanMilestone } from '@rpgtracker/api-client'
+import { useAIEntitlement, isEntitlementError } from '../../../../../lib/useAIEntitlement'
+import { PaywallCTA } from '../../../../../components/PaywallCTA'
 
 type WizardStep = 'input' | 'preview' | 'accepting'
 
@@ -44,7 +46,7 @@ function DegradedBanner() {
 function AiErrorMessage({ error }: { error: Error }) {
   const msg = error.message ?? ''
 
-  if (msg.includes('402') || msg.toLowerCase().includes('no ai key') || msg.toLowerCase().includes('api key')) {
+  if (isEntitlementError(error) || msg.includes('402') || msg.toLowerCase().includes('no ai key') || msg.toLowerCase().includes('api key')) {
     return (
       <div role="alert" className="rounded-xl p-4 space-y-2" style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}>
         <p className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>AI key not configured</p>
@@ -405,6 +407,7 @@ function PreviewStep({
 export default function AiGoalWizardPage() {
   const router = useRouter()
   const qc = useQueryClient()
+  const { entitled, isLoading: entitlementLoading } = useAIEntitlement()
 
   const [step, setStep] = useState<WizardStep>('input')
   const [statement, setStatement] = useState('')
@@ -453,6 +456,48 @@ export default function AiGoalWizardPage() {
       router.push(`/goals/${goal.id}`)
     },
   })
+
+  if (!entitlementLoading && !entitled) {
+    return (
+      <div className="max-w-xl mx-auto p-4 md:p-8 space-y-6">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/goals"
+            className="text-sm"
+            style={{ color: 'var(--color-muted)' }}
+            aria-label="Back to Goals"
+          >
+            ←
+          </Link>
+          <h1
+            className="text-2xl font-bold"
+            style={{
+              fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+              color: 'var(--color-text)',
+            }}
+          >
+            AI Goal Coach
+          </h1>
+        </div>
+        <PaywallCTA
+          variant="inline"
+          title="AI Goal Coach requires an API key"
+          description="Set up your AI API key to unlock smart goal planning — describe your goal in plain language and get an actionable plan."
+          ctaLabel="Set up AI in Account"
+          ctaHref="/account"
+        />
+        <div className="text-center">
+          <Link
+            href="/goals/new"
+            className="text-sm underline"
+            style={{ color: 'var(--color-muted)' }}
+          >
+            Create a goal manually instead
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-xl mx-auto p-4 md:p-8 space-y-6">
