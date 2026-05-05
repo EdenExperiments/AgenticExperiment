@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { planGoal, createGoal, createMilestone } from '@rpgtracker/api-client'
 import type { PlanGoalResponse, GoalPlanMilestone } from '@rpgtracker/api-client'
+import { trackEvent } from '@/lib/analytics'
 
 type WizardStep = 'input' | 'preview' | 'accepting'
 
@@ -424,18 +425,26 @@ export default function AiGoalWizardPage() {
       setPlanResponse(data)
       setMilestones(data.plan.milestones.map((m) => ({ ...m, enabled: true })))
       setStep('preview')
+      trackEvent('ai_plan_generated', {
+        degraded_response: data.degraded_response,
+        has_deadline: Boolean(deadline),
+        has_context: Boolean(context.trim()),
+        milestone_count: data.plan.milestones.length,
+        weekly_cadence_count: data.plan.weekly_cadence.length,
+        risk_count: data.plan.risks.length,
+      })
     },
   })
 
   const acceptMutation = useMutation({
     mutationFn: async () => {
       if (!planResponse) throw new Error('no plan')
+      const enabledMilestones = milestones.filter((m) => m.enabled && m.title.trim())
       const goal = await createGoal({
         title: planResponse.plan.objective,
         description: statement.trim(),
         target_date: deadline || undefined,
       })
-      const enabledMilestones = milestones.filter((m) => m.enabled && m.title.trim())
       await Promise.all(
         enabledMilestones.map((m, i) =>
           createMilestone(goal.id, {
@@ -449,6 +458,27 @@ export default function AiGoalWizardPage() {
       return goal
     },
     onSuccess: (goal) => {
+      if (planResponse) {
+        const enabledMilestones = milestones.filter((m) => m.enabled && m.title.trim())
+        trackEvent('goal_created', {
+          goal_id: goal.id,
+          source: 'ai_plan',
+          has_target_date: Boolean(deadline),
+          has_linked_skill: false,
+          has_value_tracking: false,
+        })
+        trackEvent('ai_plan_accepted', {
+          goal_id: goal.id,
+          degraded_response: planResponse.degraded_response,
+          generated_milestone_count: planResponse.plan.milestones.length,
+          selected_milestone_count: enabledMilestones.length,
+          edited_milestone_count: milestones.filter((m, i) => {
+            const original = planResponse.plan.milestones[i]
+            return Boolean(m.enabled && m.title.trim() && original && m.title.trim() !== original.title.trim())
+          }).length,
+          has_deadline: Boolean(deadline),
+        })
+      }
       qc.invalidateQueries({ queryKey: ['goals'] })
       router.push(`/goals/${goal.id}`)
     },

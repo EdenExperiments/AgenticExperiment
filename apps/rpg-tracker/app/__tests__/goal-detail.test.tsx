@@ -1,10 +1,12 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import GoalDetailPage from '../(app)/goals/[id]/page'
+import { setAnalyticsDispatcher } from '@/lib/analytics'
 
 const mockGetGoal = vi.fn()
 const mockListMilestones = vi.fn()
 const mockListCheckIns = vi.fn()
+const mockGetGoalForecast = vi.fn()
 const mockCreateMilestone = vi.fn()
 const mockUpdateMilestone = vi.fn()
 const mockDeleteMilestone = vi.fn()
@@ -12,11 +14,13 @@ const mockCreateCheckIn = vi.fn()
 const mockUpdateGoal = vi.fn()
 const mockPush = vi.fn()
 const mockBack = vi.fn()
+const mockTrack = vi.fn()
 
 vi.mock('@rpgtracker/api-client', () => ({
   getGoal: (...args: unknown[]) => mockGetGoal(...args),
   listMilestones: (...args: unknown[]) => mockListMilestones(...args),
   listCheckIns: (...args: unknown[]) => mockListCheckIns(...args),
+  getGoalForecast: (...args: unknown[]) => mockGetGoalForecast(...args),
   createMilestone: (...args: unknown[]) => mockCreateMilestone(...args),
   updateMilestone: (...args: unknown[]) => mockUpdateMilestone(...args),
   deleteMilestone: (...args: unknown[]) => mockDeleteMilestone(...args),
@@ -85,6 +89,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  setAnalyticsDispatcher(mockTrack)
   mockGetGoal.mockResolvedValue(makeGoal())
   mockListMilestones.mockResolvedValue([makeMilestone()])
   mockListCheckIns.mockResolvedValue([makeCheckIn()])
@@ -93,6 +98,24 @@ beforeEach(() => {
   mockCreateMilestone.mockResolvedValue({ ...makeMilestone(), id: 'ms-new', title: 'New milestone' })
   mockCreateCheckIn.mockResolvedValue(makeCheckIn({ id: 'ci-new', note: 'New note' }))
   mockUpdateGoal.mockResolvedValue(makeGoal({ status: 'completed' }))
+  mockGetGoalForecast.mockResolvedValue({
+    track_state: 'unknown',
+    confidence_score: 0,
+    drift_pct: 0,
+    drift_direction: 'neutral',
+    expected_progress: 0,
+    actual_progress: 0,
+    milestone_done_ratio: 0,
+    checkin_count: 0,
+    days_remaining: 0,
+    recommend_checkin: false,
+    recommend_review: false,
+    recommend_stretch: false,
+  })
+})
+
+afterEach(() => {
+  setAnalyticsDispatcher(null)
 })
 
 test('renders goal title and description', async () => {
@@ -228,6 +251,68 @@ test('submits check-in and closes form', async () => {
 
   await waitFor(() => {
     expect(mockCreateCheckIn).toHaveBeenCalledWith('goal-1', expect.objectContaining({ note: 'Ran 10km today!' }))
+  })
+})
+
+test('tracks weekly check-in completion metadata', async () => {
+  render(<GoalDetailPage />, { wrapper })
+  await screen.findByText('Run 100km')
+
+  fireEvent.click(screen.getByRole('button', { name: /\+ log check-in/i }))
+  fireEvent.change(screen.getByLabelText(/check-in note/i), { target: { value: 'Ran 10km today!' } })
+  fireEvent.change(screen.getByLabelText(/progress value/i), { target: { value: '30' } })
+  fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+  await waitFor(() => {
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'weekly_checkin_completed',
+        payload: {
+          goal_id: 'goal-1',
+          has_value: true,
+          note_length_bucket: 'short',
+          previous_track_state: 'unknown',
+        },
+      })
+    )
+  })
+})
+
+test('tracks off-track recovery when check-in follows behind forecast', async () => {
+  mockGetGoalForecast.mockResolvedValue({
+    track_state: 'behind',
+    confidence_score: 0.7,
+    drift_pct: 20,
+    drift_direction: 'behind',
+    expected_progress: 70,
+    actual_progress: 50,
+    milestone_done_ratio: 0.2,
+    checkin_count: 3,
+    days_remaining: 30,
+    recommend_checkin: true,
+    recommend_review: true,
+    recommend_stretch: false,
+  })
+
+  render(<GoalDetailPage />, { wrapper })
+  await screen.findByText('Run 100km')
+  await screen.findByTestId('track-state-label')
+
+  fireEvent.click(screen.getByRole('button', { name: /\+ log check-in/i }))
+  fireEvent.change(screen.getByLabelText(/check-in note/i), { target: { value: 'Back on the plan today' } })
+  fireEvent.click(screen.getByRole('button', { name: /^save$/i }))
+
+  await waitFor(() => {
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'offtrack_recovered',
+        payload: {
+          goal_id: 'goal-1',
+          previous_track_state: 'behind',
+          recovery_action: 'checkin',
+        },
+      })
+    )
   })
 })
 
