@@ -17,15 +17,15 @@ const storageClientTimeout = 30 * time.Second
 // It satisfies the handlers.StorageClient interface.
 type SupabaseStorageClient struct {
 	supabaseURL    string
-	serviceRoleKey string
+	secretKey      string
 	httpClient     *http.Client
 }
 
 // NewSupabaseStorageClient creates a SupabaseStorageClient.
-func NewSupabaseStorageClient(supabaseURL, serviceRoleKey string) *SupabaseStorageClient {
+func NewSupabaseStorageClient(supabaseURL, secretKey string) *SupabaseStorageClient {
 	return &SupabaseStorageClient{
 		supabaseURL:    supabaseURL,
-		serviceRoleKey: serviceRoleKey,
+		secretKey:      secretKey,
 		httpClient:     &http.Client{Timeout: storageClientTimeout},
 	}
 }
@@ -38,7 +38,7 @@ func (c *SupabaseStorageClient) PutAvatar(ctx context.Context, userID uuid.UUID,
 	if err != nil {
 		return fmt.Errorf("storage: build PUT request: %w", err)
 	}
-	req.Header.Set("Authorization", "Bearer "+c.serviceRoleKey)
+	req.Header.Set("Authorization", "Bearer "+c.secretKey)
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("x-upsert", "true")
 
@@ -63,7 +63,7 @@ func (c *SupabaseStorageClient) DeleteAvatar(ctx context.Context, userID uuid.UU
 	if err != nil {
 		return fmt.Errorf("storage: build DELETE request: %w", err)
 	}
-	req.Header.Set("Authorization", "Bearer "+c.serviceRoleKey)
+	req.Header.Set("Authorization", "Bearer "+c.secretKey)
 
 	resp, err := c.httpClient.Do(req)
 	if err != nil {

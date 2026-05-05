@@ -13,16 +13,16 @@ import (
 // AuthHandler handles Supabase-backed authentication routes.
 type AuthHandler struct {
 	supabaseProjectURL string
-	supabaseAnonKey    string
+	supabasePublishableKey string
 	httpClient         *http.Client
 }
 
 // NewAuthHandler creates an AuthHandler configured with the given Supabase credentials.
-func NewAuthHandler(supabaseProjectURL, supabaseAnonKey string) *AuthHandler {
+func NewAuthHandler(supabaseProjectURL, supabasePublishableKey string) *AuthHandler {
 	return &AuthHandler{
-		supabaseProjectURL: supabaseProjectURL,
-		supabaseAnonKey:    supabaseAnonKey,
-		httpClient:         &http.Client{Timeout: 15 * time.Second},
+		supabaseProjectURL:    supabaseProjectURL,
+		supabasePublishableKey: supabasePublishableKey,
+		httpClient:            &http.Client{Timeout: 15 * time.Second},
 	}
 }
 
@@ -129,7 +129,7 @@ func (h *AuthHandler) HandlePostRegister(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("apikey", h.supabaseAnonKey)
+	req.Header.Set("apikey", h.supabasePublishableKey)
 
 	resp, err := h.httpClient.Do(req)
 	if err != nil || resp.StatusCode != http.StatusOK {
@@ -241,7 +241,7 @@ func (h *AuthHandler) HandlePostPasswordChange(w http.ResponseWriter, r *http.Re
 		return
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("apikey", h.supabaseAnonKey)
+	req.Header.Set("apikey", h.supabasePublishableKey)
 	req.Header.Set("Authorization", "Bearer "+tokenResp.AccessToken)
 
 	resp, err := h.httpClient.Do(req)
@@ -266,7 +266,7 @@ func (h *AuthHandler) supabaseTokenRequest(r *http.Request, email, password stri
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("apikey", h.supabaseAnonKey)
+	req.Header.Set("apikey", h.supabasePublishableKey)
 
 	resp, err := h.httpClient.Do(req)
 	if err != nil {

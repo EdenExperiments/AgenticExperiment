@@ -27,7 +27,7 @@ Environment variables required (see `internal/config/config.go`):
 |---|---|
 | `DATABASE_URL` | `postgresql://...` connection string |
 | `SUPABASE_PROJECT_URL` | e.g. `https://abcxyz.supabase.co` |
-| `SUPABASE_ANON_KEY` | Public anon key from Supabase dashboard |
+| `SUPABASE_PUBLISHABLE_KEY` | Publishable key (replaces legacy anon) |
 | `MASTER_KEY` | 32-byte hex key for AES-encrypted API keys |
 | `PORT` | HTTP port (default `8080`) |
 
