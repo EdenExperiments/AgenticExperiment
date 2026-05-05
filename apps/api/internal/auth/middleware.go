@@ -28,6 +28,10 @@ const (
 	emailKey
 )
 
+// jwksFetchTimeout is the per-request deadline for JWKS HTTP calls.
+// Supabase JWKS endpoints are typically fast; 10 s is generous.
+const jwksFetchTimeout = 10 * time.Second
+
 // jwksCache caches the fetched JWKS keys with a TTL.
 // The singleflight group ensures that concurrent re-fetch triggers (TTL expiry
 // or R-001 unknown-kid) collapse into a single in-flight HTTP request rather
@@ -35,23 +39,25 @@ const (
 // keys holds crypto.PublicKey values — either *rsa.PublicKey (RS256) or
 // *ecdsa.PublicKey (ES256/ES384/ES512) depending on the Supabase project config.
 type jwksCache struct {
-	mu        sync.RWMutex
-	keys      map[string]crypto.PublicKey // kid → public key (RSA or ECDSA)
-	fetchedAt time.Time
-	ttl       time.Duration
-	jwksURL   string
-	issuer    string
-	sf        singleflight.Group
+	mu         sync.RWMutex
+	keys       map[string]crypto.PublicKey // kid → public key (RSA or ECDSA)
+	fetchedAt  time.Time
+	ttl        time.Duration
+	jwksURL    string
+	issuer     string
+	sf         singleflight.Group
+	httpClient *http.Client // non-nil; defaults set by New* constructors
 }
 
 // NewJWTMiddleware creates a chi-compatible middleware that validates Supabase JWTs.
 // It fetches the JWKS at creation time and caches them with a 1-hour TTL.
 func NewJWTMiddleware(supabaseProjectURL string) (func(http.Handler) http.Handler, error) {
 	cache := &jwksCache{
-		keys:    make(map[string]crypto.PublicKey),
-		ttl:     time.Hour,
-		jwksURL: supabaseProjectURL + "/auth/v1/.well-known/jwks.json",
-		issuer:  supabaseProjectURL + "/auth/v1",
+		keys:       make(map[string]crypto.PublicKey),
+		ttl:        time.Hour,
+		jwksURL:    supabaseProjectURL + "/auth/v1/.well-known/jwks.json",
+		issuer:     supabaseProjectURL + "/auth/v1",
+		httpClient: &http.Client{Timeout: jwksFetchTimeout},
 	}
 	if err := cache.fetch(); err != nil {
 		return nil, fmt.Errorf("auth: initial JWKS fetch failed: %w", err)
@@ -146,7 +152,11 @@ func (c *jwksCache) getKey(kid string) crypto.PublicKey {
 // fetch retrieves the JWKS from Supabase and updates the cache.
 // Supports both RSA (kty=RSA) and EC (kty=EC) keys.
 func (c *jwksCache) fetch() error {
-	resp, err := http.Get(c.jwksURL) //nolint:noctx
+	client := c.httpClient
+	if client == nil {
+		client = &http.Client{Timeout: jwksFetchTimeout}
+	}
+	resp, err := client.Get(c.jwksURL)
 	if err != nil {
 		return fmt.Errorf("fetch JWKS: %w", err)
 	}
@@ -260,10 +270,11 @@ func extractBearerToken(r *http.Request) string {
 // On missing or invalid token it redirects to /login with 302 instead of returning 401.
 func NewSessionMiddleware(supabaseProjectURL string) (func(http.Handler) http.Handler, error) {
 	cache := &jwksCache{
-		keys:    make(map[string]crypto.PublicKey),
-		ttl:     time.Hour,
-		jwksURL: supabaseProjectURL + "/auth/v1/.well-known/jwks.json",
-		issuer:  supabaseProjectURL + "/auth/v1",
+		keys:       make(map[string]crypto.PublicKey),
+		ttl:        time.Hour,
+		jwksURL:    supabaseProjectURL + "/auth/v1/.well-known/jwks.json",
+		issuer:     supabaseProjectURL + "/auth/v1",
+		httpClient: &http.Client{Timeout: jwksFetchTimeout},
 	}
 	if err := cache.fetch(); err != nil {
 		return nil, fmt.Errorf("auth: initial JWKS fetch failed: %w", err)
