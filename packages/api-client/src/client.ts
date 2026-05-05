@@ -1,4 +1,4 @@
-import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory } from './types'
+import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast } from './types'
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -266,4 +266,80 @@ export function getActivity(limit?: number, skillId?: string): Promise<ActivityE
   if (skillId) params.set('skill_id', skillId)
   const qs = params.toString()
   return request<ActivityEvent[]>(`/api/v1/activity${qs ? `?${qs}` : ''}`)
+}
+
+// Goals
+export function listGoals(params?: { status?: GoalStatus }): Promise<Goal[]> {
+  const qs = params?.status ? `?status=${params.status}` : ''
+  return request<Goal[]>(`/api/v1/goals${qs}`)
+}
+
+export function getGoal(id: string): Promise<Goal> {
+  return request<Goal>(`/api/v1/goals/${id}`)
+}
+
+export function createGoal(data: CreateGoalRequest): Promise<Goal> {
+  return request<Goal>('/api/v1/goals', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function updateGoal(id: string, data: UpdateGoalRequest): Promise<Goal> {
+  return request<Goal>(`/api/v1/goals/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export function deleteGoal(id: string): Promise<void> {
+  return request<void>(`/api/v1/goals/${id}`, { method: 'DELETE' })
+}
+
+// Milestones
+export function listMilestones(goalId: string): Promise<Milestone[]> {
+  return request<Milestone[]>(`/api/v1/goals/${goalId}/milestones`)
+}
+
+export function createMilestone(goalId: string, data: CreateMilestoneRequest): Promise<Milestone> {
+  return request<Milestone>(`/api/v1/goals/${goalId}/milestones`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function updateMilestone(goalId: string, milestoneId: string, data: UpdateMilestoneRequest): Promise<Milestone> {
+  return request<Milestone>(`/api/v1/goals/${goalId}/milestones/${milestoneId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export function deleteMilestone(goalId: string, milestoneId: string): Promise<void> {
+  return request<void>(`/api/v1/goals/${goalId}/milestones/${milestoneId}`, { method: 'DELETE' })
+}
+
+// Check-ins
+export function listCheckIns(goalId: string): Promise<CheckIn[]> {
+  return request<CheckIn[]>(`/api/v1/goals/${goalId}/checkins`)
+}
+
+export function createCheckIn(goalId: string, data: CreateCheckInRequest): Promise<CheckIn> {
+  return request<CheckIn>(`/api/v1/goals/${goalId}/checkins`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+// AI Goal Planner (T12)
+export function planGoal(data: PlanGoalRequest): Promise<PlanGoalResponse> {
+  return request<PlanGoalResponse>('/api/v1/goals/plan', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+// Goal Forecast (T13)
+export function getGoalForecast(goalId: string): Promise<GoalForecast> {
+  return request<GoalForecast>(`/api/v1/goals/${goalId}/forecast`)
 }
