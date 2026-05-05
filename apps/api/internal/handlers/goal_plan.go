@@ -18,11 +18,19 @@ import (
 	"github.com/meden/rpgtracker/internal/planner"
 )
 
+// ─── AI service abstraction ───────────────────────────────────────────────────
+
 // PlannerAICaller is the interface the goal-planner handler uses to call an AI.
+// Using an interface keeps the handler testable without live AI calls.
 type PlannerAICaller interface {
+	// CallRaw sends system + user prompts to the AI and returns the raw text response.
+	// apiKey must never be logged by the implementation.
 	CallRaw(ctx context.Context, apiKey, systemPrompt, userPrompt string) (string, error)
 }
 
+// ─── HTTP caller (production) ─────────────────────────────────────────────────
+
+// httpPlannerCaller is the live Anthropic-backed implementation.
 type httpPlannerCaller struct {
 	client *http.Client
 }
@@ -36,10 +44,12 @@ func (c *httpPlannerCaller) CallRaw(ctx context.Context, apiKey, systemPrompt, u
 			{"role": "user", "content": userPrompt},
 		},
 	}
+
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return "", fmt.Errorf("planner: marshal: %w", err)
 	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost,
 		"https://api.anthropic.com/v1/messages", strings.NewReader(string(body)))
 	if err != nil {
@@ -74,6 +84,8 @@ func (c *httpPlannerCaller) CallRaw(ctx context.Context, apiKey, systemPrompt, u
 	return anthropicResp.Content[0].Text, nil
 }
 
+// plannerHTTPError carries the upstream HTTP status so the handler can map it to a
+// user-facing status code.
 type plannerHTTPError struct {
 	status int
 	body   string
@@ -83,9 +95,11 @@ func (e *plannerHTTPError) Error() string {
 	return fmt.Sprintf("AI returned HTTP %d", e.status)
 }
 
+// ─── Handler ──────────────────────────────────────────────────────────────────
+
 // GoalPlanHandler handles AI-powered goal planning.
 type GoalPlanHandler struct {
-	keyStore KeyStore
+	keyStore KeyStore        // reuses the existing KeyStore interface from calibrate.go
 	caller   PlannerAICaller
 }
 
@@ -102,13 +116,19 @@ func NewGoalPlanHandlerForTest(ks KeyStore, caller PlannerAICaller) *GoalPlanHan
 	return &GoalPlanHandler{keyStore: ks, caller: caller}
 }
 
+// ─── Request body ─────────────────────────────────────────────────────────────
+
 type goalPlanRequest struct {
 	GoalStatement string     `json:"goal_statement"`
 	Deadline      *time.Time `json:"deadline,omitempty"`
 	Context       string     `json:"context,omitempty"`
 }
 
-// HandlePostGoalPlan handles POST /api/v1/goals/plan.
+// ─── HandlePostGoalPlan handles POST /api/v1/goals/plan ───────────────────────
+
+// HandlePostGoalPlan converts a free-text goal statement into a structured plan
+// using the user's stored AI key. If the AI response is malformed, a safe
+// fallback plan is returned with a 200 status and a degraded_response flag.
 func (h *GoalPlanHandler) HandlePostGoalPlan(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
@@ -127,6 +147,7 @@ func (h *GoalPlanHandler) HandlePostGoalPlan(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// Retrieve the user's encrypted AI key.
 	apiKey, err := h.keyStore.GetDecryptedKey(r.Context(), userID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -164,6 +185,7 @@ func (h *GoalPlanHandler) HandlePostGoalPlan(w http.ResponseWriter, r *http.Requ
 
 	plan, parseErr := planner.ParseResponse(rawText)
 	if parseErr != nil {
+		// Safe fallback: return the degraded plan with a flag so the client can inform the user.
 		log.Printf("WARN: GoalPlan parse error user=%s: %v", userID, parseErr)
 		api.RespondJSON(w, http.StatusOK, goalPlanEnvelope{Plan: plan, DegradedResponse: true})
 		return
@@ -172,6 +194,7 @@ func (h *GoalPlanHandler) HandlePostGoalPlan(w http.ResponseWriter, r *http.Requ
 	api.RespondJSON(w, http.StatusOK, goalPlanEnvelope{Plan: plan, DegradedResponse: false})
 }
 
+// goalPlanEnvelope wraps the plan with metadata.
 type goalPlanEnvelope struct {
 	Plan             *planner.PlanResponse `json:"plan"`
 	DegradedResponse bool                  `json:"degraded_response"`

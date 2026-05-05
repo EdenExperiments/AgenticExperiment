@@ -17,6 +17,8 @@ import (
 	"github.com/meden/rpgtracker/internal/goals"
 )
 
+// ─── Store interface ──────────────────────────────────────────────────────────
+
 // GoalStore is the interface the handler uses. Allows stub injection in tests.
 type GoalStore interface {
 	CreateGoal(ctx context.Context, userID uuid.UUID, title, description string, skillID *uuid.UUID, targetDate *time.Time, currentValue, targetValue *float64, unit string, position int) (*goals.Goal, error)
@@ -33,6 +35,8 @@ type GoalStore interface {
 	CreateCheckin(ctx context.Context, userID, goalID uuid.UUID, note string, valueSnapshot *float64) (*goals.Checkin, error)
 	ListCheckins(ctx context.Context, userID, goalID uuid.UUID) ([]goals.Checkin, error)
 }
+
+// ─── DB-backed store ──────────────────────────────────────────────────────────
 
 type dbGoalStore struct{ db *pgxpool.Pool }
 
@@ -70,6 +74,8 @@ func (s *dbGoalStore) ListCheckins(ctx context.Context, userID, goalID uuid.UUID
 	return goals.ListCheckins(ctx, s.db, userID, goalID)
 }
 
+// ─── Handler ──────────────────────────────────────────────────────────────────
+
 // GoalHandler handles all goal-related HTTP endpoints.
 type GoalHandler struct{ store GoalStore }
 
@@ -83,6 +89,8 @@ func NewGoalHandlerWithStore(s GoalStore) *GoalHandler {
 	return &GoalHandler{store: s}
 }
 
+// ─── Goals CRUD ───────────────────────────────────────────────────────────────
+
 // HandlePostGoal handles POST /api/v1/goals.
 func (h *GoalHandler) HandlePostGoal(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
@@ -91,26 +99,26 @@ func (h *GoalHandler) HandlePostGoal(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var body struct {
-		Title        string     `json:"title"`
-		Description  string     `json:"description"`
-		SkillID      *uuid.UUID `json:"skill_id"`
-		TargetDate   *time.Time `json:"target_date"`
-		CurrentValue *float64   `json:"current_value"`
-		TargetValue  *float64   `json:"target_value"`
-		Unit         string     `json:"unit"`
-		Position     int        `json:"position"`
-	}
+	var body goalRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		api.RespondError(w, http.StatusBadRequest, "invalid JSON")
+		api.RespondError(w, http.StatusBadRequest, "invalid JSON body")
 		return
 	}
-	if strings.TrimSpace(body.Title) == "" {
+
+	title := strings.TrimSpace(body.Title)
+	if title == "" {
 		api.RespondError(w, http.StatusUnprocessableEntity, "title is required")
 		return
 	}
 
-	g, err := h.store.CreateGoal(r.Context(), userID, body.Title, body.Description, body.SkillID, body.TargetDate, body.CurrentValue, body.TargetValue, body.Unit, body.Position)
+	if (body.CurrentValue == nil) != (body.TargetValue == nil) {
+		api.RespondError(w, http.StatusUnprocessableEntity, goals.ErrMeasurableIncomplete.Error())
+		return
+	}
+
+	g, err := h.store.CreateGoal(r.Context(), userID, title, strings.TrimSpace(body.Description),
+		body.SkillID, body.TargetDate, body.CurrentValue, body.TargetValue,
+		strings.TrimSpace(body.Unit), body.Position)
 	if err != nil {
 		log.Printf("ERROR: CreateGoal user=%s: %v", userID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to create goal")
@@ -120,25 +128,32 @@ func (h *GoalHandler) HandlePostGoal(w http.ResponseWriter, r *http.Request) {
 }
 
 // HandleGetGoals handles GET /api/v1/goals.
+// Optional query param: ?status=active|completed|abandoned
 func (h *GoalHandler) HandleGetGoals(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
 		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
-	var status *goals.GoalStatus
+
+	var statusFilter *goals.GoalStatus
 	if s := r.URL.Query().Get("status"); s != "" {
 		gs := goals.GoalStatus(s)
 		if _, valid := goals.ValidStatuses[gs]; !valid {
 			api.RespondError(w, http.StatusUnprocessableEntity, goals.ErrInvalidStatus.Error())
 			return
 		}
-		status = &gs
+		statusFilter = &gs
 	}
-	list, err := h.store.ListGoals(r.Context(), userID, status)
+
+	list, err := h.store.ListGoals(r.Context(), userID, statusFilter)
 	if err != nil {
+		log.Printf("ERROR: ListGoals user=%s: %v", userID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to list goals")
 		return
+	}
+	if list == nil {
+		list = []goals.Goal{}
 	}
 	api.RespondJSON(w, http.StatusOK, list)
 }
@@ -161,7 +176,8 @@ func (h *GoalHandler) HandleGetGoal(w http.ResponseWriter, r *http.Request) {
 			api.RespondError(w, http.StatusNotFound, "goal not found")
 			return
 		}
-		api.RespondError(w, http.StatusInternalServerError, "failed to get goal")
+		log.Printf("ERROR: GetGoal user=%s goal=%s: %v", userID, goalID, err)
+		api.RespondError(w, http.StatusInternalServerError, "failed to fetch goal")
 		return
 	}
 	api.RespondJSON(w, http.StatusOK, g)
@@ -179,31 +195,43 @@ func (h *GoalHandler) HandlePutGoal(w http.ResponseWriter, r *http.Request) {
 		api.RespondError(w, http.StatusBadRequest, "invalid goal id")
 		return
 	}
-	var body struct {
-		Title        string           `json:"title"`
-		Description  string           `json:"description"`
-		SkillID      *uuid.UUID       `json:"skill_id"`
-		Status       goals.GoalStatus `json:"status"`
-		TargetDate   *time.Time       `json:"target_date"`
-		CurrentValue *float64         `json:"current_value"`
-		TargetValue  *float64         `json:"target_value"`
-		Unit         string           `json:"unit"`
-		Position     int              `json:"position"`
-	}
+
+	var body goalRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		api.RespondError(w, http.StatusBadRequest, "invalid JSON")
+		api.RespondError(w, http.StatusBadRequest, "invalid JSON body")
 		return
 	}
-	if strings.TrimSpace(body.Title) == "" {
+
+	title := strings.TrimSpace(body.Title)
+	if title == "" {
 		api.RespondError(w, http.StatusUnprocessableEntity, "title is required")
 		return
 	}
-	g, err := h.store.UpdateGoal(r.Context(), userID, goalID, body.Title, body.Description, body.SkillID, body.Status, body.TargetDate, body.CurrentValue, body.TargetValue, body.Unit, body.Position)
+
+	if (body.CurrentValue == nil) != (body.TargetValue == nil) {
+		api.RespondError(w, http.StatusUnprocessableEntity, goals.ErrMeasurableIncomplete.Error())
+		return
+	}
+
+	status := goals.StatusActive
+	if body.Status != "" {
+		gs := goals.GoalStatus(body.Status)
+		if _, valid := goals.ValidStatuses[gs]; !valid {
+			api.RespondError(w, http.StatusUnprocessableEntity, goals.ErrInvalidStatus.Error())
+			return
+		}
+		status = gs
+	}
+
+	g, err := h.store.UpdateGoal(r.Context(), userID, goalID, title, strings.TrimSpace(body.Description),
+		body.SkillID, status, body.TargetDate, body.CurrentValue, body.TargetValue,
+		strings.TrimSpace(body.Unit), body.Position)
 	if err != nil {
 		if errors.Is(err, goals.ErrNotFound) {
 			api.RespondError(w, http.StatusNotFound, "goal not found")
 			return
 		}
+		log.Printf("ERROR: UpdateGoal user=%s goal=%s: %v", userID, goalID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to update goal")
 		return
 	}
@@ -227,11 +255,14 @@ func (h *GoalHandler) HandleDeleteGoal(w http.ResponseWriter, r *http.Request) {
 			api.RespondError(w, http.StatusNotFound, "goal not found")
 			return
 		}
+		log.Printf("ERROR: DeleteGoal user=%s goal=%s: %v", userID, goalID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to delete goal")
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// ─── Milestones CRUD ──────────────────────────────────────────────────────────
 
 // HandlePostMilestone handles POST /api/v1/goals/{id}/milestones.
 func (h *GoalHandler) HandlePostMilestone(w http.ResponseWriter, r *http.Request) {
@@ -245,26 +276,26 @@ func (h *GoalHandler) HandlePostMilestone(w http.ResponseWriter, r *http.Request
 		api.RespondError(w, http.StatusBadRequest, "invalid goal id")
 		return
 	}
-	var body struct {
-		Title       string     `json:"title"`
-		Description string     `json:"description"`
-		Position    int        `json:"position"`
-		DueDate     *time.Time `json:"due_date"`
-	}
+
+	var body milestoneRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		api.RespondError(w, http.StatusBadRequest, "invalid JSON")
+		api.RespondError(w, http.StatusBadRequest, "invalid JSON body")
 		return
 	}
-	if strings.TrimSpace(body.Title) == "" {
+	title := strings.TrimSpace(body.Title)
+	if title == "" {
 		api.RespondError(w, http.StatusUnprocessableEntity, "title is required")
 		return
 	}
-	m, err := h.store.CreateMilestone(r.Context(), userID, goalID, body.Title, body.Description, body.Position, body.DueDate)
+
+	m, err := h.store.CreateMilestone(r.Context(), userID, goalID, title,
+		strings.TrimSpace(body.Description), body.Position, body.DueDate)
 	if err != nil {
 		if errors.Is(err, goals.ErrNotFound) {
 			api.RespondError(w, http.StatusNotFound, "goal not found")
 			return
 		}
+		log.Printf("ERROR: CreateMilestone user=%s goal=%s: %v", userID, goalID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to create milestone")
 		return
 	}
@@ -283,12 +314,20 @@ func (h *GoalHandler) HandleGetMilestones(w http.ResponseWriter, r *http.Request
 		api.RespondError(w, http.StatusBadRequest, "invalid goal id")
 		return
 	}
-	ms, err := h.store.ListMilestones(r.Context(), userID, goalID)
+	list, err := h.store.ListMilestones(r.Context(), userID, goalID)
 	if err != nil {
+		if errors.Is(err, goals.ErrNotFound) {
+			api.RespondError(w, http.StatusNotFound, "goal not found")
+			return
+		}
+		log.Printf("ERROR: ListMilestones user=%s goal=%s: %v", userID, goalID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to list milestones")
 		return
 	}
-	api.RespondJSON(w, http.StatusOK, ms)
+	if list == nil {
+		list = []goals.Milestone{}
+	}
+	api.RespondJSON(w, http.StatusOK, list)
 }
 
 // HandlePutMilestone handles PUT /api/v1/goals/{id}/milestones/{mid}.
@@ -303,23 +342,26 @@ func (h *GoalHandler) HandlePutMilestone(w http.ResponseWriter, r *http.Request)
 		api.RespondError(w, http.StatusBadRequest, "invalid milestone id")
 		return
 	}
-	var body struct {
-		Title       string     `json:"title"`
-		Description string     `json:"description"`
-		IsDone      bool       `json:"is_done"`
-		Position    int        `json:"position"`
-		DueDate     *time.Time `json:"due_date"`
-	}
+
+	var body milestoneRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		api.RespondError(w, http.StatusBadRequest, "invalid JSON")
+		api.RespondError(w, http.StatusBadRequest, "invalid JSON body")
 		return
 	}
-	m, err := h.store.UpdateMilestone(r.Context(), userID, milestoneID, body.Title, body.Description, body.IsDone, body.Position, body.DueDate)
+	title := strings.TrimSpace(body.Title)
+	if title == "" {
+		api.RespondError(w, http.StatusUnprocessableEntity, "title is required")
+		return
+	}
+
+	m, err := h.store.UpdateMilestone(r.Context(), userID, milestoneID, title,
+		strings.TrimSpace(body.Description), body.IsDone, body.Position, body.DueDate)
 	if err != nil {
 		if errors.Is(err, goals.ErrNotFound) {
 			api.RespondError(w, http.StatusNotFound, "milestone not found")
 			return
 		}
+		log.Printf("ERROR: UpdateMilestone user=%s milestone=%s: %v", userID, milestoneID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to update milestone")
 		return
 	}
@@ -343,11 +385,14 @@ func (h *GoalHandler) HandleDeleteMilestone(w http.ResponseWriter, r *http.Reque
 			api.RespondError(w, http.StatusNotFound, "milestone not found")
 			return
 		}
+		log.Printf("ERROR: DeleteMilestone user=%s milestone=%s: %v", userID, milestoneID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to delete milestone")
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)
 }
+
+// ─── Check-ins ────────────────────────────────────────────────────────────────
 
 // HandlePostCheckin handles POST /api/v1/goals/{id}/checkins.
 func (h *GoalHandler) HandlePostCheckin(w http.ResponseWriter, r *http.Request) {
@@ -361,24 +406,26 @@ func (h *GoalHandler) HandlePostCheckin(w http.ResponseWriter, r *http.Request) 
 		api.RespondError(w, http.StatusBadRequest, "invalid goal id")
 		return
 	}
-	var body struct {
-		Note          string   `json:"note"`
-		ValueSnapshot *float64 `json:"value_snapshot"`
-	}
+
+	var body checkinRequest
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		api.RespondError(w, http.StatusBadRequest, "invalid JSON")
+		api.RespondError(w, http.StatusBadRequest, "invalid JSON body")
 		return
 	}
-	if strings.TrimSpace(body.Note) == "" {
-		api.RespondError(w, http.StatusUnprocessableEntity, "note is required")
+
+	note := strings.TrimSpace(body.Note)
+	if note == "" && body.ValueSnapshot == nil {
+		api.RespondError(w, http.StatusUnprocessableEntity, "at least one of note or value_snapshot is required")
 		return
 	}
-	c, err := h.store.CreateCheckin(r.Context(), userID, goalID, body.Note, body.ValueSnapshot)
+
+	c, err := h.store.CreateCheckin(r.Context(), userID, goalID, note, body.ValueSnapshot)
 	if err != nil {
 		if errors.Is(err, goals.ErrNotFound) {
 			api.RespondError(w, http.StatusNotFound, "goal not found")
 			return
 		}
+		log.Printf("ERROR: CreateCheckin user=%s goal=%s: %v", userID, goalID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to create check-in")
 		return
 	}
@@ -397,14 +444,45 @@ func (h *GoalHandler) HandleGetCheckins(w http.ResponseWriter, r *http.Request) 
 		api.RespondError(w, http.StatusBadRequest, "invalid goal id")
 		return
 	}
-	cs, err := h.store.ListCheckins(r.Context(), userID, goalID)
+	list, err := h.store.ListCheckins(r.Context(), userID, goalID)
 	if err != nil {
 		if errors.Is(err, goals.ErrNotFound) {
 			api.RespondError(w, http.StatusNotFound, "goal not found")
 			return
 		}
+		log.Printf("ERROR: ListCheckins user=%s goal=%s: %v", userID, goalID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to list check-ins")
 		return
 	}
-	api.RespondJSON(w, http.StatusOK, cs)
+	if list == nil {
+		list = []goals.Checkin{}
+	}
+	api.RespondJSON(w, http.StatusOK, list)
+}
+
+// ─── Request body types ───────────────────────────────────────────────────────
+
+type goalRequest struct {
+	Title        string         `json:"title"`
+	Description  string         `json:"description"`
+	SkillID      *uuid.UUID     `json:"skill_id"`
+	Status       string         `json:"status"`
+	TargetDate   *time.Time     `json:"target_date"`
+	CurrentValue *float64       `json:"current_value"`
+	TargetValue  *float64       `json:"target_value"`
+	Unit         string         `json:"unit"`
+	Position     int            `json:"position"`
+}
+
+type milestoneRequest struct {
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	IsDone      bool       `json:"is_done"`
+	Position    int        `json:"position"`
+	DueDate     *time.Time `json:"due_date"`
+}
+
+type checkinRequest struct {
+	Note          string   `json:"note"`
+	ValueSnapshot *float64 `json:"value_snapshot"`
 }

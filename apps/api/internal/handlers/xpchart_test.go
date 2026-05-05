@@ -57,11 +57,12 @@ func xpChartRequest(skillID uuid.UUID, days string) *http.Request {
 // in ascending date order.
 func TestXPChartReturns30Days(t *testing.T) {
 	skillID := uuid.New()
-	// Provide only 2 days of actual data — the handler must zero-fill the rest.
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+	// Provide only 2 days of actual data within the rolling window — the handler zero-fills the rest.
 	stub := &stubXPChartStore{
 		data: map[string]int{
-			"2026-02-20": 350,
-			"2026-02-21": 150,
+			today.AddDate(0, 0, -2).Format("2006-01-02"): 350,
+			today.AddDate(0, 0, -1).Format("2006-01-02"): 150,
 		},
 	}
 	h := handlers.NewXPChartHandlerWithStore(stub)
@@ -115,10 +116,11 @@ func TestXPChartReturns30Days(t *testing.T) {
 // rather than being omitted from the response.
 func TestXPChartZeroFill(t *testing.T) {
 	skillID := uuid.New()
-	// Provide only 1 day of data — 29 days must be zero-filled.
+	today := time.Now().UTC().Truncate(24 * time.Hour)
+	// One non-zero day inside the last 30 calendar days — 29 days must be zero-filled.
 	stub := &stubXPChartStore{
 		data: map[string]int{
-			"2026-02-21": 500,
+			today.AddDate(0, 0, -10).Format("2006-01-02"): 500,
 		},
 	}
 	h := handlers.NewXPChartHandlerWithStore(stub)
