@@ -16,6 +16,8 @@ import {
   getGoalForecast,
 } from '@rpgtracker/api-client'
 import type { Goal, GoalStatus, Milestone, CheckIn, GoalForecast, TrackState } from '@rpgtracker/api-client'
+import { isEntitlementError } from '../../../../lib/useAIEntitlement'
+import { PaywallCTA } from '../../../../components/PaywallCTA'
 import { getNoteLengthBucket, trackEvent } from '@/lib/analytics'
 
 function formatDate(iso: string | null): string {
@@ -364,10 +366,11 @@ const TRACK_STATE_CONFIG: Record<TrackState, { label: string; color: string; ico
 }
 
 function GoalForecastSection({ goalId }: { goalId: string }) {
-  const { data: forecast, isLoading, isError } = useQuery<GoalForecast>({
+  const { data: forecast, isLoading, isError, error } = useQuery<GoalForecast>({
     queryKey: ['forecast', goalId],
     queryFn: () => getGoalForecast(goalId),
     staleTime: 5 * 60 * 1000,
+    retry: false,
   })
 
   if (isLoading) {
@@ -381,6 +384,19 @@ function GoalForecastSection({ goalId }: { goalId: string }) {
         <div className="h-4 w-24 rounded mb-3" style={{ background: 'var(--color-surface)' }} />
         <div className="h-8 w-32 rounded" style={{ background: 'var(--color-surface)' }} />
       </div>
+    )
+  }
+
+  if (isError && isEntitlementError(error)) {
+    return (
+      <PaywallCTA
+        variant="inline"
+        title="AI Weekly Review requires an API key"
+        description="Set up your AI API key to unlock goal forecasts and weekly coaching insights."
+        ctaLabel="Set up AI in Account"
+        ctaHref="/account"
+        testId="forecast-paywall-cta"
+      />
     )
   }
 

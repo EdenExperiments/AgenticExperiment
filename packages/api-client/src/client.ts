@@ -1,4 +1,13 @@
-import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast } from './types'
+import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast } from './types'
+
+export class ApiRequestError extends Error {
+  status: number
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'ApiRequestError'
+    this.status = status
+  }
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(path, {
@@ -10,7 +19,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   const data = await res.json()
   if (!res.ok) {
-    throw new Error((data as APIError).error ?? 'request failed')
+    throw new ApiRequestError((data as APIError).error ?? 'request failed', res.status)
   }
   return data as T
 }
@@ -108,6 +117,18 @@ export function saveAPIKey(key: string): Promise<void> {
 
 export function deleteAPIKey(): Promise<void> {
   return request('/api/v1/account/api-key', { method: 'DELETE' })
+}
+
+export async function getAIEntitlement(): Promise<AIEntitlement> {
+  try {
+    const status = await getAPIKeyStatus()
+    return {
+      entitled: status.has_key,
+      reason: status.has_key ? 'api_key_set' : 'no_api_key',
+    }
+  } catch {
+    return { entitled: false, reason: 'unknown' }
+  }
 }
 
 export function signOut(): Promise<void> {
