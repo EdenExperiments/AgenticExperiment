@@ -264,7 +264,7 @@ func TestGateSubmitAIFailure(t *testing.T) {
 // TestAccountTimezoneInvalid verifies that PATCH /api/v1/account with an invalid
 // IANA timezone string returns 422 (spec D-029).
 func TestAccountTimezoneInvalid(t *testing.T) {
-	h := handlers.NewUserHandler(nil)
+	h := handlers.NewUserHandler()
 
 	form := url.Values{
 		"timezone": {"Not/A/Zone"},

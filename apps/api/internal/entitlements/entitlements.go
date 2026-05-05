@@ -9,7 +9,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/meden/rpgtracker/internal/database"
 )
 
 // Tier represents a subscription level.
@@ -52,21 +52,23 @@ func (e *ErrNotEntitled) Error() string {
 }
 
 // Checker can look up a user's tier and assert feature access.
-type Checker struct {
-	db *pgxpool.Pool
-}
+type Checker struct{}
 
-// NewChecker constructs a Checker backed by the DB pool.
-func NewChecker(db *pgxpool.Pool) *Checker {
-	return &Checker{db: db}
+// NewChecker constructs a Checker (tier lookups use database.Querier from context).
+func NewChecker() *Checker {
+	return &Checker{}
 }
 
 // TierForUser returns the subscription tier stored for the given user.
 // Defaults to TierFree when the row exists but the column is NULL (defensive
 // against schema states before the migration is applied).
 func (c *Checker) TierForUser(ctx context.Context, userID uuid.UUID) (Tier, error) {
+	db, ok := database.QuerierFromContext(ctx)
+	if !ok || db == nil {
+		return TierFree, fmt.Errorf("entitlements: no database querier in context")
+	}
 	var tier string
-	err := c.db.QueryRow(ctx,
+	err := db.QueryRow(ctx,
 		`SELECT COALESCE(subscription_tier, 'free') FROM public.users WHERE id = $1`,
 		userID,
 	).Scan(&tier)

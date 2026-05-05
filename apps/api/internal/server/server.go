@@ -12,6 +12,7 @@ import (
 	"github.com/meden/rpgtracker/internal/api"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/config"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/entitlements"
 	"github.com/meden/rpgtracker/internal/handlers"
 	"github.com/meden/rpgtracker/internal/users"
@@ -43,13 +44,14 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 	// Protected API routes
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Use(sessionMiddleware)
-		r.Use(ensureUserMiddleware(db))
+		r.Use(database.TxMiddleware(db))
+		r.Use(ensureUserMiddleware())
 
-		presetHandler := handlers.NewPresetHandler(db)
+		presetHandler := handlers.NewPresetHandler()
 		r.Get("/presets", presetHandler.HandleGetPresets)
 		r.Get("/presets/{id}", presetHandler.HandleGetPreset)
 
-		skillHandler := handlers.NewSkillHandler(db)
+		skillHandler := handlers.NewSkillHandler()
 		r.Post("/skills", skillHandler.HandlePostSkill)
 		r.Get("/skills", skillHandler.HandleGetSkills)
 		r.Get("/skills/{id}", skillHandler.HandleGetSkill)
@@ -60,30 +62,30 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Get("/tags", skillHandler.HandleGetTags)
 		r.Get("/categories", skillHandler.HandleGetCategories)
 
-		xpHandler := handlers.NewXPHandler(db)
+		xpHandler := handlers.NewXPHandler()
 		r.Post("/skills/{id}/xp", xpHandler.HandlePostXP)
 
-		sessionHandler := handlers.NewSessionHandler(db)
+		sessionHandler := handlers.NewSessionHandler()
 		r.Post("/skills/{id}/sessions", sessionHandler.HandlePostSession)
 		r.Get("/skills/{id}/sessions", sessionHandler.HandleGetSessions)
 
-		xpChartHandler := handlers.NewXPChartHandler(db)
+		xpChartHandler := handlers.NewXPChartHandler()
 		r.Get("/skills/{id}/xp-chart", xpChartHandler.HandleGetXPChart)
 
-		gateHandler := handlers.NewGateHandler(db, []byte(cfg.MasterKey))
+		gateHandler := handlers.NewGateHandler()
 		r.Post("/blocker-gates/{id}/submit", gateHandler.HandlePostGateSubmit)
 
-		activityHandler := handlers.NewActivityHandler(db)
+		activityHandler := handlers.NewActivityHandler()
 		r.Get("/activity", activityHandler.HandleGetActivity)
 
-		calibrateHandler := handlers.NewCalibrateHandler(db, []byte(cfg.MasterKey))
+		calibrateHandler := handlers.NewCalibrateHandler([]byte(cfg.MasterKey))
 		r.Post("/calibrate", calibrateHandler.HandlePostCalibrate)
 
 		var userHandler *handlers.UserHandler
 		if len(storageClient) > 0 && storageClient[0] != nil {
-			userHandler = handlers.NewUserHandlerFull(db, storageClient[0], cfg.SupabaseProjectURL)
+			userHandler = handlers.NewUserHandlerFull(storageClient[0], cfg.SupabaseProjectURL)
 		} else {
-			userHandler = handlers.NewUserHandler(db)
+			userHandler = handlers.NewUserHandler()
 		}
 		r.Get("/account", userHandler.HandleGetAccount)
 		r.Put("/account", userHandler.HandlePostAccount)
@@ -93,7 +95,7 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Delete("/account/avatar", userHandler.HandleDeleteAvatar)
 		r.Get("/account/stats", userHandler.HandleGetAccountStats)
 
-		keyHandler := handlers.NewKeyHandler(db, []byte(cfg.MasterKey))
+		keyHandler := handlers.NewKeyHandler([]byte(cfg.MasterKey))
 		r.Get("/account/api-key", keyHandler.HandleGetAPIKey)
 		r.Put("/account/api-key", keyHandler.HandlePostAPIKey)
 		r.Delete("/account/api-key", keyHandler.HandleDeleteAPIKey)
@@ -102,7 +104,7 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 
 		r.Post("/account/password", authHandler.HandlePostPasswordChange)
 
-		goalHandler := handlers.NewGoalHandler(db)
+		goalHandler := handlers.NewGoalHandler()
 		r.Post("/goals", goalHandler.HandlePostGoal)
 		r.Get("/goals", goalHandler.HandleGetGoals)
 		r.Get("/goals/{id}", goalHandler.HandleGetGoal)
@@ -116,8 +118,8 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Get("/goals/{id}/checkins", goalHandler.HandleGetCheckins)
 
 		// Premium AI endpoints — gated by entitlement checker (requires Pro tier).
-		entitlementChecker := entitlements.NewChecker(db)
-		goalPlanHandler := handlers.NewGoalPlanHandler(db, []byte(cfg.MasterKey))
+		entitlementChecker := entitlements.NewChecker()
+		goalPlanHandler := handlers.NewGoalPlanHandler([]byte(cfg.MasterKey))
 		r.With(entitlementChecker.RequireFeature(entitlements.FeatureAIGoalPlanner)).
 			Post("/goals/plan", goalPlanHandler.HandlePostGoalPlan)
 		r.Get("/goals/{id}/forecast", goalHandler.HandleGetGoalForecast)
@@ -153,7 +155,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // reference users(id) when a user is created or re-created in Supabase auth
 // but the application-side row has not been written yet (e.g. trigger timing,
 // or delete-and-re-add flows). GetOrCreateUser is idempotent (ON CONFLICT DO NOTHING).
-func ensureUserMiddleware(db *pgxpool.Pool) func(http.Handler) http.Handler {
+func ensureUserMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userID, ok := auth.UserIDFromContext(r.Context())
@@ -162,7 +164,13 @@ func ensureUserMiddleware(db *pgxpool.Pool) func(http.Handler) http.Handler {
 				return
 			}
 			email := auth.EmailFromContext(r.Context())
-			if _, err := users.GetOrCreateUser(r.Context(), db, userID, email); err != nil {
+			q, ok := database.QuerierFromContext(r.Context())
+			if !ok || q == nil {
+				log.Printf("ERROR: ensureUser: no querier in context")
+				api.RespondError(w, http.StatusInternalServerError, "failed to initialize user session")
+				return
+			}
+			if _, err := users.GetOrCreateUser(r.Context(), q, userID, email); err != nil {
 				log.Printf("ERROR: ensureUser for %s: %v", userID, err)
 				api.RespondError(w, http.StatusInternalServerError, "failed to initialize user session")
 				return

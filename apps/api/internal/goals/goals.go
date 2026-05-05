@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/meden/rpgtracker/internal/database"
 )
 
 // ─── Sentinel errors ──────────────────────────────────────────────────────────
@@ -89,7 +89,7 @@ type Checkin struct {
 // ─── Goals repository ─────────────────────────────────────────────────────────
 
 // CreateGoal inserts a new goal owned by userID and returns the created row.
-func CreateGoal(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, title, description string, skillID *uuid.UUID, targetDate *time.Time, currentValue, targetValue *float64, unit string, position int) (*Goal, error) {
+func CreateGoal(ctx context.Context, db database.Querier, userID uuid.UUID, title, description string, skillID *uuid.UUID, targetDate *time.Time, currentValue, targetValue *float64, unit string, position int) (*Goal, error) {
 	g := &Goal{
 		UserID:       userID,
 		SkillID:      skillID,
@@ -117,7 +117,7 @@ func CreateGoal(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, title, 
 }
 
 // ListGoals returns all goals for userID, optionally filtered by status, ordered by position then created_at desc.
-func ListGoals(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, status *GoalStatus) ([]Goal, error) {
+func ListGoals(ctx context.Context, db database.Querier, userID uuid.UUID, status *GoalStatus) ([]Goal, error) {
 	query := `
 		SELECT id, user_id, skill_id, title, description, status, target_date,
 		       current_value, target_value, unit, position, created_at, updated_at
@@ -149,7 +149,7 @@ func ListGoals(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, status *
 }
 
 // GetGoal returns a single goal owned by userID.
-func GetGoal(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID) (*Goal, error) {
+func GetGoal(ctx context.Context, db database.Querier, userID, goalID uuid.UUID) (*Goal, error) {
 	var g Goal
 	err := db.QueryRow(ctx, `
 		SELECT id, user_id, skill_id, title, description, status, target_date,
@@ -171,7 +171,7 @@ func GetGoal(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID) (*
 }
 
 // UpdateGoal updates mutable fields of a goal owned by userID.
-func UpdateGoal(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID, title, description string, skillID *uuid.UUID, status GoalStatus, targetDate *time.Time, currentValue, targetValue *float64, unit string, position int) (*Goal, error) {
+func UpdateGoal(ctx context.Context, db database.Querier, userID, goalID uuid.UUID, title, description string, skillID *uuid.UUID, status GoalStatus, targetDate *time.Time, currentValue, targetValue *float64, unit string, position int) (*Goal, error) {
 	var g Goal
 	err := db.QueryRow(ctx, `
 		UPDATE public.goals SET
@@ -196,7 +196,7 @@ func UpdateGoal(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID,
 }
 
 // DeleteGoal hard-deletes a goal owned by userID (cascades to milestones and checkins).
-func DeleteGoal(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID) error {
+func DeleteGoal(ctx context.Context, db database.Querier, userID, goalID uuid.UUID) error {
 	tag, err := db.Exec(ctx, `
 		DELETE FROM public.goals WHERE id=$1 AND user_id=$2
 	`, goalID, userID)
@@ -212,7 +212,7 @@ func DeleteGoal(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID)
 // ─── Milestones repository ────────────────────────────────────────────────────
 
 // goalOwned checks that goalID exists and is owned by userID.
-func goalOwned(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID) error {
+func goalOwned(ctx context.Context, db database.Querier, userID, goalID uuid.UUID) error {
 	var exists bool
 	err := db.QueryRow(ctx,
 		`SELECT EXISTS(SELECT 1 FROM public.goals WHERE id=$1 AND user_id=$2)`,
@@ -227,7 +227,7 @@ func goalOwned(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID) 
 }
 
 // CreateMilestone inserts a new milestone on a goal owned by userID.
-func CreateMilestone(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID, title, description string, position int, dueDate *time.Time) (*Milestone, error) {
+func CreateMilestone(ctx context.Context, db database.Querier, userID, goalID uuid.UUID, title, description string, position int, dueDate *time.Time) (*Milestone, error) {
 	if err := goalOwned(ctx, db, userID, goalID); err != nil {
 		return nil, err
 	}
@@ -253,7 +253,7 @@ func CreateMilestone(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.
 }
 
 // ListMilestones returns milestones for a goal owned by userID, ordered by position.
-func ListMilestones(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID) ([]Milestone, error) {
+func ListMilestones(ctx context.Context, db database.Querier, userID, goalID uuid.UUID) ([]Milestone, error) {
 	if err := goalOwned(ctx, db, userID, goalID); err != nil {
 		return nil, err
 	}
@@ -282,7 +282,7 @@ func ListMilestones(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.U
 }
 
 // UpdateMilestone updates a milestone owned by userID.
-func UpdateMilestone(ctx context.Context, db *pgxpool.Pool, userID, milestoneID uuid.UUID, title, description string, isDone bool, position int, dueDate *time.Time) (*Milestone, error) {
+func UpdateMilestone(ctx context.Context, db database.Querier, userID, milestoneID uuid.UUID, title, description string, isDone bool, position int, dueDate *time.Time) (*Milestone, error) {
 	var m Milestone
 	var doneAt *time.Time
 	if isDone {
@@ -311,7 +311,7 @@ func UpdateMilestone(ctx context.Context, db *pgxpool.Pool, userID, milestoneID 
 }
 
 // DeleteMilestone deletes a milestone owned by userID.
-func DeleteMilestone(ctx context.Context, db *pgxpool.Pool, userID, milestoneID uuid.UUID) error {
+func DeleteMilestone(ctx context.Context, db database.Querier, userID, milestoneID uuid.UUID) error {
 	tag, err := db.Exec(ctx,
 		`DELETE FROM public.goal_milestones WHERE id=$1 AND user_id=$2`,
 		milestoneID, userID)
@@ -328,12 +328,12 @@ func DeleteMilestone(ctx context.Context, db *pgxpool.Pool, userID, milestoneID 
 
 // CreateCheckin appends a check-in to a goal and optionally updates current_value.
 // Both writes happen in a single transaction.
-func CreateCheckin(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID, note string, valueSnapshot *float64) (*Checkin, error) {
+func CreateCheckin(ctx context.Context, db database.Querier, userID, goalID uuid.UUID, note string, valueSnapshot *float64) (*Checkin, error) {
 	if err := goalOwned(ctx, db, userID, goalID); err != nil {
 		return nil, err
 	}
 
-	tx, err := db.Begin(ctx)
+	tx, err := database.Begin(ctx, db)
 	if err != nil {
 		return nil, fmt.Errorf("goals: checkin begin tx: %w", err)
 	}
@@ -371,7 +371,7 @@ func CreateCheckin(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UU
 }
 
 // ListCheckins returns check-ins for a goal owned by userID, newest first.
-func ListCheckins(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID) ([]Checkin, error) {
+func ListCheckins(ctx context.Context, db database.Querier, userID, goalID uuid.UUID) ([]Checkin, error) {
 	if err := goalOwned(ctx, db, userID, goalID); err != nil {
 		return nil, err
 	}

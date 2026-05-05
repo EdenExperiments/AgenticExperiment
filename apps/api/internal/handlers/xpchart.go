@@ -11,8 +11,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/skills"
 )
@@ -32,9 +32,9 @@ func NewXPChartHandlerWithStore(s XPChartStore) *XPChartHandler {
 	return &XPChartHandler{store: s}
 }
 
-// NewXPChartHandler constructs an XPChartHandler backed by the DB pool.
-func NewXPChartHandler(db *pgxpool.Pool) *XPChartHandler {
-	return &XPChartHandler{store: &dbXPChartStore{db: db}}
+// NewXPChartHandler constructs an XPChartHandler (DB via database.Querier from context).
+func NewXPChartHandler() *XPChartHandler {
+	return &XPChartHandler{store: &dbXPChartStore{}}
 }
 
 // HandleGetXPChart handles GET /api/v1/skills/{id}/xp-chart?days=N.
@@ -104,12 +104,10 @@ func (h *XPChartHandler) HandleGetXPChart(w http.ResponseWriter, r *http.Request
 }
 
 // dbXPChartStore is the real DB-backed implementation of XPChartStore.
-type dbXPChartStore struct {
-	db *pgxpool.Pool
-}
+type dbXPChartStore struct{}
 
 func (s *dbXPChartStore) GetXPEvents(ctx context.Context, skillID, userID uuid.UUID, days int) ([]skills.DailyXP, error) {
-	rows, err := s.db.Query(ctx, `
+	rows, err := database.MustQuerier(ctx).Query(ctx, `
 		SELECT (e.created_at AT TIME ZONE 'UTC')::date AS day,
 		       SUM(e.xp_delta)::int                    AS xp_total
 		FROM   public.xp_events e

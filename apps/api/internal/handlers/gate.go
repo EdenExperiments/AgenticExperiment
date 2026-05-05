@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/skills"
 )
@@ -40,10 +40,10 @@ func NewGateHandlerWithStore(s GateStore, claude RawClaudeCaller) *GateHandler {
 	return &GateHandler{store: s, claude: claude}
 }
 
-// NewGateHandler constructs a GateHandler backed by the DB pool and live Claude caller.
-func NewGateHandler(db *pgxpool.Pool, masterKey []byte) *GateHandler {
+// NewGateHandler constructs a GateHandler (DB via database.Querier from context).
+func NewGateHandler() *GateHandler {
 	return &GateHandler{
-		store:  &dbGateStore{db: db, masterKey: masterKey},
+		store:  &dbGateStore{},
 		claude: &httpRawClaudeCaller{client: newHTTPClient()},
 	}
 }
@@ -197,10 +197,7 @@ func (h *GateHandler) handleAISubmission(
 }
 
 // dbGateStore is the real DB-backed implementation of GateStore.
-type dbGateStore struct {
-	db        *pgxpool.Pool
-	masterKey []byte
-}
+type dbGateStore struct{}
 
 func (s *dbGateStore) GetGate(_ context.Context, _, _ uuid.UUID) (*skills.BlockerGate, error) {
 	return nil, nil
@@ -214,7 +211,7 @@ func (s *dbGateStore) GetActiveCooldown(_ context.Context, _, _ uuid.UUID) (*tim
 // Attempt number is computed as MAX(attempt_number)+1 for this gate+user inside the
 // same transaction, so concurrent submissions cannot produce duplicate attempt numbers.
 func (s *dbGateStore) InsertSubmission(ctx context.Context, req skills.CreateGateSubmissionRequest) (*skills.GateSubmission, error) {
-	tx, err := s.db.Begin(ctx)
+	tx, err := database.Begin(ctx, database.MustQuerier(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("gate: begin tx: %w", err)
 	}

@@ -11,8 +11,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/goals"
 )
@@ -38,40 +38,40 @@ type GoalStore interface {
 
 // ─── DB-backed store ──────────────────────────────────────────────────────────
 
-type dbGoalStore struct{ db *pgxpool.Pool }
+type dbGoalStore struct{}
 
 func (s *dbGoalStore) CreateGoal(ctx context.Context, userID uuid.UUID, title, description string, skillID *uuid.UUID, targetDate *time.Time, currentValue, targetValue *float64, unit string, position int) (*goals.Goal, error) {
-	return goals.CreateGoal(ctx, s.db, userID, title, description, skillID, targetDate, currentValue, targetValue, unit, position)
+	return goals.CreateGoal(ctx, database.MustQuerier(ctx), userID, title, description, skillID, targetDate, currentValue, targetValue, unit, position)
 }
 func (s *dbGoalStore) ListGoals(ctx context.Context, userID uuid.UUID, status *goals.GoalStatus) ([]goals.Goal, error) {
-	return goals.ListGoals(ctx, s.db, userID, status)
+	return goals.ListGoals(ctx, database.MustQuerier(ctx), userID, status)
 }
 func (s *dbGoalStore) GetGoal(ctx context.Context, userID, goalID uuid.UUID) (*goals.Goal, error) {
-	return goals.GetGoal(ctx, s.db, userID, goalID)
+	return goals.GetGoal(ctx, database.MustQuerier(ctx), userID, goalID)
 }
 func (s *dbGoalStore) UpdateGoal(ctx context.Context, userID, goalID uuid.UUID, title, description string, skillID *uuid.UUID, status goals.GoalStatus, targetDate *time.Time, currentValue, targetValue *float64, unit string, position int) (*goals.Goal, error) {
-	return goals.UpdateGoal(ctx, s.db, userID, goalID, title, description, skillID, status, targetDate, currentValue, targetValue, unit, position)
+	return goals.UpdateGoal(ctx, database.MustQuerier(ctx), userID, goalID, title, description, skillID, status, targetDate, currentValue, targetValue, unit, position)
 }
 func (s *dbGoalStore) DeleteGoal(ctx context.Context, userID, goalID uuid.UUID) error {
-	return goals.DeleteGoal(ctx, s.db, userID, goalID)
+	return goals.DeleteGoal(ctx, database.MustQuerier(ctx), userID, goalID)
 }
 func (s *dbGoalStore) CreateMilestone(ctx context.Context, userID, goalID uuid.UUID, title, description string, position int, dueDate *time.Time) (*goals.Milestone, error) {
-	return goals.CreateMilestone(ctx, s.db, userID, goalID, title, description, position, dueDate)
+	return goals.CreateMilestone(ctx, database.MustQuerier(ctx), userID, goalID, title, description, position, dueDate)
 }
 func (s *dbGoalStore) ListMilestones(ctx context.Context, userID, goalID uuid.UUID) ([]goals.Milestone, error) {
-	return goals.ListMilestones(ctx, s.db, userID, goalID)
+	return goals.ListMilestones(ctx, database.MustQuerier(ctx), userID, goalID)
 }
 func (s *dbGoalStore) UpdateMilestone(ctx context.Context, userID, milestoneID uuid.UUID, title, description string, isDone bool, position int, dueDate *time.Time) (*goals.Milestone, error) {
-	return goals.UpdateMilestone(ctx, s.db, userID, milestoneID, title, description, isDone, position, dueDate)
+	return goals.UpdateMilestone(ctx, database.MustQuerier(ctx), userID, milestoneID, title, description, isDone, position, dueDate)
 }
 func (s *dbGoalStore) DeleteMilestone(ctx context.Context, userID, milestoneID uuid.UUID) error {
-	return goals.DeleteMilestone(ctx, s.db, userID, milestoneID)
+	return goals.DeleteMilestone(ctx, database.MustQuerier(ctx), userID, milestoneID)
 }
 func (s *dbGoalStore) CreateCheckin(ctx context.Context, userID, goalID uuid.UUID, note string, valueSnapshot *float64) (*goals.Checkin, error) {
-	return goals.CreateCheckin(ctx, s.db, userID, goalID, note, valueSnapshot)
+	return goals.CreateCheckin(ctx, database.MustQuerier(ctx), userID, goalID, note, valueSnapshot)
 }
 func (s *dbGoalStore) ListCheckins(ctx context.Context, userID, goalID uuid.UUID) ([]goals.Checkin, error) {
-	return goals.ListCheckins(ctx, s.db, userID, goalID)
+	return goals.ListCheckins(ctx, database.MustQuerier(ctx), userID, goalID)
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────
@@ -79,9 +79,9 @@ func (s *dbGoalStore) ListCheckins(ctx context.Context, userID, goalID uuid.UUID
 // GoalHandler handles all goal-related HTTP endpoints.
 type GoalHandler struct{ store GoalStore }
 
-// NewGoalHandler constructs a GoalHandler backed by the given DB pool.
-func NewGoalHandler(db *pgxpool.Pool) *GoalHandler {
-	return &GoalHandler{store: &dbGoalStore{db: db}}
+// NewGoalHandler constructs a GoalHandler (DB via database.Querier from context).
+func NewGoalHandler() *GoalHandler {
+	return &GoalHandler{store: &dbGoalStore{}}
 }
 
 // NewGoalHandlerWithStore constructs a GoalHandler with an injected store (for tests).

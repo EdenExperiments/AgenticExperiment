@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/crypto"
+	"github.com/meden/rpgtracker/internal/database"
 )
 
 // ErrInvalidKeyFormat is returned by SaveKey when the provided key fails format validation.
@@ -31,7 +31,7 @@ type KeyStatus struct {
 
 // SaveKey validates, encrypts, and upserts a Claude API key for the given user.
 // Returns an error with message "invalid key format" if the key fails format validation.
-func SaveKey(ctx context.Context, db *pgxpool.Pool, masterKey []byte, userID uuid.UUID, plaintextKey string) error {
+func SaveKey(ctx context.Context, db database.Querier, masterKey []byte, userID uuid.UUID, plaintextKey string) error {
 	if !crypto.ValidateClaudeKeyFormat(plaintextKey) {
 		return ErrInvalidKeyFormat
 	}
@@ -65,14 +65,14 @@ DO UPDATE SET encrypted_dek=$2, encrypted_key=$3, key_hint=$4, validated_at=now(
 }
 
 // DeleteKey removes the stored API key for the given user.
-func DeleteKey(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) error {
+func DeleteKey(ctx context.Context, db database.Querier, userID uuid.UUID) error {
 	_, err := db.Exec(ctx, `DELETE FROM public.user_ai_keys WHERE user_id = $1`, userID)
 	return err
 }
 
 // GetDecryptedKey retrieves and decrypts the Claude API key for the given user.
 // The plaintext key is never logged.
-func GetDecryptedKey(ctx context.Context, db *pgxpool.Pool, masterKey []byte, userID uuid.UUID) (string, error) {
+func GetDecryptedKey(ctx context.Context, db database.Querier, masterKey []byte, userID uuid.UUID) (string, error) {
 	var encDEK, encKey []byte
 	err := db.QueryRow(ctx,
 		`SELECT encrypted_dek, encrypted_key FROM public.user_ai_keys WHERE user_id = $1`,
@@ -99,7 +99,7 @@ func GetDecryptedKey(ctx context.Context, db *pgxpool.Pool, masterKey []byte, us
 
 // GetKeyStatus returns the current key status for a user.
 // Returns &KeyStatus{Exists: false} when no row is found.
-func GetKeyStatus(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) (*KeyStatus, error) {
+func GetKeyStatus(ctx context.Context, db database.Querier, userID uuid.UUID) (*KeyStatus, error) {
 	var hint pgtype.Text
 	var validatedAt pgtype.Timestamptz
 

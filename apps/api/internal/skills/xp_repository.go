@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/xpcurve"
 )
 
@@ -55,12 +55,12 @@ type LogXPResult struct {
 // LogXP records an XP event and updates skill progression atomically (R-003).
 // trainingSessionID, when non-nil, is stored as a FK on the xp_events row linking it
 // back to the training_sessions table. Pass nil for manual (non-session) XP logs.
-func LogXP(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, xpDelta int, logNote string, trainingSessionID *uuid.UUID) (*LogXPResult, error) {
+func LogXP(ctx context.Context, db database.Querier, userID, skillID uuid.UUID, xpDelta int, logNote string, trainingSessionID *uuid.UUID) (*LogXPResult, error) {
 	if xpDelta <= 0 {
 		return nil, fmt.Errorf("xp_delta must be positive")
 	}
 
-	tx, err := db.Begin(ctx)
+	tx, err := database.Begin(ctx, db)
 	if err != nil {
 		return nil, fmt.Errorf("logxp: begin: %w", err)
 	}
@@ -193,7 +193,7 @@ func LogXP(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, xpD
 // GetRecentLogs returns the last N xp_events for a skill (most recent first).
 // The caller is responsible for verifying that the skill belongs to the
 // authenticated user before calling this function.
-func GetRecentLogs(ctx context.Context, db *pgxpool.Pool, skillID uuid.UUID, limit int) ([]XPEvent, error) {
+func GetRecentLogs(ctx context.Context, db database.Querier, skillID uuid.UUID, limit int) ([]XPEvent, error) {
 	if limit <= 0 {
 		limit = 10
 	}
@@ -223,7 +223,7 @@ func GetRecentLogs(ctx context.Context, db *pgxpool.Pool, skillID uuid.UUID, lim
 // GetRecentActivity returns the last N xp_events across all skills for a user,
 // enriched with skill_name and created_at. Results are ordered most recent first.
 // If skillID is non-nil, results are filtered to that specific skill.
-func GetRecentActivity(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, skillID *uuid.UUID, limit int) ([]ActivityEvent, error) {
+func GetRecentActivity(ctx context.Context, db database.Querier, userID uuid.UUID, skillID *uuid.UUID, limit int) ([]ActivityEvent, error) {
 	if limit <= 0 {
 		limit = 10
 	}

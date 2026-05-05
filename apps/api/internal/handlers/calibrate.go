@@ -14,9 +14,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
 	"github.com/meden/rpgtracker/internal/auth"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/keys"
 )
 
@@ -59,10 +59,10 @@ type CalibrateHandler struct {
 	caller   ClaudeCaller
 }
 
-// NewCalibrateHandler constructs a CalibrateHandler backed by the DB and Claude API.
-func NewCalibrateHandler(db *pgxpool.Pool, masterKey []byte) *CalibrateHandler {
+// NewCalibrateHandler constructs a CalibrateHandler (DB via database.Querier from context).
+func NewCalibrateHandler(masterKey []byte) *CalibrateHandler {
 	return &CalibrateHandler{
-		keyStore: &dbKeyStore{db: db, masterKey: masterKey},
+		keyStore: &dbKeyStore{masterKey: masterKey},
 		caller:   &httpClaudeCaller{client: &http.Client{Timeout: 30 * time.Second}},
 	}
 }
@@ -74,12 +74,11 @@ func NewCalibrateHandlerForTest(ks KeyStore, caller ClaudeCaller) *CalibrateHand
 
 // dbKeyStore wraps keys.GetDecryptedKey to satisfy the KeyStore interface.
 type dbKeyStore struct {
-	db        *pgxpool.Pool
 	masterKey []byte
 }
 
 func (s *dbKeyStore) GetDecryptedKey(ctx context.Context, userID uuid.UUID) (string, error) {
-	return keys.GetDecryptedKey(ctx, s.db, s.masterKey, userID)
+	return keys.GetDecryptedKey(ctx, database.MustQuerier(ctx), s.masterKey, userID)
 }
 
 // httpClaudeCaller sends requests to the Anthropic API.

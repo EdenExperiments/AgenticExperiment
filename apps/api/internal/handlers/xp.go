@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/skills"
 )
@@ -21,9 +21,9 @@ type XPStore interface {
 // XPHandler handles XP logging endpoints.
 type XPHandler struct{ store XPStore }
 
-// NewXPHandler constructs an XPHandler backed by the given DB pool.
-func NewXPHandler(db *pgxpool.Pool) *XPHandler {
-	return &XPHandler{store: &dbXPStore{db: db}}
+// NewXPHandler constructs an XPHandler (DB via database.Querier from context).
+func NewXPHandler() *XPHandler {
+	return &XPHandler{store: &dbXPStore{}}
 }
 
 // NewXPHandlerWithStore constructs an XPHandler with an injected store (for tests).
@@ -31,11 +31,11 @@ func NewXPHandlerWithStore(s XPStore) *XPHandler {
 	return &XPHandler{store: s}
 }
 
-type dbXPStore struct{ db *pgxpool.Pool }
+type dbXPStore struct{}
 
 func (s *dbXPStore) LogXP(ctx context.Context, userID, skillID uuid.UUID, xpDelta int, logNote string) (*skills.LogXPResult, error) {
 	// Manual XP logs (POST /skills/{id}/xp) are never linked to a training session.
-	return skills.LogXP(ctx, s.db, userID, skillID, xpDelta, logNote, nil)
+	return skills.LogXP(ctx, database.MustQuerier(ctx), userID, skillID, xpDelta, logNote, nil)
 }
 
 // HandlePostXP handles POST /api/v1/skills/{id}/xp.

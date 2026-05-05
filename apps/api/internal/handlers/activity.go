@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/skills"
 )
@@ -20,9 +20,9 @@ type ActivityStore interface {
 // ActivityHandler handles activity feed endpoints.
 type ActivityHandler struct{ store ActivityStore }
 
-// NewActivityHandler constructs an ActivityHandler backed by the given DB pool.
-func NewActivityHandler(db *pgxpool.Pool) *ActivityHandler {
-	return &ActivityHandler{store: &dbActivityStore{db: db}}
+// NewActivityHandler constructs an ActivityHandler (DB via database.Querier from context).
+func NewActivityHandler() *ActivityHandler {
+	return &ActivityHandler{store: &dbActivityStore{}}
 }
 
 // NewActivityHandlerWithStore constructs an ActivityHandler with an injected store (for tests).
@@ -30,10 +30,10 @@ func NewActivityHandlerWithStore(s ActivityStore) *ActivityHandler {
 	return &ActivityHandler{store: s}
 }
 
-type dbActivityStore struct{ db *pgxpool.Pool }
+type dbActivityStore struct{}
 
 func (s *dbActivityStore) GetRecentActivity(ctx context.Context, userID uuid.UUID, skillID *uuid.UUID, limit int) ([]skills.ActivityEvent, error) {
-	return skills.GetRecentActivity(ctx, s.db, userID, skillID, limit)
+	return skills.GetRecentActivity(ctx, database.MustQuerier(ctx), userID, skillID, limit)
 }
 
 // HandleGetActivity handles GET /api/v1/activity?limit=N&skill_id=UUID.
