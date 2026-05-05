@@ -6,6 +6,9 @@ const mockListSkills = vi.fn()
 
 vi.mock('@rpgtracker/api-client', () => ({
   listSkills: (...args: unknown[]) => mockListSkills(...args),
+  listCategories: vi.fn().mockResolvedValue([]),
+  listTags: vi.fn().mockResolvedValue([]),
+  toggleFavourite: vi.fn(),
   logXP: vi.fn().mockResolvedValue({
     skill: {},
     xp_added: 10,
@@ -95,26 +98,20 @@ test('empty state includes CSS-based illustration (AC-11)', async () => {
 
 test('renders sort controls with 4 options (AC-6)', async () => {
   render(<SkillsPage />, { wrapper })
-  await waitFor(() => {
-    expect(screen.getByText('Recent')).toBeInTheDocument()
-  })
-  expect(screen.getByText('Name')).toBeInTheDocument()
-  expect(screen.getByText('Level')).toBeInTheDocument()
-  expect(screen.getByText('Tier')).toBeInTheDocument()
+  const sortSelect = await screen.findByLabelText('Sort by')
+  const values = [...sortSelect.querySelectorAll('option')].map((o) => o.value)
+  expect(values).toEqual(expect.arrayContaining(['recent', 'name', 'level', 'tier']))
 })
 
 test('sorting by name reorders cards without network request (AC-7)', async () => {
   render(<SkillsPage />, { wrapper })
-  await waitFor(() => {
-    expect(screen.getByText('Recent')).toBeInTheDocument()
-  })
+  const sortSelect = await screen.findByLabelText('Sort by')
 
   // Default sort is "Recent" — Guitar is first (most recently updated)
   const cards = screen.getAllByRole('button', { name: /Guitar|Running/ })
   expect(cards[0]).toHaveAccessibleName('Guitar')
 
-  // Click "Name" sort
-  fireEvent.click(screen.getByText('Name'))
+  fireEvent.change(sortSelect, { target: { value: 'name' } })
 
   // After sorting by name A-Z, Guitar comes before Running
   const sorted = screen.getAllByRole('button', { name: /Guitar|Running/ })

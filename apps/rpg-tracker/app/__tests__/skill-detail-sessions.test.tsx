@@ -8,10 +8,16 @@ const mockGetActivity = vi.fn()
 vi.mock('@rpgtracker/api-client', () => ({
   getSkill: (...args: unknown[]) => mockGetSkill(...args),
   getActivity: (...args: unknown[]) => mockGetActivity(...args),
+  getAccount: vi.fn().mockResolvedValue({ primary_skill_id: null }),
+  listTags: vi.fn().mockResolvedValue([]),
   logXP: vi.fn(),
   deleteSkill: vi.fn(),
   createSession: vi.fn(),
   getXPChart: vi.fn().mockResolvedValue({ days: 30, data: [] }),
+  toggleFavourite: vi.fn(),
+  updateSkill: vi.fn(),
+  setPrimarySkill: vi.fn(),
+  setSkillTags: vi.fn(),
 }))
 
 vi.mock('next/navigation', () => ({
@@ -56,6 +62,8 @@ const baseSkill = {
   animation_theme: 'general',
   streak: { current: 0, longest: 0 },
   active_gate_submission: null,
+  tags: [],
+  is_custom: true,
 }
 
 beforeEach(() => {
@@ -69,13 +77,13 @@ test('"Start Session" is the primary button and "Log XP" is secondary', async ()
   render(<SkillDetailPage />, { wrapper })
 
   await waitFor(() => {
-    expect(screen.getByRole('button', { name: /start session/i })).toBeInTheDocument()
+    expect(screen.getByTestId('start-session-btn')).toBeInTheDocument()
   })
 
-  const startBtn = screen.getByRole('button', { name: /start session/i })
+  const startBtn = screen.getByTestId('start-session-btn')
   const logXPBtn = screen.getByRole('button', { name: /log xp/i })
 
-  // Both buttons must be present
+  // Both controls must be present (Start Session is a Next.js Link → role link)
   expect(startBtn).toBeInTheDocument()
   expect(logXPBtn).toBeInTheDocument()
 
@@ -105,7 +113,7 @@ test('when current_streak=0, streak badge hidden and motivational prompt shown',
   render(<SkillDetailPage />, { wrapper })
 
   await waitFor(() => {
-    expect(screen.getByRole('button', { name: /start session/i })).toBeInTheDocument()
+    expect(screen.getByTestId('start-session-btn')).toBeInTheDocument()
   })
 
   // No streak badge (flame + count) should appear

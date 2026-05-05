@@ -7,6 +7,8 @@ vi.mock('@rpgtracker/api-client', () => ({
   calibrateSkill: vi.fn(),
   getAPIKeyStatus: vi.fn().mockResolvedValue({ has_key: false }),
   getPresets: vi.fn().mockResolvedValue([]),
+  listCategories: vi.fn().mockResolvedValue([]),
+  listSkills: vi.fn().mockResolvedValue([]),
 }))
 
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: vi.fn() }) }))
@@ -15,22 +17,36 @@ function wrapper({ children }: { children: React.ReactNode }) {
   return <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>{children}</QueryClientProvider>
 }
 
-test('renders step 1 by default', () => {
+async function openCustomPath() {
+  fireEvent.click(screen.getByRole('button', { name: /create custom skill/i }))
+  await screen.findByPlaceholderText(/skill name \(required\)/i)
+}
+
+test('shows path selector first', () => {
   render(<SkillCreatePage />, { wrapper })
-  expect(screen.getByText(/step 1/i)).toBeInTheDocument()
-  expect(screen.getByPlaceholderText(/skill name/i)).toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: /create a new skill/i })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /create custom skill/i })).toBeInTheDocument()
 })
 
-test('advances to step 2 on next', async () => {
+test('Next is disabled until skill name is entered', async () => {
   render(<SkillCreatePage />, { wrapper })
-  fireEvent.change(screen.getByPlaceholderText(/skill name/i), { target: { value: 'Running' } })
-  fireEvent.click(screen.getByRole('button', { name: /next/i }))
-  await waitFor(() => expect(screen.getByText(/step 2/i)).toBeInTheDocument())
-  expect(screen.getByText(/where are you starting/i)).toBeInTheDocument()
+  await openCustomPath()
+
+  const nextBtn = screen.getByRole('button', { name: /^next$/i })
+  expect(nextBtn).toBeDisabled()
+
+  fireEvent.change(screen.getByPlaceholderText(/skill name \(required\)/i), { target: { value: 'Running' } })
+  expect(nextBtn).not.toBeDisabled()
 })
 
-test('step 1 next button is disabled when name is empty', () => {
+test('advances to Starting Level step after Next', async () => {
   render(<SkillCreatePage />, { wrapper })
-  expect(screen.getByRole('button', { name: /next/i })).toBeDisabled()
-})
+  await openCustomPath()
 
+  fireEvent.change(screen.getByPlaceholderText(/skill name \(required\)/i), { target: { value: 'Running' } })
+  fireEvent.click(screen.getByRole('button', { name: /^next$/i }))
+
+  await waitFor(() => {
+    expect(screen.getByRole('heading', { name: /starting level/i })).toBeInTheDocument()
+  })
+})
