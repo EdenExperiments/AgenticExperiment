@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { listGoals, deleteGoal } from '@rpgtracker/api-client'
 import type { Goal, GoalStatus } from '@rpgtracker/api-client'
+import { useAIEntitlement } from '../../../lib/useAIEntitlement'
 
 const STATUS_TABS: { value: GoalStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All' },
@@ -133,6 +134,7 @@ export default function GoalsPage() {
   const qc = useQueryClient()
   const [statusFilter, setStatusFilter] = useState<GoalStatus | 'all'>('all')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const { entitled: aiEntitled, isLoading: aiEntitlementLoading } = useAIEntitlement()
 
   const { data: goals = [], isLoading, isError } = useQuery({
     queryKey: ['goals', statusFilter],
@@ -182,13 +184,40 @@ export default function GoalsPage() {
           Goals
         </h1>
         <div className="flex items-center gap-2">
-          <Link
-            href="/goals/ai/new"
-            className="btn btn-ghost px-3 py-2 text-sm min-h-[44px] flex items-center gap-1"
-            aria-label="Create goal with AI"
-          >
-            <span aria-hidden="true">✦</span> AI Plan
-          </Link>
+          {!aiEntitlementLoading && !aiEntitled ? (
+            <Link
+              href="/account"
+              className="btn btn-ghost px-3 py-2 text-sm min-h-[44px] flex items-center gap-1"
+              aria-label="Set up AI to unlock AI goal planning"
+              data-testid="ai-plan-locked-btn"
+              style={{ opacity: 0.7 }}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              AI Plan
+            </Link>
+          ) : (
+            <Link
+              href="/goals/ai/new"
+              className="btn btn-ghost px-3 py-2 text-sm min-h-[44px] flex items-center gap-1"
+              aria-label="Create goal with AI"
+              data-testid="ai-plan-btn"
+            >
+              <span aria-hidden="true">✦</span> AI Plan
+            </Link>
+          )}
           <Link
             href="/goals/new"
             className="btn btn-primary px-4 py-2 text-sm min-h-[44px] flex items-center"

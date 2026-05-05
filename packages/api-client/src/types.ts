@@ -66,6 +66,11 @@ export interface APIKeyStatus {
   key_hint?: string
 }
 
+export interface AIEntitlement {
+  entitled: boolean
+  reason: 'api_key_set' | 'no_api_key' | 'unknown'
+}
+
 export interface APIError {
   error: string
 }

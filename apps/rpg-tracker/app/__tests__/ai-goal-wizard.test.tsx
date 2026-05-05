@@ -6,6 +6,7 @@ import { setAnalyticsDispatcher } from '@/lib/analytics'
 const mockPlanGoal = vi.fn()
 const mockCreateGoal = vi.fn()
 const mockCreateMilestone = vi.fn()
+const mockGetAIEntitlement = vi.fn()
 const mockPush = vi.fn()
 const mockTrack = vi.fn()
 
@@ -13,6 +14,7 @@ vi.mock('@rpgtracker/api-client', () => ({
   planGoal: (...args: unknown[]) => mockPlanGoal(...args),
   createGoal: (...args: unknown[]) => mockCreateGoal(...args),
   createMilestone: (...args: unknown[]) => mockCreateMilestone(...args),
+  getAIEntitlement: (...args: unknown[]) => mockGetAIEntitlement(...args),
 }))
 
 vi.mock('next/navigation', () => ({
@@ -47,6 +49,7 @@ function makePlanResponse(overrides = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'api_key_set' })
   setAnalyticsDispatcher(mockTrack)
   mockPlanGoal.mockResolvedValue(makePlanResponse())
   mockCreateGoal.mockResolvedValue({
