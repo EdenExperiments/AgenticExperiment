@@ -116,6 +116,7 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Delete("/goals/{id}/milestones/{mid}", goalHandler.HandleDeleteMilestone)
 		r.Post("/goals/{id}/checkins", goalHandler.HandlePostCheckin)
 		r.Get("/goals/{id}/checkins", goalHandler.HandleGetCheckins)
+		r.Get("/goals/{id}/forecast", goalHandler.HandleGetGoalForecast)
 	})
 
 	httpServer := &http.Server{
