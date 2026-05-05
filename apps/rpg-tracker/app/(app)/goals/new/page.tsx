@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { createGoal, listSkills } from '@rpgtracker/api-client'
+import { trackEvent } from '@/lib/analytics'
 
 interface GoalDraft {
   title: string
@@ -57,6 +58,13 @@ export default function GoalCreatePage() {
         unit: draft.unit.trim() || undefined,
       }),
     onSuccess: (goal) => {
+      trackEvent('goal_created', {
+        goal_id: goal.id,
+        source: 'manual',
+        has_target_date: Boolean(draft.targetDate),
+        has_linked_skill: Boolean(draft.skillId),
+        has_value_tracking: Boolean(draft.targetValue),
+      })
       qc.invalidateQueries({ queryKey: ['goals'] })
       router.push(`/goals/${goal.id}`)
     },

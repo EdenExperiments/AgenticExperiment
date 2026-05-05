@@ -181,12 +181,21 @@ export default function GoalsPage() {
         >
           Goals
         </h1>
-        <Link
-          href="/goals/new"
-          className="btn btn-primary px-4 py-2 text-sm min-h-[44px] flex items-center"
-        >
-          + New Goal
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/goals/ai/new"
+            className="btn btn-ghost px-3 py-2 text-sm min-h-[44px] flex items-center gap-1"
+            aria-label="Create goal with AI"
+          >
+            <span aria-hidden="true">✦</span> AI Plan
+          </Link>
+          <Link
+            href="/goals/new"
+            className="btn btn-primary px-4 py-2 text-sm min-h-[44px] flex items-center"
+          >
+            + New Goal
+          </Link>
+        </div>
       </div>
 
       {/* Status filter tabs */}
