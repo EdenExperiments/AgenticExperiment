@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/meden/rpgtracker/internal/api"
 	"github.com/meden/rpgtracker/internal/auth"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/goals"
 )
 
@@ -25,7 +26,7 @@ type ForecastStore interface {
 // ─── DB-backed implementation ─────────────────────────────────────────────────
 
 func (s *dbGoalStore) GetForecastData(ctx context.Context, userID, goalID uuid.UUID) (goals.ForecastInput, error) {
-	return goals.GetForecastData(ctx, s.db, userID, goalID)
+	return goals.GetForecastData(ctx, database.MustQuerier(ctx), userID, goalID)
 }
 
 // ─── Handler ──────────────────────────────────────────────────────────────────

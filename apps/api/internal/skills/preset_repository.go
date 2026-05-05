@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/meden/rpgtracker/internal/database"
 )
 
 // Category is a skill meta-category from the skill_categories table.
@@ -43,7 +43,7 @@ type PresetFilter struct {
 }
 
 // ListCategories returns all categories ordered by sort_order.
-func ListCategories(ctx context.Context, db *pgxpool.Pool) ([]Category, error) {
+func ListCategories(ctx context.Context, db database.Querier) ([]Category, error) {
 	rows, err := db.Query(ctx, `
 		SELECT id, name, slug, emoji, sort_order
 		FROM public.skill_categories
@@ -68,7 +68,7 @@ func ListCategories(ctx context.Context, db *pgxpool.Pool) ([]Category, error) {
 // ListCategoriesWithPresets returns categories (optionally filtered by slug)
 // each populated with their matching presets (optionally filtered by query string).
 // Categories with no matching presets are omitted.
-func ListCategoriesWithPresets(ctx context.Context, db *pgxpool.Pool, filter PresetFilter) ([]CategoryWithPresets, error) {
+func ListCategoriesWithPresets(ctx context.Context, db database.Querier, filter PresetFilter) ([]CategoryWithPresets, error) {
 	rows, err := db.Query(ctx, `
 		SELECT
 			c.id, c.name, c.slug, c.emoji, c.sort_order,
@@ -116,7 +116,7 @@ func ListCategoriesWithPresets(ctx context.Context, db *pgxpool.Pool, filter Pre
 
 // GetPreset fetches a single preset by ID.
 // Returns an error if not found.
-func GetPreset(ctx context.Context, db *pgxpool.Pool, id uuid.UUID) (*Preset, error) {
+func GetPreset(ctx context.Context, db database.Querier, id uuid.UUID) (*Preset, error) {
 	var p Preset
 	err := db.QueryRow(ctx, `
 		SELECT id, category_id, name, description, default_unit, sort_order
@@ -130,7 +130,7 @@ func GetPreset(ctx context.Context, db *pgxpool.Pool, id uuid.UUID) (*Preset, er
 }
 
 // ListPresets returns all presets, optionally filtered by category slug and/or search query.
-func ListPresets(ctx context.Context, db *pgxpool.Pool, category, query string) ([]Preset, error) {
+func ListPresets(ctx context.Context, db database.Querier, category, query string) ([]Preset, error) {
 	const sql = `
 		SELECT p.id, p.name, p.description, p.default_unit, p.category_id,
 		       c.name AS category_name, c.slug AS category_slug

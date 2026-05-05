@@ -4,21 +4,20 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/keys"
 )
 
 // KeyHandler handles HTTP requests for Claude API key management.
 type KeyHandler struct {
-	db        *pgxpool.Pool
 	masterKey []byte
 }
 
-// NewKeyHandler constructs a KeyHandler with the given connection pool and master key.
-func NewKeyHandler(db *pgxpool.Pool, masterKey []byte) *KeyHandler {
-	return &KeyHandler{db: db, masterKey: masterKey}
+// NewKeyHandler constructs a KeyHandler (DB via database.Querier from context).
+func NewKeyHandler(masterKey []byte) *KeyHandler {
+	return &KeyHandler{masterKey: masterKey}
 }
 
 // HandleGetAPIKey returns whether the authenticated user has a stored API key.
@@ -30,7 +29,7 @@ func (h *KeyHandler) HandleGetAPIKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, err := keys.GetKeyStatus(r.Context(), h.db, userID)
+	status, err := keys.GetKeyStatus(r.Context(), database.MustQuerier(r.Context()), userID)
 	if err != nil {
 		api.RespondError(w, http.StatusInternalServerError, "internal server error")
 		return
@@ -48,7 +47,7 @@ func (h *KeyHandler) HandlePostAPIKey(w http.ResponseWriter, r *http.Request) {
 	}
 
 	apiKey := r.FormValue("api_key")
-	err := keys.SaveKey(r.Context(), h.db, h.masterKey, userID, apiKey)
+	err := keys.SaveKey(r.Context(), database.MustQuerier(r.Context()), h.masterKey, userID, apiKey)
 	if err != nil {
 		if errors.Is(err, keys.ErrInvalidKeyFormat) {
 			api.RespondError(w, http.StatusUnprocessableEntity, "This doesn't look like a valid Claude API key.")
@@ -69,7 +68,7 @@ func (h *KeyHandler) HandleDeleteAPIKey(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if err := keys.DeleteKey(r.Context(), h.db, userID); err != nil {
+	if err := keys.DeleteKey(r.Context(), database.MustQuerier(r.Context()), userID); err != nil {
 		api.RespondError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}

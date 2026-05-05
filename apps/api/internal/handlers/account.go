@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/users"
 )
@@ -45,31 +45,29 @@ type UserStore interface {
 	GetAccountStats(ctx context.Context, userID uuid.UUID) (*AccountStats, error)
 }
 
-// dbUserStore wraps a pgxpool.Pool to implement UserStore using the real DB functions.
-type dbUserStore struct {
-	db *pgxpool.Pool
-}
+// dbUserStore implements UserStore using repository functions and database.MustQuerier.
+type dbUserStore struct{}
 
 func (s *dbUserStore) GetOrCreateUser(ctx context.Context, userID uuid.UUID, email string) (*users.User, error) {
-	return users.GetOrCreateUser(ctx, s.db, userID, email)
+	return users.GetOrCreateUser(ctx, database.MustQuerier(ctx), userID, email)
 }
 
 func (s *dbUserStore) SetPrimarySkill(ctx context.Context, userID, skillID uuid.UUID) (*uuid.UUID, error) {
-	return users.SetPrimarySkill(ctx, s.db, userID, skillID)
+	return users.SetPrimarySkill(ctx, database.MustQuerier(ctx), userID, skillID)
 }
 
 func (s *dbUserStore) SetAvatarURL(ctx context.Context, userID uuid.UUID, url string) (*users.User, error) {
-	return users.SetAvatarURL(ctx, s.db, userID, url)
+	return users.SetAvatarURL(ctx, database.MustQuerier(ctx), userID, url)
 }
 
 func (s *dbUserStore) ClearAvatarURL(ctx context.Context, userID uuid.UUID) (*users.User, error) {
-	return users.ClearAvatarURL(ctx, s.db, userID)
+	return users.ClearAvatarURL(ctx, database.MustQuerier(ctx), userID)
 }
 
 func (s *dbUserStore) GetAccountStats(ctx context.Context, userID uuid.UUID) (*AccountStats, error) {
 	var stats AccountStats
 
-	err := s.db.QueryRow(ctx,
+	err := database.MustQuerier(ctx).QueryRow(ctx,
 		`SELECT COALESCE(SUM(current_xp), 0), COALESCE(MAX(longest_streak), 0), COUNT(*)
 		 FROM public.skills WHERE user_id = $1`,
 		userID,
@@ -78,7 +76,7 @@ func (s *dbUserStore) GetAccountStats(ctx context.Context, userID uuid.UUID) (*A
 		return nil, err
 	}
 
-	rows, err := s.db.Query(ctx,
+	rows, err := database.MustQuerier(ctx).Query(ctx,
 		`SELECT sc.name, COUNT(*) FROM public.skills s
 		 JOIN public.skill_categories sc ON s.category_id = sc.id
 		 WHERE s.user_id = $1
@@ -108,19 +106,14 @@ func (s *dbUserStore) GetAccountStats(ctx context.Context, userID uuid.UUID) (*A
 
 // UserHandler handles HTTP requests for the user account screen.
 type UserHandler struct {
-	db         *pgxpool.Pool
-	store      UserStore
-	storage    StorageClient
+	store       UserStore
+	storage     StorageClient
 	supabaseURL string
 }
 
-// NewUserHandler constructs a UserHandler with the given connection pool.
-func NewUserHandler(db *pgxpool.Pool) *UserHandler {
-	var store UserStore
-	if db != nil {
-		store = &dbUserStore{db: db}
-	}
-	return &UserHandler{db: db, store: store}
+// NewUserHandler constructs a UserHandler (DB via database.Querier from context when using dbUserStore).
+func NewUserHandler() *UserHandler {
+	return &UserHandler{store: &dbUserStore{}}
 }
 
 // NewUserHandlerWithStore constructs a UserHandler with an injected store (for testing).
@@ -134,12 +127,8 @@ func NewUserHandlerWithAvatarStore(store UserStore, storage StorageClient) *User
 }
 
 // NewUserHandlerFull constructs a UserHandler with all dependencies for production use.
-func NewUserHandlerFull(db *pgxpool.Pool, storage StorageClient, supabaseURL string) *UserHandler {
-	var store UserStore
-	if db != nil {
-		store = &dbUserStore{db: db}
-	}
-	return &UserHandler{db: db, store: store, storage: storage, supabaseURL: supabaseURL}
+func NewUserHandlerFull(storage StorageClient, supabaseURL string) *UserHandler {
+	return &UserHandler{store: &dbUserStore{}, storage: storage, supabaseURL: supabaseURL}
 }
 
 // HandleGetAccount returns the authenticated user's account data as JSON.
@@ -173,7 +162,7 @@ func (h *UserHandler) HandlePostAccount(w http.ResponseWriter, r *http.Request) 
 		api.RespondError(w, http.StatusBadRequest, "display name too long")
 		return
 	}
-	if err := users.UpdateDisplayName(r.Context(), h.db, userID, displayName); err != nil {
+	if err := users.UpdateDisplayName(r.Context(), database.MustQuerier(r.Context()), userID, displayName); err != nil {
 		api.RespondError(w, http.StatusInternalServerError, "internal server error")
 		return
 	}
@@ -203,8 +192,8 @@ func (h *UserHandler) HandlePatchAccount(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	if h.db != nil && timezone != "" {
-		if err := users.UpdateTimezone(r.Context(), h.db, userID, timezone); err != nil {
+	if timezone != "" {
+		if err := users.UpdateTimezone(r.Context(), database.MustQuerier(r.Context()), userID, timezone); err != nil {
 			api.RespondError(w, http.StatusInternalServerError, "failed to update account")
 			return
 		}

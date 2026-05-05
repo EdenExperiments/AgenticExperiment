@@ -6,13 +6,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/meden/rpgtracker/internal/database"
 )
 
 // GetForecastData fetches all data needed to compute a goal forecast in a
 // single round-trip per resource type. Ownership is enforced via GetGoal which
 // scopes its query to userID.
-func GetForecastData(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID) (ForecastInput, error) {
+func GetForecastData(ctx context.Context, db database.Querier, userID, goalID uuid.UUID) (ForecastInput, error) {
 	g, err := GetGoal(ctx, db, userID, goalID)
 	if err != nil {
 		return ForecastInput{}, err
@@ -38,7 +38,7 @@ func GetForecastData(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.
 
 // listCheckinsForForecast returns checkins newest-first (same as ListCheckins
 // but without the ownership pre-check — we already confirmed ownership above).
-func listCheckinsForForecast(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID) ([]Checkin, error) {
+func listCheckinsForForecast(ctx context.Context, db database.Querier, userID, goalID uuid.UUID) ([]Checkin, error) {
 	rows, err := db.Query(ctx, `
 		SELECT id, goal_id, user_id, note, value_snapshot, created_at
 		FROM public.goal_checkins
@@ -63,7 +63,7 @@ func listCheckinsForForecast(ctx context.Context, db *pgxpool.Pool, userID, goal
 
 // listMilestonesForForecast returns milestones for the goal without the
 // ownership pre-check (already confirmed above).
-func listMilestonesForForecast(ctx context.Context, db *pgxpool.Pool, userID, goalID uuid.UUID) ([]Milestone, error) {
+func listMilestonesForForecast(ctx context.Context, db database.Querier, userID, goalID uuid.UUID) ([]Milestone, error) {
 	rows, err := db.Query(ctx, `
 		SELECT id, goal_id, user_id, title, description, is_done, done_at,
 		       position, due_date, created_at, updated_at

@@ -12,8 +12,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/skills"
 	"github.com/meden/rpgtracker/internal/xpcurve"
@@ -50,9 +50,9 @@ type SkillDetail struct {
 // SkillHandler handles skill endpoints.
 type SkillHandler struct{ store SkillStore }
 
-// NewSkillHandler constructs a SkillHandler backed by the given DB pool.
-func NewSkillHandler(db *pgxpool.Pool) *SkillHandler {
-	return &SkillHandler{store: &dbSkillStore{db: db}}
+// NewSkillHandler constructs a SkillHandler (DB access uses database.Querier from request context).
+func NewSkillHandler() *SkillHandler {
+	return &SkillHandler{store: &dbSkillStore{}}
 }
 
 // NewSkillHandlerWithStore constructs a SkillHandler with an injected store (for tests).
@@ -60,40 +60,40 @@ func NewSkillHandlerWithStore(s SkillStore) *SkillHandler {
 	return &SkillHandler{store: s}
 }
 
-type dbSkillStore struct{ db *pgxpool.Pool }
+type dbSkillStore struct{}
 
 func (s *dbSkillStore) CreateSkill(ctx context.Context, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID, categoryID *uuid.UUID, startingLevel int, gateDescs [10]string) (*skills.Skill, error) {
-	return skills.CreateSkill(ctx, s.db, userID, name, description, unit, presetID, categoryID, startingLevel, gateDescs)
+	return skills.CreateSkill(ctx, database.MustQuerier(ctx), userID, name, description, unit, presetID, categoryID, startingLevel, gateDescs)
 }
 func (s *dbSkillStore) ListSkills(ctx context.Context, userID uuid.UUID) ([]skills.Skill, error) {
-	return skills.ListSkills(ctx, s.db, userID)
+	return skills.ListSkills(ctx, database.MustQuerier(ctx), userID)
 }
 func (s *dbSkillStore) GetSkill(ctx context.Context, userID, skillID uuid.UUID) (*skills.Skill, error) {
-	return skills.GetSkill(ctx, s.db, userID, skillID)
+	return skills.GetSkill(ctx, database.MustQuerier(ctx), userID, skillID)
 }
 func (s *dbSkillStore) GetBlockerGates(ctx context.Context, skillID uuid.UUID) ([]skills.BlockerGate, error) {
-	return skills.GetBlockerGates(ctx, s.db, skillID)
+	return skills.GetBlockerGates(ctx, database.MustQuerier(ctx), skillID)
 }
 func (s *dbSkillStore) UpdateSkill(ctx context.Context, userID, skillID uuid.UUID, name, description string, categoryID *uuid.UUID) (*skills.Skill, error) {
-	return skills.UpdateSkill(ctx, s.db, userID, skillID, name, description, categoryID)
+	return skills.UpdateSkill(ctx, database.MustQuerier(ctx), userID, skillID, name, description, categoryID)
 }
 func (s *dbSkillStore) SoftDeleteSkill(ctx context.Context, userID, skillID uuid.UUID) error {
-	return skills.SoftDeleteSkill(ctx, s.db, userID, skillID)
+	return skills.SoftDeleteSkill(ctx, database.MustQuerier(ctx), userID, skillID)
 }
 func (s *dbSkillStore) ToggleFavourite(ctx context.Context, userID, skillID uuid.UUID) (bool, error) {
-	return skills.ToggleFavourite(ctx, s.db, userID, skillID)
+	return skills.ToggleFavourite(ctx, database.MustQuerier(ctx), userID, skillID)
 }
 func (s *dbSkillStore) SetSkillTags(ctx context.Context, userID, skillID uuid.UUID, tagNames []string) ([]skills.Tag, error) {
-	return skills.SetSkillTags(ctx, s.db, userID, skillID, tagNames)
+	return skills.SetSkillTags(ctx, database.MustQuerier(ctx), userID, skillID, tagNames)
 }
 func (s *dbSkillStore) ListTags(ctx context.Context, userID uuid.UUID) ([]skills.TagWithCount, error) {
-	return skills.ListTags(ctx, s.db, userID)
+	return skills.ListTags(ctx, database.MustQuerier(ctx), userID)
 }
 func (s *dbSkillStore) ListCategories(ctx context.Context) ([]skills.Category, error) {
-	return skills.ListCategories(ctx, s.db)
+	return skills.ListCategories(ctx, database.MustQuerier(ctx))
 }
 func (s *dbSkillStore) ValidateCategoryID(ctx context.Context, categoryID uuid.UUID) error {
-	return skills.ValidateCategoryID(ctx, s.db, categoryID)
+	return skills.ValidateCategoryID(ctx, database.MustQuerier(ctx), categoryID)
 }
 
 // HandlePostSkill handles POST /api/v1/skills.

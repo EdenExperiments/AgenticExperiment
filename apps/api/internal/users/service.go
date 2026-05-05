@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/meden/rpgtracker/internal/database"
 )
 
 // ErrSkillNotOwned is returned when a skill_id does not exist or is not owned by the user.
@@ -25,7 +25,7 @@ type User struct {
 // GetOrCreateUser upserts a user row by ID and returns the current record.
 // On conflict (user already created by Supabase trigger) it does nothing and
 // returns the existing row.
-func GetOrCreateUser(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, email string) (*User, error) {
+func GetOrCreateUser(ctx context.Context, db database.Querier, userID uuid.UUID, email string) (*User, error) {
 	_, err := db.Exec(ctx,
 		`INSERT INTO public.users (id, email) VALUES ($1, $2) ON CONFLICT (id) DO NOTHING`,
 		userID, email,
@@ -48,7 +48,7 @@ func GetOrCreateUser(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, em
 }
 
 // SetAvatarURL updates the avatar_url for the given user and returns the updated record.
-func SetAvatarURL(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, url string) (*User, error) {
+func SetAvatarURL(ctx context.Context, db database.Querier, userID uuid.UUID, url string) (*User, error) {
 	_, err := db.Exec(ctx,
 		`UPDATE public.users SET avatar_url = $2, updated_at = now() WHERE id = $1`,
 		userID, url,
@@ -71,7 +71,7 @@ func SetAvatarURL(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, url s
 }
 
 // ClearAvatarURL sets avatar_url to NULL for the given user and returns the updated record.
-func ClearAvatarURL(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) (*User, error) {
+func ClearAvatarURL(ctx context.Context, db database.Querier, userID uuid.UUID) (*User, error) {
 	_, err := db.Exec(ctx,
 		`UPDATE public.users SET avatar_url = NULL, updated_at = now() WHERE id = $1`,
 		userID,
@@ -97,7 +97,7 @@ func ClearAvatarURL(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) (*U
 // If skillID matches the current primary_skill_id, it unpins (toggle off) and returns nil.
 // If the skill is valid and owned, it pins and returns a pointer to the skill ID.
 // Returns ErrSkillNotOwned if the skill doesn't exist or isn't owned by the user.
-func SetPrimarySkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID) (*uuid.UUID, error) {
+func SetPrimarySkill(ctx context.Context, db database.Querier, userID, skillID uuid.UUID) (*uuid.UUID, error) {
 	// Verify the skill exists and is owned by the user
 	var exists bool
 	err := db.QueryRow(ctx,
@@ -145,7 +145,7 @@ func SetPrimarySkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid
 }
 
 // UpdateDisplayName sets a new display name for the given user.
-func UpdateDisplayName(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name string) error {
+func UpdateDisplayName(ctx context.Context, db database.Querier, userID uuid.UUID, name string) error {
 	_, err := db.Exec(ctx,
 		`UPDATE public.users SET display_name = $1, updated_at = now() WHERE id = $2`,
 		name, userID,
@@ -154,7 +154,7 @@ func UpdateDisplayName(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, 
 }
 
 // UpdateTimezone sets the IANA timezone for the given user.
-func UpdateTimezone(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, timezone string) error {
+func UpdateTimezone(ctx context.Context, db database.Querier, userID uuid.UUID, timezone string) error {
 	_, err := db.Exec(ctx,
 		`UPDATE public.users SET timezone = $1, updated_at = now() WHERE id = $2`,
 		timezone, userID,

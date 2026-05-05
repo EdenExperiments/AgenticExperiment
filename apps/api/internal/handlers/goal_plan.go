@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/planner"
@@ -103,10 +102,10 @@ type GoalPlanHandler struct {
 	caller   PlannerAICaller
 }
 
-// NewGoalPlanHandler constructs a GoalPlanHandler backed by the DB and Anthropic API.
-func NewGoalPlanHandler(db *pgxpool.Pool, masterKey []byte) *GoalPlanHandler {
+// NewGoalPlanHandler constructs a GoalPlanHandler (DB via database.Querier from context).
+func NewGoalPlanHandler(masterKey []byte) *GoalPlanHandler {
 	return &GoalPlanHandler{
-		keyStore: &dbKeyStore{db: db, masterKey: masterKey},
+		keyStore: &dbKeyStore{masterKey: masterKey},
 		caller:   &httpPlannerCaller{client: &http.Client{Timeout: 60 * time.Second}},
 	}
 }

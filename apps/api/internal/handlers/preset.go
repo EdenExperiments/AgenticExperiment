@@ -7,8 +7,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/skills"
 )
 
@@ -25,9 +25,9 @@ type PresetHandler struct {
 	store PresetStore
 }
 
-// NewPresetHandler constructs a PresetHandler backed by the given DB pool.
-func NewPresetHandler(db *pgxpool.Pool) *PresetHandler {
-	return &PresetHandler{store: &dbPresetStore{db: db}}
+// NewPresetHandler constructs a PresetHandler (DB via database.Querier from context).
+func NewPresetHandler() *PresetHandler {
+	return &PresetHandler{store: &dbPresetStore{}}
 }
 
 // NewPresetHandlerWithStore constructs a PresetHandler with an injected store.
@@ -37,14 +37,14 @@ func NewPresetHandlerWithStore(s PresetStore) *PresetHandler {
 }
 
 // dbPresetStore wraps the free repository functions to satisfy PresetStore.
-type dbPresetStore struct{ db *pgxpool.Pool }
+type dbPresetStore struct{}
 
 func (s *dbPresetStore) ListPresets(ctx context.Context, category, query string) ([]skills.Preset, error) {
-	return skills.ListPresets(ctx, s.db, category, query)
+	return skills.ListPresets(ctx, database.MustQuerier(ctx), category, query)
 }
 
 func (s *dbPresetStore) GetPreset(ctx context.Context, id uuid.UUID) (*skills.Preset, error) {
-	return skills.GetPreset(ctx, s.db, id)
+	return skills.GetPreset(ctx, database.MustQuerier(ctx), id)
 }
 
 // HandleGetPresets serves GET /api/v1/presets.

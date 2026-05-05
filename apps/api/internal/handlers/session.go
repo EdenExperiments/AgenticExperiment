@@ -11,8 +11,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/meden/rpgtracker/internal/api"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/skills"
 )
@@ -30,7 +30,6 @@ type SessionStore interface {
 // SessionHandler handles training session endpoints.
 type SessionHandler struct {
 	store SessionStore
-	db    *pgxpool.Pool
 }
 
 // NewSessionHandlerWithStore constructs a SessionHandler with an injected store (for tests).
@@ -38,22 +37,20 @@ func NewSessionHandlerWithStore(s SessionStore) *SessionHandler {
 	return &SessionHandler{store: s}
 }
 
-// NewSessionHandler constructs a SessionHandler backed by the DB pool.
-func NewSessionHandler(db *pgxpool.Pool) *SessionHandler {
-	return &SessionHandler{store: &dbSessionStore{db: db}, db: db}
+// NewSessionHandler constructs a SessionHandler (DB via database.Querier from context).
+func NewSessionHandler() *SessionHandler {
+	return &SessionHandler{store: &dbSessionStore{}}
 }
 
 // dbSessionStore is the real DB-backed implementation of SessionStore.
-type dbSessionStore struct {
-	db *pgxpool.Pool
-}
+type dbSessionStore struct{}
 
 // CreateSession inserts a training_sessions row and, for non-abandoned sessions,
 // calls LogXP with the combined (base + bonus) delta.
 func (s *dbSessionStore) CreateSession(ctx context.Context, userID, skillID uuid.UUID, req skills.CreateSessionRequest) (*skills.CreateSessionResult, error) {
 	// 1. Load skill to get requires_active_use (and verify ownership).
 	var requiresActiveUse bool
-	err := s.db.QueryRow(ctx, `
+	err := database.MustQuerier(ctx).QueryRow(ctx, `
 		SELECT requires_active_use
 		FROM public.skills
 		WHERE id=$1 AND user_id=$2 AND deleted_at IS NULL
@@ -82,7 +79,7 @@ func (s *dbSessionStore) CreateSession(ctx context.Context, userID, skillID uuid
 
 	// 3. Insert training_sessions row.
 	var session skills.TrainingSession
-	err = s.db.QueryRow(ctx, `
+	err = database.MustQuerier(ctx).QueryRow(ctx, `
 		INSERT INTO public.training_sessions
 			(skill_id, user_id, session_type, planned_duration_sec, actual_duration_sec,
 			 status, completion_ratio, bonus_percentage, bonus_xp,
@@ -117,7 +114,7 @@ func (s *dbSessionStore) CreateSession(ctx context.Context, userID, skillID uuid
 	}
 
 	// 5. For completed/partial: log XP with the training session FK.
-	xpResult, err := skills.LogXP(ctx, s.db, userID, skillID, totalXP, req.LogNote, &session.ID)
+	xpResult, err := skills.LogXP(ctx, database.MustQuerier(ctx), userID, skillID, totalXP, req.LogNote, &session.ID)
 	if err != nil {
 		return nil, fmt.Errorf("session: log xp: %w", err)
 	}
@@ -147,7 +144,7 @@ func (s *dbSessionStore) ListSessions(ctx context.Context, skillID, userID uuid.
 		err  error
 	)
 	if before != nil {
-		rows, err = s.db.Query(ctx, `
+		rows, err = database.MustQuerier(ctx).Query(ctx, `
 			SELECT id, skill_id, user_id, session_type, planned_duration_sec, actual_duration_sec,
 			       status, completion_ratio, bonus_percentage, bonus_xp,
 			       pomodoro_work_sec, pomodoro_break_sec, pomodoro_intervals_completed, pomodoro_intervals_planned,
@@ -158,7 +155,7 @@ func (s *dbSessionStore) ListSessions(ctx context.Context, skillID, userID uuid.
 			LIMIT $4
 		`, skillID, userID, *before, limit)
 	} else {
-		rows, err = s.db.Query(ctx, `
+		rows, err = database.MustQuerier(ctx).Query(ctx, `
 			SELECT id, skill_id, user_id, session_type, planned_duration_sec, actual_duration_sec,
 			       status, completion_ratio, bonus_percentage, bonus_xp,
 			       pomodoro_work_sec, pomodoro_break_sec, pomodoro_intervals_completed, pomodoro_intervals_planned,
@@ -296,11 +293,6 @@ func (h *SessionHandler) HandleGetSessions(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if h.db == nil {
-		api.RespondError(w, http.StatusInternalServerError, "session listing not available")
-		return
-	}
-
 	limit := parseIntOrZero(r.URL.Query().Get("limit"))
 	if limit <= 0 {
 		limit = 20
@@ -316,7 +308,7 @@ func (h *SessionHandler) HandleGetSessions(w http.ResponseWriter, r *http.Reques
 		before = &t
 	}
 
-	store := &dbSessionStore{db: h.db}
+	store := &dbSessionStore{}
 	sessions, nextCursor, err := store.ListSessions(r.Context(), skillID, userID, limit, before)
 	if err != nil {
 		log.Printf("ERROR: ListSessions user=%s skill=%s: %v", userID, skillID, err)

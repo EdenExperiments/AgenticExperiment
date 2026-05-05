@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/xpcurve"
 )
 
@@ -101,13 +101,13 @@ const autoClearEvidence = "Skill created at a higher starting level — this tie
 // D-033 (revised): All gates at or below startingLevel are auto-cleared with
 // verdict='self_reported'. The first gate above startingLevel is the next challenge.
 // e.g. startingLevel=28 → gates 9,19 cleared, gate 29 is next.
-func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID, categoryID *uuid.UUID, startingLevel int, gateDescs [10]string) (*Skill, error) {
+func CreateSkill(ctx context.Context, db database.Querier, userID uuid.UUID, name, description, unit string, presetID *uuid.UUID, categoryID *uuid.UUID, startingLevel int, gateDescs [10]string) (*Skill, error) {
 	if startingLevel < 1 || startingLevel > 99 {
 		return nil, ErrInvalidStartingLevel
 	}
 	startXP := xpcurve.XPToReachLevel(startingLevel)
 
-	tx, err := db.Begin(ctx)
+	tx, err := database.Begin(ctx, db)
 	if err != nil {
 		return nil, fmt.Errorf("skills: begin tx: %w", err)
 	}
@@ -198,7 +198,7 @@ func CreateSkill(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, name, 
 
 // ListSkills returns all non-deleted skills for a user, sorted by most recently updated.
 // Includes category fields (via LEFT JOIN) and is_favourite. Tags are loaded in a second query.
-func ListSkills(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) ([]Skill, error) {
+func ListSkills(ctx context.Context, db database.Querier, userID uuid.UUID) ([]Skill, error) {
 	rows, err := db.Query(ctx, `
 		SELECT s.id, s.user_id, s.name, s.description, s.unit, s.preset_id,
 		       s.category_id, c.name, c.slug, c.emoji,
@@ -268,7 +268,7 @@ func ListSkills(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) ([]Skil
 }
 
 // GetSkill returns a single non-deleted skill owned by userID, enriched with category and tags.
-func GetSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID) (*Skill, error) {
+func GetSkill(ctx context.Context, db database.Querier, userID, skillID uuid.UUID) (*Skill, error) {
 	var s Skill
 	err := db.QueryRow(ctx, `
 		SELECT s.id, s.user_id, s.name, s.description, s.unit, s.preset_id,
@@ -316,7 +316,7 @@ func GetSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID) 
 }
 
 // UpdateSkill updates name, description, and category of a skill owned by userID.
-func UpdateSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, name, description string, categoryID *uuid.UUID) (*Skill, error) {
+func UpdateSkill(ctx context.Context, db database.Querier, userID, skillID uuid.UUID, name, description string, categoryID *uuid.UUID) (*Skill, error) {
 	var s Skill
 	err := db.QueryRow(ctx, `
 		UPDATE public.skills SET name=$3, description=$4, category_id=$5, updated_at=NOW()
@@ -338,7 +338,7 @@ func UpdateSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUI
 }
 
 // SoftDeleteSkill marks a skill as deleted without removing its data.
-func SoftDeleteSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID) error {
+func SoftDeleteSkill(ctx context.Context, db database.Querier, userID, skillID uuid.UUID) error {
 	tag, err := db.Exec(ctx, `
 		UPDATE public.skills SET deleted_at=NOW()
 		WHERE id=$1 AND user_id=$2 AND deleted_at IS NULL
@@ -355,7 +355,7 @@ func SoftDeleteSkill(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid
 // GetBlockerGates returns all gates for a skill, ordered by gate_level.
 // The caller is responsible for verifying that the skill belongs to the
 // authenticated user before calling this function.
-func GetBlockerGates(ctx context.Context, db *pgxpool.Pool, skillID uuid.UUID) ([]BlockerGate, error) {
+func GetBlockerGates(ctx context.Context, db database.Querier, skillID uuid.UUID) ([]BlockerGate, error) {
 	rows, err := db.Query(ctx, `
 		SELECT id, skill_id, gate_level, title, description, first_notified_at, is_cleared, cleared_at
 		FROM public.blocker_gates
@@ -391,7 +391,7 @@ func EffectiveLevel(currentLevel int, gates []BlockerGate) int {
 }
 
 // ToggleFavourite flips the is_favourite flag on a skill and returns the new value.
-func ToggleFavourite(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID) (bool, error) {
+func ToggleFavourite(ctx context.Context, db database.Querier, userID, skillID uuid.UUID) (bool, error) {
 	var newVal bool
 	err := db.QueryRow(ctx, `
 		UPDATE public.skills SET is_favourite = NOT is_favourite, updated_at = NOW()
@@ -409,7 +409,7 @@ func ToggleFavourite(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid
 
 // SetSkillTags replaces all tags on a skill with the given names (max 5).
 // Tags are created if they don't exist (user-scoped, lowercase, trimmed).
-func SetSkillTags(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UUID, tagNames []string) ([]Tag, error) {
+func SetSkillTags(ctx context.Context, db database.Querier, userID, skillID uuid.UUID, tagNames []string) ([]Tag, error) {
 	if len(tagNames) > 5 {
 		return nil, ErrTooManyTags
 	}
@@ -426,7 +426,7 @@ func SetSkillTags(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UU
 		return nil, ErrNotFound
 	}
 
-	tx, err := db.Begin(ctx)
+	tx, err := database.Begin(ctx, db)
 	if err != nil {
 		return nil, fmt.Errorf("skills: begin tx: %w", err)
 	}
@@ -488,7 +488,7 @@ func SetSkillTags(ctx context.Context, db *pgxpool.Pool, userID, skillID uuid.UU
 }
 
 // ListTags returns all tags for a user with skill counts.
-func ListTags(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) ([]TagWithCount, error) {
+func ListTags(ctx context.Context, db database.Querier, userID uuid.UUID) ([]TagWithCount, error) {
 	rows, err := db.Query(ctx, `
 		SELECT t.id, t.name, COUNT(st.skill_id) AS skill_count
 		FROM public.tags t
@@ -514,7 +514,7 @@ func ListTags(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) ([]TagWit
 }
 
 // ValidateCategoryID checks that a category ID exists in skill_categories.
-func ValidateCategoryID(ctx context.Context, db *pgxpool.Pool, categoryID uuid.UUID) error {
+func ValidateCategoryID(ctx context.Context, db database.Querier, categoryID uuid.UUID) error {
 	var exists bool
 	err := db.QueryRow(ctx, `
 		SELECT EXISTS(SELECT 1 FROM public.skill_categories WHERE id = $1)
