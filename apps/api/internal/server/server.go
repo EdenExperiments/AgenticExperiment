@@ -33,7 +33,7 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		api.RespondError(w, http.StatusNotFound, "not found")
 	})
 
-	authHandler := auth.NewAuthHandler(cfg.SupabaseProjectURL, cfg.SupabaseAnonKey)
+	authHandler := auth.NewAuthHandler(cfg.SupabaseProjectURL, cfg.SupabasePublishableKey)
 
 	// Public routes
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {

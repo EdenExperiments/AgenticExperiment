@@ -13,7 +13,7 @@ import (
 )
 
 func TestNewSupabaseStorageClient_HasTimeout(t *testing.T) {
-	c := NewSupabaseStorageClient("https://example.supabase.co", "service-role-key")
+	c := NewSupabaseStorageClient("https://example.supabase.co", "secret-key")
 	if c.httpClient.Timeout == 0 {
 		t.Error("expected non-zero HTTP client timeout, got 0")
 	}
@@ -26,11 +26,7 @@ func TestPutAvatar_Timeout(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := &SupabaseStorageClient{
-		supabaseURL:    srv.URL,
-		serviceRoleKey: "key",
-		httpClient:     &http.Client{Timeout: 50 * time.Millisecond},
-	}
+	c := &SupabaseStorageClient{supabaseURL: srv.URL, secretKey: "key", httpClient: &http.Client{Timeout: 50 * time.Millisecond}}
 
 	err := c.PutAvatar(context.Background(), uuid.New(), strings.NewReader("data"), "image/png")
 	if err == nil {
@@ -45,11 +41,7 @@ func TestDeleteAvatar_Timeout(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := &SupabaseStorageClient{
-		supabaseURL:    srv.URL,
-		serviceRoleKey: "key",
-		httpClient:     &http.Client{Timeout: 50 * time.Millisecond},
-	}
+	c := &SupabaseStorageClient{supabaseURL: srv.URL, secretKey: "key", httpClient: &http.Client{Timeout: 50 * time.Millisecond}}
 
 	err := c.DeleteAvatar(context.Background(), uuid.New())
 	if err == nil {
@@ -63,11 +55,7 @@ func TestPutAvatar_NonOKStatus(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := &SupabaseStorageClient{
-		supabaseURL:    srv.URL,
-		serviceRoleKey: "key",
-		httpClient:     &http.Client{Timeout: 5 * time.Second},
-	}
+	c := &SupabaseStorageClient{supabaseURL: srv.URL, secretKey: "key", httpClient: &http.Client{Timeout: 5 * time.Second}}
 
 	err := c.PutAvatar(context.Background(), uuid.New(), io.NopCloser(strings.NewReader("data")), "image/png")
 	if err == nil {
@@ -81,11 +69,7 @@ func TestDeleteAvatar_NotFoundIsSuccess(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	c := &SupabaseStorageClient{
-		supabaseURL:    srv.URL,
-		serviceRoleKey: "key",
-		httpClient:     &http.Client{Timeout: 5 * time.Second},
-	}
+	c := &SupabaseStorageClient{supabaseURL: srv.URL, secretKey: "key", httpClient: &http.Client{Timeout: 5 * time.Second}}
 
 	err := c.DeleteAvatar(context.Background(), uuid.New())
 	if err != nil {
@@ -103,11 +87,7 @@ func TestPutAvatar_ContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 50*time.Millisecond)
 	defer cancel()
 
-	c := &SupabaseStorageClient{
-		supabaseURL:    srv.URL,
-		serviceRoleKey: "key",
-		httpClient:     &http.Client{Timeout: 30 * time.Second},
-	}
+	c := &SupabaseStorageClient{supabaseURL: srv.URL, secretKey: "key", httpClient: &http.Client{Timeout: 30 * time.Second}}
 
 	err := c.PutAvatar(ctx, uuid.New(), strings.NewReader("data"), "image/png")
 	if err == nil {
