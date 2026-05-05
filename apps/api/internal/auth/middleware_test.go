@@ -307,3 +307,75 @@ func TestJWTMiddleware_WrongIssuer(t *testing.T) {
 		t.Errorf("status = %d, want 401", w.Code)
 	}
 }
+
+// serveSlowJWKS starts an httptest server that delays its response by the given duration.
+func serveSlowJWKS(t *testing.T, delay time.Duration) *httptest.Server {
+	t.Helper()
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(delay)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"keys":[]}`)) //nolint:errcheck
+	}))
+}
+
+// TestFetch_Timeout verifies that fetch() returns an error when the JWKS endpoint
+// takes longer than the configured HTTP client timeout.
+func TestFetch_Timeout(t *testing.T) {
+	srv := serveSlowJWKS(t, 2*time.Second)
+	defer srv.Close()
+
+	cache := &jwksCache{
+		keys:    make(map[string]crypto.PublicKey),
+		jwksURL: srv.URL,
+		issuer:  testIssuer,
+		// Deliberately short timeout to trigger deadline exceeded quickly.
+		httpClient: &http.Client{Timeout: 50 * time.Millisecond},
+	}
+
+	err := cache.fetch()
+	if err == nil {
+		t.Fatal("expected fetch() to return an error on timeout, got nil")
+	}
+}
+
+// TestFetch_NonOKStatus verifies that fetch() returns an error on non-200 responses.
+func TestFetch_NonOKStatus(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "service unavailable", http.StatusServiceUnavailable)
+	}))
+	defer srv.Close()
+
+	cache := &jwksCache{
+		keys:       make(map[string]crypto.PublicKey),
+		jwksURL:    srv.URL,
+		issuer:     testIssuer,
+		httpClient: &http.Client{Timeout: 5 * time.Second},
+	}
+
+	err := cache.fetch()
+	if err == nil {
+		t.Fatal("expected fetch() to return an error on non-200 status, got nil")
+	}
+}
+
+// TestFetch_MalformedJSON verifies that fetch() returns an error when the JWKS body
+// cannot be decoded.
+func TestFetch_MalformedJSON(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`not valid json`)) //nolint:errcheck
+	}))
+	defer srv.Close()
+
+	cache := &jwksCache{
+		keys:       make(map[string]crypto.PublicKey),
+		jwksURL:    srv.URL,
+		issuer:     testIssuer,
+		httpClient: &http.Client{Timeout: 5 * time.Second},
+	}
+
+	err := cache.fetch()
+	if err == nil {
+		t.Fatal("expected fetch() to return an error on malformed JSON, got nil")
+	}
+}

@@ -1,5 +1,6 @@
 import { createServerClient, type CookieMethodsServer } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { getSupabaseUrl, getSupabaseAnonKey } from './env'
 
 type CookieToSet = Parameters<NonNullable<CookieMethodsServer['setAll']>>[0][number]
 
@@ -9,8 +10,8 @@ export async function createSupabaseServerClient() {
   const cookieStore = await cookies()  // async in Next.js 15+
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    getSupabaseUrl(),
+    getSupabaseAnonKey(),
     {
       cookies: {
         getAll() {
