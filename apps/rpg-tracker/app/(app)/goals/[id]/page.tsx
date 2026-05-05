@@ -18,6 +18,7 @@ import {
 import type { Goal, GoalStatus, Milestone, CheckIn, GoalForecast, TrackState } from '@rpgtracker/api-client'
 import { isEntitlementError } from '../../../../lib/useAIEntitlement'
 import { PaywallCTA } from '../../../../components/PaywallCTA'
+import { getNoteLengthBucket, trackEvent } from '@/lib/analytics'
 
 function formatDate(iso: string | null): string {
   if (!iso) return ''
@@ -204,7 +205,15 @@ function AddMilestoneForm({
   )
 }
 
-function CheckInForm({ goalId, hasValue }: { goalId: string; hasValue: boolean }) {
+function CheckInForm({
+  goalId,
+  hasValue,
+  previousTrackState,
+}: {
+  goalId: string
+  hasValue: boolean
+  previousTrackState: TrackState
+}) {
   const qc = useQueryClient()
   const [note, setNote] = useState('')
   const [value, setValue] = useState('')
@@ -217,6 +226,19 @@ function CheckInForm({ goalId, hasValue }: { goalId: string; hasValue: boolean }
         value: value ? Number(value) : undefined,
       }),
     onSuccess: () => {
+      trackEvent('weekly_checkin_completed', {
+        goal_id: goalId,
+        has_value: Boolean(value),
+        note_length_bucket: getNoteLengthBucket(note),
+        previous_track_state: previousTrackState,
+      })
+      if (previousTrackState === 'at_risk' || previousTrackState === 'behind') {
+        trackEvent('offtrack_recovered', {
+          goal_id: goalId,
+          previous_track_state: previousTrackState,
+          recovery_action: 'checkin',
+        })
+      }
       qc.invalidateQueries({ queryKey: ['checkins', goalId] })
       qc.invalidateQueries({ queryKey: ['goal', goalId] })
       setNote('')
@@ -550,6 +572,13 @@ export default function GoalDetailPage() {
     enabled: !!id,
   })
 
+  const { data: forecast } = useQuery<GoalForecast>({
+    queryKey: ['forecast', id],
+    queryFn: () => getGoalForecast(id),
+    staleTime: 5 * 60 * 1000,
+    enabled: !!id && goal?.status === 'active',
+  })
+
   const toggleMilestoneMutation = useMutation({
     mutationFn: (m: Milestone) =>
       updateMilestone(id, m.id, { is_done: !m.is_done }),
@@ -787,7 +816,11 @@ export default function GoalDetailPage() {
           Check-ins
         </h2>
 
-        <CheckInForm goalId={id} hasValue={goal.target_value != null} />
+        <CheckInForm
+          goalId={id}
+          hasValue={goal.target_value != null}
+          previousTrackState={forecast?.track_state ?? 'unknown'}
+        />
 
         {checkIns.length === 0 ? (
           <p className="text-sm" style={{ color: 'var(--color-muted)' }}>

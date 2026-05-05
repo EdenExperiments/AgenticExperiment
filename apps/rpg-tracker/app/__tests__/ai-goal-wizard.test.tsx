@@ -1,12 +1,14 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import AiGoalWizardPage from '../(app)/goals/ai/new/page'
+import { setAnalyticsDispatcher } from '@/lib/analytics'
 
 const mockPlanGoal = vi.fn()
 const mockCreateGoal = vi.fn()
 const mockCreateMilestone = vi.fn()
 const mockGetAIEntitlement = vi.fn()
 const mockPush = vi.fn()
+const mockTrack = vi.fn()
 
 vi.mock('@rpgtracker/api-client', () => ({
   planGoal: (...args: unknown[]) => mockPlanGoal(...args),
@@ -48,6 +50,7 @@ function makePlanResponse(overrides = {}) {
 beforeEach(() => {
   vi.clearAllMocks()
   mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'api_key_set' })
+  setAnalyticsDispatcher(mockTrack)
   mockPlanGoal.mockResolvedValue(makePlanResponse())
   mockCreateGoal.mockResolvedValue({
     id: 'new-goal-id',
@@ -64,6 +67,10 @@ beforeEach(() => {
     updated_at: '',
   })
   mockCreateMilestone.mockResolvedValue({})
+})
+
+afterEach(() => {
+  setAnalyticsDispatcher(null)
 })
 
 test('renders wizard input step initially', () => {
@@ -97,6 +104,29 @@ test('calls planGoal with statement and transitions to preview step', async () =
 
   await screen.findByText('Run a 5km race')
   expect(screen.getByText(/objective/i)).toBeInTheDocument()
+})
+
+test('tracks AI plan generation without prompt content', async () => {
+  render(<AiGoalWizardPage />, { wrapper })
+  fireEvent.change(screen.getByLabelText(/goal statement/i), { target: { value: 'Run a 5km race' } })
+  fireEvent.change(screen.getByLabelText(/additional context/i), { target: { value: 'I can run twice per week' } })
+  fireEvent.click(screen.getByRole('button', { name: /generate plan/i }))
+
+  await waitFor(() => {
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'ai_plan_generated',
+        payload: {
+          degraded_response: false,
+          has_deadline: false,
+          has_context: true,
+          milestone_count: 3,
+          weekly_cadence_count: 2,
+          risk_count: 1,
+        },
+      })
+    )
+  })
 })
 
 test('passes deadline as ISO string to planGoal', async () => {
@@ -191,6 +221,41 @@ test('accept plan creates goal and milestones, navigates to goal detail', async 
 
   await waitFor(() => {
     expect(mockPush).toHaveBeenCalledWith('/goals/new-goal-id')
+  })
+})
+
+test('tracks accepted AI plan and created goal metadata', async () => {
+  render(<AiGoalWizardPage />, { wrapper })
+  fireEvent.change(screen.getByLabelText(/goal statement/i), { target: { value: 'Run a 5km race' } })
+  fireEvent.click(screen.getByRole('button', { name: /generate plan/i }))
+
+  await screen.findByDisplayValue('Run 1km without stopping')
+  fireEvent.click(screen.getByRole('button', { name: /accept plan/i }))
+
+  await waitFor(() => {
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'goal_created',
+        payload: expect.objectContaining({
+          goal_id: 'new-goal-id',
+          source: 'ai_plan',
+          has_target_date: false,
+          has_linked_skill: false,
+          has_value_tracking: false,
+        }),
+      })
+    )
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'ai_plan_accepted',
+        payload: expect.objectContaining({
+          goal_id: 'new-goal-id',
+          generated_milestone_count: 3,
+          selected_milestone_count: 3,
+          edited_milestone_count: 0,
+        }),
+      })
+    )
   })
 })
 

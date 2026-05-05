@@ -1,10 +1,12 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import GoalCreatePage from '../(app)/goals/new/page'
+import { setAnalyticsDispatcher } from '@/lib/analytics'
 
 const mockCreateGoal = vi.fn()
 const mockListSkills = vi.fn()
 const mockPush = vi.fn()
+const mockTrack = vi.fn()
 
 vi.mock('@rpgtracker/api-client', () => ({
   createGoal: (...args: unknown[]) => mockCreateGoal(...args),
@@ -25,6 +27,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  setAnalyticsDispatcher(mockTrack)
   mockListSkills.mockResolvedValue([])
   mockCreateGoal.mockResolvedValue({
     id: 'goal-new',
@@ -40,6 +43,10 @@ beforeEach(() => {
     created_at: '2026-01-01T00:00:00Z',
     updated_at: '2026-01-01T00:00:00Z',
   })
+})
+
+afterEach(() => {
+  setAnalyticsDispatcher(null)
 })
 
 test('renders the create form', async () => {
@@ -83,6 +90,29 @@ test('navigates to goal detail after successful create', async () => {
 
   await waitFor(() => {
     expect(mockPush).toHaveBeenCalledWith('/goals/goal-new')
+  })
+})
+
+test('tracks manual goal creation metadata', async () => {
+  render(<GoalCreatePage />, { wrapper })
+  fireEvent.change(screen.getByLabelText(/title/i), { target: { value: 'Run 100km' } })
+  fireEvent.change(screen.getByLabelText(/target date/i), { target: { value: '2026-12-31' } })
+  fireEvent.change(screen.getByLabelText(/target value/i), { target: { value: '100' } })
+  fireEvent.click(screen.getByRole('button', { name: /create goal/i }))
+
+  await waitFor(() => {
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'goal_created',
+        payload: expect.objectContaining({
+          goal_id: 'goal-new',
+          source: 'manual',
+          has_target_date: true,
+          has_linked_skill: false,
+          has_value_tracking: true,
+        }),
+      })
+    )
   })
 })
 
