@@ -99,6 +99,11 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 
 		r.Post("/auth/signout", authHandler.HandlePostSignout)
 
+		r.Post("/account/password", authHandler.HandlePostPasswordChange)
+
+		goalPlanHandler := handlers.NewGoalPlanHandler(db, []byte(cfg.MasterKey))
+		r.Post("/goals/plan", goalPlanHandler.HandlePostGoalPlan)
+
 		goalHandler := handlers.NewGoalHandler(db)
 		r.Post("/goals", goalHandler.HandlePostGoal)
 		r.Get("/goals", goalHandler.HandleGetGoals)
