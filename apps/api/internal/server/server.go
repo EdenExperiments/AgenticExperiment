@@ -120,6 +120,7 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		goalPlanHandler := handlers.NewGoalPlanHandler(db, []byte(cfg.MasterKey))
 		r.With(entitlementChecker.RequireFeature(entitlements.FeatureAIGoalPlanner)).
 			Post("/goals/plan", goalPlanHandler.HandlePostGoalPlan)
+		r.Get("/goals/{id}/forecast", goalHandler.HandleGetGoalForecast)
 	})
 
 	httpServer := &http.Server{
