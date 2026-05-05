@@ -109,7 +109,8 @@ All Release 1 + Release 2 features through Phase 7.
 | F-026 | Social features | Activity stream, party, leaderboard. D-008 defers from release 1. |
 | F-027 | Intel / knowledge base | Curated resources, expert guidance, book recs. |
 | F-030 | Location-aware guidance | Nearest classes/centres. Long-term vision. |
-| F-040 | Free trial system | 14-day messaging shipped. Server-side enforcement TBD (D-039). |
+| F-040 | Free trial system | 14-day messaging shipped. Server-side enforcement TBD (D-039). Analytics schema reserves `paywall_viewed` and `upgrade_clicked`; UI hooks pending a paywall/upgrade surface. |
+| F-048 | AI goal product funnel analytics | Event schema + frontend scaffold shipped for goal creation, AI plan generation/acceptance, weekly check-ins, and recovery hooks. Provider integration and paywall/upgrade UI hooks deferred until those surfaces exist. |
 
 ---
 

@@ -5,6 +5,14 @@ import AccountPage from '../(app)/account/page'
 vi.mock('@rpgtracker/api-client', () => ({
   getAccount: vi.fn().mockResolvedValue({ display_name: 'Test User', email: 'test@example.com' }),
   getAPIKeyStatus: vi.fn().mockResolvedValue({ has_key: false }),
+  getAccountStats: vi.fn().mockResolvedValue({
+    total_xp: 0,
+    longest_streak: 0,
+    skill_count: 0,
+    category_distribution: [],
+  }),
+  uploadAvatar: vi.fn(),
+  deleteAvatar: vi.fn(),
   saveAPIKey: vi.fn().mockResolvedValue({}),
 }))
 
