@@ -28,6 +28,15 @@ test('shows path selector first', () => {
   expect(screen.getByRole('button', { name: /create custom skill/i })).toBeInTheDocument()
 })
 
+test('preset path shows template picker with Start from scratch', async () => {
+  render(<SkillCreatePage />, { wrapper })
+  fireEvent.click(screen.getByRole('button', { name: /choose a preset/i }))
+  await waitFor(() => {
+    expect(screen.getByRole('heading', { name: /choose a preset/i })).toBeInTheDocument()
+  })
+  expect(screen.getByRole('button', { name: /start from scratch/i })).toBeInTheDocument()
+})
+
 test('Next is disabled until skill name is entered', async () => {
   render(<SkillCreatePage />, { wrapper })
   await openCustomPath()

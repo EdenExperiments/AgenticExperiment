@@ -33,6 +33,11 @@ vi.mock('@rpgtracker/api-client', () => ({
   listMilestones: () => Promise.resolve([]),
   listCheckIns: () => Promise.resolve([]),
   getGoalForecast: () => mockGetGoalForecast(),
+  getAIEntitlement: () =>
+    Promise.resolve({
+      entitled: true,
+      reason: 'api_key_set' as const,
+    }),
   updateGoal: () => Promise.resolve({}),
   updateMilestone: () => Promise.resolve({}),
   deleteMilestone: () => Promise.resolve({}),
