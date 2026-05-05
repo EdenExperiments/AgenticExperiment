@@ -11,9 +11,15 @@ vi.mock('@rpgtracker/api-client', () => ({
   getSkill: (...args: unknown[]) => mockGetSkill(...args),
   getActivity: (...args: unknown[]) => mockGetActivity(...args),
   getXPChart: (...args: unknown[]) => mockGetXPChart(...args),
+  getAccount: vi.fn().mockResolvedValue({ primary_skill_id: null }),
+  listTags: vi.fn().mockResolvedValue([]),
   logXP: vi.fn(),
   deleteSkill: vi.fn(),
   createSession: vi.fn(),
+  toggleFavourite: vi.fn(),
+  updateSkill: vi.fn(),
+  setPrimarySkill: vi.fn(),
+  setSkillTags: vi.fn(),
 }))
 
 vi.mock('next/navigation', () => ({
@@ -40,6 +46,8 @@ beforeEach(() => {
     effective_level: 3, quick_log_chips: [50, 100, 250, 500],
     tier_name: 'Novice', tier_number: 1, gates: [], recent_logs: [],
     xp_to_next_level: 800, xp_for_current_level: 100, created_at: '', updated_at: '',
+    tags: [],
+    is_custom: true,
   })
   mockGetActivity.mockResolvedValue([
     { id: 'evt-1', skill_id: 'skill-1', skill_name: 'Running', xp_delta: 50, log_note: 'Morning run', created_at: new Date().toISOString() },

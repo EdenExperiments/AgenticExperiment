@@ -23,6 +23,12 @@ import (
 	"github.com/meden/rpgtracker/internal/auth"
 )
 
+func withUserAndEmail(req *http.Request, userID uuid.UUID, email string) *http.Request {
+	ctx := auth.WithUserID(req.Context(), userID)
+	ctx = auth.WithEmail(ctx, email)
+	return req.WithContext(ctx)
+}
+
 // ─── T4-AC-1: Auth handler uses bounded HTTP client timeout ─────────────────
 // Verifies that when the fake Supabase server delays beyond the configured
 // timeout, the request returns an error (not hang forever).
