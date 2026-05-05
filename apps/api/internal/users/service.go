@@ -14,11 +14,12 @@ var ErrSkillNotOwned = errors.New("skill not found or not owned by user")
 
 // User represents a registered user's profile data.
 type User struct {
-	ID             uuid.UUID  `json:"id"`
-	Email          string     `json:"email"`
-	DisplayName    *string    `json:"display_name"`
-	PrimarySkillID *uuid.UUID `json:"primary_skill_id"`
-	AvatarURL      *string    `json:"avatar_url"`
+	ID               uuid.UUID  `json:"id"`
+	Email            string     `json:"email"`
+	DisplayName      *string    `json:"display_name"`
+	PrimarySkillID   *uuid.UUID `json:"primary_skill_id"`
+	AvatarURL        *string    `json:"avatar_url"`
+	SubscriptionTier string     `json:"subscription_tier"`
 }
 
 // GetOrCreateUser upserts a user row by ID and returns the current record.
@@ -35,9 +36,11 @@ func GetOrCreateUser(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, em
 
 	var u User
 	err = db.QueryRow(ctx,
-		`SELECT id, email, display_name, primary_skill_id, avatar_url FROM public.users WHERE id = $1`,
+		`SELECT id, email, display_name, primary_skill_id, avatar_url,
+		        COALESCE(subscription_tier, 'free')
+		 FROM public.users WHERE id = $1`,
 		userID,
-	).Scan(&u.ID, &u.Email, &u.DisplayName, &u.PrimarySkillID, &u.AvatarURL)
+	).Scan(&u.ID, &u.Email, &u.DisplayName, &u.PrimarySkillID, &u.AvatarURL, &u.SubscriptionTier)
 	if err != nil {
 		return nil, err
 	}
@@ -56,9 +59,11 @@ func SetAvatarURL(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID, url s
 
 	var u User
 	err = db.QueryRow(ctx,
-		`SELECT id, email, display_name, primary_skill_id, avatar_url FROM public.users WHERE id = $1`,
+		`SELECT id, email, display_name, primary_skill_id, avatar_url,
+		        COALESCE(subscription_tier, 'free')
+		 FROM public.users WHERE id = $1`,
 		userID,
-	).Scan(&u.ID, &u.Email, &u.DisplayName, &u.PrimarySkillID, &u.AvatarURL)
+	).Scan(&u.ID, &u.Email, &u.DisplayName, &u.PrimarySkillID, &u.AvatarURL, &u.SubscriptionTier)
 	if err != nil {
 		return nil, err
 	}
@@ -77,9 +82,11 @@ func ClearAvatarURL(ctx context.Context, db *pgxpool.Pool, userID uuid.UUID) (*U
 
 	var u User
 	err = db.QueryRow(ctx,
-		`SELECT id, email, display_name, primary_skill_id, avatar_url FROM public.users WHERE id = $1`,
+		`SELECT id, email, display_name, primary_skill_id, avatar_url,
+		        COALESCE(subscription_tier, 'free')
+		 FROM public.users WHERE id = $1`,
 		userID,
-	).Scan(&u.ID, &u.Email, &u.DisplayName, &u.PrimarySkillID, &u.AvatarURL)
+	).Scan(&u.ID, &u.Email, &u.DisplayName, &u.PrimarySkillID, &u.AvatarURL, &u.SubscriptionTier)
 	if err != nil {
 		return nil, err
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/meden/rpgtracker/internal/api"
 	"github.com/meden/rpgtracker/internal/auth"
 	"github.com/meden/rpgtracker/internal/config"
+	"github.com/meden/rpgtracker/internal/entitlements"
 	"github.com/meden/rpgtracker/internal/handlers"
 	"github.com/meden/rpgtracker/internal/users"
 )
@@ -101,9 +102,6 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 
 		r.Post("/account/password", authHandler.HandlePostPasswordChange)
 
-		goalPlanHandler := handlers.NewGoalPlanHandler(db, []byte(cfg.MasterKey))
-		r.Post("/goals/plan", goalPlanHandler.HandlePostGoalPlan)
-
 		goalHandler := handlers.NewGoalHandler(db)
 		r.Post("/goals", goalHandler.HandlePostGoal)
 		r.Get("/goals", goalHandler.HandleGetGoals)
@@ -116,6 +114,12 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Delete("/goals/{id}/milestones/{mid}", goalHandler.HandleDeleteMilestone)
 		r.Post("/goals/{id}/checkins", goalHandler.HandlePostCheckin)
 		r.Get("/goals/{id}/checkins", goalHandler.HandleGetCheckins)
+
+		// Premium AI endpoints — gated by entitlement checker (requires Pro tier).
+		entitlementChecker := entitlements.NewChecker(db)
+		goalPlanHandler := handlers.NewGoalPlanHandler(db, []byte(cfg.MasterKey))
+		r.With(entitlementChecker.RequireFeature(entitlements.FeatureAIGoalPlanner)).
+			Post("/goals/plan", goalPlanHandler.HandlePostGoalPlan)
 		r.Get("/goals/{id}/forecast", goalHandler.HandleGetGoalForecast)
 	})
 
