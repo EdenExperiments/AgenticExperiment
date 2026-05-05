@@ -6,13 +6,13 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import { createSkill, calibrateSkill, getAPIKeyStatus, getPresets, listCategories, listSkills } from '@rpgtracker/api-client'
 import {
   PathSelector,
-  PresetGallery,
   ArbiterAvatar,
   ArbiterDialogue,
   getTierForLevel,
   tierColor,
   TIER_COLOR_CSS,
 } from '@rpgtracker/ui'
+import { PresetPicker } from '../../../../components/PresetPicker'
 
 type Path = 'preset' | 'custom' | null
 type Step = 1 | 2
@@ -62,7 +62,7 @@ export default function SkillCreatePage() {
   const { data: keyStatus } = useQuery({ queryKey: ['api-key-status'], queryFn: getAPIKeyStatus })
   const hasKey = keyStatus?.has_key ?? false
 
-  const { data: presets = [], isLoading: presetsLoading } = useQuery({
+  const { data: presets = [], isLoading: presetsLoading, isError: presetsError } = useQuery({
     queryKey: ['presets'],
     queryFn: () => getPresets({}),
     staleTime: Infinity,
@@ -191,6 +191,7 @@ export default function SkillCreatePage() {
                     Preset: {draft.presetName}
                   </span>
                   <button
+                    type="button"
                     onClick={() => setDraft(d => ({ ...d, presetId: null, presetName: null, categoryId: null, name: '', description: '' }))}
                     className="text-xs hover:underline"
                     style={{ color: 'var(--color-accent)' }}
@@ -200,13 +201,13 @@ export default function SkillCreatePage() {
                 </div>
               )}
 
-              {/* Preset gallery */}
+              {/* Category-grid preset picker */}
               {!draft.presetId && (
-                <PresetGallery
+                <PresetPicker
                   presets={availablePresets}
                   isLoading={presetsLoading}
-                  selectedId={draft.presetId}
-                  onSelect={(preset) => {
+                  isError={presetsError}
+                  onSelectPreset={(preset) => {
                     setDraft(d => ({
                       ...d,
                       presetId: preset.id,
@@ -216,7 +217,7 @@ export default function SkillCreatePage() {
                       description: preset.description,
                     }))
                   }}
-                  onSwitchToCustom={() => {
+                  onStartFromScratch={() => {
                     setDraft({ ...INITIAL_DRAFT })
                     setPath('custom')
                   }}
