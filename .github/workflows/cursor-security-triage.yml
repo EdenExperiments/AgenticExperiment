@@ -42,9 +42,11 @@ jobs:
 
       - name: Configure ripgrep path for Cursor SDK
         run: |
-          if command -v rg >/dev/null 2>&1; then
-            echo "CURSOR_RIPGREP_PATH=$(command -v rg)" >> "$GITHUB_ENV"
+          if ! command -v rg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ripgrep
           fi
+          echo "CURSOR_RIPGREP_PATH=$(command -v rg)" >> "$GITHUB_ENV"
 
       - name: Run Cursor triage for Dependabot PR
         env:
@@ -77,9 +79,11 @@ jobs:
 
       - name: Configure ripgrep path for Cursor SDK
         run: |
-          if command -v rg >/dev/null 2>&1; then
-            echo "CURSOR_RIPGREP_PATH=$(command -v rg)" >> "$GITHUB_ENV"
+          if ! command -v rg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ripgrep
           fi
+          echo "CURSOR_RIPGREP_PATH=$(command -v rg)" >> "$GITHUB_ENV"
 
       - name: Run Cursor security alert triage
         env:

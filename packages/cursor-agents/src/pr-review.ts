@@ -1,4 +1,3 @@
-import { Agent, CursorAgentError } from "@cursor/sdk";
 import {
   appendStepSummary,
   GitHubClient,
@@ -77,6 +76,8 @@ Return a concise markdown review with these sections:
 
 If no major issues are found, state that clearly and still include test/verification gaps.
 `;
+
+  const { Agent, CursorAgentError } = await import("@cursor/sdk");
 
   try {
     const result = await Agent.prompt(prompt, {
