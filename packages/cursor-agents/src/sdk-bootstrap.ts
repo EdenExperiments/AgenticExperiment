@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import { setMaxListeners } from "node:events";
 import { dirname, join } from "node:path";
 import { createRequire } from "node:module";
 
@@ -60,6 +61,10 @@ function resolveBundledRipgrepPath(require: NodeRequire): string | null {
  * Setting CURSOR_RIPGREP_PATH prevents noisy initialization failures and retries.
  */
 export function bootstrapCursorSdkRuntime(): void {
+  // Cursor SDK fan-out can attach many abort listeners in CI. Increase the warning
+  // threshold to avoid noisy false-positive memory leak warnings in workflow logs.
+  setMaxListeners(50);
+
   if (process.env.CURSOR_RIPGREP_PATH) {
     return;
   }
