@@ -55,6 +55,20 @@ export interface DependabotAlert {
   html_url?: string;
 }
 
+export class GitHubApiError extends Error {
+  readonly status: number;
+  readonly path: string;
+  readonly method: string;
+
+  constructor(method: string, path: string, status: number, body: string) {
+    super(`GitHub API ${method} failed (${status}) for ${path}: ${body}`);
+    this.name = "GitHubApiError";
+    this.status = status;
+    this.path = path;
+    this.method = method;
+  }
+}
+
 function parseRepository(repository: string): { owner: string; repo: string } {
   const [owner, repo] = repository.split("/");
   if (!owner || !repo) {
@@ -85,7 +99,7 @@ export class GitHubClient {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(`GitHub API request failed (${response.status}) for ${path}: ${errorBody}`);
+      throw new GitHubApiError("GET", path, response.status, errorBody);
     }
 
     return (await response.json()) as T;
@@ -104,7 +118,7 @@ export class GitHubClient {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(`GitHub API POST failed (${response.status}) for ${path}: ${errorBody}`);
+      throw new GitHubApiError("POST", path, response.status, errorBody);
     }
 
     return (await response.json()) as T;
@@ -123,7 +137,7 @@ export class GitHubClient {
 
     if (!response.ok) {
       const errorBody = await response.text();
-      throw new Error(`GitHub API PATCH failed (${response.status}) for ${path}: ${errorBody}`);
+      throw new GitHubApiError("PATCH", path, response.status, errorBody);
     }
 
     return (await response.json()) as T;
@@ -163,15 +177,16 @@ export class GitHubClient {
     issueNumber: number,
     marker: string,
     body: string
-  ): Promise<void> {
+  ): Promise<boolean> {
     const comments = await this.listIssueComments(issueNumber);
     const existing = comments.find((comment) => comment.body.includes(marker));
     if (existing) {
       await this.updateIssueComment(existing.id, body);
-      return;
+      return true;
     }
 
     await this.createIssueComment(issueNumber, body);
+    return true;
   }
 
   async listCodeScanningAlerts(): Promise<CodeScanningAlert[]> {
@@ -215,4 +230,17 @@ export function truncate(value: string, maxLength: number): string {
     return value;
   }
   return `${value.slice(0, maxLength)}\n... [truncated]`;
+}
+
+export function isNonFatalCommentPermissionError(error: unknown): boolean {
+  if (!(error instanceof GitHubApiError)) {
+    return false;
+  }
+
+  // Fork PRs or read-only GITHUB_TOKEN contexts can block issue comment writes.
+  if (error.status !== 403) {
+    return false;
+  }
+
+  return error.message.includes("Resource not accessible by integration");
 }

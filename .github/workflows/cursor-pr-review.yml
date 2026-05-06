@@ -37,6 +37,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Configure ripgrep path for Cursor SDK
+        run: |
+          if command -v rg >/dev/null 2>&1; then
+            echo "CURSOR_RIPGREP_PATH=$(command -v rg)" >> "$GITHUB_ENV"
+          fi
+
       - name: Run Cursor PR review agent
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
