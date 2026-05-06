@@ -1,0 +1,11 @@
+---
+description: Cursor-first workflow guardrails
+alwaysApply: true
+---
+
+# Cursor-First Workflow
+
+- Default to Cursor IDE agent or cloud agent chat for feature inception and implementation.
+- Keep CI baseline checks in `.github/workflows/ci.yml` separate from agent automation workflows.
+- For automation changes, prefer additive rollout: summarize findings first, then enable write/remediation.
+- For visual work, follow `Documentation/style-guide/` and `Documentation/page-guides/`.

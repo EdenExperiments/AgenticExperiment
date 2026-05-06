@@ -15,6 +15,7 @@
 **Auth:** JWT (Supabase session token in Authorization header)
 
 **Request body (JSON):**
+
 ```json
 {
   "goal_statement": "Run a 10k race in under 60 minutes",
@@ -23,13 +24,16 @@
 }
 ```
 
-| Field | Type | Required | Notes |
-|---|---|---|---|
-| `goal_statement` | string | yes | Free-text description of the goal |
-| `deadline` | RFC3339 datetime | no | Target completion date |
-| `context` | string | no | Background info (skill level, constraints, etc.) |
+
+| Field            | Type             | Required | Notes                                            |
+| ---------------- | ---------------- | -------- | ------------------------------------------------ |
+| `goal_statement` | string           | yes      | Free-text description of the goal                |
+| `deadline`       | RFC3339 datetime | no       | Target completion date                           |
+| `context`        | string           | no       | Background info (skill level, constraints, etc.) |
+
 
 **Response (200 OK — normal):**
+
 ```json
 {
   "plan": {
@@ -58,15 +62,17 @@ This happens when the AI returns non-parseable output. The client should surface
 
 **Error responses:**
 
-| Status | Condition |
-|---|---|
-| 400 | Malformed JSON body |
-| 401 | Missing/invalid JWT |
-| 402 | No AI key configured for user |
-| 422 | `goal_statement` empty or whitespace-only |
-| 429 | Claude API rate limit hit |
-| 500 | DB error fetching API key |
-| 502 | AI call failed (network error, unexpected status) |
+
+| Status | Condition                                         |
+| ------ | ------------------------------------------------- |
+| 400    | Malformed JSON body                               |
+| 401    | Missing/invalid JWT                               |
+| 402    | No AI key configured for user                     |
+| 422    | `goal_statement` empty or whitespace-only         |
+| 429    | Claude API rate limit hit                         |
+| 500    | DB error fetching API key                         |
+| 502    | AI call failed (network error, unexpected status) |
+
 
 ## Fallback Behavior
 
@@ -104,7 +110,8 @@ is deterministically testable.
 
 ### New tests — all pass
 
-**`internal/planner` (14 tests):**
+`**internal/planner` (14 tests):**
+
 - `TestParseResponse_ValidJSON`
 - `TestParseResponse_MarkdownFences_Stripped`
 - `TestParseResponse_PlainFences_Stripped`
@@ -120,7 +127,8 @@ is deterministically testable.
 - `TestBuildPrompt_ContextIncluded`
 - `TestSystemPrompt_NotEmpty`
 
-**`internal/handlers` — new GoalPlan tests (10 tests):**
+`**internal/handlers` — new GoalPlan tests (10 tests):**
+
 - `TestHandlePostGoalPlan_Returns200_ValidPlan`
 - `TestHandlePostGoalPlan_Returns401_Unauthorized`
 - `TestHandlePostGoalPlan_Returns422_MissingGoalStatement`
@@ -141,19 +149,24 @@ is deterministically testable.
 ## Known Risks and Dependencies
 
 **Depends on T8 (`cursor/ai-goals-backend-c6a8-0504`):**
+
 - Branched from T8 — includes goals CRUD schema and handler layer
 - The `KeyStore` interface and `dbKeyStore` from `calibrate.go` are reused directly
 
 **For T10 (frontend):**
+
 - Endpoint is `POST /api/v1/goals/plan`
 - Response always has `plan` object and `degraded_response` boolean
 - `degraded_response: true` → show a "plan generation incomplete" banner; still display the fallback plan
 - No goal is persisted automatically — the frontend should offer "Save this plan as a goal"
 
 **For future AI model changes:**
+
 - Model name (`claude-haiku-4-5-20251001`) and `max_tokens` (2048) are hardcoded in `httpPlannerCaller`
 - To change model or increase token budget, edit `goal_plan.go` only — the interface is stable
 
 **Schema extension (if needed):**
+
 - If goal plans need to be persisted, add `goal_plans` table + `POST /goals/{id}/plan` route
 - No migration included in T12 — stateless by design
+

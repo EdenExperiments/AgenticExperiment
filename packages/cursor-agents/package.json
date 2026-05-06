@@ -1,0 +1,17 @@
+{
+  "name": "@rpgtracker/cursor-agents",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "pr-review": "tsx src/pr-review.ts",
+    "security-triage": "tsx src/security-triage.ts"
+  },
+  "devDependencies": {
+    "@cursor/sdk": "^1.0.12",
+    "@rpgtracker/tsconfig": "workspace:*",
+    "@types/node": "^20",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}

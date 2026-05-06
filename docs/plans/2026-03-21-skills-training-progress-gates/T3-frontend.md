@@ -3,6 +3,7 @@
 ## Files Changed
 
 ### New files created
+
 - `packages/ui/src/GrindAnimation.tsx` — phase="work"/"break" with tier colour ring and --color-break CSS var
 - `packages/ui/src/GrindOverlay.tsx` — controlled `phase` prop: config/work/break/end-early; popstate intercept during work phase
 - `packages/ui/src/PostSessionScreen.tsx` — XP chip selector, reflection textareas, sticky footer with data-sticky="true"
@@ -14,6 +15,7 @@
 - `packages/ui/src/GateVerdictCard.tsx` — verdict display for pending/approved/rejected/self_reported
 
 ### Modified existing files
+
 - `packages/api-client/src/types.ts` — added SkillStreak, GateSubmission, TrainingSession, XPChartEntry, XPChartResponse; extended SkillDetail and Account
 - `packages/api-client/src/client.ts` — added createSession, listSessions, getXPChart, submitGate, updateAccount
 - `packages/ui/src/index.ts` — exported all 9 new components

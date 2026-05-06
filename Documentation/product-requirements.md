@@ -1,6 +1,6 @@
 # Product Requirements
 
-Last updated: 2026-03-23 (product vision expanded: three-theme system, hub architecture, guidance platform vision, new feature categories, tech stack corrected to Next.js/React). Prior: 2026-03-19
+Last updated: 2026-05-06 (aligned shipped/deferred framing with feature tracker and decision log)
 
 ## Product Vision
 
@@ -14,13 +14,19 @@ Long-term, each skill will be backed by **curated guidance**: expert-informed le
 
 Build a platform of connected apps under a shared Go API, auth layer, and UI component library:
 
-- `LifeQuest` (`apps/rpg-tracker`): the hub — a gamified skill progression system based on real-world activity — **fully implemented (Release 1)**
+- `LifeQuest` (`apps/rpg-tracker`): the hub — a gamified skill progression system based on real-world activity — **Release 1 complete with additional Release 2 features shipped**
 - `NutriLog` (`apps/nutri-log`): a calorie, macro, and weight tracking system with AI assistance — scaffolded, pending feature work. Progress feeds into hub character progression.
 - `MindTrack` (`apps/mental-health`): a mental wellness and mood tracking app — scaffolded, pending feature work. Progress feeds into hub character progression.
 
 The product should feel like a self-improvement operating system rather than a generic task tracker.
 
-## Planning Baseline For Release 1
+## Current Delivery State
+
+- Canonical implementation status is maintained in `Documentation/feature-tracker.md`.
+- Release 1 core features (F-001 through F-009) are complete.
+- Multiple Release 2 features are shipped (including F-023 and F-024), with additional roadmap items still deferred.
+
+## Planning Baseline For Release 1 (Historical)
 
 The planning baseline for release 1 is a `LifeQuest`-first MVP built on a shared platform foundation.
 
@@ -40,12 +46,12 @@ The planning baseline for release 1 is a `LifeQuest`-first MVP built on a shared
 
 ## Platform And Technical Direction
 
-- Monorepo: Turborepo + pnpm workspaces (`apps/*`, `packages/*`)
+- Monorepo: Turborepo + pnpm workspaces (`apps/`*, `packages/`*)
 - Backend: Go (chi router, pgx v5, Supabase JWT auth) — single API shared by all apps
 - Frontend: Next.js 15 App Router + React + Tailwind v4 + TanStack Query v5 — one app per product area
 - Shared packages: `@rpgtracker/ui` (components + design tokens), `@rpgtracker/auth` (Supabase SSR), `@rpgtracker/api-client` (typed client)
 - BFF pattern: Next.js Route Handler proxy forwards authenticated requests to Go API
-- Database: PostgreSQL via Supabase
+- Database: Split model - local/application PostgreSQL for domain data plus Supabase Auth for identity and JWT infrastructure
 - Authentication: Supabase Auth (email/password for release 1)
 - AI provider: Claude API with user-supplied API key stored server-side (AES-256-GCM, D-015)
 - Testing: Vitest + React Testing Library (frontend), Go standard `testing` package (backend)
@@ -144,11 +150,13 @@ Everything rolls up to the hub: skills, level, progress across all domains of se
 
 The app offers three switchable UI themes. All themes surface the same features and data — the differences are visual treatment and UX flavour, catering to different user preferences.
 
-| Theme | Identity | Audience |
-|-------|----------|----------|
-| **Minimal** | Clean, data-forward, productivity-tool feel. Light backgrounds, bold typographic hierarchy, flat cards, no atmospheric effects. | Users who want a serious, no-nonsense tool |
-| **Retro** | Full RPG immersion. Dark backgrounds, amber/gold + purple, pixel fonts, character portraits, narrative framing, scanline textures. | Gamers and RPG fans |
-| **Modern** | Sci-fi command centre. Dark navy, cyan + magenta, glass morphism, neon accents, atmospheric glows. Sleek and alive. | Users who want polish and atmosphere |
+
+| Theme       | Identity                                                                                                                           | Audience                                   |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **Minimal** | Clean, data-forward, productivity-tool feel. Light backgrounds, bold typographic hierarchy, flat cards, no atmospheric effects.    | Users who want a serious, no-nonsense tool |
+| **Retro**   | Full RPG immersion. Dark backgrounds, amber/gold + purple, pixel fonts, character portraits, narrative framing, scanline textures. | Gamers and RPG fans                        |
+| **Modern**  | Sci-fi command centre. Dark navy, cyan + magenta, glass morphism, neon accents, atmospheric glows. Sleek and alive.                | Users who want polish and atmosphere       |
+
 
 ### Three-Layer Theme Architecture
 
@@ -183,7 +191,7 @@ The app offers three switchable UI themes. All themes surface the same features 
 - Store user Claude API keys encrypted at rest on the server side.
 - Decrypt keys only for server-side request execution.
 - Never place user Claude API keys in browser state, local storage, cookies, or rendered HTML.
-- Encryption mechanism: AES-256-GCM at the Go application layer with envelope encryption. A server-side master key (environment variable or Go-compatible external secret store) wraps a per-user data encryption key. Decryption happens only in the Go process at request time. See A-001 in decision-log.md. This is the planned approach per A-001 and is subject to architecture review; the architecture-agent is free to evaluate Supabase Vault or a KMS as alternatives, provided the constraints in D-009 remain satisfied.
+- Encryption mechanism: AES-256-GCM at the Go application layer with envelope encryption. A server-side master key (environment variable or compatible secret store) wraps a per-user data encryption key. Decryption happens only in the Go process at request time. This approach is confirmed in D-015.
 - Key validation: test-decrypt at save time; reject if the decrypted value does not match a valid Claude API key format.
 - Key rotation: re-encrypt per-user DEKs under the new master key as a background migration; old DEKs remain usable until migration completes.
 
@@ -225,25 +233,25 @@ The following are confirmed **not** in release 1:
 
 ### Release 2+ Roadmap (planned features, not yet scoped)
 
-These features are visible in design exploration (2026-03-23) and represent the long-term product vision. None are in scope for release 1. They will be formally scoped and added to the feature tracker when ready for planning.
+These features represent the long-term product vision and remain unscheduled for implementation. Shipped items are tracked in `Documentation/feature-tracker.md`.
 
-| Category | Features | Notes |
-|----------|----------|-------|
-| **Focus & Sessions** | Focus timer / pomodoro system tied to skill XP | Timed practice sessions with XP rewards |
-| **Progression Depth** | Skill trees, mastery sub-skills, visual progression paths | Shows skill relationships and specialisation |
-| **Social** | Activity stream, party system, global tier leaderboard | Community and accountability features |
-| **Knowledge** | Intel / knowledge base, curated learning resources per skill | Expert-informed guidance, book recommendations |
-| **Character** | Character avatar / visual identity, narrative layer | Visual representation of progress; RPG story framing (especially retro theme) |
-| **Guidance** | Location-aware suggestions (nearby classes, centres, facilities) | E.g. "snow sports" → nearest snow centre |
-| **Three-Theme System** | Minimal, Retro, Modern switchable themes | Same features, three visual identities |
-| **Hub Integration** | NutriLog → hub XP, MindTrack → hub XP, cross-app progression | All suite apps feed unified character progression |
-| **Blocker Completion** | Evidence submission, AI assessment, unlock ceremony | Full gate completion flow (F-009b) |
+
+| Category               | Features                                                         | Notes                                                                         |
+| ---------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **Progression Depth**  | Skill trees, mastery sub-skills, visual progression paths        | Shows skill relationships and specialisation                                  |
+| **Social**             | Activity stream, party system, global tier leaderboard           | Community and accountability features                                         |
+| **Knowledge**          | Intel / knowledge base, curated learning resources per skill     | Expert-informed guidance, book recommendations                                |
+| **Character**          | Character avatar / visual identity, narrative layer              | Visual representation of progress; RPG story framing (especially retro theme) |
+| **Guidance**           | Location-aware suggestions (nearby classes, centres, facilities) | E.g. "snow sports" → nearest snow centre                                      |
+| **Hub Integration**    | NutriLog → hub XP, MindTrack → hub XP, cross-app progression     | All suite apps feed unified character progression                             |
+| **Blocker Completion** | Evidence submission, AI assessment, unlock ceremony              | Full gate completion flow (F-009b)                                            |
+
 
 ## Assumptions
 
 - The first release will prioritize a cohesive personal-use product over social features.
 - The first release will share a common shell and navigation rather than behaving as two fully separate products.
-- See decision-log.md for the full set of confirmed decisions (D-001 through D-011) and implementation assumptions (A-001, A-003).
+- See `Documentation/decision-log.md` for the full set of confirmed decisions and active assumptions.
 - The three-theme system is a product-level commitment — all future features must be designed theme-aware from the start.
 
 These assumptions have been adopted as the planning baseline for the first agent-team pass and can be revised later if product direction changes.
