@@ -22,6 +22,10 @@ CREATE TABLE IF NOT EXISTS public.training_sessions (
     completion_ratio  NUMERIC(5,4) NOT NULL DEFAULT 0 CHECK (completion_ratio >= 0 AND completion_ratio <= 1),
     bonus_percentage  INT         NOT NULL DEFAULT 0 CHECK (bonus_percentage IN (0, 10, 25)),
     bonus_xp          INT         NOT NULL DEFAULT 0,
+    pomodoro_work_sec             INT NOT NULL DEFAULT 1500,
+    pomodoro_break_sec            INT NOT NULL DEFAULT 300,
+    pomodoro_intervals_completed  INT NOT NULL DEFAULT 0,
+    pomodoro_intervals_planned    INT NOT NULL DEFAULT 0,
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

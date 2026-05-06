@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-03-25 (Phase 9A complete — F-044 done, F-045/F-046/F-047 ready for Phase 9B)
+Last updated: 2026-05-06 (AI goal planning + entitlement docs aligned)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -43,6 +43,7 @@ All Release 1 + Release 2 features through Phase 7.
 | ID | Feature | Status | Notes |
 |----|---------|--------|-------|
 | F-039 | Social auth (Google/GitHub/Apple) | in-progress | UI buttons shipped. Supabase provider config not yet enabled. |
+| F-049 | AI goal planning + entitlement gate | in-progress | `POST /api/v1/goals/plan` ships with `degraded_response` contract, API-key prerequisite, and Pro-tier entitlement (`ai_goal_planner`). Frontend wizard at `/goals/ai/new` is wired; broader paywall/upgrade UX is still being refined. |
 
 ---
 

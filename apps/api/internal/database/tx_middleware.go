@@ -9,8 +9,9 @@ import (
 	"github.com/meden/rpgtracker/internal/auth"
 )
 
-// TxMiddleware begins one transaction per request, sets SET LOCAL app.user_id from the
-// JWT-verified user id, injects the tx as Querier into context, then commits or rolls back.
+// TxMiddleware begins one transaction per request, sets session GUC app.user_id from the
+// JWT-verified user id (via set_config, equivalent to SET LOCAL), injects the tx as Querier
+// into context, then commits or rolls back.
 // It must run after JWT middleware on routes that require auth.
 func TxMiddleware(pool *pgxpool.Pool) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -35,9 +36,10 @@ func TxMiddleware(pool *pgxpool.Pool) func(http.Handler) http.Handler {
 				}
 			}()
 
-			if _, err := tx.Exec(r.Context(), `SET LOCAL app.user_id = $1`, userID.String()); err != nil {
+			// SET does not accept $1 placeholders; set_config(name, value, is_local) does.
+			if _, err := tx.Exec(r.Context(), `SELECT set_config('app.user_id', $1, true)`, userID.String()); err != nil {
 				_ = tx.Rollback(r.Context())
-				log.Printf("database: SET LOCAL app.user_id: %v", err)
+				log.Printf("database: set_config app.user_id: %v", err)
 				api.RespondError(w, http.StatusInternalServerError, "database error")
 				return
 			}

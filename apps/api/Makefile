@@ -3,7 +3,7 @@ include .env
 export
 endif
 
-.PHONY: run build test build-css db-up db-down db-reset migrate-up migrate-down migrate-status
+.PHONY: run build test build-css db-up db-down db-reset migrate-up migrate-down migrate-status migrate-force
 
 run:
 	go run ./cmd/server/...
@@ -47,3 +47,12 @@ migrate-status:
 		-database "$(DATABASE_URL)" \
 		-path db/migrations \
 		version
+
+# Clear golang-migrate dirty state and set applied version, then run migrate-up.
+# After "dirty database version 8", use VERSION=7 so migration 8 runs again: make migrate-force VERSION=7 && make migrate-up
+migrate-force:
+	@if [ -z "$(VERSION)" ]; then echo 'usage: make migrate-force VERSION=<number>  (e.g. VERSION=7 when dirty at 8)'; exit 1; fi
+	go run -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@v4.18.2 \
+		-database "$(DATABASE_URL)" \
+		-path db/migrations \
+		force $(VERSION)

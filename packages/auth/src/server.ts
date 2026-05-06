@@ -1,6 +1,6 @@
 import { createServerClient, type CookieMethodsServer } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { getSupabaseUrl, getSupabaseAnonKey } from './env'
+import { getSupabaseUrl, getSupabasePublishableKey } from './env'
 
 type CookieToSet = Parameters<NonNullable<CookieMethodsServer['setAll']>>[0][number]
 
@@ -11,7 +11,7 @@ export async function createSupabaseServerClient() {
 
   return createServerClient(
     getSupabaseUrl(),
-    getSupabaseAnonKey(),
+    getSupabasePublishableKey(),
     {
       cookies: {
         getAll() {
