@@ -1,5 +1,3 @@
-ALTER TABLE public.training_sessions
-    ADD COLUMN IF NOT EXISTS pomodoro_work_sec INT NOT NULL DEFAULT 1500,
-    ADD COLUMN IF NOT EXISTS pomodoro_break_sec INT NOT NULL DEFAULT 300,
-    ADD COLUMN IF NOT EXISTS pomodoro_intervals_completed INT NOT NULL DEFAULT 0,
-    ADD COLUMN IF NOT EXISTS pomodoro_intervals_planned INT NOT NULL DEFAULT 0;
+-- Pomodoro columns live on training_sessions, which is created in migration 000014.
+-- This version is intentionally a no-op so migration ordering stays valid (008 runs before 014).
+SELECT 1;

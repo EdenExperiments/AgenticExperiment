@@ -2,12 +2,14 @@
 
 A self-improvement platform built as a Turborepo monorepo. Three apps share a single Go API, auth layer, and React component library.
 
-| App | Path | Status |
-|-----|------|--------|
-| **LifeQuest** — RPG-style skill/XP tracker | `apps/rpg-tracker` | Fully implemented |
-| **NutriLog** — Nutrition and weight tracking | `apps/nutri-log` | Scaffolded |
-| **MindTrack** — Mental wellness tracking | `apps/mental-health` | Scaffolded |
-| **Go API** — Shared REST backend | `apps/api` | Fully implemented |
+
+| App                                          | Path                 | Status            |
+| -------------------------------------------- | -------------------- | ----------------- |
+| **LifeQuest** — RPG-style skill/XP tracker   | `apps/rpg-tracker`   | Fully implemented |
+| **NutriLog** — Nutrition and weight tracking | `apps/nutri-log`     | Scaffolded        |
+| **MindTrack** — Mental wellness tracking     | `apps/mental-health` | Scaffolded        |
+| **Go API** — Shared REST backend             | `apps/api`           | Fully implemented |
+
 
 ## Stack
 
@@ -19,6 +21,13 @@ A self-improvement platform built as a Turborepo monorepo. Three apps share a si
 - **Auth:** Supabase Auth (email/password + JWT validation) — auth only, not application data
 - **AI:** Claude API — user-supplied key, stored AES-256-GCM encrypted server-side
 
+## AI Features
+
+- **AI goal planning:** Natural-language objectives (for example, "I want to learn Chinese this year") can be converted into structured plans via `POST /api/v1/goals/plan`.
+- **Where it is documented:** Backend contract and route behavior in `apps/api/README.md`; frontend flow and UX in `apps/rpg-tracker/README.md`.
+- **Access model:** Planner requires saved AI key plus backend entitlement checks; degraded responses return a safe fallback plan with `degraded_response: true`.
+- **How to test:** Use the manual checklist in `apps/api/README.md` ("Manual testing: AI planner + membership tiers").
+
 ## Local Development
 
 **Requirements:** Node ≥ 20, pnpm ≥ 9, Go 1.23+, Docker
@@ -29,7 +38,7 @@ pnpm install
 
 # 2. Set up Go API environment
 cp apps/api/.env.example apps/api/.env
-# Edit apps/api/.env — fill in SUPABASE_PROJECT_URL, SUPABASE_ANON_KEY, MASTER_KEY
+# Edit apps/api/.env — fill in SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, MASTER_KEY
 
 # 3. Start the database
 docker compose up -d db
@@ -91,8 +100,8 @@ Documentation/
 
 Two themes for LifeQuest, switchable via account settings:
 
-- **`rpg-game`** — Dark/dramatic, gold accents, Cinzel serif headings, full Framer Motion animation budget (`--motion-scale: 1`)
-- **`rpg-clean`** — Dark/minimal, indigo accents, Inter, no animations (`--motion-scale: 0`)
+- `**rpg-game**` — Dark/dramatic, gold accents, Cinzel serif headings, full Framer Motion animation budget (`--motion-scale: 1`)
+- `**rpg-clean**` — Dark/minimal, indigo accents, Inter, no animations (`--motion-scale: 0`)
 
 Theme tokens live in `packages/ui/tokens/`. The `--motion-scale` CSS variable gates all animations — components read it via the `useMotionPreference` hook.
 

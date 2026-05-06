@@ -34,7 +34,7 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		api.RespondError(w, http.StatusNotFound, "not found")
 	})
 
-	authHandler := auth.NewAuthHandler(cfg.SupabaseProjectURL, cfg.SupabasePublishableKey)
+	authHandler := auth.NewAuthHandler(cfg.SupabaseURL, cfg.SupabasePublishableKey)
 
 	// Public routes
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
@@ -83,7 +83,7 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 
 		var userHandler *handlers.UserHandler
 		if len(storageClient) > 0 && storageClient[0] != nil {
-			userHandler = handlers.NewUserHandlerFull(storageClient[0], cfg.SupabaseProjectURL)
+			userHandler = handlers.NewUserHandlerFull(storageClient[0], cfg.SupabaseURL)
 		} else {
 			userHandler = handlers.NewUserHandler()
 		}

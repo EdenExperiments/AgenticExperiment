@@ -1,5 +1,13 @@
 ## Status: DONE
 
+## Superseded Note (2026-05-06)
+
+This task was later superseded by repo-wide env-name standardization:
+
+- Frontend auth now uses `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- Backend uses `SUPABASE_URL` + `SUPABASE_PUBLISHABLE_KEY`
+- Fallback-based naming in this document is retained as historical context only
+
 ## Files Changed
 - `packages/auth/src/env.ts` — new: canonical env resolver with primary/fallback key logic
 - `packages/auth/src/client.ts` — updated: use `getSupabaseUrl()`/`getSupabaseAnonKey()`

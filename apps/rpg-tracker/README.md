@@ -27,8 +27,8 @@ Environment variables (`.env.local`):
 
 | Variable | Description |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon key |
+| `NEXT_PUBLIC_SUPABASE_URL` | Same value as `SUPABASE_URL` in `apps/api/.env` |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Same value as `SUPABASE_PUBLISHABLE_KEY` in `apps/api/.env` |
 | `GO_API_URL` | Go API address (default: `http://localhost:8080`) |
 
 ## Architecture: BFF Proxy
@@ -66,9 +66,29 @@ app/
   (app)/          # Authenticated pages
     dashboard/    # XP activity feed
     skills/       # Skill list, detail, new, edit
+    goals/        # Goals CRUD, AI planning wizard, forecasts, check-ins
     account/      # Profile, API key management
   api/[...path]/  # BFF proxy to Go API
 ```
+
+## AI goal planner UX
+
+- Entry point: `/goals/ai/new`
+- User enters a natural-language objective (for example: "I want to learn Chinese this year")
+- Frontend calls `POST /api/v1/goals/plan` via `@rpgtracker/api-client`
+- If API returns `degraded_response: true`, UI still shows a usable fallback plan plus a degraded-mode banner
+- Planner access depends on API key presence and backend entitlement checks
+
+### Quick QA flow
+
+1. Go to `/goals/ai/new`
+2. Enter a natural-language objective (e.g. "I want to learn Chinese this year")
+3. Generate plan and verify preview renders milestones/cadence/risks
+4. Confirm degraded banner only appears when `degraded_response` is true
+5. Verify gating:
+   - No API key -> CTA to set up key
+   - Free tier -> subscription required behavior from backend
+   - Pro tier + key -> planner works end to end
 
 ## Database architecture note
 

@@ -1,61 +1,43 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { getSupabaseAnonKey, getSupabaseUrl } from '../env'
+import { getSupabasePublishableKey, getSupabaseUrl } from '../env'
 
-describe('getSupabaseAnonKey', () => {
-  let savedAnon: string | undefined
-  let savedPublishable: string | undefined
+describe('getSupabasePublishableKey', () => {
+  let saved: string | undefined
 
   beforeEach(() => {
-    savedAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    savedPublishable = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
-    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+    saved = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
   })
 
   afterEach(() => {
-    if (savedAnon !== undefined) {
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = savedAnon
+    if (saved !== undefined) {
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = saved
     } else {
-      delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    }
-    if (savedPublishable !== undefined) {
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY = savedPublishable
-    } else {
-      delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+      delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
     }
   })
 
-  it('returns NEXT_PUBLIC_SUPABASE_ANON_KEY when set', () => {
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'anon-key-value'
-    expect(getSupabaseAnonKey()).toBe('anon-key-value')
+  it('returns NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY when set', () => {
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_xxx'
+    expect(getSupabasePublishableKey()).toBe('sb_publishable_xxx')
   })
 
-  it('falls back to NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY when ANON_KEY absent', () => {
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY = 'publishable-key-value'
-    expect(getSupabaseAnonKey()).toBe('publishable-key-value')
-  })
-
-  it('prefers NEXT_PUBLIC_SUPABASE_ANON_KEY over fallback key', () => {
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'primary-key'
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY = 'fallback-key'
-    expect(getSupabaseAnonKey()).toBe('primary-key')
-  })
-
-  it('returns empty string when neither key is set', () => {
-    expect(getSupabaseAnonKey()).toBe('')
+  it('returns empty string when unset', () => {
+    expect(getSupabasePublishableKey()).toBe('')
   })
 })
 
 describe('getSupabaseUrl', () => {
-  let savedUrl: string | undefined
+  let saved: string | undefined
 
   beforeEach(() => {
-    savedUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    saved = process.env.NEXT_PUBLIC_SUPABASE_URL
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL
   })
 
   afterEach(() => {
-    if (savedUrl !== undefined) {
-      process.env.NEXT_PUBLIC_SUPABASE_URL = savedUrl
+    if (saved !== undefined) {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = saved
     } else {
       delete process.env.NEXT_PUBLIC_SUPABASE_URL
     }
@@ -66,8 +48,7 @@ describe('getSupabaseUrl', () => {
     expect(getSupabaseUrl()).toBe('https://abc.supabase.co')
   })
 
-  it('returns empty string when NEXT_PUBLIC_SUPABASE_URL is not set', () => {
-    delete process.env.NEXT_PUBLIC_SUPABASE_URL
+  it('returns empty string when unset', () => {
     expect(getSupabaseUrl()).toBe('')
   })
 })

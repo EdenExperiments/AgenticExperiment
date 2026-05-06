@@ -27,14 +27,14 @@ func main() {
 	}
 	defer pool.Close()
 
-	sessionMiddleware, err := auth.NewJWTMiddleware(cfg.SupabaseProjectURL)
+	sessionMiddleware, err := auth.NewJWTMiddleware(cfg.SupabaseURL)
 	if err != nil {
 		log.Fatalf("auth middleware init failed: %v", err)
 	}
 
 	// Use the new Supabase secret key (replaces legacy service_role) if provided.
 	// When empty, avatar endpoints will return 500 on use — keep server start permissive.
-	storageClient := storage.NewSupabaseStorageClient(cfg.SupabaseProjectURL, cfg.SupabaseSecretKey)
+	storageClient := storage.NewSupabaseStorageClient(cfg.SupabaseURL, cfg.SupabaseSecretKey)
 
 	srv := server.NewServer(cfg, sessionMiddleware, pool, storageClient)
 
