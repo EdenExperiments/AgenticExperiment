@@ -14,7 +14,7 @@
     "@rpgtracker/ui": "workspace:*",
     "@tanstack/react-query": "^5.90.21",
     "framer-motion": "^12.38.0",
-    "next": "16.1.7",
+    "next": "16.2.5",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
