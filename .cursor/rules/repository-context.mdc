@@ -1,0 +1,20 @@
+---
+description: Repository context map for Cursor agents
+alwaysApply: true
+---
+
+# Repository Context
+
+- Source-of-truth index: `Documentation/README.md`
+- Agent/context index: `AGENTS.md`
+- Cursor workflow handbook: `docs/CURSOR-AGENT-HANDBOOK.md`
+
+## Zone Guidance
+
+- API work: `apps/api/`
+- Frontend work: `apps/rpg-tracker/`, `apps/nutri-log/`, `apps/mental-health/`
+- Shared packages: `packages/*` (coordinate carefully when cross-cutting)
+
+## Documentation Updates
+
+When requirements, decisions, or feature readiness changes, update the relevant canonical docs in `Documentation/` in the same change.

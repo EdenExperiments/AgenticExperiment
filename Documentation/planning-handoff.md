@@ -1,16 +1,16 @@
 # Planning Handoff
 
-> **Status (2026-03-19): Phase 2 COMPLETE.** All release-1 features shipped: F-001–F-009 done, 78 tests green. Additional polish delivered: real dashboard (StatCard, ActivityFeedItem, `/api/v1/activity` endpoint), skill interaction polish (useMotionPreference hook, XPGainAnimation, sort/filter, date-grouped XP history). Next: NutriLog, Mental Health, or further LifeQuest depth (blocker gate completion, AI coaching). Use the orchestrator with `plan-feature` for any new feature.
+> **Status (2026-05-06): Historical Release 1 planning artifact.** This document preserves the original release-1 planning baseline. Current shipped/in-progress/deferred status is maintained in `Documentation/feature-tracker.md`. Use the Cursor-first workflow documented in `AGENTS.md` and `docs/CURSOR-AGENT-HANDBOOK.md` for new work.
 
-Last updated: 2026-03-18 (Phase 1 completion banner added). Prior: 2026-03-16 (review-agent quality pass: 12 issues fixed — Phase 1 exit criterion 8 added (Supabase auth trigger verified); TASK-106 auth trigger AC added; TASK-116 password change handlers added; TASK-113 #modal-container added to shell and AC; TASK-210 TASK-203 dependency added; TASK-209 gate+tier edge case AC added; TASK-210 custom XP validation ACs added; TASK-213 tap-outside AC added; TASK-211 TASK-203 dependency added; TASK-213 TASK-203+TASK-210 dependencies added; TASK-212 TASK-202 dependency added; TASK-210 /skills/{id}/log route clarification added; TASK-215 real dashboard added; dependency graph corrected for TASK-209; prior update: planning-agent second pass: full Phase 1 and Phase 2 implementation backlog added; all task slices defined with dependencies and acceptance criteria; feature-tracker.md updated to in-progress-ready state; review-agent unblocked; prior update by ux-agent: UX step 4 complete; F-001, F-005, F-009 UX dependencies cleared; D-017 through D-022 added; ux-spec.md created; prior update by planning-agent v1: delivery slice confirmed, phase exit criteria made explicit, epic-to-feature mapping finalized, deferred list locked, schema-churn ordering applied)
+Last updated: 2026-05-06 (clarified this file as historical release-1 planning baseline; operational status moved to feature tracker)
 
 ## Planning Intent
 
-This document translates the product requirements into planning slices that another team or agent can estimate, sequence, and break into implementation tasks.
+This document captures the original release-1 planning slices and sequencing logic used during initial delivery.
 
 ## Recommended Delivery Strategy
 
-Build the shared platform and LifeQuest foundation first, then add NutriLog, then connect the two experiences. Within release 1, sequence work so that schema-defining decisions land before the features that consume them. This minimises the cost of schema churn as the product evolves.
+Build the shared platform and LifeQuest foundation first, then add NutriLog, then connect the two experiences. Within release 1, sequence work so that schema-defining decisions land before the features that consume them. This minimises schema churn risk.
 
 ---
 
@@ -35,16 +35,18 @@ These decisions are the locked planning baseline for release 1. Nothing below ma
 
 The eight features below constitute release 1. Nothing else is in scope.
 
-| ID | Feature | Phase |
-| --- | --- | --- |
-| F-001 | Shared app shell and navigation | Phase 1 |
-| F-002 | Supabase auth and user profile (email/password only) | Phase 1 |
-| F-003 | User Claude API key storage (AES-256-GCM envelope encryption) | Phase 1 |
-| F-004 | Skill CRUD | Phase 2 |
+
+| ID    | Feature                                                             | Phase   |
+| ----- | ------------------------------------------------------------------- | ------- |
+| F-001 | Shared app shell and navigation                                     | Phase 1 |
+| F-002 | Supabase auth and user profile (email/password only)                | Phase 1 |
+| F-003 | User Claude API key storage (AES-256-GCM envelope encryption)       | Phase 1 |
+| F-004 | Skill CRUD                                                          | Phase 2 |
 | F-005 | AI skill calibration (optional) with manual starting-level fallback | Phase 2 |
-| F-006 | Quick XP logging | Phase 2 |
-| F-008 | XP and level progression display | Phase 2 |
-| F-009 | Blocker gate visibility and locked progression state | Phase 2 |
+| F-006 | Quick XP logging                                                    | Phase 2 |
+| F-008 | XP and level progression display                                    | Phase 2 |
+| F-009 | Blocker gate visibility and locked progression state                | Phase 2 |
+
 
 F-009b (blocker completion UI flow) is explicitly deferred. It is not part of release 1.
 
@@ -54,23 +56,25 @@ F-009b (blocker completion UI flow) is explicitly deferred. It is not part of re
 
 These features are not part of release 1. They are not to be estimated or built until the LifeQuest core loop is in production.
 
-| ID | Feature | Area | Reason Deferred |
-| --- | --- | --- | --- |
-| F-007 | Detailed natural-language logs | LifeQuest | Post-loop depth; parsing contract undefined |
-| F-009b | Blocker completion UI flow | LifeQuest | D-010; evidence/unlock ceremony adds scope without validating the mechanic |
-| F-010 | Reward moments and titles | LifeQuest | Post-loop polish |
-| F-011 | Meta-skills and dependencies | LifeQuest | A-003; deferred until base loop is proven |
-| F-012 | AI coaching feedback | LifeQuest | Requires log history; post-loop depth |
-| F-013 | Weight logging and trend chart | NutriLog | NutriLog deferred entirely |
-| F-014 | Calorie and macro logging | NutriLog | NutriLog deferred entirely |
-| F-015 | Barcode scanning | NutriLog | NutriLog deferred entirely |
-| F-016 | Saved meals and templates | NutriLog | NutriLog deferred entirely |
-| F-017 | AI recipe and meal suggestions | NutriLog | NutriLog deferred entirely |
-| F-018 | Goal setting and weekly rate | NutriLog | NutriLog deferred entirely |
-| F-019 | Weekly AI review | Cross-app | Requires both loops stable |
-| F-020 | Cross-app XP integration | Cross-app | Requires both loops stable |
-| F-021 | PWA install and notifications | Platform | D-006; mobile usability is required, install/push deferred |
-| F-022 | Data export | Platform | Add after schema stabilises |
+
+| ID     | Feature                        | Area      | Reason Deferred                                                            |
+| ------ | ------------------------------ | --------- | -------------------------------------------------------------------------- |
+| F-007  | Detailed natural-language logs | LifeQuest | Post-loop depth; parsing contract undefined                                |
+| F-009b | Blocker completion UI flow     | LifeQuest | D-010; evidence/unlock ceremony adds scope without validating the mechanic |
+| F-010  | Reward moments and titles      | LifeQuest | Post-loop polish                                                           |
+| F-011  | Meta-skills and dependencies   | LifeQuest | A-003; deferred until base loop is proven                                  |
+| F-012  | AI coaching feedback           | LifeQuest | Requires log history; post-loop depth                                      |
+| F-013  | Weight logging and trend chart | NutriLog  | NutriLog deferred entirely                                                 |
+| F-014  | Calorie and macro logging      | NutriLog  | NutriLog deferred entirely                                                 |
+| F-015  | Barcode scanning               | NutriLog  | NutriLog deferred entirely                                                 |
+| F-016  | Saved meals and templates      | NutriLog  | NutriLog deferred entirely                                                 |
+| F-017  | AI recipe and meal suggestions | NutriLog  | NutriLog deferred entirely                                                 |
+| F-018  | Goal setting and weekly rate   | NutriLog  | NutriLog deferred entirely                                                 |
+| F-019  | Weekly AI review               | Cross-app | Requires both loops stable                                                 |
+| F-020  | Cross-app XP integration       | Cross-app | Requires both loops stable                                                 |
+| F-021  | PWA install and notifications  | Platform  | D-006; mobile usability is required, install/push deferred                 |
+| F-022  | Data export                    | Platform  | Add after schema stabilises                                                |
+
 
 ---
 
@@ -83,8 +87,9 @@ Goal: a deployable, authenticated, mobile-responsive app shell with secure AI ke
 Features: F-001, F-002, F-003
 
 Includes:
+
 - Go application scaffold (router, middleware, config)
-- Templ and HTMX rendering pipeline
+- Next.js app shell + BFF integration pipeline
 - Tailwind setup and responsive baseline
 - Supabase Auth integration — email/password only
 - PostgreSQL schema: users, user_ai_keys, schema versioning/migration tooling
@@ -100,6 +105,7 @@ Goal: a user can create a skill, log activity, earn XP, see their level progress
 Features: F-004, F-005, F-006, F-008, F-009
 
 Includes:
+
 - Skill CRUD (create, view, edit, delete)
 - Manual starting-level selection UI (required; part of F-005)
 - AI-assisted skill calibration as an optional step during skill creation (F-005); requires Claude key to be present but must not block onboarding if key is absent or invalid
@@ -176,7 +182,7 @@ The following ordering minimises schema churn. Work streams that define shared s
 
 ```
 Phase 1
-  1a. Go scaffold, Templ/HTMX/Tailwind pipeline, local dev setup
+  1a. Go API scaffold + Next.js/Tailwind app shell + local dev setup
   1b. Schema baseline + migration tooling (users, user_ai_keys)
   1c. Supabase Auth integration (email/password)                 [depends on 1a, 1b]
   1d. AES-256-GCM key storage implementation                     [depends on 1b, 1c]
@@ -202,14 +208,16 @@ The XP curve is confirmed (D-014). The `xpcurve` package must be built in Phase 
 
 ## Critical Planning Dependencies
 
-| Dependency | Blocks | Owner | Status |
-| --- | --- | --- | --- |
-| XP curve shape confirmed | Phase 2 schema (2a), level display (2d) | architecture-agent | **RESOLVED** — D-014 confirmed |
-| Architecture review of AES-256-GCM approach | F-003 build | architecture-agent | **RESOLVED** — D-015 confirmed |
-| UX: shared app shell IA and mobile navigation pattern | Phase 1 (1e) | ux-agent | **RESOLVED** — see ux-spec.md Sections 1 and 2; D-017 confirmed |
-| UX: manual starting-level selection interaction model | Phase 2 (2b) | ux-agent | **RESOLVED** — see ux-spec.md Section 3; D-018, D-019 confirmed |
-| UX: blocker gate visibility screen design | Phase 2 (2f) | ux-agent | **RESOLVED** — see ux-spec.md Section 6; D-021 confirmed |
-| Schema: NutriLog domain reserved (not built) | Phase 2 schema (2a) | architecture-agent | **RESOLVED** — nl_ prefix reserved; FK anchor pattern defined |
+
+| Dependency                                            | Blocks                                  | Owner              | Status                                                          |
+| ----------------------------------------------------- | --------------------------------------- | ------------------ | --------------------------------------------------------------- |
+| XP curve shape confirmed                              | Phase 2 schema (2a), level display (2d) | architecture-agent | **RESOLVED** — D-014 confirmed                                  |
+| Architecture review of AES-256-GCM approach           | F-003 build                             | architecture-agent | **RESOLVED** — D-015 confirmed                                  |
+| UX: shared app shell IA and mobile navigation pattern | Phase 1 (1e)                            | ux-agent           | **RESOLVED** — see ux-spec.md Sections 1 and 2; D-017 confirmed |
+| UX: manual starting-level selection interaction model | Phase 2 (2b)                            | ux-agent           | **RESOLVED** — see ux-spec.md Section 3; D-018 confirmed, quick-log input model refined by D-034 (supersedes D-019 presets) |
+| UX: blocker gate visibility screen design             | Phase 2 (2f)                            | ux-agent           | **RESOLVED** — see ux-spec.md Section 6; D-021 confirmed        |
+| Schema: NutriLog domain reserved (not built)          | Phase 2 schema (2a)                     | architecture-agent | **RESOLVED** — nl_ prefix reserved; FK anchor pattern defined   |
+
 
 All planning dependencies are resolved. The delivery-agent is unblocked for Phase 1.
 
@@ -219,18 +227,20 @@ All planning dependencies are resolved. The delivery-agent is unblocked for Phas
 
 ### Current Step
 
-Step 5 is complete. The full Phase 1 and Phase 2 implementation backlog is defined below. The review-agent is unblocked to begin Step 6: verify the backlog, check all acceptance criteria, and confirm readiness for the delivery-agent.
+Historical status only: this kickoff sequence is complete. For active implementation priorities, consult `Documentation/feature-tracker.md`.
 
 ### Sequence
 
-| Step | Workstream | Primary Owner | Output | Depends On |
-| --- | --- | --- | --- | --- |
-| 1 | Product clarification | requirements-agent | Resolved answers for blocker behavior, MVP boundary, app shell, mobile, auth, XP curve, key encryption | None — COMPLETE |
-| 2 | MVP definition and phase plan | planning-agent | Confirmed v1 feature slice, deferred list, phase plan with exit criteria, delivery build sequence | Step 1 — COMPLETE (this document) |
-| 3 | Domain and schema design | architecture-agent | Versioned domain model; XP curve proposal; encryption approach confirmed; NutriLog schema reserved | Steps 1–2 — COMPLETE (architecture.md) |
-| 4 | UX and IA definition | ux-agent | Shared navigation, primary screens, mobile-first flow specs for skill creation, quick logging, progress display, blocker gate state | Steps 1–2 — COMPLETE (ux-spec.md) |
-| 5 | Delivery breakdown | planning-agent | Epic-to-ticket breakdown for Phase 1 and Phase 2 with estimates and acceptance criteria | Steps 3–4 — COMPLETE (this document, backlog below) |
-| 6 | Bootstrap implementation | delivery-agent | Initial app scaffold aligned to confirmed schema and IA | Step 5 — UNBLOCKED |
+
+| Step | Workstream                    | Primary Owner      | Output                                                                                                                              | Depends On                                          |
+| ---- | ----------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| 1    | Product clarification         | requirements-agent | Resolved answers for blocker behavior, MVP boundary, app shell, mobile, auth, XP curve, key encryption                              | None — COMPLETE                                     |
+| 2    | MVP definition and phase plan | planning-agent     | Confirmed v1 feature slice, deferred list, phase plan with exit criteria, delivery build sequence                                   | Step 1 — COMPLETE (this document)                   |
+| 3    | Domain and schema design      | architecture-agent | Versioned domain model; XP curve proposal; encryption approach confirmed; NutriLog schema reserved                                  | Steps 1–2 — COMPLETE (architecture.md)              |
+| 4    | UX and IA definition          | ux-agent           | Shared navigation, primary screens, mobile-first flow specs for skill creation, quick logging, progress display, blocker gate state | Steps 1–2 — COMPLETE (ux-spec.md)                   |
+| 5    | Delivery breakdown            | planning-agent     | Epic-to-ticket breakdown for Phase 1 and Phase 2 with estimates and acceptance criteria                                             | Steps 3–4 — COMPLETE (this document, backlog below) |
+| 6    | Bootstrap implementation      | delivery-agent     | Initial app scaffold aligned to confirmed schema and IA                                                                             | Step 5 — UNBLOCKED                                  |
+
 
 ### First Pass Deliverables (Status)
 
@@ -244,3 +254,4 @@ Step 5 is complete. The full Phase 1 and Phase 2 implementation backlog is defin
 ---
 
 > **Implementation Backlog (TASK-101 through TASK-215) removed 2026-03-19** — all tasks complete and merged. The detailed task specs were only needed during implementation. The exit criteria above are the durable reference for what was built and why.
+

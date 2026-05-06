@@ -1,0 +1,14 @@
+---
+description: Keep product and planning docs synchronized
+globs:
+  - Documentation/**/*.md
+alwaysApply: false
+---
+
+# Documentation Discipline
+
+- Treat `Documentation/` as maintained source of truth.
+- Keep confirmed requirements, assumptions, and open questions clearly separated.
+- Update `Documentation/feature-tracker.md` when scope/status/dependency changes.
+- Update `Documentation/decision-log.md` when decisions are made or unresolved questions emerge.
+- If only one canonical document changes, explain why related docs did not need updates.

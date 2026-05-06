@@ -86,20 +86,18 @@
 
 ## Red/Green State Summary
 
-| Layer | Files | State | Reason |
-|-------|-------|-------|--------|
-| Go backend | `apps/api/internal/handlers/goal_test.go` | **INTENTIONALLY RED** (compile error) | `apps/api/internal/goals` package doesn't exist until T8 is merged |
-| API client | `packages/api-client/src/__tests__/goals-edge-cases.test.ts` | **GREEN** (39/39 pass) | T10 client already on branch |
-| Frontend | `apps/rpg-tracker/app/__tests__/goal-progress-checkin.test.tsx` | **GREEN** (21/21 pass) | T9 UI already on branch |
+
+| Layer      | Files                                                           | State                                 | Reason                                                             |
+| ---------- | --------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------ |
+| Go backend | `apps/api/internal/handlers/goal_test.go`                       | **INTENTIONALLY RED** (compile error) | `apps/api/internal/goals` package doesn't exist until T8 is merged |
+| API client | `packages/api-client/src/__tests__/goals-edge-cases.test.ts`    | **GREEN** (39/39 pass)                | T10 client already on branch                                       |
+| Frontend   | `apps/rpg-tracker/app/__tests__/goal-progress-checkin.test.tsx` | **GREEN** (21/21 pass)                | T9 UI already on branch                                            |
+
 
 ## Explicit Remaining Risks
 
 1. **T8 merge required for Go tests**: The `goals` package containing `goals.Goal`, `goals.Milestone`, `goals.Checkin`, `goals.ErrNotFound`, `goals.StatusActive/Completed/Abandoned` sentinel errors, and `handlers.NewGoalHandlerWithStore` do not exist on this branch. All 57 Go tests will fail to compile until `cursor/ai-goals-backend-c6a8-0504` is merged.
-
 2. **Go validation tests (AC-14, AC-15, AC-16)**: Tests for invalid target_date, zero target_value, and negative current_value — these behaviours must be implemented in the handler. If T8's handler does not reject these cases, these tests will fail at runtime (not compile-time), revealing missing validation logic.
-
 3. **Check-in newest-first (AC-28)**: The `TestHandleGetCheckins_NewestFirst` test validates that the handler preserves ordering from the store. The store must return data in descending `created_at` order (via `ORDER BY created_at DESC` in SQL). If T8's DB query doesn't enforce this, the test will pass at handler level but the behaviour won't be guaranteed end-to-end.
-
 4. **Pre-existing frontend test failures**: 18 tests in non-goals test files (`account.test.tsx`, `login.test.tsx`, `skill-*.test.tsx`, `app-layout.test.tsx`) were already failing on the base branch before T11 — these are NOT caused by T11 changes and are out of scope.
-
 5. **Milestone invalid UUID**: `TestHandleGetGoal_InvalidID` tests that `/goals/not-a-uuid` returns 400. If T8's handler doesn't parse and validate the UUID before calling the store, this may return 500 instead.

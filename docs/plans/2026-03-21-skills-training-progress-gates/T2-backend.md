@@ -3,6 +3,7 @@
 ## Files Changed
 
 ### New files
+
 - `apps/api/db/migrations/000007_skills_training_gates.up.sql` — adds timezone column to users, streak/active-use columns to skills, creates training_sessions and gate_submissions tables, adds training_session_id FK to xp_events, disables RLS on new tables
 - `apps/api/db/migrations/000007_skills_training_gates.down.sql` — reversal migration
 - `apps/api/internal/skills/bonus_xp.go` — implements ComputeBonus and ComputeBonusAbandoned pure functions
@@ -14,6 +15,7 @@
 - `apps/api/internal/handlers/claude_raw.go` — httpRawClaudeCaller implementation and newHTTPClient helper
 
 ### Modified files
+
 - `apps/api/internal/handlers/account.go` — added HandlePatchAccount method to existing UserHandler (validates IANA timezone, returns 422 on invalid)
 - `apps/api/internal/users/service.go` — added UpdateTimezone function
 - `apps/api/internal/skills/xp_repository.go` — LogXP signature extended with trainingSessionID *uuid.UUID; streak columns updated in transaction; LogXPResult includes Streak field
@@ -29,16 +31,21 @@
 ## Fixes Applied (T4 blockers resolved)
 
 ### Fix 1 — LogXP signature: trainingSessionID *uuid.UUID
+
 `skills.LogXP` now accepts `trainingSessionID *uuid.UUID` as a 7th parameter. When non-nil the INSERT into `xp_events` includes the `training_session_id` column; when nil the column is omitted (NULL). The single existing non-test caller in `handlers/xp.go` (`dbXPStore.LogXP`) was updated to pass `nil`.
 
 ### Fix 2 — Streak update inside LogXP transaction
+
 The initial `SELECT ... FOR UPDATE` in `LogXP` now also reads `current_streak`, `longest_streak`, and `last_log_date` from the skills row. After reading, it queries `users.timezone`, calls `ComputeStreak`, and the `UPDATE public.skills` statement now also sets `current_streak`, `longest_streak`, and `last_log_date` atomically in the same transaction. The returned `LogXPResult` now includes a populated `Streak *StreakResult`.
 
 ### Fix 3 — attempt_number MAX+1 in gate.go
+
 Both `handleSelfReport` and `handleAISubmission` now pass `AttemptNumber: 0` as a placeholder. `dbGateStore.InsertSubmission` is now a real implementation that opens a transaction, runs `SELECT COALESCE(MAX(attempt_number), 0) + 1 FROM gate_submissions WHERE gate_id=$1 AND user_id=$2`, and uses the result as `attempt_number` in the INSERT — race-safe because both are inside the same transaction.
 
 ### Fix 4 — dbSessionStore implemented and wired
+
 `dbSessionStore` struct added to `handlers/session.go` implementing `SessionStore.CreateSession`:
+
 - Loads skill's `requires_active_use` from DB
 - Computes `completionRatio = actualDuration / plannedDuration` (0 for manual/zero planned)
 - Calls `ComputeBonusAbandoned` or `ComputeBonus` as appropriate
@@ -56,11 +63,13 @@ Both `handleSelfReport` and `handleAISubmission` now pass `AttemptNumber: 0` as 
 
 The test `TestBonusXPPartialCompletion` has three table-driven subtests that are mathematically inconsistent with any single rounding formula:
 
+
 | ratio | expected pct | math.Round result | floor result |
-|-------|-------------|-------------------|--------------|
-| 0.75  | 18          | 19                | 18 ✓         |
-| 0.50  | 13          | 13 ✓              | 12           |
-| 0.94  | 24          | 24 ✓              | 23           |
+| ----- | ------------ | ----------------- | ------------ |
+| 0.75  | 18           | 19                | 18 ✓         |
+| 0.50  | 13           | 13 ✓              | 12           |
+| 0.94  | 24           | 24 ✓              | 23           |
+
 
 The test comment for the 0.75 case reads `// round(25 * 0.75) = 18.75 → 19?` — the `?` indicates the test author was uncertain. The `wantBonusPct: 18` appears to be a typo; the correct value using `math.Round` (which matches the spec's "rounded to nearest whole %") is 19.
 

@@ -86,25 +86,44 @@ packages/
   api-client/       Typed fetch client for the Go API
   tsconfig/         Shared TypeScript config
 docs/
-  AGENTIC-SYSTEM.md Agent roles, zone rules, session protocol
+  CURSOR-AGENT-HANDBOOK.md Cursor-first workflow and CI/CD agent model
   setup.md          One-time Supabase trigger setup
   specs/archived/   Completed feature specs
   plans/archived/   Completed implementation plans
 Documentation/
   architecture.md   DB schema, domain model, integration contracts
-  decision-log.md   Confirmed product and architectural decisions (D-001–D-022)
+  decision-log.md   Confirmed product and architectural decisions
   feature-tracker.md Per-feature status and deferred list
+  README.md         Canonical documentation index
 ```
 
 ## Design System
 
-Two themes for LifeQuest, switchable via account settings:
+LifeQuest uses a three-theme system, switchable in account settings:
 
-- `**rpg-game**` — Dark/dramatic, gold accents, Cinzel serif headings, full Framer Motion animation budget (`--motion-scale: 1`)
-- `**rpg-clean**` — Dark/minimal, indigo accents, Inter, no animations (`--motion-scale: 0`)
+- **Minimal** — clean, data-forward productivity styling
+- **Retro** — RPG-inspired visual language
+- **Modern** — polished sci-fi command-center styling
 
-Theme tokens live in `packages/ui/tokens/`. The `--motion-scale` CSS variable gates all animations — components read it via the `useMotionPreference` hook.
+Theme tokens live in `packages/ui/tokens/` and all components are expected to be theme-aware.
 
 ## Agentic Development
 
-This project uses an AI agent team for feature development. See `CLAUDE.md` for the full agent roster and zone map. New features: use the `orchestrator` agent with the `plan-feature` skill.
+This project uses Cursor-first agentic workflows for feature development, review, and CI/CD automation.
+
+- Repository context directory: `AGENTS.md`
+- Canonical documentation map: `Documentation/README.md`
+- Operating workflow (IDE, cloud agent chat, CI/CD SDK agents): `docs/CURSOR-AGENT-HANDBOOK.md`
+
+## CI/CD Agent Automation
+
+Additional automation workflows:
+
+- `.github/workflows/cursor-pr-review.yml` - Cursor SDK PR review summaries/comments
+- `.github/workflows/cursor-security-triage.yml` - Dependabot/code-scanning triage
+- `.github/workflows/codeql.yml` - code scanning signal generation
+- `.github/dependabot.yml` - dependency update PR generation
+
+Required repository secret:
+
+- `CURSOR_API_KEY` - key used by CI workflows that call `@cursor/sdk`

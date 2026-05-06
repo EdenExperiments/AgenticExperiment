@@ -4,10 +4,12 @@
 
 This project uses a **split-database architecture**:
 
-| Database | Where | Purpose |
-|---|---|---|
-| Supabase (cloud) | `https://[project].supabase.co` | Auth only — `auth.users`, JWT signing |
-| Docker postgres | `localhost:5432/rpgtracker` | All application data — `public.users`, `public.skills`, etc. |
+
+| Database         | Where                           | Purpose                                                      |
+| ---------------- | ------------------------------- | ------------------------------------------------------------ |
+| Supabase (cloud) | `https://[project].supabase.co` | Auth only — `auth.users`, JWT signing                        |
+| Docker postgres  | `localhost:5432/rpgtracker`     | All application data — `public.users`, `public.skills`, etc. |
+
 
 The Go API validates JWTs against Supabase, but reads and writes all application data against the local Docker container. **These are separate databases — data written to one is never visible in the other.**
 

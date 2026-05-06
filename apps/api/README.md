@@ -4,12 +4,12 @@ Go REST API for the RpgTracker platform. Serves all three frontends (LifeQuest, 
 
 ## Stack
 
-- **Runtime:** Go 1.22+
+- **Runtime:** Go 1.23+
 - **Router:** chi v5
 - **DB driver:** pgx v5 (connection pool via `pgxpool`)
 - **Auth:** Supabase JWTs — validated via JWKS endpoint (RS256 / ES256)
 - **Migrations:** golang-migrate (file-based, `db/migrations/`)
-- **DB:** PostgreSQL (Supabase-hosted)
+- **DB:** PostgreSQL (local Docker for application data; Supabase for auth only)
 
 ## Running locally
 
