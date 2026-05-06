@@ -11,8 +11,8 @@ import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
 const COMMENT_MARKER = "<!-- cursor-pr-review -->";
 
 function buildDiffContext(files: PullRequestFile[]): string {
-  const changedFiles = files.slice(0, 30).map((file) => {
-    const patch = file.patch ? truncate(file.patch, 3000) : "[no textual patch available]";
+  const changedFiles = files.slice(0, 20).map((file) => {
+    const patch = file.patch ? truncate(file.patch, 2000) : "[no textual patch available]";
     return [
       `File: ${file.filename}`,
       `Status: ${file.status}, +${file.additions} -${file.deletions}`,
@@ -38,6 +38,56 @@ function extractAgentText(result: unknown): string {
   }
 
   return JSON.stringify(result, null, 2);
+}
+
+function extractRunDiagnostics(result: unknown): string {
+  if (!result || typeof result !== "object") {
+    return String(result);
+  }
+
+  const candidate = result as Record<string, unknown>;
+  const status = typeof candidate.status === "string" ? candidate.status : "unknown";
+  const errorMessage =
+    typeof candidate.error === "string"
+      ? candidate.error
+      : typeof candidate.error_message === "string"
+        ? candidate.error_message
+        : typeof candidate.message === "string"
+          ? candidate.message
+          : "no explicit error message";
+
+  return `status=${status}; message=${errorMessage}; raw=${JSON.stringify(result).slice(0, 2000)}`;
+}
+
+async function requestReviewWithFallback(
+  prompt: string,
+  apiKey: string
+): Promise<{ review: string; modelUsed: string; rawStatus: string }> {
+  const { Agent } = await import("@cursor/sdk");
+  const models = (process.env.CURSOR_REVIEW_MODELS ?? "composer-2,composer-2-fast")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  const attemptDiagnostics: string[] = [];
+
+  for (const modelId of models) {
+    const result = await Agent.prompt(prompt, {
+      apiKey,
+      model: { id: modelId },
+      local: { cwd: process.cwd() },
+    });
+
+    const status = (result as { status?: string }).status ?? "unknown";
+    if (status === "finished") {
+      return { review: extractAgentText(result), modelUsed: modelId, rawStatus: status };
+    }
+
+    attemptDiagnostics.push(`[${modelId}] ${extractRunDiagnostics(result)}`);
+  }
+
+  throw new Error(
+    `Cursor PR review failed across models. ${attemptDiagnostics.join(" || ")}`
+  );
 }
 
 async function main(): Promise<void> {
@@ -78,21 +128,11 @@ Return a concise markdown review with these sections:
 If no major issues are found, state that clearly and still include test/verification gaps.
 `;
 
-  const { Agent, CursorAgentError } = await import("@cursor/sdk");
+  const { CursorAgentError } = await import("@cursor/sdk");
 
   try {
-    const result = await Agent.prompt(prompt, {
-      apiKey,
-      model: { id: "composer-2" },
-      local: { cwd: process.cwd() },
-    });
-
-    const status = (result as { status?: string }).status;
-    if (status && status !== "finished") {
-      throw new Error(`Cursor PR review run finished with non-success status: ${status}`);
-    }
-
-    const review = extractAgentText(result);
+    const { review, modelUsed, rawStatus } = await requestReviewWithFallback(prompt, apiKey);
+    console.log(`Cursor PR review completed with model=${modelUsed}, status=${rawStatus}`);
     const body = `${COMMENT_MARKER}
 ## Cursor PR Review
 
