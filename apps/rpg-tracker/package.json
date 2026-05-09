@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "vitest run --pool=${VITEST_POOL:-vmThreads}"
+    "test": "vitest run --pool=threads",
+    "test:coverage": "vitest run --pool=threads --coverage"
   },
   "dependencies": {
     "@rpgtracker/api-client": "workspace:*",
