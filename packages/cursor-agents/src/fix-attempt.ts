@@ -173,14 +173,24 @@ function extractRunDiagnostics(result: unknown): string {
 
   const candidate = result as Record<string, unknown>;
   const status = typeof candidate.status === "string" ? candidate.status : "unknown";
-  const message =
-    typeof candidate.error === "string"
-      ? candidate.error
-      : typeof candidate.message === "string"
-        ? candidate.message
-        : "no explicit message";
+  let message = "no explicit message";
+  if (typeof candidate.error === "string") {
+    message = candidate.error;
+  } else if (typeof candidate.message === "string") {
+    message = candidate.message;
+  }
 
   return `status=${status}; message=${message}; raw=${JSON.stringify(result).slice(0, 2000)}`;
+}
+
+function describeScannerWaitForSummary(enabled: boolean, timedOut: boolean): string {
+  if (!enabled) {
+    return "disabled (CURSOR_AUTO_FIX_WAIT_SCANNERS=false)";
+  }
+  if (timedOut) {
+    return "timed out (proceeded with best-effort context)";
+  }
+  return "ok";
 }
 
 function extractAgentText(result: unknown): string {
@@ -730,13 +740,7 @@ Run ID: \`${runId}\`
 Planner model: \`${plannerModel}\`
 Execution model: \`${executionModel}\`
 Required label: \`${requiredLabel}\`
-Scanner wait: ${
-      waitOpts.enabled
-        ? scannerWaitTimedOut
-          ? "timed out (proceeded with best-effort context)"
-          : "ok"
-        : "disabled (CURSOR_AUTO_FIX_WAIT_SCANNERS=false)"
-    }
+Scanner wait: ${describeScannerWaitForSummary(waitOpts.enabled, scannerWaitTimedOut)}
 
 ${fixPrUrl ? `Fix attempt PR: ${fixPrUrl}` : "Run finished, but no PR URL was returned by the SDK response."}
 
