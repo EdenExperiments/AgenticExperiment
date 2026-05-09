@@ -39,9 +39,23 @@ jobs:
         with:
           script: |
             const enabled = (process.env.CURSOR_AUTO_FIX_ENABLED || '') === 'true';
+
             if (context.eventName === 'workflow_dispatch') {
-              core.setOutput('proceed', 'true');
-              core.notice('workflow_dispatch: proceeding to fix job.');
+              const inputs = context.payload.inputs || {};
+              const forceRun =
+                inputs.force_run === true ||
+                inputs.force_run === 'true';
+              if (enabled || forceRun) {
+                core.setOutput('proceed', 'true');
+                core.notice(
+                  `workflow_dispatch: proceeding (enabled=${enabled}, force_run=${forceRun}).`
+                );
+              } else {
+                core.setOutput('proceed', 'false');
+                core.notice(
+                  'workflow_dispatch skipped: set CURSOR_AUTO_FIX_ENABLED=true or run with force_run.'
+                );
+              }
               return;
             }
 
@@ -62,6 +76,8 @@ jobs:
               return;
             }
 
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
             const body = context.payload.comment.body || '';
             const reviewMarker = '<!-- cursor-pr-review -->';
 
@@ -70,45 +86,79 @@ jobs:
               .map((entry) => entry.trim())
               .filter(Boolean);
 
-            const lines = body.split(/\r?\n/).map((line) => line.trim());
-            const phraseHit = lines.some((line) =>
-              triggers.some((trigger) => line.toLowerCase() === trigger.toLowerCase())
-            );
+            const normalizeTriggerLine = (line) => {
+              let t = line.trim().replace(/\*+/g, '').replace(/`/g, '');
+              while (t.startsWith('>')) {
+                t = t.slice(1).trim();
+              }
+              return t
+                .replace(/^[-*•]\s+/, '')
+                .replace(/^\d+\.\s+/, '')
+                .trim();
+            };
 
-            if (phraseHit || body.includes(reviewMarker)) {
+            const lineMatchesSlashTrigger = (line) => {
+              const normalized = normalizeTriggerLine(line);
+              return triggers.some((trigger) => {
+                const low = normalized.toLowerCase();
+                const tr = trigger.toLowerCase();
+                return low === tr || low.startsWith(tr + ' ');
+              });
+            };
+
+            const bodyHasSlashTrigger = () => {
+              const lines = body.split(/\r?\n/);
+              if (lines.some((line) => lineMatchesSlashTrigger(line))) {
+                return true;
+              }
+              for (const trigger of triggers) {
+                const escaped = trigger.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const re = new RegExp(`(^|\\n)[ \\t]*>?[ \\t]*${escaped}(\\b|[ \\t]|$)`, 'i');
+                if (re.test(body)) {
+                  return true;
+                }
+              }
+              return false;
+            };
+
+            if (body.includes(reviewMarker) || bodyHasSlashTrigger()) {
               core.setOutput('proceed', 'true');
-              core.notice('Auto-fix trigger matched (slash command or quoted review marker).');
+              core.notice(
+                'Auto-fix trigger matched (HTML marker from bot comment, or /cursor-fix line — quote replies may omit HTML markers).'
+              );
               return;
             }
 
-            const commentId = context.payload.comment.id;
-            const { data: comment } = await github.rest.issues.getComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: commentId,
+            const maxDepth = 15;
+            const { data: startComment } = await github.rest.issues.getComment({
+              owner,
+              repo,
+              comment_id: context.payload.comment.id,
             });
 
-            const parentId = comment.in_reply_to_id;
-            if (!parentId) {
-              core.setOutput('proceed', 'false');
-              core.notice('No slash trigger, no quoted marker, and comment is not a threaded reply.');
-              return;
-            }
+            let parentId = startComment.in_reply_to_id;
+            for (let depth = 0; depth < maxDepth && parentId; depth += 1) {
+              const { data: comment } = await github.rest.issues.getComment({
+                owner,
+                repo,
+                comment_id: parentId,
+              });
 
-            const { data: parent } = await github.rest.issues.getComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              comment_id: parentId,
-            });
+              if (comment.body && comment.body.includes(reviewMarker)) {
+                core.setOutput('proceed', 'true');
+                core.notice(
+                  `Auto-fix trigger matched (review marker found upstream in reply thread, depth=${depth}).`
+                );
+                return;
+              }
 
-            if (parent.body && parent.body.includes(reviewMarker)) {
-              core.setOutput('proceed', 'true');
-              core.notice('Auto-fix trigger matched (reply to Cursor PR Review comment thread).');
-              return;
+              parentId = comment.in_reply_to_id ?? null;
             }
 
             core.setOutput('proceed', 'false');
-            core.notice('Comment did not qualify as an auto-fix trigger.');
+            core.notice(
+              'Comment did not qualify: no /cursor-fix line, no review marker in body, and no upstream thread comment with the Cursor PR Review marker.'
+            );
 
   cursor-auto-fix:
     needs: gate
