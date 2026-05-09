@@ -12,7 +12,7 @@
     "./hooks": "./src/hooks.ts"
   },
   "scripts": {
-    "test": "vitest run --pool=vmThreads",
+    "test": "vitest run --pool=${VITEST_POOL:-vmThreads}",
     "test:watch": "vitest"
   },
   "devDependencies": {

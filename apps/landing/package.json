@@ -6,7 +6,7 @@
     "dev": "next dev -p 3004",
     "build": "next build",
     "start": "next start -p 3004",
-    "test": "vitest run --pool=vmThreads",
+    "test": "vitest run --pool=${VITEST_POOL:-vmThreads}",
     "lint": "tsc --noEmit"
   },
   "dependencies": {

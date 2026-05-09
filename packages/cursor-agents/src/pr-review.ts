@@ -210,10 +210,12 @@ async function requestReviewWithFallback(
   runtimeOptions: Record<string, unknown>
 ): Promise<{ review: ReviewSchemaV1; modelUsed: string; rawStatus: string }> {
   const { Agent, CursorAgentError } = await import("@cursor/sdk");
-  const models = (process.env.CURSOR_REVIEW_MODELS ?? "composer-2,gpt-5.4-mini")
+  const envModels = (process.env.CURSOR_REVIEW_MODELS ?? "")
     .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean);
+  const fallbackModels = ["composer-2", "gpt-5.4-mini"];
+  const models = [...new Set([...envModels, ...fallbackModels])];
   const attemptDiagnostics: string[] = [];
 
   for (const modelId of models) {

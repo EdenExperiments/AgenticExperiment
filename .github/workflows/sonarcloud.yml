@@ -64,6 +64,7 @@ jobs:
       - name: Run JavaScript tests with coverage
         env:
           NODE_OPTIONS: --max-old-space-size=4096
+          VITEST_POOL: forks
         run: pnpm test:coverage
 
       - name: Run Go tests with coverage
