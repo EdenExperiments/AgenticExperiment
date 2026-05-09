@@ -31,7 +31,9 @@ export function buildCheckRunsMarkdown(rows: CheckRunData[], limit = 40): string
 
   const lines = rows.slice(0, limit).map((row) => {
     const conclusion = row.conclusion ?? "pending";
-    return `- ${row.name} | status=${row.status} | conclusion=${conclusion}`;
+    const name = row.name;
+    const status = row.status;
+    return `- ${name} | status=${status} | conclusion=${conclusion}`;
   });
 
   return ["GitHub Actions check runs (head commit):", ...lines].join("\n");
@@ -49,9 +51,12 @@ async function fetchSonarQualityGateJson(
   token: string
 ): Promise<SonarQualityGateResponse | null> {
   const params = new URLSearchParams({ projectKey, pullRequest });
-  const response = await fetch(`https://sonarcloud.io/api/qualitygates/project_status?${params}`, {
+  const base = "https://sonarcloud.io/api/qualitygates/project_status";
+  const url = base + "?" + params.toString();
+  const basic = Buffer.from(token + ":", "utf8").toString("base64");
+  const response = await fetch(url, {
     headers: {
-      Authorization: `Basic ${Buffer.from(`${token}:`).toString("base64")}`,
+      Authorization: "Basic " + basic,
       Accept: "application/json",
     },
   });
@@ -61,6 +66,159 @@ async function fetchSonarQualityGateJson(
   }
 
   return (await response.json()) as SonarQualityGateResponse;
+}
+
+const NON_SUCCESS_CHECK_CONCLUSIONS = new Set([
+  "failure",
+  "cancelled",
+  "timed_out",
+  "action_required",
+]);
+
+function matchingRunsForPattern(runs: CheckRunData[], pattern: string): CheckRunData[] {
+  return runs.filter((run) => run.name.toLowerCase().includes(pattern));
+}
+
+function formatRunningRuns(matching: CheckRunData[]): string {
+  return matching
+    .filter((run) => run.status !== "completed")
+    .map((run) => `${run.name}:${run.status}`)
+    .join("; ");
+}
+
+function pushCompletedNonSuccessNotes(
+  notes: string[],
+  runs: CheckRunData[],
+  patterns: string[],
+  label: "Required" | "Optional"
+): void {
+  for (const pattern of patterns) {
+    const matching = matchingRunsForPattern(runs, pattern);
+    for (const run of matching) {
+      if (run.status !== "completed" || !run.conclusion) {
+        continue;
+      }
+      if (NON_SUCCESS_CHECK_CONCLUSIONS.has(run.conclusion)) {
+        notes.push(
+          `${label} check "${run.name}" completed with conclusion=${run.conclusion} (wait treats completion as ready; merge may still be blocked).`
+        );
+      }
+    }
+  }
+}
+
+type RequiredEval = { ready: boolean };
+
+function evaluateRequiredSubstrings(
+  runs: CheckRunData[],
+  patterns: string[],
+  elapsed: number,
+  notes: string[]
+): RequiredEval {
+  for (const pattern of patterns) {
+    const matching = matchingRunsForPattern(runs, pattern);
+    if (matching.length === 0) {
+      notes.push(`[wait ${elapsed}ms] Required scanner not observed yet: "${pattern}"`);
+      return { ready: false };
+    }
+    const running = formatRunningRuns(matching);
+    if (running.length > 0) {
+      notes.push(`[wait ${elapsed}ms] "${pattern}" still running: ${running}`);
+      return { ready: false };
+    }
+  }
+  return { ready: true };
+}
+
+type OptionalEval = { ready: boolean };
+
+function evaluateOptionalSubstrings(
+  runs: CheckRunData[],
+  patterns: string[],
+  elapsed: number,
+  optionalGraceMs: number,
+  notes: string[]
+): OptionalEval {
+  for (const pattern of patterns) {
+    const matching = matchingRunsForPattern(runs, pattern);
+    if (matching.length === 0) {
+      if (elapsed < optionalGraceMs) {
+        notes.push(
+          `[wait ${elapsed}ms] Optional scanner "${pattern}" not observed yet (grace ${optionalGraceMs}ms)`
+        );
+        return { ready: false };
+      }
+      continue;
+    }
+    const running = formatRunningRuns(matching);
+    if (running.length > 0) {
+      notes.push(`[wait ${elapsed}ms] Optional "${pattern}" still running: ${running}`);
+      return { ready: false };
+    }
+  }
+  return { ready: true };
+}
+
+type SonarPoll = { continueWaiting: boolean; gateStatus?: string };
+
+async function evaluateSonarApiReadiness(
+  options: {
+    elapsed: number;
+    sonarToken?: string;
+    sonarProjectKey?: string;
+    prNumber: number;
+  },
+  notes: string[]
+): Promise<SonarPoll> {
+  const { elapsed, sonarToken, sonarProjectKey, prNumber } = options;
+  if (!sonarToken || !sonarProjectKey) {
+    return { continueWaiting: false };
+  }
+
+  const gate = await fetchSonarQualityGateJson(sonarProjectKey, String(prNumber), sonarToken);
+  const status = gate?.projectStatus?.status;
+
+  if (!gate?.projectStatus || !status) {
+    notes.push(
+      `[wait ${elapsed}ms] SonarCloud quality gate not ready for PR #${prNumber} (API missing projectStatus.status)`
+    );
+    return { continueWaiting: true };
+  }
+
+  if (status !== "OK") {
+    notes.push(
+      `[wait ${elapsed}ms] SonarCloud quality gate readable with status=${status} (not OK; deterministic merge gate may still fail).`
+    );
+  }
+
+  return { continueWaiting: false, gateStatus: status };
+}
+
+function sonarReadableSummaryPhrase(
+  sonarConfigured: boolean,
+  sonarGateStatus: string | undefined
+): string {
+  if (!sonarConfigured) {
+    return "Sonar API not configured for wait (skipped).";
+  }
+  if (sonarGateStatus) {
+    return `Sonar API gate readable (status=${sonarGateStatus}).`;
+  }
+  return "Sonar API gate readable.";
+}
+
+function buildSatisfactionSummary(
+  startMs: number,
+  sonarConfigured: boolean,
+  sonarGateStatus: string | undefined
+): string {
+  const elapsed = Date.now() - startMs;
+  const sonarPart = sonarReadableSummaryPhrase(sonarConfigured, sonarGateStatus);
+
+  return (
+    `Scanner wait satisfied after ${elapsed}ms: required and optional GitHub checks reached status=completed ` +
+    `(non-success conclusions are noted above; this wait does not require green conclusions). ${sonarPart}`
+  );
 }
 
 /**
@@ -82,84 +240,54 @@ export async function waitForScannerReadiness(options: {
   const start = Date.now();
   const deadline = start + options.timeoutMs;
   let timedOut = false;
+  const sonarConfigured = Boolean(options.sonarToken && options.sonarProjectKey);
 
   while (Date.now() < deadline) {
     const runs = await options.github.listCheckRunsForCommit(options.headSha);
     const elapsed = Date.now() - start;
 
-    let ready = true;
-
-    for (const pattern of options.requiredSubstrings) {
-      const matching = runs.filter((run) => run.name.toLowerCase().includes(pattern));
-      if (matching.length === 0) {
-        notes.push(`[wait ${elapsed}ms] Required scanner not observed yet: "${pattern}"`);
-        ready = false;
-        break;
-      }
-      if (matching.some((run) => run.status !== "completed")) {
-        notes.push(
-          `[wait ${elapsed}ms] "${pattern}" still running: ${matching
-            .filter((run) => run.status !== "completed")
-            .map((run) => `${run.name}:${run.status}`)
-            .join("; ")}`
-        );
-        ready = false;
-        break;
-      }
-    }
-
-    if (!ready) {
-      await sleep(options.pollIntervalMs);
-      continue;
-    }
-
-    for (const pattern of options.optionalSubstrings) {
-      const matching = runs.filter((run) => run.name.toLowerCase().includes(pattern));
-      if (matching.length === 0) {
-        if (elapsed < options.optionalGraceMs) {
-          notes.push(
-            `[wait ${elapsed}ms] Optional scanner "${pattern}" not observed yet (grace ${options.optionalGraceMs}ms)`
-          );
-          ready = false;
-        }
-        continue;
-      }
-      if (matching.some((run) => run.status !== "completed")) {
-        notes.push(
-          `[wait ${elapsed}ms] Optional "${pattern}" still running: ${matching
-            .filter((run) => run.status !== "completed")
-            .map((run) => `${run.name}:${run.status}`)
-            .join("; ")}`
-        );
-        ready = false;
-        break;
-      }
-    }
-
-    if (!ready) {
-      await sleep(options.pollIntervalMs);
-      continue;
-    }
-
-    if (options.sonarToken && options.sonarProjectKey) {
-      const gate = await fetchSonarQualityGateJson(
-        options.sonarProjectKey,
-        String(options.prNumber),
-        options.sonarToken
-      );
-      const status = gate?.projectStatus?.status;
-      if (!gate?.projectStatus || !status) {
-        notes.push(
-          `[wait ${elapsed}ms] SonarCloud quality gate not ready for PR #${options.prNumber} (API missing projectStatus.status)`
-        );
-        await sleep(options.pollIntervalMs);
-        continue;
-      }
-    }
-
-    notes.push(
-      `Scanner wait satisfied after ${Date.now() - start}ms (required+optional checks complete; Sonar API gate readable).`
+    const required = evaluateRequiredSubstrings(
+      runs,
+      options.requiredSubstrings,
+      elapsed,
+      notes
     );
+    if (!required.ready) {
+      await sleep(options.pollIntervalMs);
+      continue;
+    }
+
+    const optional = evaluateOptionalSubstrings(
+      runs,
+      options.optionalSubstrings,
+      elapsed,
+      options.optionalGraceMs,
+      notes
+    );
+    if (!optional.ready) {
+      await sleep(options.pollIntervalMs);
+      continue;
+    }
+
+    pushCompletedNonSuccessNotes(notes, runs, options.requiredSubstrings, "Required");
+    pushCompletedNonSuccessNotes(notes, runs, options.optionalSubstrings, "Optional");
+
+    const sonarPoll = await evaluateSonarApiReadiness(
+      {
+        elapsed,
+        sonarToken: options.sonarToken,
+        sonarProjectKey: options.sonarProjectKey,
+        prNumber: options.prNumber,
+      },
+      notes
+    );
+
+    if (sonarPoll.continueWaiting) {
+      await sleep(options.pollIntervalMs);
+      continue;
+    }
+
+    notes.push(buildSatisfactionSummary(start, sonarConfigured, sonarPoll.gateStatus));
     return { notes, timedOut: false };
   }
 

@@ -37,6 +37,7 @@ Thumbs.db
 
 # Node
 node_modules/
+*.tsbuildinfo
 
 # Tailwind production build output
 static/css/app.css
@@ -47,5 +48,5 @@ static/css/app.css
 # SuperPower Skill brainstorming
 .superpowers/
 
-# Turbo Cache
-.turbo/cache/
+# Turbo (local cache and task logs)
+.turbo/

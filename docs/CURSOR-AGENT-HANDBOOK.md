@@ -80,7 +80,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 - `SONAR_ORGANIZATION`: SonarCloud organization key.
 - `SONAR_PROJECT_KEY`: SonarCloud project key.
 - `SONAR_MIN_NEW_COVERAGE`: minimum PR new-code coverage enforced after Sonar scan (`80` default).
-- `CURSOR_AUTO_FIX_WAIT_SCANNERS`: when `true` (default), the fix attempt waits for required GitHub check runs plus SonarCloud PR decoration before planning (bounded by timeout).
+- `CURSOR_AUTO_FIX_WAIT_SCANNERS`: when `true` (default), the fix attempt waits until required GitHub check runs reach `status=completed`, optional patterns satisfy the grace rule, and the SonarCloud PR quality-gate API returns a readable status before planning (completion-based, not “all green”; failure conclusions and non-OK Sonar status are echoed into the scanner-wait log).
 - `CURSOR_AUTO_FIX_WAIT_TIMEOUT_MS`: max wait for scanners before continuing best-effort (`900000` default).
 - `CURSOR_AUTO_FIX_POLL_INTERVAL_MS`: polling cadence while waiting (`20000` default).
 - `CURSOR_AUTO_FIX_OPTIONAL_SCAN_GRACE_MS`: grace window where optional scanners (for example CodeQL) may still appear (`180000` default).
