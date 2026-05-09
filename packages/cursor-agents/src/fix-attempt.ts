@@ -215,6 +215,21 @@ function describeScannerWaitForSummary(enabled: boolean, timedOut: boolean): str
   return "ok";
 }
 
+/**
+ * Cloud agent git behavior (SDK `cloud.workOnCurrentBranch` / `cloud.autoCreatePR`).
+ * Default matches historical behavior: open a new PR with the fix attempt.
+ * To push onto the source PR branch instead, set repo var `CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH=true`
+ * and typically `CURSOR_CLOUD_AUTO_CREATE_PR=false`.
+ */
+function resolveCloudAgentGitBehavior(): {
+  workOnCurrentBranch: boolean;
+  autoCreatePR: boolean;
+} {
+  const workOnCurrentBranch = process.env.CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH === "true";
+  const autoCreatePR = process.env.CURSOR_CLOUD_AUTO_CREATE_PR !== "false";
+  return { workOnCurrentBranch, autoCreatePR };
+}
+
 function extractAgentText(result: unknown): string {
   if (!result || typeof result !== "object") {
     return String(result);
@@ -487,6 +502,7 @@ function buildExecutionPrompt(input: {
   sonarContext: string;
   deterministicGatesContext: string;
   plan: string;
+  cloudGitNotes: string;
 }): string {
   return `
 You are preparing an automated fix attempt for pull request #${input.prNumber} in ${input.repository}.
@@ -515,6 +531,8 @@ ${input.deterministicGatesContext}
 
 Approved planning guidance:
 ${input.plan}
+
+${input.cloudGitNotes}
 
 Task requirements:
 1) Implement only the planned high-signal fixes (max 2).
@@ -684,6 +702,14 @@ async function main(): Promise<void> {
     }
     const plan = extractAgentText(planningResult);
 
+    const cloudGit = resolveCloudAgentGitBehavior();
+    let cloudGitNotes = "";
+    if (cloudGit.workOnCurrentBranch && !cloudGit.autoCreatePR) {
+      cloudGitNotes = `Git / PR workflow:\n- Commit and push to the existing branch for PR #${prNumber}; do not open a separate pull request.`;
+    } else if (cloudGit.workOnCurrentBranch) {
+      cloudGitNotes = `Git / PR workflow:\n- Prefer commits on the current PR branch (runtime: workOnCurrentBranch=true).`;
+    }
+
     const executionPrompt = buildExecutionPrompt({
       repository,
       prNumber,
@@ -697,6 +723,7 @@ async function main(): Promise<void> {
       sonarContext,
       deterministicGatesContext,
       plan,
+      cloudGitNotes,
     });
 
     agent = await Agent.create({
@@ -704,7 +731,8 @@ async function main(): Promise<void> {
       model: { id: executionModel },
       cloud: {
         repos: [resolveCloudRepoSpec(repository, pullRequest)],
-        autoCreatePR: true,
+        workOnCurrentBranch: cloudGit.workOnCurrentBranch,
+        autoCreatePR: cloudGit.autoCreatePR,
         skipReviewerRequest: process.env.CURSOR_CLOUD_SKIP_REVIEWER_REQUEST !== "false",
       },
     } as any);

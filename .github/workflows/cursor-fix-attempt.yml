@@ -268,6 +268,8 @@ jobs:
           CURSOR_AGENT_PR_LABELS: ${{ vars.CURSOR_AGENT_PR_LABELS || 'cursor:agent-generated' }}
           CURSOR_AUTO_FIX_EXCLUDED_AUTHORS: ${{ vars.CURSOR_AUTO_FIX_EXCLUDED_AUTHORS || 'cursor[bot]' }}
           CURSOR_CLOUD_REPO_URL: ${{ vars.CURSOR_CLOUD_REPO_URL }}
+          CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH: ${{ vars.CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH || 'false' }}
+          CURSOR_CLOUD_AUTO_CREATE_PR: ${{ vars.CURSOR_CLOUD_AUTO_CREATE_PR || 'true' }}
           CURSOR_CLOUD_SKIP_REVIEWER_REQUEST: ${{ vars.CURSOR_CLOUD_SKIP_REVIEWER_REQUEST || 'true' }}
           CURSOR_ALLOW_COMMENT_FAILURE: "false"
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
