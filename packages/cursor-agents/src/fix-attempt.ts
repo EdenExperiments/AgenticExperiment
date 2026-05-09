@@ -4,6 +4,7 @@ import {
   isNonFatalCommentPermissionError,
   requireEnv,
   truncate,
+  type PullRequestData,
   type PullRequestFile,
 } from "./github.js";
 import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
@@ -75,6 +76,31 @@ function resolveCloudRepoUrl(repository: string): string {
     return process.env.CURSOR_CLOUD_REPO_URL;
   }
   return `https://github.com/${repository}.git`;
+}
+
+/**
+ * Cloud agents expect `startingRef` as a short branch name (see Cursor SDK docs: `startingRef: "main"`).
+ * Passing `refs/heads/...` or a raw commit SHA can surface validation_error Branch '<sha>' does not exist.
+ * `prUrl` attaches the run to the PR so checkout still tracks the right line of work when ref is ambiguous.
+ */
+function resolveCloudRepoSpec(repository: string, pullRequest: PullRequestData) {
+  const url = resolveCloudRepoUrl(repository);
+  const prUrl = pullRequest.html_url;
+
+  const envRef = process.env.CURSOR_CLOUD_STARTING_REF?.trim();
+  const rawRef = (envRef || pullRequest.head.ref || "").trim();
+  const looksLikeSha = /^[0-9a-f]{40}$/i.test(rawRef);
+
+  const entry: { url: string; prUrl: string; startingRef?: string } = {
+    url,
+    prUrl,
+  };
+
+  if (!looksLikeSha && rawRef.length > 0) {
+    entry.startingRef = rawRef.replace(/^refs\/heads\//, "");
+  }
+
+  return entry;
 }
 
 function toNumber(value: string | undefined, fallback: number): number {
@@ -643,14 +669,7 @@ async function main(): Promise<void> {
       apiKey,
       model: { id: executionModel },
       cloud: {
-        repos: [
-          {
-            url: resolveCloudRepoUrl(repository),
-            // Cloud runtime resolves this as a branch/ref name, not a raw commit id — passing head.sha
-            // yields validation_error: Branch '<sha>' does not exist in repository.
-            startingRef: `refs/heads/${pullRequest.head.ref}`,
-          },
-        ],
+        repos: [resolveCloudRepoSpec(repository, pullRequest)],
         autoCreatePR: true,
         skipReviewerRequest: process.env.CURSOR_CLOUD_SKIP_REVIEWER_REQUEST !== "false",
       },
