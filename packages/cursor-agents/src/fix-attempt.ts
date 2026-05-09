@@ -4,10 +4,12 @@ import {
   isNonFatalCommentPermissionError,
   requireEnv,
   truncate,
+  type PullRequestFile,
 } from "./github.js";
 import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
 
 const REVIEW_MARKER = "<!-- cursor-pr-review -->";
+const SECURITY_TRIAGE_MARKER = "<!-- cursor-security-triage -->";
 const FIX_MARKER = "<!-- cursor-fix-attempt -->";
 
 interface SonarQualityGateResponse {
@@ -64,6 +66,21 @@ function parseCsv(value: string | undefined): string[] {
     .map((entry) => entry.trim())
     .filter(Boolean);
   return [...new Set(labels)];
+}
+
+function buildPatchContext(files: PullRequestFile[]): string {
+  return files
+    .slice(0, 20)
+    .map((file) => {
+      const patch = file.patch ? truncate(file.patch, 2500) : "[no textual patch available]";
+      return [
+        `File: ${file.filename}`,
+        `Status: ${file.status}, +${file.additions} -${file.deletions}`,
+        "Patch:",
+        patch,
+      ].join("\n");
+    })
+    .join("\n\n---\n\n");
 }
 
 function extractRunDiagnostics(result: unknown): string {
@@ -129,6 +146,18 @@ function extractPullRequestNumberFromUrl(url: string): number | null {
   }
   const parsed = Number(match[1]);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function isTestFile(filePath: string): boolean {
+  return (
+    /(^|\/)__tests__\//.test(filePath) ||
+    /\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filePath) ||
+    /_test\.go$/.test(filePath)
+  );
+}
+
+function isCodeFile(filePath: string): boolean {
+  return /\.(ts|tsx|js|jsx|go)$/.test(filePath);
 }
 
 async function fetchSonarJson<T>(
@@ -207,27 +236,77 @@ async function buildSonarContext(prNumber: number): Promise<string> {
   }
 }
 
-async function findLatestReviewComment(github: GitHubClient, prNumber: number): Promise<string> {
+async function findLatestMarkedComment(
+  github: GitHubClient,
+  prNumber: number,
+  marker: string,
+  required = false
+): Promise<string | null> {
   const comments = await github.listIssueComments(prNumber);
-  const latest = [...comments].reverse().find((comment) => comment.body.includes(REVIEW_MARKER));
+  const latest = [...comments].reverse().find((comment) => comment.body.includes(marker));
 
   if (!latest) {
-    throw new Error(
-      `No Cursor PR review comment found on PR #${prNumber}. Expected marker ${REVIEW_MARKER}.`
-    );
+    if (required) {
+      throw new Error(`No marker ${marker} found on PR #${prNumber}.`);
+    }
+    return null;
   }
 
   return truncate(latest.body, 12000);
 }
 
-function buildFixPrompt(input: {
+function buildPlanningPrompt(input: {
   repository: string;
   prNumber: number;
   prTitle: string;
   baseRef: string;
   headRef: string;
+  patchContext: string;
   reviewComment: string;
+  securityComment: string;
   sonarContext: string;
+}): string {
+  return `
+You are a senior code-change planner for pull request #${input.prNumber} in ${input.repository}.
+
+PR title: ${input.prTitle}
+Base branch: ${input.baseRef}
+Head branch: ${input.headRef}
+
+Changed files and patch excerpt:
+${input.patchContext}
+
+Cursor PR review comment:
+${input.reviewComment}
+
+Cursor security/dependency triage comment:
+${input.securityComment}
+
+SonarCloud context:
+${input.sonarContext}
+
+Create a concise plan with these sections:
+1) Selected fixes (max 2) and why they are highest signal
+2) File-level edit plan
+3) Unit test plan (new/updated tests required)
+4) Validation plan (commands to run)
+5) Risks and rollback notes
+
+Do not write code in this response. Return markdown only.
+`.trim();
+}
+
+function buildExecutionPrompt(input: {
+  repository: string;
+  prNumber: number;
+  prTitle: string;
+  baseRef: string;
+  headRef: string;
+  patchContext: string;
+  reviewComment: string;
+  securityComment: string;
+  sonarContext: string;
+  plan: string;
 }): string {
   return `
 You are preparing an automated fix attempt for pull request #${input.prNumber} in ${input.repository}.
@@ -236,22 +315,32 @@ PR title: ${input.prTitle}
 Base branch: ${input.baseRef}
 Head branch: ${input.headRef}
 
+Changed files and patch excerpt:
+${input.patchContext}
+
 Cursor PR review comment:
 ${input.reviewComment}
+
+Cursor security/dependency triage comment:
+${input.securityComment}
 
 SonarCloud context:
 ${input.sonarContext}
 
+Approved planning guidance:
+${input.plan}
+
 Task requirements:
-1) Focus on the highest-signal, low-to-medium risk issue(s) from the review and Sonar context.
+1) Implement only the planned high-signal fixes (max 2).
 2) Keep changes minimal and scoped to the reported problems only.
-3) Preserve existing behavior except where directly fixing the reported issues.
-4) Run targeted verification commands relevant to the edited files.
-5) If no safe fix is possible, explain why in the final summary and make no speculative changes.
+3) Add or update unit tests for code changes.
+4) Preserve existing behavior except where directly fixing the reported issues.
+5) Run targeted validation commands relevant to edited files.
+6) If no safe fix is possible, explain why and avoid speculative refactors.
 
 Output expectations:
 - Apply code/documentation changes in this repository.
-- Provide a concise summary of what was fixed and what remains.
+- Include a concise summary of what was fixed and what remains.
 `.trim();
 }
 
@@ -271,11 +360,14 @@ async function main(): Promise<void> {
   const autoFixEnabled =
     process.env.CURSOR_AUTO_FIX_ENABLED === "true" || process.env.CURSOR_FORCE_AUTO_FIX === "true";
   const requiredLabel = (process.env.CURSOR_AUTO_FIX_LABEL ?? "cursor:auto-fix").trim();
-  const modelId = process.env.CURSOR_FIX_MODEL ?? "composer-2";
+  const plannerModel = process.env.CURSOR_FIX_PLANNER_MODEL ?? "composer-2";
+  const executionModel =
+    process.env.CURSOR_FIX_EXECUTION_MODEL ?? process.env.CURSOR_FIX_MODEL ?? "composer-2-fast";
   const excludedAuthors = parseCsv(process.env.CURSOR_AUTO_FIX_EXCLUDED_AUTHORS ?? "cursor[bot]");
   const fixAttemptPrLabels = parseCsv(
     process.env.CURSOR_AGENT_PR_LABELS ?? "cursor:agent-generated"
   );
+  const requireTestChanges = process.env.CURSOR_REQUIRE_TEST_CHANGES !== "false";
 
   const github = new GitHubClient({ token: githubToken, repository });
   const pullRequest = await github.getPullRequest(prNumber);
@@ -310,24 +402,57 @@ async function main(): Promise<void> {
     return;
   }
 
-  const reviewComment = await findLatestReviewComment(github, prNumber);
+  const reviewComment =
+    (await findLatestMarkedComment(github, prNumber, REVIEW_MARKER, true)) ??
+    "Review context unavailable.";
+  const securityComment =
+    (await findLatestMarkedComment(github, prNumber, SECURITY_TRIAGE_MARKER)) ??
+    "No security/dependency triage comment detected for this PR.";
   const sonarContext = await buildSonarContext(prNumber);
-  const prompt = buildFixPrompt({
+  const sourcePrFiles = await github.getPullRequestFiles(prNumber);
+  const patchContext = buildPatchContext(sourcePrFiles);
+
+  const planningPrompt = buildPlanningPrompt({
     repository,
     prNumber,
     prTitle: pullRequest.title,
     baseRef: pullRequest.base.ref,
     headRef: pullRequest.head.ref,
+    patchContext,
     reviewComment,
+    securityComment,
     sonarContext,
   });
 
   let agent: { [Symbol.asyncDispose](): Promise<void> } | null = null;
 
   try {
+    const planningResult = await Agent.prompt(planningPrompt, {
+      apiKey,
+      model: { id: plannerModel },
+      local: { cwd: process.cwd() },
+    } as any);
+    if ((planningResult as { status?: string }).status !== "finished") {
+      throw new Error(`Planning run failed: ${extractRunDiagnostics(planningResult)}`);
+    }
+    const plan = extractAgentText(planningResult);
+
+    const executionPrompt = buildExecutionPrompt({
+      repository,
+      prNumber,
+      prTitle: pullRequest.title,
+      baseRef: pullRequest.base.ref,
+      headRef: pullRequest.head.ref,
+      patchContext,
+      reviewComment,
+      securityComment,
+      sonarContext,
+      plan,
+    });
+
     agent = await Agent.create({
       apiKey,
-      model: { id: modelId },
+      model: { id: executionModel },
       cloud: {
         repos: [
           {
@@ -350,7 +475,9 @@ async function main(): Promise<void> {
 
     const fixPrUrl = extractAttemptPrUrl(result);
     const summary = extractAgentText(result);
+    let testPolicyOutcome = "Not evaluated.";
     let labelOutcome = "No follow-up labels applied.";
+    let testPolicyViolation = false;
     if (fixPrUrl) {
       const fixPrNumber = extractPullRequestNumberFromUrl(fixPrUrl);
       if (fixPrNumber && fixAttemptPrLabels.length > 0) {
@@ -361,18 +488,44 @@ async function main(): Promise<void> {
           labelOutcome = `Could not apply labels to fix PR #${fixPrNumber}: ${error instanceof Error ? error.message : String(error)}`;
         }
       }
+
+      if (fixPrNumber) {
+        const fixPrFiles = await github.getPullRequestFiles(fixPrNumber);
+        const hasCodeChanges = fixPrFiles.some(
+          (file) => isCodeFile(file.filename) && !isTestFile(file.filename)
+        );
+        const hasTestChanges = fixPrFiles.some((file) => isTestFile(file.filename));
+
+        if (requireTestChanges && hasCodeChanges && !hasTestChanges) {
+          testPolicyViolation = true;
+          testPolicyOutcome =
+            "Violation: code changes detected in fix PR but no unit test file changes found.";
+        } else if (hasCodeChanges && hasTestChanges) {
+          testPolicyOutcome =
+            "Passed: code changes and unit test changes were both detected in fix PR.";
+        } else if (!hasCodeChanges) {
+          testPolicyOutcome = "Passed: no code file changes detected, unit test change not required.";
+        } else {
+          testPolicyOutcome = "Warning: test policy check ran but result was inconclusive.";
+        }
+      }
     }
     const body = `${FIX_MARKER}
 ## Cursor Auto-Fix Attempt
 
 Source PR: #${prNumber}
 Run ID: \`${runId}\`
-Model: \`${modelId}\`
+Planner model: \`${plannerModel}\`
+Execution model: \`${executionModel}\`
 Required label: \`${requiredLabel}\`
 
 ${fixPrUrl ? `Fix attempt PR: ${fixPrUrl}` : "Run finished, but no PR URL was returned by the SDK response."}
 
 Label outcome: ${labelOutcome}
+Unit test policy outcome: ${testPolicyOutcome}
+
+### Planner output
+${truncate(plan, 3000)}
 
 ### Agent summary
 ${truncate(summary, 5000)}
@@ -395,6 +548,12 @@ _Generated by Cursor SDK workflow (cursor-fix-attempt.yml)._`;
     }
 
     appendStepSummary(body);
+
+    if (testPolicyViolation) {
+      throw new Error(
+        "Fix attempt completed but violated CURSOR_REQUIRE_TEST_CHANGES policy (no unit test changes detected)."
+      );
+    }
   } catch (error) {
     if (error instanceof CursorAgentError) {
       throw new Error(

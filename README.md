@@ -148,10 +148,14 @@ Recommended repository variables:
 - `CURSOR_CLOUD_REPO_URL` - repo URL for cloud runtime execution
 - `CURSOR_AUTO_FIX_ENABLED` - `true` to allow automatic cloud fix attempts from workflow triggers
 - `CURSOR_AUTO_FIX_LABEL` - PR label required for auto-fix (`cursor:auto-fix` by default)
-- `CURSOR_FIX_MODEL` - model ID used by the auto-fix workflow
+- `CURSOR_FIX_PLANNER_MODEL` - model ID for planning pass in auto-fix workflow (default `composer-2`)
+- `CURSOR_FIX_EXECUTION_MODEL` - lower-cost model ID for implementation pass (default `composer-2-fast`)
+- `CURSOR_FIX_MODEL` - legacy fallback model variable for execution pass
+- `CURSOR_REQUIRE_TEST_CHANGES` - `true` to fail auto-fix attempts with code changes but no unit-test file changes
 - `CURSOR_AUTO_FIX_EXCLUDED_AUTHORS` - comma-separated PR authors excluded from auto-fix source selection (`cursor[bot]` default)
 - `CURSOR_AGENT_PR_LABELS` - comma-separated labels applied to trusted agent-created PRs (`cursor:agent-generated` default)
 - `CURSOR_AGENT_TRUSTED_LOGINS` - comma-separated logins treated as trusted agent PR authors (`cursor[bot]` default)
 - `CURSOR_AGENT_BRANCH_PREFIXES` - comma-separated branch prefixes treated as trusted agent PR heads (`cursor/` default)
 - `CURSOR_AGENT_PR_LABELING_ENABLED` - set to `false` to disable open/reopen auto-labeling workflow
+- `SONAR_MIN_NEW_COVERAGE` - minimum SonarCloud PR new-code coverage (default `80`)
 

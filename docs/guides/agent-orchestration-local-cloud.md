@@ -46,7 +46,10 @@ pnpm --filter @rpgtracker/cursor-agents run fix-attempt:cloud
 
 - `CURSOR_REVIEW_MODELS`: comma-separated model fallback list for PR review.
 - `CURSOR_TRIAGE_MODEL`: model ID for security triage.
-- `CURSOR_FIX_MODEL`: model ID for auto-fix attempts.
+- `CURSOR_FIX_PLANNER_MODEL`: planning model for auto-fix orchestration.
+- `CURSOR_FIX_EXECUTION_MODEL`: lower-cost execution model for auto-fix implementation.
+- `CURSOR_FIX_MODEL`: legacy execution-model fallback.
+- `CURSOR_REQUIRE_TEST_CHANGES`: fail auto-fix runs when code changes lack unit-test file changes.
 - `CURSOR_CLOUD_SKIP_REVIEWER_REQUEST`: defaults to `true` unless explicitly set to `false`.
 
 ## Auto-fix gate policy (recommended)
@@ -73,6 +76,12 @@ Recommended variables:
 - `CURSOR_AGENT_BRANCH_PREFIXES` (default: `cursor/`)
 - `CURSOR_AGENT_PR_LABELING_ENABLED` (default enabled; set `false` to disable)
 - `CURSOR_AUTO_FIX_EXCLUDED_AUTHORS` (default: `cursor[bot]`)
+
+## Test and coverage policy
+
+- Auto-fix flow enforces unit-test file changes when code files are edited.
+- Sonar workflow enforces PR new-code coverage threshold via `SONAR_MIN_NEW_COVERAGE` (default 80).
+- Keep SonarCloud quality gate configured with "Coverage on New Code >= 80%" for aligned UI and pipeline behavior.
 
 ## Safety notes
 

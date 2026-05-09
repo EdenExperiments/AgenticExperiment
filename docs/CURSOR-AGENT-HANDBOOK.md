@@ -65,7 +65,10 @@ Pure visual composition work is validated by visual review and design-guide comp
 - `CURSOR_CLOUD_REPO_URL`: explicit repository URL for cloud runtime execution.
 - `CURSOR_AUTO_FIX_ENABLED`: global on/off switch for auto-fix attempts.
 - `CURSOR_AUTO_FIX_LABEL`: per-PR allow label for auto-fix attempts (`cursor:auto-fix` default).
-- `CURSOR_FIX_MODEL`: model ID used by auto-fix attempts.
+- `CURSOR_FIX_PLANNER_MODEL`: model ID for orchestration/planning pass.
+- `CURSOR_FIX_EXECUTION_MODEL`: model ID for implementation pass (prefer cheaper default).
+- `CURSOR_FIX_MODEL`: legacy fallback model variable for implementation pass.
+- `CURSOR_REQUIRE_TEST_CHANGES`: fail auto-fix attempts if code changes do not include unit-test file changes.
 - `CURSOR_AUTO_FIX_EXCLUDED_AUTHORS`: PR authors excluded from auto-fix source selection.
 - `CURSOR_AGENT_PR_LABELS`: labels applied to trusted agent-created PRs.
 - `CURSOR_AGENT_TRUSTED_LOGINS`: trusted PR author logins for auto-labeling.
@@ -73,6 +76,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 - `CURSOR_AGENT_PR_LABELING_ENABLED`: set to `false` to disable PR-open auto-labeling.
 - `SONAR_ORGANIZATION`: SonarCloud organization key.
 - `SONAR_PROJECT_KEY`: SonarCloud project key.
+- `SONAR_MIN_NEW_COVERAGE`: minimum PR new-code coverage enforced after Sonar scan (`80` default).
 
 ### Permissions Model
 
@@ -88,6 +92,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 - Promote to auto-fix only after repeated stable runs and explicit policy approval.
 - For auto-fix flows, require both a global flag and an explicit PR allow label.
 - For cloud-created PRs, apply labels automatically on open so policy checks can evaluate immediately.
+- Use planner and executor model split for remediation loops to control cost while retaining planning quality.
 - Keep generated comments concise and actionable; avoid noisy duplicate comments by updating marker comments.
 
 ## Operating Split

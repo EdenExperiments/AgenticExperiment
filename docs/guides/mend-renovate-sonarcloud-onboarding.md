@@ -37,8 +37,11 @@ This guide captures the first-pass setup in this repo for dependency and code-qu
 
 - Workflow runs on push and PR events.
 - Checkout uses `fetch-depth: 0` for better analysis context.
-- Initial scope uses root monorepo paths; tune exclusions and report paths as coverage matures.
+- Workflow runs JS and Go tests with coverage before scan.
+- Initial scope uses root monorepo paths with LCOV and Go coverage paths configured.
 - Workflow resolves `SONAR_ORGANIZATION` and `SONAR_PROJECT_KEY` from repo variables first, then falls back to same-named secrets.
+- PR scans enforce `SONAR_MIN_NEW_COVERAGE` (default 80) and fail if SonarCloud new-code coverage is below threshold.
+- Keep SonarCloud quality gate configured with "Coverage on New Code >= 80%" for consistent project-level governance.
 
 ## 3) Suggested rollout order
 

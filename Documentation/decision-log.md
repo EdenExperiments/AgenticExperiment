@@ -1,6 +1,6 @@
 # Decision Log
 
-Last updated: 2026-05-09 (D-047 added: dual-gated auto-fix policy)
+Last updated: 2026-05-09 (D-048 added: model-routed remediation and PR coverage gate)
 
 ## How To Read This Log
 
@@ -22,7 +22,7 @@ Last updated: 2026-05-09 (D-047 added: dual-gated auto-fix policy)
 | D-033 to D-034 | Progression/logging revisions: gate auto-clear for high starting levels, time-primary quick logging superseding XP-chip-first model.                                    |
 | D-035 to D-037 | Product direction locked: three-theme system, split UI-vs-logic delivery pipeline, hub architecture across apps.                                                        |
 | D-041 to D-043 | Experience refinements locked: single primary-skill pin, avatar storage strategy, Clean/Stylish visual fidelity model.                                                  |
-| D-044 to D-047 | Cursor-first operational model extended with local/cloud routing baseline, repo-managed skills structure, quality onboarding pipelines, a lean docs baseline, and dual-gated auto-fix policy. |
+| D-044 to D-048 | Cursor-first operational model extended with local/cloud routing baseline, repo-managed skills structure, quality onboarding pipelines, a lean docs baseline, dual-gated auto-fix policy, and model-routed remediation with PR coverage enforcement. |
 
 
 ### UX, Theme, And Workflow Index (D-017+)
@@ -48,6 +48,7 @@ Last updated: 2026-05-09 (D-047 added: dual-gated auto-fix policy)
 | D-045 | Personal agentic ops baseline is additive and quality-first.                     | Pre-commit gate + skill index + Renovate/Sonar onboarding. |
 | D-046 | Legacy docs cull keeps active documentation lean and future-focused.             | Remove old specs/plans/retros from active `docs/`.         |
 | D-047 | Auto-fix workflows require global enable + explicit PR allow label.             | Prevent accidental/untrusted remediation runs.              |
+| D-048 | Auto-fix uses planner/executor model split with test + coverage gates.          | Balance quality, cost, and enforcement reliability.         |
 
 
 ## Confirmed Decisions (Full Detail)
@@ -105,6 +106,7 @@ Last updated: 2026-05-09 (D-047 added: dual-gated auto-fix policy)
 | 2026-05-09 | D-045 | **Personal agentic operations baseline (quality-first).** This repo adds a pre-commit quality gate (`pnpm check:precommit` via Husky), a repo-managed skill library structure under `.cursor/skills/` with a maintained index, starter local/cloud runtime routing for Cursor SDK automation (`CURSOR_RUNTIME`, `CURSOR_CLOUD_REPO_URL`), and first-pass onboarding pipelines/config for Mend Renovate (`renovate.json`, `mend-renovate.yml`) and SonarCloud (`sonar-project.properties`, `sonarcloud.yml`).                                                        | Keeps personal experimentation structured and reversible while tightening quality feedback loops before commit. Preserves additive rollout: recommendations and triage are prioritized before broad auto-remediation behavior.                                                                                                                                                                                |
 | 2026-05-09 | D-046 | **Lean docs baseline for future work.** Legacy implementation artifacts in `docs/specs/`, `docs/plans/`, and `docs/sessions/` are removed from active workspace docs. Active `docs/` now keeps only current operational references (`CURSOR-AGENT-HANDBOOK.md`, `prd-agentic-ai.md`, `setup.md`, `guides/`, and archive policy note).                                                                                                                                                                                                                               | Reduces agent confusion and stale-context drag in a personal experimentation repo. Historical detail remains recoverable through git history instead of cluttering active docs.                                                                                                                                                                                                                               |
 | 2026-05-09 | D-047 | **Dual-gated auto-fix policy for cloud remediation with immediate PR labeling.** Automated fix attempts run only when both conditions are met: (1) repo-level flag `CURSOR_AUTO_FIX_ENABLED=true`, and (2) PR contains the required allow label (`cursor:auto-fix` by default, override via `CURSOR_AUTO_FIX_LABEL`). The auto-fix workflow reacts to Cursor PR review comment markers, optionally includes SonarCloud context, opens a separate fix-attempt PR, and applies configured labels to that new PR. A dedicated PR-open labeling workflow applies labels to trusted cloud-agent PRs at open/reopen time. | Keeps Mend/Sonar/agent remediation loops useful while minimizing accidental write actions, noisy automation on unrelated PRs, and exposure to untrusted contexts. Adds explicit operator intent at both policy and per-PR levels and removes race conditions around missing labels on newly created agent PRs. |
+| 2026-05-09 | D-048 | **Model-routed remediation policy with enforced unit-test and PR coverage gates.** Auto-fix orchestration uses two model lanes: planner (`CURSOR_FIX_PLANNER_MODEL`, default `composer-2`) and execution (`CURSOR_FIX_EXECUTION_MODEL`, default `composer-2-fast`, with legacy `CURSOR_FIX_MODEL` fallback). Auto-fix attempts fail policy when code files are changed without unit-test file changes (`CURSOR_REQUIRE_TEST_CHANGES=true` default). SonarCloud PR workflow enforces minimum new-code coverage via `SONAR_MIN_NEW_COVERAGE` (default 80) after scan. | Preserves higher-quality planning where ambiguity is highest while controlling execution cost. Converts "tests should be added" and "80% PR coverage" from guidance into explicit enforceable CI policy. |
 
 
 ## Implementation Assumptions
@@ -131,4 +133,4 @@ Last updated: 2026-05-09 (D-047 added: dual-gated auto-fix policy)
 
 ## Open Questions
 
-None. All open questions from the initial pass have been resolved as confirmed decisions (D-010, D-011, D-012) or implementation assumptions (A-001, now superseded by D-015). D-013 is resolved by D-014. D-017 through D-022 were added during UX refinement. D-033 and D-034 were added during progression/logging refinement. D-035–D-037 and D-041–D-043 were added during design-direction consolidation. D-044 through D-047 capture Cursor-first operations, quality onboarding baseline, docs cull decisions, and dual-gated auto-fix policy.
+None. All open questions from the initial pass have been resolved as confirmed decisions (D-010, D-011, D-012) or implementation assumptions (A-001, now superseded by D-015). D-013 is resolved by D-014. D-017 through D-022 were added during UX refinement. D-033 and D-034 were added during progression/logging refinement. D-035–D-037 and D-041–D-043 were added during design-direction consolidation. D-044 through D-048 capture Cursor-first operations, quality onboarding baseline, docs cull decisions, dual-gated auto-fix policy, and model-routed remediation with coverage enforcement.
