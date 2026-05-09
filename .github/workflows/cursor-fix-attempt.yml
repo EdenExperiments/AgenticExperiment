@@ -121,9 +121,20 @@ jobs:
               return false;
             };
 
-            const actorIsBot = context.payload.comment.user?.type === 'Bot';
+            const bodyHasLooseSlashTrigger = () => {
+              const stripped = body.replace(/`/g, '');
+              return triggers.some((t) => {
+                const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                return new RegExp(`${escaped}\\b`, 'i').test(stripped);
+              });
+            };
 
-            if (bodyHasSlashTrigger()) {
+            const login = context.payload.comment.user?.login || '';
+            const userTypeRaw = context.payload.comment.user?.type || '';
+            const actorIsBot =
+              userTypeRaw.toLowerCase() === 'bot' || /\[bot\]$/i.test(login);
+
+            if (bodyHasSlashTrigger() || bodyHasLooseSlashTrigger()) {
               core.setOutput('proceed', 'true');
               core.notice('Auto-fix trigger matched (/cursor-fix or /cursor-auto-fix).');
               return;
@@ -173,7 +184,9 @@ jobs:
 
             core.setOutput('proceed', 'false');
             core.notice(
-              'Comment did not qualify: no /cursor-fix line, no review marker in body, and no upstream thread comment with the Cursor PR Review marker.'
+              `Auto-fix gate skipped: login=${login} type=${userTypeRaw} slashStrict=${bodyHasSlashTrigger()} slashLoose=${bodyHasLooseSlashTrigger()} markerInBody=${body.includes(
+                reviewMarker
+              )} actorIsBot=${actorIsBot} (need /cursor-fix, human quote with marker, or reply thread under review)`
             );
 
   cursor-auto-fix:
