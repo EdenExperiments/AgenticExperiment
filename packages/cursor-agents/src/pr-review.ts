@@ -209,19 +209,31 @@ async function requestReviewWithFallback(
   apiKey: string,
   runtimeOptions: Record<string, unknown>
 ): Promise<{ review: ReviewSchemaV1; modelUsed: string; rawStatus: string }> {
-  const { Agent } = await import("@cursor/sdk");
-  const models = (process.env.CURSOR_REVIEW_MODELS ?? "composer-2,composer-2-fast")
+  const { Agent, CursorAgentError } = await import("@cursor/sdk");
+  const models = (process.env.CURSOR_REVIEW_MODELS ?? "composer-2,gpt-5.4-mini")
     .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean);
   const attemptDiagnostics: string[] = [];
 
   for (const modelId of models) {
-    const result = await Agent.prompt(prompt, {
-      apiKey,
-      model: { id: modelId },
-      ...runtimeOptions,
-    } as any);
+    let result: unknown;
+    try {
+      result = await Agent.prompt(prompt, {
+        apiKey,
+        model: { id: modelId },
+        ...runtimeOptions,
+      } as any);
+    } catch (error) {
+      if (
+        error instanceof CursorAgentError &&
+        /Cannot use this model/i.test(error.message)
+      ) {
+        attemptDiagnostics.push(`[${modelId}] unavailable model: ${error.message}`);
+        continue;
+      }
+      throw error;
+    }
 
     const status = (result as { status?: string }).status ?? "unknown";
     if (status !== "finished") {
