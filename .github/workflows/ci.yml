@@ -53,6 +53,7 @@ jobs:
       - name: Test JS workspaces
         env:
           NODE_OPTIONS: --max-old-space-size=4096
+          VITEST_POOL: threads
         run: pnpm test:ci
 
   go:
