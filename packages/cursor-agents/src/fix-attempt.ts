@@ -86,30 +86,124 @@ function resolveCloudRepoUrl(repository: string): string {
   return `https://github.com/${repository}.git`;
 }
 
+function branchShortNameFromHeadLabel(label: string | undefined): string | null {
+  if (!label || typeof label !== "string") {
+    return null;
+  }
+  const idx = label.indexOf(":");
+  if (idx === -1) {
+    return null;
+  }
+  const ref = label.slice(idx + 1).trim();
+  if (!ref || looksLikeGitSha(ref)) {
+    return null;
+  }
+  return ref;
+}
+
+/** Prefer a feature branch name when multiple refs point at the same commit. */
+function pickBranchNameForHeadCommit(branchNames: string[], baseRef: string): string | null {
+  if (branchNames.length === 0) {
+    return null;
+  }
+  const filtered = branchNames.filter((b) => b !== baseRef);
+  const candidates = filtered.length > 0 ? filtered : branchNames;
+  const defaults = new Set(["main", "master"]);
+  const nonDefault = candidates.filter((b) => !defaults.has(b.toLowerCase()));
+  const pool = nonDefault.length > 0 ? nonDefault : candidates;
+  pool.sort((a, b) => a.localeCompare(b));
+  return pool[0] ?? null;
+}
+
+interface HeadBranchResolution {
+  /** Human-readable branch name for prompts (never a bare SHA when avoidable). */
+  promptHeadRef: string;
+  /** When GitHub exposes `head.ref` as a SHA, Cursor Cloud needs a real branch short name here. */
+  cloudStartingRef?: string;
+  summaryNote?: string;
+}
+
+/**
+ * GitHub sometimes returns `pull_request.head.ref` as a 40-char SHA (e.g. deleted branch).
+ * Cursor Cloud validates `startingRef` / branch names and then fails with:
+ * Branch '<sha>' does not exist. Resolves a real branch via `head.label` or
+ * GET …/commits/{sha}/branches-where-head.
+ */
+async function resolveHeadBranchMetadata(
+  github: GitHubClient,
+  pullRequest: PullRequestData,
+): Promise<HeadBranchResolution> {
+  const envRaw = process.env.CURSOR_CLOUD_STARTING_REF?.trim();
+  if (envRaw) {
+    const normalized = envRaw.replace(/^refs\/heads\//, "").trim();
+    if (!looksLikeGitSha(normalized)) {
+      return {
+        promptHeadRef: normalized,
+        cloudStartingRef: normalized,
+        summaryNote: `Using \`CURSOR_CLOUD_STARTING_REF\` (\`${normalized}\`) for prompts and cloud \`startingRef\`.`,
+      };
+    }
+  }
+
+  if (!looksLikeGitSha(pullRequest.head.ref)) {
+    return { promptHeadRef: pullRequest.head.ref };
+  }
+
+  const fromLabel = branchShortNameFromHeadLabel(pullRequest.head.label);
+  if (fromLabel) {
+    return {
+      promptHeadRef: fromLabel,
+      cloudStartingRef: fromLabel,
+      summaryNote:
+        "GitHub returned **head.ref** as a commit SHA; using **head.label** for the branch short name so Cursor Cloud receives a real ref name.",
+    };
+  }
+
+  let branches: Array<{ name: string }>;
+  try {
+    branches = await github.listBranchesWhereHeadCommit(pullRequest.head.sha);
+  } catch (error) {
+    throw new Error(
+      `GitHub returned head.ref as commit SHA (${pullRequest.head.ref.slice(0, 7)}…) but listing branches-where-head failed: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+
+  const picked = pickBranchNameForHeadCommit(
+    branches.map((b) => b.name),
+    pullRequest.base.ref,
+  );
+
+  if (!picked) {
+    throw new Error(
+      `GitHub returned head.ref as commit SHA (${pullRequest.head.ref.slice(0, 7)}…) and no branch has this commit as HEAD (empty branches-where-head). Recreate the branch or set CURSOR_CLOUD_STARTING_REF to the branch short name.`
+    );
+  }
+
+  return {
+    promptHeadRef: picked,
+    cloudStartingRef: picked,
+    summaryNote: `GitHub returned **head.ref** as a SHA; resolved branch **${picked}** via GET …/commits/{sha}/branches-where-head for Cursor Cloud \`startingRef\`.`,
+  };
+}
+
 /**
  * Cursor Cloud: pass `prUrl` so the clone tracks the PR (see SDK CloudOptions.repos).
- * Do **not** send `startingRef` unless explicitly overridden: GitHub sometimes surfaces
- * `head.ref` as a commit SHA or Cursor validates HEAD incorrectly when both `prUrl`
- * and `startingRef` are present — producing validation_error Branch '<40-char-sha>' does not exist.
+ * When GitHub exposes `head.ref` as a SHA, also pass `startingRef` with a resolved branch short name
+ * so validation does not treat the SHA as a branch name.
  */
-function resolveCloudRepoSpec(repository: string, pullRequest: PullRequestData) {
+function buildCloudRepoSpec(
+  repository: string,
+  pullRequest: PullRequestData,
+  cloudStartingRef?: string,
+): { url: string; prUrl: string; startingRef?: string } {
   const url = resolveCloudRepoUrl(repository);
   const entry: { url: string; prUrl: string; startingRef?: string } = {
     url,
     prUrl: pullRequest.html_url,
   };
-
-  const envRef = process.env.CURSOR_CLOUD_STARTING_REF?.trim();
-  if (!envRef) {
-    return entry;
+  if (cloudStartingRef && !looksLikeGitSha(cloudStartingRef)) {
+    entry.startingRef = cloudStartingRef;
   }
-
-  const normalized = envRef.replace(/^refs\/heads\//, "").trim();
-  if (looksLikeGitSha(normalized)) {
-    return entry;
-  }
-
-  entry.startingRef = normalized;
   return entry;
 }
 
@@ -594,6 +688,11 @@ async function main(): Promise<void> {
     return;
   }
 
+  const headBranchMeta = await resolveHeadBranchMetadata(github, pullRequest);
+  if (headBranchMeta.summaryNote) {
+    appendStepSummary(`### PR head branch resolution\n\n${headBranchMeta.summaryNote}`);
+  }
+
   const waitOpts = resolveScannerWaitOptionsFromEnv();
   let scannerWaitNotes: string[] = [];
   let scannerWaitTimedOut = false;
@@ -666,7 +765,7 @@ async function main(): Promise<void> {
     prNumber,
     prTitle: pullRequest.title,
     baseRef: pullRequest.base.ref,
-    headRef: pullRequest.head.ref,
+    headRef: headBranchMeta.promptHeadRef,
     patchContext,
     reviewComment,
     structuredReviewPriorities,
@@ -712,7 +811,7 @@ async function main(): Promise<void> {
       prNumber,
       prTitle: pullRequest.title,
       baseRef: pullRequest.base.ref,
-      headRef: pullRequest.head.ref,
+      headRef: headBranchMeta.promptHeadRef,
       patchContext,
       reviewComment,
       structuredReviewPriorities,
@@ -727,7 +826,9 @@ async function main(): Promise<void> {
       apiKey,
       model: { id: executionModel },
       cloud: {
-        repos: [resolveCloudRepoSpec(repository, pullRequest)],
+        repos: [
+          buildCloudRepoSpec(repository, pullRequest, headBranchMeta.cloudStartingRef),
+        ],
         workOnCurrentBranch: cloudGit.workOnCurrentBranch,
         autoCreatePR: cloudGit.autoCreatePR,
         skipReviewerRequest: process.env.CURSOR_CLOUD_SKIP_REVIEWER_REQUEST !== "false",

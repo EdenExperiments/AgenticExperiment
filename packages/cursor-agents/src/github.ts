@@ -27,8 +27,11 @@ export interface PullRequestData {
   user: { login: string };
   base: { ref: string };
   head: {
+    /** Branch short name, or a 40-char commit SHA when GitHub cannot expose a ref name. */
     ref: string;
     sha: string;
+    /** e.g. `owner:branch-name` — useful when `ref` is a SHA. */
+    label?: string;
     repo?: {
       full_name?: string;
       fork?: boolean;
@@ -172,6 +175,16 @@ export class GitHubClient {
   async getPullRequestFiles(prNumber: number): Promise<PullRequestFile[]> {
     return this.getJson<PullRequestFile[]>(
       `/repos/${this.owner}/${this.repo}/pulls/${prNumber}/files?per_page=100`
+    );
+  }
+
+  /**
+   * Branch names where `commitSha` is currently HEAD (REST:
+   * GET /repos/.../commits/{sha}/branches-where-head).
+   */
+  async listBranchesWhereHeadCommit(commitSha: string): Promise<Array<{ name: string }>> {
+    return this.getJson<Array<{ name: string }>>(
+      `/repos/${this.owner}/${this.repo}/commits/${commitSha}/branches-where-head`
     );
   }
 
