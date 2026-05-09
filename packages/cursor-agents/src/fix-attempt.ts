@@ -76,29 +76,12 @@ function looksLikeGitSha(value: string): boolean {
 }
 
 /**
- * Clone URL for cloud agents: when the PR head lives in another repo (fork), clone that
- * repo (`head.repo.full_name` differs from `GITHUB_REPOSITORY`). Cloning only the base repo
- * leaves `head.ref` missing there; Cursor Cloud may then fail validation (often surfacing a
- * full SHA as if it were a branch): Branch '<40-char-sha>' does not exist.
- *
- * Note: `main()` currently skips fork PRs (`head.repo.fork === true`). This stays useful if
- * policy changes, and when `CURSOR_CLOUD_REPO_URL` must match the repo that actually holds the branch.
- *
- * `CURSOR_CLOUD_REPO_URL` overrides this when set (must be the repo where the PR branch exists).
+ * Cloud clone URL for this workflow run: same repo as `GITHUB_REPOSITORY`, unless overridden.
+ * Fork PRs are skipped in `main()`; we only support branches opened in this repository for now.
  */
-function resolveCloudRepoUrlForPr(repository: string, pullRequest: PullRequestData): string {
+function resolveCloudRepoUrl(repository: string): string {
   if (process.env.CURSOR_CLOUD_REPO_URL) {
     return process.env.CURSOR_CLOUD_REPO_URL;
-  }
-  const headRepo = pullRequest.head.repo;
-  if (
-    headRepo?.full_name &&
-    headRepo.full_name.toLowerCase() !== repository.toLowerCase()
-  ) {
-    if (headRepo.clone_url) {
-      return headRepo.clone_url;
-    }
-    return `https://github.com/${headRepo.full_name}.git`;
   }
   return `https://github.com/${repository}.git`;
 }
@@ -110,7 +93,7 @@ function resolveCloudRepoUrlForPr(repository: string, pullRequest: PullRequestDa
  * and `startingRef` are present — producing validation_error Branch '<40-char-sha>' does not exist.
  */
 function resolveCloudRepoSpec(repository: string, pullRequest: PullRequestData) {
-  const url = resolveCloudRepoUrlForPr(repository, pullRequest);
+  const url = resolveCloudRepoUrl(repository);
   const entry: { url: string; prUrl: string; startingRef?: string } = {
     url,
     prUrl: pullRequest.html_url,
