@@ -7,6 +7,7 @@ This handbook defines the Cursor-first operating model for this repository.
 - Start with `AGENTS.md` for directory-level context.
 - Use `Documentation/README.md` for canonical product and architecture docs.
 - Use this handbook for workflow, coordination, and automation standards.
+- Use `.cursor/skills/skills.index.json` for repo-managed skill discovery.
 
 ## Development Paths (D-036)
 
@@ -29,7 +30,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 ## Session And Handoff Expectations
 
 - Keep updates resumable: what changed, why, and what remains.
-- Use `docs/sessions/retros/` for post-merge retros.
+- Capture post-merge learnings as concise entries in `Documentation/decision-log.md` and `Documentation/feature-tracker.md`.
 - Surface blockers and decision gaps in `Documentation/decision-log.md` and `Documentation/feature-tracker.md`.
 
 ## Cursor Usage Model
@@ -44,12 +45,24 @@ Pure visual composition work is validated by visual review and design-guide comp
 - PR review automation lives in `.github/workflows/cursor-pr-review.yml`.
 - Security and dependency triage automation lives in `.github/workflows/cursor-security-triage.yml`.
 - Security signal generation lives in `.github/workflows/codeql.yml` and `.github/dependabot.yml`.
+- Renovate dependency updates can run via `.github/workflows/mend-renovate.yml` and `renovate.json`.
+- SonarCloud analysis runs via `.github/workflows/sonarcloud.yml` and `sonar-project.properties`.
+- Onboarding smoke checks run via `.github/workflows/quality-onboarding-smoke.yml`.
 
 ## CI/CD Runtime Contract
 
 ### Required Secret
 
 - `CURSOR_API_KEY`: authentication key for `@cursor/sdk` runs in GitHub Actions.
+- `RENOVATE_TOKEN`: token for workflow-driven Renovate runs.
+- `SONAR_TOKEN`: token for SonarCloud analysis.
+
+### Recommended Variables
+
+- `CURSOR_RUNTIME`: `local` (default) or `cloud` for SDK workflow lane routing.
+- `CURSOR_CLOUD_REPO_URL`: explicit repository URL for cloud runtime execution.
+- `SONAR_ORGANIZATION`: SonarCloud organization key.
+- `SONAR_PROJECT_KEY`: SonarCloud project key.
 
 ### Permissions Model
 
@@ -68,6 +81,13 @@ Pure visual composition work is validated by visual review and design-guide comp
 - Use Cursor IDE or cloud agent chat for feature inception, architecture choices, and implementation.
 - Use CI/CD agents for event-driven review and triage (PR creation, dependency updates, open security findings).
 - Treat Linear integration as optional extension work after the GitHub-first automation loop is stable.
+
+## Skill Directory Conventions
+
+- Place repo-managed skills under `.cursor/skills/<domain>/<skill-name>/SKILL.md`.
+- Keep the index synchronized in `.cursor/skills/skills.index.json`.
+- Run `pnpm validate:skills` before commit or PR to enforce index/file consistency.
+- Keep implementation runbooks in `docs/guides/`.
 
 ## Deprecation Note
 

@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "pr-review": "tsx src/pr-review.ts",
-    "security-triage": "tsx src/security-triage.ts"
+    "pr-review:local": "CURSOR_RUNTIME=local tsx src/pr-review.ts",
+    "pr-review:cloud": "CURSOR_RUNTIME=cloud tsx src/pr-review.ts",
+    "security-triage": "tsx src/security-triage.ts",
+    "security-triage:local": "CURSOR_RUNTIME=local tsx src/security-triage.ts",
+    "security-triage:cloud": "CURSOR_RUNTIME=cloud tsx src/security-triage.ts"
   },
   "devDependencies": {
     "@cursor/sdk": "^1.0.12",

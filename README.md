@@ -35,6 +35,7 @@ A self-improvement platform built as a Turborepo monorepo. Three apps share a si
 ```bash
 # 1. Install JS dependencies
 pnpm install
+# Husky pre-commit hook installs via `prepare` script.
 
 # 2. Set up Go API environment
 cp apps/api/.env.example apps/api/.env
@@ -65,9 +66,13 @@ pnpm install
 # JS workspace build and test checks (matches CI)
 pnpm build
 pnpm test
+pnpm validate:skills
 
 # Go API
 cd apps/api && go test ./...
+
+# Combined pre-commit quality gate
+cd ../.. && pnpm check:precommit
 ```
 
 GitHub Actions runs the same practical checks on pull requests to `main` and pushes to `main` or `cursor/**`: `pnpm build`, `pnpm test`, and `go test ./...` in `apps/api`.
@@ -87,9 +92,9 @@ packages/
   tsconfig/         Shared TypeScript config
 docs/
   CURSOR-AGENT-HANDBOOK.md Cursor-first workflow and CI/CD agent model
+  prd-agentic-ai.md Personal experimentation roadmap
+  guides/           Operational guides for onboarding and runtime lanes
   setup.md          One-time Supabase trigger setup
-  specs/archived/   Completed feature specs
-  plans/archived/   Completed implementation plans
 Documentation/
   architecture.md   DB schema, domain model, integration contracts
   decision-log.md   Confirmed product and architectural decisions
@@ -123,7 +128,20 @@ Additional automation workflows:
 - `.github/workflows/cursor-security-triage.yml` - Dependabot/code-scanning triage
 - `.github/workflows/codeql.yml` - code scanning signal generation
 - `.github/dependabot.yml` - dependency update PR generation
+- `.github/workflows/mend-renovate.yml` - Renovate dependency update pipeline (token-based)
+- `.github/workflows/sonarcloud.yml` - SonarCloud static analysis pipeline
+- `.github/workflows/quality-onboarding-smoke.yml` - one-click onboarding smoke checklist
 
 Required repository secret:
 
 - `CURSOR_API_KEY` - key used by CI workflows that call `@cursor/sdk`
+- `RENOVATE_TOKEN` - token for workflow-driven Renovate runs
+- `SONAR_TOKEN` - token for SonarCloud analysis
+
+Recommended repository variables:
+
+- `SONAR_ORGANIZATION` - SonarCloud organization key
+- `SONAR_PROJECT_KEY` - SonarCloud project key
+- `CURSOR_RUNTIME` - `local` (default) or `cloud` for SDK workflow routing
+- `CURSOR_CLOUD_REPO_URL` - repo URL for cloud runtime execution
+

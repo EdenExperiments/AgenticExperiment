@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "lastUpdated": "2026-05-09",
+  "skills": [
+    {
+      "name": "task-intake-and-scope",
+      "path": ".cursor/skills/core/task-intake-and-scope/SKILL.md",
+      "domain": "core",
+      "when_to_use": "At the start of implementation tasks to clarify scope and verification."
+    },
+    {
+      "name": "safe-edit-and-verify",
+      "path": ".cursor/skills/core/safe-edit-and-verify/SKILL.md",
+      "domain": "core",
+      "when_to_use": "When editing files and preparing to validate changes."
+    },
+    {
+      "name": "debug-failure-loop",
+      "path": ".cursor/skills/core/debug-failure-loop/SKILL.md",
+      "domain": "core",
+      "when_to_use": "When lint, tests, or runtime checks fail and root cause is not obvious."
+    },
+    {
+      "name": "local-cloud-route",
+      "path": ".cursor/skills/orchestration/local-cloud-route/SKILL.md",
+      "domain": "orchestration",
+      "when_to_use": "When deciding whether an agent run should be local or cloud."
+    },
+    {
+      "name": "dependency-quality-triage",
+      "path": ".cursor/skills/quality/dependency-quality-triage/SKILL.md",
+      "domain": "quality",
+      "when_to_use": "When handling dependency/security findings from Renovate, SonarCloud, or scanners."
+    }
+  ]
+}

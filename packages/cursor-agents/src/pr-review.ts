@@ -7,6 +7,7 @@ import {
   type PullRequestFile,
 } from "./github.js";
 import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
+import { resolvePromptRuntimeOptions, resolveRuntimeMode } from "./runtime-options.js";
 
 const COMMENT_MARKER = "<!-- cursor-pr-review -->";
 
@@ -61,7 +62,8 @@ function extractRunDiagnostics(result: unknown): string {
 
 async function requestReviewWithFallback(
   prompt: string,
-  apiKey: string
+  apiKey: string,
+  runtimeOptions: Record<string, unknown>
 ): Promise<{ review: string; modelUsed: string; rawStatus: string }> {
   const { Agent } = await import("@cursor/sdk");
   const models = (process.env.CURSOR_REVIEW_MODELS ?? "composer-2,composer-2-fast")
@@ -74,8 +76,8 @@ async function requestReviewWithFallback(
     const result = await Agent.prompt(prompt, {
       apiKey,
       model: { id: modelId },
-      local: { cwd: process.cwd() },
-    });
+      ...runtimeOptions,
+    } as any);
 
     const status = (result as { status?: string }).status ?? "unknown";
     if (status === "finished") {
@@ -99,6 +101,8 @@ async function main(): Promise<void> {
   const prNumber = Number(requireEnv("PR_NUMBER"));
 
   const github = new GitHubClient({ token: githubToken, repository });
+  const runtimeMode = resolveRuntimeMode();
+  const runtimeOptions = resolvePromptRuntimeOptions();
   console.log(`Starting Cursor PR review for ${repository}#${prNumber}`);
   const pullRequest = await github.getPullRequest(prNumber);
   const files = await github.getPullRequestFiles(prNumber);
@@ -131,8 +135,14 @@ If no major issues are found, state that clearly and still include test/verifica
   const { CursorAgentError } = await import("@cursor/sdk");
 
   try {
-    const { review, modelUsed, rawStatus } = await requestReviewWithFallback(prompt, apiKey);
-    console.log(`Cursor PR review completed with model=${modelUsed}, status=${rawStatus}`);
+    const { review, modelUsed, rawStatus } = await requestReviewWithFallback(
+      prompt,
+      apiKey,
+      runtimeOptions
+    );
+    console.log(
+      `Cursor PR review completed with runtime=${runtimeMode}, model=${modelUsed}, status=${rawStatus}`
+    );
     const body = `${COMMENT_MARKER}
 ## Cursor PR Review
 

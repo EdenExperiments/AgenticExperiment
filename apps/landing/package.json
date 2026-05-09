@@ -6,8 +6,8 @@
     "dev": "next dev -p 3004",
     "build": "next build",
     "start": "next start -p 3004",
-    "test": "vitest run",
-    "lint": "next lint"
+    "test": "vitest run --pool=vmThreads",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@rpgtracker/ui": "workspace:*",
