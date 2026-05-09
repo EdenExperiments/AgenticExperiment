@@ -646,7 +646,9 @@ async function main(): Promise<void> {
         repos: [
           {
             url: resolveCloudRepoUrl(repository),
-            startingRef: pullRequest.head.sha,
+            // Cloud runtime resolves this as a branch/ref name, not a raw commit id — passing head.sha
+            // yields validation_error: Branch '<sha>' does not exist in repository.
+            startingRef: `refs/heads/${pullRequest.head.ref}`,
           },
         ],
         autoCreatePR: true,
