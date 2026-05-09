@@ -44,7 +44,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 - Baseline build/test remains in `.github/workflows/ci.yml`.
 - PR review automation lives in `.github/workflows/cursor-pr-review.yml`.
 - Security and dependency triage automation lives in `.github/workflows/cursor-security-triage.yml`.
-- Auto-fix attempt automation lives in `.github/workflows/cursor-fix-attempt.yml` (lightweight gate job + fix job; triggers include `/cursor-fix`, quote-reply markers, or threaded replies to the Cursor PR Review comment).
+- Auto-fix attempt automation lives in `.github/workflows/cursor-fix-attempt.yml` (lightweight gate job + fix job; `/cursor-fix`, human quote-replies, or threaded replies qualify — **bot** comments are ignored for marker-only matches so review/Sonar bot comment updates on push do not re-trigger a fix run).
 - Agent PR auto-labeling automation lives in `.github/workflows/cursor-agent-pr-labels.yml`.
 - Security signal generation lives in `.github/workflows/codeql.yml` and `.github/dependabot.yml`.
 - Renovate dependency updates can run via `.github/workflows/mend-renovate.yml` and `renovate.json`.

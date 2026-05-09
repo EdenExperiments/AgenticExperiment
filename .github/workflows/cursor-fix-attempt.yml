@@ -121,12 +121,28 @@ jobs:
               return false;
             };
 
-            if (body.includes(reviewMarker) || bodyHasSlashTrigger()) {
+            const actorIsBot = context.payload.comment.user?.type === 'Bot';
+
+            if (bodyHasSlashTrigger()) {
+              core.setOutput('proceed', 'true');
+              core.notice('Auto-fix trigger matched (/cursor-fix or /cursor-auto-fix).');
+              return;
+            }
+
+            // Bot-authored comments often contain the marker (Cursor PR Review updates on each push).
+            // Marker-only must NOT qualify — humans quote-reply have user.type === 'User'.
+            if (body.includes(reviewMarker) && !actorIsBot) {
               core.setOutput('proceed', 'true');
               core.notice(
-                'Auto-fix trigger matched (HTML marker from bot comment, or /cursor-fix line — quote replies may omit HTML markers).'
+                'Auto-fix trigger matched (quoted Cursor PR Review marker in a human comment).'
               );
               return;
+            }
+
+            if (body.includes(reviewMarker) && actorIsBot) {
+              core.notice(
+                'Skipping marker-only match on a bot comment (avoids firing when review/Sonar bots edit their PR comments).'
+              );
             }
 
             const maxDepth = 15;
