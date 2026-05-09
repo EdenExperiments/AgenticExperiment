@@ -1,7 +1,7 @@
 # Platform Architecture Decisions
 
 > Condensed from `2026-03-17-monorepo-foundation.md` and `2026-03-17-platform-suite-redesign.md`.
-> Historical planning artifacts are archived under `docs/specs/archived/` and `docs/plans/archived/`.
+> Historical planning artifacts were culled from active docs; use git history for deep historical trace when needed.
 
 ---
 

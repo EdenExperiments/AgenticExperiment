@@ -51,7 +51,9 @@ jobs:
         run: pnpm build
 
       - name: Test JS workspaces
-        run: pnpm test
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+        run: pnpm test:ci
 
   go:
     name: Go test

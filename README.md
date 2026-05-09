@@ -35,6 +35,7 @@ A self-improvement platform built as a Turborepo monorepo. Three apps share a si
 ```bash
 # 1. Install JS dependencies
 pnpm install
+# Husky pre-commit hook installs via `prepare` script.
 
 # 2. Set up Go API environment
 cp apps/api/.env.example apps/api/.env
@@ -65,9 +66,13 @@ pnpm install
 # JS workspace build and test checks (matches CI)
 pnpm build
 pnpm test
+pnpm validate:skills
 
 # Go API
 cd apps/api && go test ./...
+
+# Combined pre-commit quality gate
+cd ../.. && pnpm check:precommit
 ```
 
 GitHub Actions runs the same practical checks on pull requests to `main` and pushes to `main` or `cursor/**`: `pnpm build`, `pnpm test`, and `go test ./...` in `apps/api`.
@@ -87,9 +92,9 @@ packages/
   tsconfig/         Shared TypeScript config
 docs/
   CURSOR-AGENT-HANDBOOK.md Cursor-first workflow and CI/CD agent model
+  prd-agentic-ai.md Personal experimentation roadmap
+  guides/           Operational guides for onboarding and runtime lanes
   setup.md          One-time Supabase trigger setup
-  specs/archived/   Completed feature specs
-  plans/archived/   Completed implementation plans
 Documentation/
   architecture.md   DB schema, domain model, integration contracts
   decision-log.md   Confirmed product and architectural decisions
@@ -121,9 +126,37 @@ Additional automation workflows:
 
 - `.github/workflows/cursor-pr-review.yml` - Cursor SDK PR review summaries/comments
 - `.github/workflows/cursor-security-triage.yml` - Dependabot/code-scanning triage
+- `.github/workflows/cursor-fix-attempt.yml` - cloud auto-fix attempt loop (PR review + Sonar context -> fix attempt PR)
+- `.github/workflows/cursor-agent-pr-labels.yml` - auto-label trusted cloud-agent PRs at open/reopen
 - `.github/workflows/codeql.yml` - code scanning signal generation
 - `.github/dependabot.yml` - dependency update PR generation
+- `.github/workflows/mend-renovate.yml` - Renovate dependency update pipeline (token-based)
+- `.github/workflows/sonarcloud.yml` - SonarCloud static analysis pipeline
+- `.github/workflows/quality-onboarding-smoke.yml` - one-click onboarding smoke checklist
 
 Required repository secret:
 
 - `CURSOR_API_KEY` - key used by CI workflows that call `@cursor/sdk`
+- `RENOVATE_TOKEN` - token for workflow-driven Renovate runs
+- `SONAR_TOKEN` - token for SonarCloud analysis
+
+Recommended repository variables:
+
+- `SONAR_ORGANIZATION` - SonarCloud organization key
+- `SONAR_PROJECT_KEY` - SonarCloud project key
+- `CURSOR_RUNTIME` - `local` (default) or `cloud` for SDK workflow routing
+- `CURSOR_CLOUD_REPO_URL` - repo URL for cloud runtime execution
+- `CURSOR_AUTO_FIX_ENABLED` - `true` to allow automatic cloud fix attempts from workflow triggers
+- `CURSOR_AUTO_FIX_LABEL` - PR label required for auto-fix (`cursor:auto-fix` by default)
+- `CURSOR_FIX_PLANNER_MODEL` - model ID for planning pass in auto-fix workflow (default `composer-2`)
+- `CURSOR_FIX_EXECUTION_MODEL` - lower-cost model ID for implementation pass (default `composer-2-fast`)
+- `CURSOR_FIX_MODEL` - legacy fallback model variable for execution pass
+- `CURSOR_REQUIRE_TEST_CHANGES` - `true` to fail auto-fix attempts with code changes but no unit-test file changes
+- `CURSOR_REQUIRE_REVIEW_SCHEMA` - `true` to require machine-readable PR review payload before auto-fix planning
+- `CURSOR_AUTO_FIX_EXCLUDED_AUTHORS` - comma-separated PR authors excluded from auto-fix source selection (`cursor[bot]` default)
+- `CURSOR_AGENT_PR_LABELS` - comma-separated labels applied to trusted agent-created PRs (`cursor:agent-generated` default)
+- `CURSOR_AGENT_TRUSTED_LOGINS` - comma-separated logins treated as trusted agent PR authors (`cursor[bot]` default)
+- `CURSOR_AGENT_BRANCH_PREFIXES` - comma-separated branch prefixes treated as trusted agent PR heads (`cursor/` default)
+- `CURSOR_AGENT_PR_LABELING_ENABLED` - set to `false` to disable open/reopen auto-labeling workflow
+- `SONAR_MIN_NEW_COVERAGE` - minimum SonarCloud PR new-code coverage (default `80`)
+

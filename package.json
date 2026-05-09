@@ -5,10 +5,18 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "test": "turbo test",
+    "test:ci": "turbo test --concurrency=1",
+    "test:coverage": "turbo run test:coverage --concurrency=1",
+    "test:go": "cd apps/api && go test ./...",
     "lint": "turbo lint",
-    "format": "turbo format"
+    "validate:skills": "node scripts/validate-skills.mjs",
+    "format": "turbo format",
+    "check:precommit": "pnpm validate:skills && pnpm lint && turbo test --concurrency=1 && pnpm test:go",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.9",
+    "husky": "^9.1.7",
     "turbo": "^2.0.0"
   },
   "engines": {

@@ -1,0 +1,82 @@
+name: Cursor Agent PR Labels
+
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number to label"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  label-agent-pr:
+    if: ${{ vars.CURSOR_AGENT_PR_LABELING_ENABLED != 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply labels to trusted agent PRs
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event_name == 'workflow_dispatch' && '' || github.event.pull_request.user.login }}
+          HEAD_REF: ${{ github.event_name == 'workflow_dispatch' && '' || github.event.pull_request.head.ref }}
+          CURSOR_AGENT_PR_LABELS: ${{ vars.CURSOR_AGENT_PR_LABELS || 'cursor:agent-generated' }}
+          CURSOR_AGENT_TRUSTED_LOGINS: ${{ vars.CURSOR_AGENT_TRUSTED_LOGINS || 'cursor[bot]' }}
+          CURSOR_AGENT_BRANCH_PREFIXES: ${{ vars.CURSOR_AGENT_BRANCH_PREFIXES || 'cursor/' }}
+        with:
+          script: |
+            const csv = (value) =>
+              (value || "")
+                .split(",")
+                .map((entry) => entry.trim())
+                .filter(Boolean);
+
+            const prNumber = Number(process.env.PR_NUMBER);
+            if (!Number.isFinite(prNumber) || prNumber <= 0) {
+              core.setFailed(`Invalid PR number: ${process.env.PR_NUMBER}`);
+              return;
+            }
+
+            const labels = [...new Set(csv(process.env.CURSOR_AGENT_PR_LABELS))];
+            if (labels.length === 0) {
+              core.info("No labels configured; skipping.");
+              return;
+            }
+
+            let pr = context.payload.pull_request;
+            if (!pr) {
+              const response = await github.rest.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+              });
+              pr = response.data;
+            }
+
+            const trustedLogins = csv(process.env.CURSOR_AGENT_TRUSTED_LOGINS);
+            const trustedPrefixes = csv(process.env.CURSOR_AGENT_BRANCH_PREFIXES);
+            const author = pr.user?.login || process.env.PR_AUTHOR || "";
+            const headRef = pr.head?.ref || process.env.HEAD_REF || "";
+
+            const trustedByLogin = trustedLogins.includes(author);
+            const trustedByBranch = trustedPrefixes.some((prefix) => headRef.startsWith(prefix));
+            if (!trustedByLogin && !trustedByBranch) {
+              core.info(`PR #${prNumber} is not a trusted agent PR (author=${author}, head=${headRef}); skipping.`);
+              return;
+            }
+
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              labels,
+            });
+
+            core.info(`Applied labels to PR #${prNumber}: ${labels.join(", ")}`);

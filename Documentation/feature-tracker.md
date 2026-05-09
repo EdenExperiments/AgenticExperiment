@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-05-06 (AI goal planning docs aligned + Cursor-first migration complete)
+Last updated: 2026-05-09 (agentic operations hardening: structured review schema + deterministic fix prioritization)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -81,6 +81,13 @@ All Release 1 + Release 2 features through Phase 7.
 | F-049 | Cursor-first docs and workflow cutover           | Docs/Ops | done   | `AGENTS.md` rewritten as repo context directory. Added `Documentation/README.md` index and `docs/CURSOR-AGENT-HANDBOOK.md`. Claude-specific repo setup deprecated/removed.             |
 | F-050 | Cursor SDK PR review automation                  | Ops/CI   | done   | Added `.github/workflows/cursor-pr-review.yml` and `packages/cursor-agents/src/pr-review.ts` for automated PR analysis comments and step summaries.                                    |
 | F-051 | Cursor SDK security/dependency triage automation | Ops/CI   | done   | Added `.github/workflows/cursor-security-triage.yml`, `.github/workflows/codeql.yml`, and `.github/dependabot.yml` with triage script `packages/cursor-agents/src/security-triage.ts`. |
+| F-052 | Pre-commit lint/test gate                         | Ops/CI   | done   | Added Husky pre-commit hook and root `check:precommit` script (`lint` + JS `test` + Go `go test`) to catch easy issues before commit.                                                 |
+| F-053 | Repo skill library baseline                       | Docs/Ops | done   | Added `.cursor/skills/` structure, skill index, starter skills, plus `pnpm validate:skills` for index/file consistency enforcement.                                                      |
+| F-054 | Mend Renovate + SonarCloud onboarding starter     | Ops/CI   | done   | Added `renovate.json`, `mend-renovate.yml`, `sonarcloud.yml`, `sonar-project.properties`, onboarding guides, and one-click `quality-onboarding-smoke.yml`.                              |
+| F-055 | Docs folder cull (legacy agentic artifacts)       | Docs/Ops | done   | Removed legacy `docs/specs`, `docs/plans`, and `docs/sessions` artifacts; retained lean future-focused docs (`handbook`, PRD, setup, guides, archive note).                             |
+| F-056 | Gated Cursor cloud auto-fix attempt loop          | Ops/CI   | done   | Added `cursor-fix-attempt.yml` + `fix-attempt.ts` to react to Cursor PR review comments, ingest Sonar context, open fix-attempt PRs behind dual gates, and label new agent-generated PRs for policy-aware routing. |
+| F-057 | Model-routed remediation + test/coverage enforcement | Ops/CI | done | Auto-fix now uses planner/executor model split with unit-test-change enforcement, and Sonar PR workflow now enforces minimum new-code coverage (default 80). |
+| F-058 | Structured reviewer schema contract | Ops/CI | done | `cursor-pr-review` now emits schema-tagged machine-readable findings with severity/confidence fields and normalized IDs. `fix-attempt` now requires and parses this payload for deterministic priority routing. |
 
 
 ---

@@ -26,7 +26,7 @@ Use this file as the canonical map for project documentation.
 
 - Keep canonical docs concise and current; avoid duplicating the same guidance in multiple files.
 - When replacing a document, move the old content to `../docs/archive/` with a short deprecation note and replacement link.
-- Keep historical implementation artifacts in `../docs/specs/`, `../docs/plans/`, and `../docs/sessions/retros/` unless explicitly archived.
+- Legacy implementation artifacts were intentionally culled from `docs/` to keep the working set lean; use git history when deeper historical trace is needed.
 - Prefer updating canonical docs over creating new ad hoc narrative files.
 
 ## Update Expectations

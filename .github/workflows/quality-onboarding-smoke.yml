@@ -1,0 +1,92 @@
+name: Quality Onboarding Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_renovate_config_validation:
+        description: "Run renovate-config-validator"
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Smoke checks for quality onboarding
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate skill index and skill files
+        run: pnpm validate:skills
+
+      - name: Validate required onboarding files
+        run: |
+          test -f renovate.json
+          test -f sonar-project.properties
+          test -f .github/workflows/mend-renovate.yml
+          test -f .github/workflows/sonarcloud.yml
+          test -f docs/guides/mend-renovate-sonarcloud-onboarding.md
+
+      - name: Validate Renovate configuration syntax
+        if: ${{ inputs.run_renovate_config_validation }}
+        run: pnpm dlx renovate-config-validator renovate.json
+
+      - name: Validate SonarCloud secret and variable wiring
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION != '' && vars.SONAR_ORGANIZATION || secrets.SONAR_ORGANIZATION }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY != '' && vars.SONAR_PROJECT_KEY || secrets.SONAR_PROJECT_KEY }}
+          RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
+        run: |
+          if [ -z "$RENOVATE_TOKEN" ]; then
+            echo "Missing secret: RENOVATE_TOKEN"
+            exit 1
+          fi
+          if [ -z "$SONAR_TOKEN" ]; then
+            echo "Missing secret: SONAR_TOKEN"
+            exit 1
+          fi
+          if [ -z "$SONAR_ORGANIZATION" ]; then
+            echo "Missing variable: SONAR_ORGANIZATION"
+            exit 1
+          fi
+          if [ -z "$SONAR_PROJECT_KEY" ]; then
+            echo "Missing variable: SONAR_PROJECT_KEY"
+            exit 1
+          fi
+
+      - name: Publish checklist summary
+        env:
+          RAN_RENOVATE_VALIDATION: ${{ inputs.run_renovate_config_validation }}
+        run: |
+          if [ "$RAN_RENOVATE_VALIDATION" = "true" ]; then
+            renovate_line="- [x] Renovate config validation ran"
+          else
+            renovate_line="- [ ] Renovate config validation skipped by input"
+          fi
+          cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          ## Quality Onboarding Smoke Checklist
+          - [x] Skill index validated
+          - [x] Renovate and SonarCloud config files present
+          PLACEHOLDER_RENOVATE_LINE
+          - [x] Required secrets/vars detected
+          EOF
+          sed -i "s|PLACEHOLDER_RENOVATE_LINE|$renovate_line|g" "$GITHUB_STEP_SUMMARY"

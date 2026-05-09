@@ -20,7 +20,13 @@ permissions:
 
 jobs:
   dependabot-pr-triage:
-    if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+    if: >-
+      github.event_name == 'pull_request' && (
+        github.event.pull_request.user.login == 'dependabot[bot]' ||
+        github.event.pull_request.user.login == 'renovate[bot]' ||
+        github.event.pull_request.user.login == 'mend-for-github[bot]' ||
+        startsWith(github.head_ref, 'renovate/')
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -48,12 +54,14 @@ jobs:
           fi
           echo "CURSOR_RIPGREP_PATH=$(command -v rg)" >> "$GITHUB_ENV"
 
-      - name: Run Cursor triage for Dependabot PR
+      - name: Run Cursor triage for dependency bot PR
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.CURSOR_PR_REVIEW_TOKEN != '' && secrets.CURSOR_PR_REVIEW_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          CURSOR_RUNTIME: ${{ vars.CURSOR_RUNTIME || 'local' }}
+          CURSOR_CLOUD_REPO_URL: ${{ vars.CURSOR_CLOUD_REPO_URL }}
         run: pnpm --filter @rpgtracker/cursor-agents run security-triage
 
   security-alert-triage:
@@ -90,4 +98,6 @@ jobs:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.CURSOR_PR_REVIEW_TOKEN != '' && secrets.CURSOR_PR_REVIEW_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          CURSOR_RUNTIME: ${{ vars.CURSOR_RUNTIME || 'local' }}
+          CURSOR_CLOUD_REPO_URL: ${{ vars.CURSOR_CLOUD_REPO_URL }}
         run: pnpm --filter @rpgtracker/cursor-agents run security-triage
