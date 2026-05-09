@@ -79,27 +79,29 @@ function resolveCloudRepoUrl(repository: string): string {
 }
 
 /**
- * Cloud agents expect `startingRef` as a short branch name (see Cursor SDK docs: `startingRef: "main"`).
- * Passing `refs/heads/...` or a raw commit SHA can surface validation_error Branch '<sha>' does not exist.
- * `prUrl` attaches the run to the PR so checkout still tracks the right line of work when ref is ambiguous.
+ * Cursor Cloud: pass `prUrl` so the clone tracks the PR (see SDK CloudOptions.repos).
+ * Do **not** send `startingRef` unless explicitly overridden: GitHub sometimes surfaces
+ * `head.ref` as a commit SHA or Cursor validates HEAD incorrectly when both `prUrl`
+ * and `startingRef` are present — producing validation_error Branch '<40-char-sha>' does not exist.
  */
 function resolveCloudRepoSpec(repository: string, pullRequest: PullRequestData) {
   const url = resolveCloudRepoUrl(repository);
-  const prUrl = pullRequest.html_url;
-
-  const envRef = process.env.CURSOR_CLOUD_STARTING_REF?.trim();
-  const rawRef = (envRef || pullRequest.head.ref || "").trim();
-  const looksLikeSha = /^[0-9a-f]{40}$/i.test(rawRef);
-
   const entry: { url: string; prUrl: string; startingRef?: string } = {
     url,
-    prUrl,
+    prUrl: pullRequest.html_url,
   };
 
-  if (!looksLikeSha && rawRef.length > 0) {
-    entry.startingRef = rawRef.replace(/^refs\/heads\//, "");
+  const envRef = process.env.CURSOR_CLOUD_STARTING_REF?.trim();
+  if (!envRef) {
+    return entry;
   }
 
+  const normalized = envRef.replace(/^refs\/heads\//, "").trim();
+  if (/^[0-9a-f]{40}$/i.test(normalized)) {
+    return entry;
+  }
+
+  entry.startingRef = normalized;
   return entry;
 }
 
