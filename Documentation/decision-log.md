@@ -1,6 +1,6 @@
 # Decision Log
 
-Last updated: 2026-05-09 (D-049 added: structured reviewer schema contract)
+Last updated: 2026-05-09 (D-050 added: auto-fix trigger ergonomics + scanner wait contract)
 
 ## How To Read This Log
 
@@ -22,7 +22,7 @@ Last updated: 2026-05-09 (D-049 added: structured reviewer schema contract)
 | D-033 to D-034 | Progression/logging revisions: gate auto-clear for high starting levels, time-primary quick logging superseding XP-chip-first model.                                    |
 | D-035 to D-037 | Product direction locked: three-theme system, split UI-vs-logic delivery pipeline, hub architecture across apps.                                                        |
 | D-041 to D-043 | Experience refinements locked: single primary-skill pin, avatar storage strategy, Clean/Stylish visual fidelity model.                                                  |
-| D-044 to D-049 | Cursor-first operational model extended with local/cloud routing baseline, repo-managed skills structure, quality onboarding pipelines, a lean docs baseline, dual-gated auto-fix policy, model-routed remediation with PR coverage enforcement, and structured reviewer schema contract. |
+| D-044 to D-050 | Cursor-first operational model extended with local/cloud routing baseline, repo-managed skills structure, quality onboarding pipelines, a lean docs baseline, dual-gated auto-fix policy, model-routed remediation with PR coverage enforcement, structured reviewer schema contract, and auto-fix triggers that recognize threaded replies plus scanner-coordinated waits before planning. |
 
 
 ### UX, Theme, And Workflow Index (D-017+)
@@ -50,6 +50,7 @@ Last updated: 2026-05-09 (D-049 added: structured reviewer schema contract)
 | D-047 | Auto-fix workflows require global enable + explicit PR allow label.             | Prevent accidental/untrusted remediation runs.              |
 | D-048 | Auto-fix uses planner/executor model split with test + coverage gates.          | Balance quality, cost, and enforcement reliability.         |
 | D-049 | PR reviewer output is schema-driven with severity/confidence fields.            | Enable deterministic fix prioritization and parsing.         |
+| D-050 | Auto-fix triggers may use slash commands, quote replies, or threaded replies to the Cursor PR Review comment; merge gates remain scanner/CI driven. | Preserve humane triggers while keeping deterministic Sonar/CodeQL context before automated remediation planning. |
 
 
 ## Confirmed Decisions (Full Detail)

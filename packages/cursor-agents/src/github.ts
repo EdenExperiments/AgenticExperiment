@@ -62,6 +62,19 @@ export interface DependabotAlert {
   html_url?: string;
 }
 
+export interface IssueCommentData {
+  id: number;
+  body: string;
+  in_reply_to_id?: number | null;
+}
+
+export interface CheckRunData {
+  name: string;
+  status: string;
+  conclusion: string | null;
+  html_url: string | null;
+}
+
 export class GitHubApiError extends Error {
   readonly status: number;
   readonly path: string;
@@ -229,6 +242,42 @@ export class GitHubClient {
     return this.getJson<DependabotAlert[]>(
       `/repos/${this.owner}/${this.repo}/dependabot/alerts?state=open&per_page=30`
     );
+  }
+
+  async getIssueComment(commentId: number): Promise<IssueCommentData> {
+    return this.getJson<IssueCommentData>(
+      `/repos/${this.owner}/${this.repo}/issues/comments/${commentId}`
+    );
+  }
+
+  async listCheckRunsForCommit(sha: string): Promise<CheckRunData[]> {
+    const runs: CheckRunData[] = [];
+
+    for (let page = 1; page <= 10; page += 1) {
+      const data = await this.getJson<{
+        check_runs: Array<{
+          name: string;
+          status: string;
+          conclusion: string | null;
+          html_url?: string | null;
+        }>;
+      }>(`/repos/${this.owner}/${this.repo}/commits/${sha}/check-runs?per_page=100&page=${page}`);
+
+      for (const run of data.check_runs) {
+        runs.push({
+          name: run.name,
+          status: run.status,
+          conclusion: run.conclusion,
+          html_url: run.html_url ?? null,
+        });
+      }
+
+      if (data.check_runs.length < 100) {
+        break;
+      }
+    }
+
+    return runs;
   }
 }
 

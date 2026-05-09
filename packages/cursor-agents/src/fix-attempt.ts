@@ -7,6 +7,11 @@ import {
   type PullRequestFile,
 } from "./github.js";
 import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
+import {
+  buildCheckRunsMarkdown,
+  resolveScannerWaitOptionsFromEnv,
+  waitForScannerReadiness,
+} from "./scanner-context.js";
 
 const REVIEW_MARKER = "<!-- cursor-pr-review -->";
 const REVIEW_SCHEMA_START = "<!-- cursor-pr-review-schema:v1 -->";
@@ -371,6 +376,7 @@ function buildPlanningPrompt(input: {
   structuredReviewPriorities: string;
   securityComment: string;
   sonarContext: string;
+  deterministicGatesContext: string;
 }): string {
   return `
 You are a senior code-change planner for pull request #${input.prNumber} in ${input.repository}.
@@ -394,6 +400,9 @@ ${input.securityComment}
 SonarCloud context:
 ${input.sonarContext}
 
+Deterministic gates / CI signal (includes scanner wait notes and GitHub check runs on HEAD):
+${input.deterministicGatesContext}
+
 Create a concise plan with these sections:
 1) Selected fixes (max 2) and why they are highest signal
 2) File-level edit plan
@@ -416,6 +425,7 @@ function buildExecutionPrompt(input: {
   structuredReviewPriorities: string;
   securityComment: string;
   sonarContext: string;
+  deterministicGatesContext: string;
   plan: string;
 }): string {
   return `
@@ -440,6 +450,9 @@ ${input.securityComment}
 SonarCloud context:
 ${input.sonarContext}
 
+Deterministic gates / CI signal (includes scanner wait notes and GitHub check runs on HEAD):
+${input.deterministicGatesContext}
+
 Approved planning guidance:
 ${input.plan}
 
@@ -450,6 +463,7 @@ Task requirements:
 4) Preserve existing behavior except where directly fixing the reported issues.
 5) Run targeted validation commands relevant to edited files.
 6) If no safe fix is possible, explain why and avoid speculative refactors.
+7) Treat the automated PR review as non-binding guidance. Do not “fix the merge gate” by inventing policy — align changes with failing scanners/tests where relevant.
 
 Output expectations:
 - Apply code/documentation changes in this repository.
@@ -516,6 +530,53 @@ async function main(): Promise<void> {
     return;
   }
 
+  const waitOpts = resolveScannerWaitOptionsFromEnv();
+  let scannerWaitNotes: string[] = [];
+  let scannerWaitTimedOut = false;
+  if (waitOpts.enabled) {
+    const waitResult = await waitForScannerReadiness({
+      github,
+      headSha: pullRequest.head.sha,
+      pollIntervalMs: waitOpts.pollIntervalMs,
+      timeoutMs: waitOpts.timeoutMs,
+      optionalGraceMs: waitOpts.optionalGraceMs,
+      requiredSubstrings: waitOpts.requiredSubstrings,
+      optionalSubstrings: waitOpts.optionalSubstrings,
+      sonarToken: process.env.SONAR_TOKEN,
+      sonarProjectKey: process.env.SONAR_PROJECT_KEY,
+      prNumber,
+    });
+    scannerWaitNotes = waitResult.notes.slice(-50);
+    scannerWaitTimedOut = waitResult.timedOut;
+    appendStepSummary(
+      `### Scanner wait\n\n${truncate(scannerWaitNotes.join("\n"), 12000)}`
+    );
+    if (
+      scannerWaitTimedOut &&
+      process.env.CURSOR_AUTO_FIX_FAIL_ON_SCANNER_TIMEOUT === "true"
+    ) {
+      throw new Error(
+        "Scanner wait timed out while waiting for SonarCloud / optional scanners (CURSOR_AUTO_FIX_FAIL_ON_SCANNER_TIMEOUT=true)."
+      );
+    }
+  }
+
+  const checkRuns = await github.listCheckRunsForCommit(pullRequest.head.sha);
+  const ciCheckSummary = buildCheckRunsMarkdown(checkRuns);
+  const scannerWaitLog = waitOpts.enabled
+    ? scannerWaitNotes.join("\n")
+    : "Scanner wait disabled (set CURSOR_AUTO_FIX_WAIT_SCANNERS=false).";
+
+  const deterministicGatesContext = [
+    "Policy: Automated PR review comments are advisory (implementation quality and gaps vs intent). Merge readiness is determined by CI and configured scanners (for example SonarCloud quality gate and CodeQL / GitHub code scanning), not by the review narrative alone.",
+    "",
+    "### Scanner wait log",
+    truncate(scannerWaitLog || "(empty)", 6000),
+    "",
+    "### GitHub check runs on PR HEAD",
+    truncate(ciCheckSummary, 8000),
+  ].join("\n");
+
   const fullReviewComment =
     (await findLatestMarkedComment(github, prNumber, REVIEW_MARKER, true)) ??
     "Review context unavailable.";
@@ -547,6 +608,7 @@ async function main(): Promise<void> {
     structuredReviewPriorities,
     securityComment,
     sonarContext,
+    deterministicGatesContext,
   });
 
   let agent: { [Symbol.asyncDispose](): Promise<void> } | null = null;
@@ -573,6 +635,7 @@ async function main(): Promise<void> {
       structuredReviewPriorities,
       securityComment,
       sonarContext,
+      deterministicGatesContext,
       plan,
     });
 
@@ -644,6 +707,13 @@ Run ID: \`${runId}\`
 Planner model: \`${plannerModel}\`
 Execution model: \`${executionModel}\`
 Required label: \`${requiredLabel}\`
+Scanner wait: ${
+      waitOpts.enabled
+        ? scannerWaitTimedOut
+          ? "timed out (proceeded with best-effort context)"
+          : "ok"
+        : "disabled (CURSOR_AUTO_FIX_WAIT_SCANNERS=false)"
+    }
 
 ${fixPrUrl ? `Fix attempt PR: ${fixPrUrl}` : "Run finished, but no PR URL was returned by the SDK response."}
 

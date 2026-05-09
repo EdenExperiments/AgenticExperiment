@@ -44,7 +44,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 - Baseline build/test remains in `.github/workflows/ci.yml`.
 - PR review automation lives in `.github/workflows/cursor-pr-review.yml`.
 - Security and dependency triage automation lives in `.github/workflows/cursor-security-triage.yml`.
-- Auto-fix attempt automation lives in `.github/workflows/cursor-fix-attempt.yml`.
+- Auto-fix attempt automation lives in `.github/workflows/cursor-fix-attempt.yml` (lightweight gate job + fix job; triggers include `/cursor-fix`, quote-reply markers, or threaded replies to the Cursor PR Review comment).
 - Agent PR auto-labeling automation lives in `.github/workflows/cursor-agent-pr-labels.yml`.
 - Security signal generation lives in `.github/workflows/codeql.yml` and `.github/dependabot.yml`.
 - Renovate dependency updates can run via `.github/workflows/mend-renovate.yml` and `renovate.json`.
@@ -64,6 +64,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 - `CURSOR_RUNTIME`: `local` (default) or `cloud` for SDK workflow lane routing.
 - `CURSOR_CLOUD_REPO_URL`: explicit repository URL for cloud runtime execution.
 - `CURSOR_AUTO_FIX_ENABLED`: global on/off switch for auto-fix attempts.
+- `CURSOR_FIX_COMMENT_TRIGGERS`: comma-separated slash tokens that qualify an issue comment (default `/cursor-fix,/cursor-auto-fix`). Thread replies and quote replies are handled by the gate job without requiring this list to match every trigger style.
 - `CURSOR_AUTO_FIX_LABEL`: per-PR allow label for auto-fix attempts (`cursor:auto-fix` default).
 - `CURSOR_FIX_PLANNER_MODEL`: model ID for orchestration/planning pass.
 - `CURSOR_FIX_EXECUTION_MODEL`: model ID for implementation pass (prefer cheaper default).
@@ -78,18 +79,26 @@ Pure visual composition work is validated by visual review and design-guide comp
 - `SONAR_ORGANIZATION`: SonarCloud organization key.
 - `SONAR_PROJECT_KEY`: SonarCloud project key.
 - `SONAR_MIN_NEW_COVERAGE`: minimum PR new-code coverage enforced after Sonar scan (`80` default).
+- `CURSOR_AUTO_FIX_WAIT_SCANNERS`: when `true` (default), the fix attempt waits for required GitHub check runs plus SonarCloud PR decoration before planning (bounded by timeout).
+- `CURSOR_AUTO_FIX_WAIT_TIMEOUT_MS`: max wait for scanners before continuing best-effort (`900000` default).
+- `CURSOR_AUTO_FIX_POLL_INTERVAL_MS`: polling cadence while waiting (`20000` default).
+- `CURSOR_AUTO_FIX_OPTIONAL_SCAN_GRACE_MS`: grace window where optional scanners (for example CodeQL) may still appear (`180000` default).
+- `CURSOR_AUTO_FIX_REQUIRED_CHECK_SUBSTRINGS`: comma-separated substrings matched against GitHub check run names that **must** complete (`SonarCloud` default).
+- `CURSOR_AUTO_FIX_OPTIONAL_CHECK_SUBSTRINGS`: optional scanners; if no matching run appears after the grace window, the wait stops blocking on that pattern (`CodeQL,code scanning` default).
+- `CURSOR_AUTO_FIX_FAIL_ON_SCANNER_TIMEOUT`: set to `true` to fail the workflow when the scanner wait hits the timeout instead of continuing with partial context (`false` default).
 
 ### Permissions Model
 
 - `cursor-pr-review.yml`: `contents:read`, `pull-requests:read`, `issues:write`
 - `cursor-security-triage.yml`: `contents:read`, `security-events:read`, `pull-requests:read`, `issues:write`
-- `cursor-fix-attempt.yml`: `contents:read`, `pull-requests:read`, `issues:write`
+- `cursor-fix-attempt.yml`: lightweight gate job (`issues:read`, `pull-requests:read`) validates triggers; fix job uses `contents:read`, `pull-requests:read`, `issues:write`
 - `cursor-agent-pr-labels.yml`: `contents:read`, `pull-requests:write`
 - `codeql.yml`: `security-events:write` for publishing scan findings
 
 ### Automation Guardrails
 
 - Default behavior is review and recommendation (comment/summary) rather than auto-remediation commits.
+- Treat automated PR review output as **advisory** implementation guidance. **Merge gates** remain driven by CI and deterministic scanners (SonarCloud, CodeQL / code scanning, tests), not by review prose alone.
 - Promote to auto-fix only after repeated stable runs and explicit policy approval.
 - For auto-fix flows, require both a global flag and an explicit PR allow label.
 - For cloud-created PRs, apply labels automatically on open so policy checks can evaluate immediately.
