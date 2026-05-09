@@ -44,6 +44,8 @@ Pure visual composition work is validated by visual review and design-guide comp
 - Baseline build/test remains in `.github/workflows/ci.yml`.
 - PR review automation lives in `.github/workflows/cursor-pr-review.yml`.
 - Security and dependency triage automation lives in `.github/workflows/cursor-security-triage.yml`.
+- Auto-fix attempt automation lives in `.github/workflows/cursor-fix-attempt.yml`.
+- Agent PR auto-labeling automation lives in `.github/workflows/cursor-agent-pr-labels.yml`.
 - Security signal generation lives in `.github/workflows/codeql.yml` and `.github/dependabot.yml`.
 - Renovate dependency updates can run via `.github/workflows/mend-renovate.yml` and `renovate.json`.
 - SonarCloud analysis runs via `.github/workflows/sonarcloud.yml` and `sonar-project.properties`.
@@ -61,6 +63,14 @@ Pure visual composition work is validated by visual review and design-guide comp
 
 - `CURSOR_RUNTIME`: `local` (default) or `cloud` for SDK workflow lane routing.
 - `CURSOR_CLOUD_REPO_URL`: explicit repository URL for cloud runtime execution.
+- `CURSOR_AUTO_FIX_ENABLED`: global on/off switch for auto-fix attempts.
+- `CURSOR_AUTO_FIX_LABEL`: per-PR allow label for auto-fix attempts (`cursor:auto-fix` default).
+- `CURSOR_FIX_MODEL`: model ID used by auto-fix attempts.
+- `CURSOR_AUTO_FIX_EXCLUDED_AUTHORS`: PR authors excluded from auto-fix source selection.
+- `CURSOR_AGENT_PR_LABELS`: labels applied to trusted agent-created PRs.
+- `CURSOR_AGENT_TRUSTED_LOGINS`: trusted PR author logins for auto-labeling.
+- `CURSOR_AGENT_BRANCH_PREFIXES`: trusted PR branch prefixes for auto-labeling.
+- `CURSOR_AGENT_PR_LABELING_ENABLED`: set to `false` to disable PR-open auto-labeling.
 - `SONAR_ORGANIZATION`: SonarCloud organization key.
 - `SONAR_PROJECT_KEY`: SonarCloud project key.
 
@@ -68,12 +78,16 @@ Pure visual composition work is validated by visual review and design-guide comp
 
 - `cursor-pr-review.yml`: `contents:read`, `pull-requests:read`, `issues:write`
 - `cursor-security-triage.yml`: `contents:read`, `security-events:read`, `pull-requests:read`, `issues:write`
+- `cursor-fix-attempt.yml`: `contents:read`, `pull-requests:read`, `issues:write`
+- `cursor-agent-pr-labels.yml`: `contents:read`, `pull-requests:write`
 - `codeql.yml`: `security-events:write` for publishing scan findings
 
 ### Automation Guardrails
 
 - Default behavior is review and recommendation (comment/summary) rather than auto-remediation commits.
 - Promote to auto-fix only after repeated stable runs and explicit policy approval.
+- For auto-fix flows, require both a global flag and an explicit PR allow label.
+- For cloud-created PRs, apply labels automatically on open so policy checks can evaluate immediately.
 - Keep generated comments concise and actionable; avoid noisy duplicate comments by updating marker comments.
 
 ## Operating Split

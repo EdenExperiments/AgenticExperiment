@@ -126,6 +126,8 @@ Additional automation workflows:
 
 - `.github/workflows/cursor-pr-review.yml` - Cursor SDK PR review summaries/comments
 - `.github/workflows/cursor-security-triage.yml` - Dependabot/code-scanning triage
+- `.github/workflows/cursor-fix-attempt.yml` - cloud auto-fix attempt loop (PR review + Sonar context -> fix attempt PR)
+- `.github/workflows/cursor-agent-pr-labels.yml` - auto-label trusted cloud-agent PRs at open/reopen
 - `.github/workflows/codeql.yml` - code scanning signal generation
 - `.github/dependabot.yml` - dependency update PR generation
 - `.github/workflows/mend-renovate.yml` - Renovate dependency update pipeline (token-based)
@@ -144,4 +146,12 @@ Recommended repository variables:
 - `SONAR_PROJECT_KEY` - SonarCloud project key
 - `CURSOR_RUNTIME` - `local` (default) or `cloud` for SDK workflow routing
 - `CURSOR_CLOUD_REPO_URL` - repo URL for cloud runtime execution
+- `CURSOR_AUTO_FIX_ENABLED` - `true` to allow automatic cloud fix attempts from workflow triggers
+- `CURSOR_AUTO_FIX_LABEL` - PR label required for auto-fix (`cursor:auto-fix` by default)
+- `CURSOR_FIX_MODEL` - model ID used by the auto-fix workflow
+- `CURSOR_AUTO_FIX_EXCLUDED_AUTHORS` - comma-separated PR authors excluded from auto-fix source selection (`cursor[bot]` default)
+- `CURSOR_AGENT_PR_LABELS` - comma-separated labels applied to trusted agent-created PRs (`cursor:agent-generated` default)
+- `CURSOR_AGENT_TRUSTED_LOGINS` - comma-separated logins treated as trusted agent PR authors (`cursor[bot]` default)
+- `CURSOR_AGENT_BRANCH_PREFIXES` - comma-separated branch prefixes treated as trusted agent PR heads (`cursor/` default)
+- `CURSOR_AGENT_PR_LABELING_ENABLED` - set to `false` to disable open/reopen auto-labeling workflow
 

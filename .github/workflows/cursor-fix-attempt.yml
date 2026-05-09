@@ -1,0 +1,81 @@
+name: Cursor Auto Fix Attempt
+
+on:
+  issue_comment:
+    types:
+      - created
+      - edited
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number to target"
+        required: true
+        type: string
+      force_run:
+        description: "Allow manual run even if auto-fix flag is disabled"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  cursor-auto-fix:
+    if: >-
+      (github.event_name == 'issue_comment' &&
+      vars.CURSOR_AUTO_FIX_ENABLED == 'true' &&
+      github.event.issue.pull_request != null &&
+      contains(github.event.comment.body, '<!-- cursor-pr-review -->')) ||
+      github.event_name == 'workflow_dispatch'
+    concurrency:
+      group: cursor-auto-fix-${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.issue.number }}
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Configure ripgrep path for Cursor SDK
+        run: |
+          if ! command -v rg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ripgrep
+          fi
+          echo "CURSOR_RIPGREP_PATH=$(command -v rg)" >> "$GITHUB_ENV"
+
+      - name: Run Cursor auto-fix attempt
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.CURSOR_PR_REVIEW_TOKEN != '' && secrets.CURSOR_PR_REVIEW_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.issue.number }}
+          CURSOR_AUTO_FIX_ENABLED: ${{ vars.CURSOR_AUTO_FIX_ENABLED || 'false' }}
+          CURSOR_FORCE_AUTO_FIX: ${{ github.event_name == 'workflow_dispatch' && inputs.force_run || 'false' }}
+          CURSOR_AUTO_FIX_LABEL: ${{ vars.CURSOR_AUTO_FIX_LABEL || 'cursor:auto-fix' }}
+          CURSOR_FIX_MODEL: ${{ vars.CURSOR_FIX_MODEL || 'composer-2' }}
+          CURSOR_AGENT_PR_LABELS: ${{ vars.CURSOR_AGENT_PR_LABELS || 'cursor:agent-generated' }}
+          CURSOR_AUTO_FIX_EXCLUDED_AUTHORS: ${{ vars.CURSOR_AUTO_FIX_EXCLUDED_AUTHORS || 'cursor[bot]' }}
+          CURSOR_CLOUD_REPO_URL: ${{ vars.CURSOR_CLOUD_REPO_URL }}
+          CURSOR_CLOUD_SKIP_REVIEWER_REQUEST: ${{ vars.CURSOR_CLOUD_SKIP_REVIEWER_REQUEST || 'true' }}
+          CURSOR_ALLOW_COMMENT_FAILURE: "false"
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION != '' && vars.SONAR_ORGANIZATION || secrets.SONAR_ORGANIZATION }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY != '' && vars.SONAR_PROJECT_KEY || secrets.SONAR_PROJECT_KEY }}
+        run: pnpm --filter @rpgtracker/cursor-agents run fix-attempt

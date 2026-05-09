@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-05-09 (agentic operations hardening: skill validation + onboarding smoke checks + docs cull)
+Last updated: 2026-05-09 (agentic operations hardening: gated cloud auto-fix attempt loop)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -85,6 +85,7 @@ All Release 1 + Release 2 features through Phase 7.
 | F-053 | Repo skill library baseline                       | Docs/Ops | done   | Added `.cursor/skills/` structure, skill index, starter skills, plus `pnpm validate:skills` for index/file consistency enforcement.                                                      |
 | F-054 | Mend Renovate + SonarCloud onboarding starter     | Ops/CI   | done   | Added `renovate.json`, `mend-renovate.yml`, `sonarcloud.yml`, `sonar-project.properties`, onboarding guides, and one-click `quality-onboarding-smoke.yml`.                              |
 | F-055 | Docs folder cull (legacy agentic artifacts)       | Docs/Ops | done   | Removed legacy `docs/specs`, `docs/plans`, and `docs/sessions` artifacts; retained lean future-focused docs (`handbook`, PRD, setup, guides, archive note).                             |
+| F-056 | Gated Cursor cloud auto-fix attempt loop          | Ops/CI   | done   | Added `cursor-fix-attempt.yml` + `fix-attempt.ts` to react to Cursor PR review comments, ingest Sonar context, open fix-attempt PRs behind dual gates, and label new agent-generated PRs for policy-aware routing. |
 
 
 ---

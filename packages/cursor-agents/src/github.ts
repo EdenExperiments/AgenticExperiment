@@ -26,7 +26,14 @@ export interface PullRequestData {
   html_url: string;
   user: { login: string };
   base: { ref: string };
-  head: { ref: string; sha: string };
+  head: {
+    ref: string;
+    sha: string;
+    repo?: {
+      full_name?: string;
+      fork?: boolean;
+    };
+  };
 }
 
 export interface CodeScanningAlert {
@@ -156,14 +163,37 @@ export class GitHubClient {
   }
 
   async listIssueComments(issueNumber: number): Promise<Array<{ id: number; body: string }>> {
-    return this.getJson<Array<{ id: number; body: string }>>(
+    return this.getJson<
+      Array<{
+        id: number;
+        body: string;
+        created_at?: string;
+        updated_at?: string;
+        user?: { login?: string };
+      }>
+    >(
       `/repos/${this.owner}/${this.repo}/issues/${issueNumber}/comments?per_page=100`
+    );
+  }
+
+  async listIssueLabels(issueNumber: number): Promise<Array<{ name: string }>> {
+    return this.getJson<Array<{ name: string }>>(
+      `/repos/${this.owner}/${this.repo}/issues/${issueNumber}/labels?per_page=100`
     );
   }
 
   async createIssueComment(issueNumber: number, body: string): Promise<void> {
     await this.postJson(`/repos/${this.owner}/${this.repo}/issues/${issueNumber}/comments`, {
       body,
+    });
+  }
+
+  async addIssueLabels(issueNumber: number, labels: string[]): Promise<void> {
+    if (labels.length === 0) {
+      return;
+    }
+    await this.postJson(`/repos/${this.owner}/${this.repo}/issues/${issueNumber}/labels`, {
+      labels,
     });
   }
 
