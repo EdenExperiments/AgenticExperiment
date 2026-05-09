@@ -53,8 +53,7 @@ jobs:
       - name: Test JS workspaces
         env:
           NODE_OPTIONS: --max-old-space-size=4096
-          VITEST_POOL: forks
-        run: pnpm test -- --concurrency=1
+        run: pnpm test:ci
 
   go:
     name: Go test
