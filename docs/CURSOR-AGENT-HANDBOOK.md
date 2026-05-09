@@ -62,10 +62,11 @@ Pure visual composition work is validated by visual review and design-guide comp
 ### Recommended Variables
 
 - `CURSOR_RUNTIME`: `local` (default) or `cloud` for SDK workflow lane routing.
+- `CURSOR_CLOUD_OMIT_PR_URL`: set to `true` to stop sending `repos[].prUrl` to Cursor Cloud (keeps `url` + `startingRef` only). Try if cloud validation still fails with a SHA-style branch error; you lose automatic PR ↔ clone linkage on Cursor’s side until their API improves (`false` default).
 - `CURSOR_CLOUD_REPO_URL`: explicit repository URL for cloud runtime execution.
 - `CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH`: when `true`, cloud agents target the PR’s existing branch instead of only detached work (`false` default).
 - `CURSOR_CLOUD_AUTO_CREATE_PR`: when `false`, cloud agents do not open a separate fix PR—combine with `CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH=true` to push commits onto the source PR branch (`true` default).
-- `CURSOR_CLOUD_STARTING_REF`: optional branch short name for cloud `startingRef`. **Usually leave unset:** auto-fix passes `repos[].prUrl` so Cursor attaches to the PR. If GitHub returns `head.ref` as a 40-character commit SHA, the script sets `startingRef` using `head.label` or `GET …/commits/{sha}/branches-where-head`. Set only to override that with an explicit branch short name (never a commit SHA).
+- `CURSOR_CLOUD_STARTING_REF`: optional branch short name for cloud `startingRef`. **Usually leave unset:** auto-fix sets `startingRef` from GitHub `head.ref`, or resolves it when `head.ref` is a SHA (`head.label` / branches-where-head). Override only with an explicit branch short name (never a commit SHA).
 - `CURSOR_AUTO_FIX_ENABLED`: global on/off switch for auto-fix attempts.
 - `CURSOR_FIX_COMMENT_TRIGGERS`: comma-separated slash tokens that qualify an issue comment (default `/cursor-fix,/cursor-auto-fix`). Thread replies and quote replies are handled by the gate job without requiring this list to match every trigger style.
 - `CURSOR_AUTO_FIX_LABEL`: per-PR allow label for auto-fix attempts (`cursor:auto-fix` default).
