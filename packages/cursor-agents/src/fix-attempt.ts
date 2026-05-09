@@ -76,12 +76,15 @@ function looksLikeGitSha(value: string): boolean {
 }
 
 /**
- * Clone URL for cloud agents: default to the PR head repository when the PR comes from a
- * fork (`head.repo.full_name` differs from `GITHUB_REPOSITORY`). Cloning only the base
- * repo makes `head.ref` missing upstream; Cursor Cloud may then treat the head commit like a
- * branch name and fail with: Branch '<40-char-sha>' does not exist.
+ * Clone URL for cloud agents: when the PR head lives in another repo (fork), clone that
+ * repo (`head.repo.full_name` differs from `GITHUB_REPOSITORY`). Cloning only the base repo
+ * leaves `head.ref` missing there; Cursor Cloud may then fail validation (often surfacing a
+ * full SHA as if it were a branch): Branch '<40-char-sha>' does not exist.
  *
- * `CURSOR_CLOUD_REPO_URL` still wins when set (caller must point at the repo that contains the branch).
+ * Note: `main()` currently skips fork PRs (`head.repo.fork === true`). This stays useful if
+ * policy changes, and when `CURSOR_CLOUD_REPO_URL` must match the repo that actually holds the branch.
+ *
+ * `CURSOR_CLOUD_REPO_URL` overrides this when set (must be the repo where the PR branch exists).
  */
 function resolveCloudRepoUrlForPr(repository: string, pullRequest: PullRequestData): string {
   if (process.env.CURSOR_CLOUD_REPO_URL) {
@@ -703,6 +706,17 @@ async function main(): Promise<void> {
     const plan = extractAgentText(planningResult);
 
     const cloudGit = resolveCloudAgentGitBehavior();
+    appendStepSummary(
+      [
+        "### Cursor cloud git behavior",
+        "",
+        `- \`workOnCurrentBranch\`: **${cloudGit.workOnCurrentBranch}** (\`CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH\`)`,
+        `- \`autoCreatePR\`: **${cloudGit.autoCreatePR}** (\`CURSOR_CLOUD_AUTO_CREATE_PR\`)`,
+        "",
+        "Default opens a **new** PR for the fix. To push onto the **current** PR branch instead, set repo variables `CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH=true` and `CURSOR_CLOUD_AUTO_CREATE_PR=false`.",
+      ].join("\n")
+    );
+
     let cloudGitNotes = "";
     if (cloudGit.workOnCurrentBranch && !cloudGit.autoCreatePR) {
       cloudGitNotes = `Git / PR workflow:\n- Commit and push to the existing branch for PR #${prNumber}; do not open a separate pull request.`;
