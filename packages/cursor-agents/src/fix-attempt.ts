@@ -9,6 +9,8 @@ import {
 import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
 
 const REVIEW_MARKER = "<!-- cursor-pr-review -->";
+const REVIEW_SCHEMA_START = "<!-- cursor-pr-review-schema:v1 -->";
+const REVIEW_SCHEMA_END = "<!-- /cursor-pr-review-schema -->";
 const SECURITY_TRIAGE_MARKER = "<!-- cursor-security-triage -->";
 const FIX_MARKER = "<!-- cursor-fix-attempt -->";
 
@@ -39,6 +41,30 @@ interface SonarIssuesResponse {
   }>;
 }
 
+type ReviewSeverity = "critical" | "high" | "medium" | "low";
+type ReviewConfidence = "high" | "medium" | "low";
+type ReviewRisk = ReviewSeverity | "none";
+
+interface ReviewFinding {
+  id: string;
+  severity: ReviewSeverity;
+  confidence: ReviewConfidence;
+  category: string;
+  title: string;
+  summary: string;
+  location: string;
+  recommendation: string;
+  test_plan: string;
+}
+
+interface ReviewSchemaV1 {
+  schema_version: "1.0";
+  overall_risk: ReviewRisk;
+  findings: ReviewFinding[];
+  missing_tests: string[];
+  next_actions: string[];
+}
+
 function resolveCloudRepoUrl(repository: string): string {
   if (process.env.CURSOR_CLOUD_REPO_URL) {
     return process.env.CURSOR_CLOUD_REPO_URL;
@@ -66,6 +92,30 @@ function parseCsv(value: string | undefined): string[] {
     .map((entry) => entry.trim())
     .filter(Boolean);
   return [...new Set(labels)];
+}
+
+function severityScore(value: ReviewSeverity): number {
+  switch (value) {
+    case "critical":
+      return 4;
+    case "high":
+      return 3;
+    case "medium":
+      return 2;
+    default:
+      return 1;
+  }
+}
+
+function confidenceScore(value: ReviewConfidence): number {
+  switch (value) {
+    case "high":
+      return 3;
+    case "medium":
+      return 2;
+    default:
+      return 1;
+  }
 }
 
 function buildPatchContext(files: PullRequestFile[]): string {
@@ -146,6 +196,61 @@ function extractPullRequestNumberFromUrl(url: string): number | null {
   }
   const parsed = Number(match[1]);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function parseReviewSchemaFromComment(commentBody: string): ReviewSchemaV1 | null {
+  const markerRegex = new RegExp(
+    `${REVIEW_SCHEMA_START.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\\`\\\`\\\`json\\s*([\\s\\S]*?)\\s*\\\`\\\`\\\`\\s*${REVIEW_SCHEMA_END.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+    "i"
+  );
+  const match = commentBody.match(markerRegex);
+  if (!match?.[1]) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(match[1].trim()) as ReviewSchemaV1;
+    if (parsed.schema_version !== "1.0" || !Array.isArray(parsed.findings)) {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function summarizeStructuredReviewPriorities(schema: ReviewSchemaV1): string {
+  const ordered = [...schema.findings].sort((a, b) => {
+    const severityDiff = severityScore(b.severity) - severityScore(a.severity);
+    if (severityDiff !== 0) return severityDiff;
+    return confidenceScore(b.confidence) - confidenceScore(a.confidence);
+  });
+
+  const findings = ordered
+    .slice(0, 5)
+    .map(
+      (finding) =>
+        `- ${finding.id} [${finding.severity.toUpperCase()}][confidence=${finding.confidence}] ${finding.title} | location=${finding.location} | recommendation=${finding.recommendation}`
+    )
+    .join("\n");
+  const missingTests =
+    schema.missing_tests.length > 0
+      ? schema.missing_tests.map((item) => `- ${item}`).join("\n")
+      : "- none";
+  const nextActions =
+    schema.next_actions.length > 0
+      ? schema.next_actions.map((item) => `- ${item}`).join("\n")
+      : "- none";
+
+  return [
+    `overall_risk=${schema.overall_risk}`,
+    "prioritized_findings:",
+    findings || "- none",
+    "missing_tests:",
+    missingTests,
+    "next_actions:",
+    nextActions,
+  ].join("\n");
 }
 
 function isTestFile(filePath: string): boolean {
@@ -252,7 +357,7 @@ async function findLatestMarkedComment(
     return null;
   }
 
-  return truncate(latest.body, 12000);
+  return latest.body;
 }
 
 function buildPlanningPrompt(input: {
@@ -263,6 +368,7 @@ function buildPlanningPrompt(input: {
   headRef: string;
   patchContext: string;
   reviewComment: string;
+  structuredReviewPriorities: string;
   securityComment: string;
   sonarContext: string;
 }): string {
@@ -278,6 +384,9 @@ ${input.patchContext}
 
 Cursor PR review comment:
 ${input.reviewComment}
+
+Structured review priorities (parsed schema):
+${input.structuredReviewPriorities}
 
 Cursor security/dependency triage comment:
 ${input.securityComment}
@@ -304,6 +413,7 @@ function buildExecutionPrompt(input: {
   headRef: string;
   patchContext: string;
   reviewComment: string;
+  structuredReviewPriorities: string;
   securityComment: string;
   sonarContext: string;
   plan: string;
@@ -320,6 +430,9 @@ ${input.patchContext}
 
 Cursor PR review comment:
 ${input.reviewComment}
+
+Structured review priorities (parsed schema):
+${input.structuredReviewPriorities}
 
 Cursor security/dependency triage comment:
 ${input.securityComment}
@@ -368,6 +481,7 @@ async function main(): Promise<void> {
     process.env.CURSOR_AGENT_PR_LABELS ?? "cursor:agent-generated"
   );
   const requireTestChanges = process.env.CURSOR_REQUIRE_TEST_CHANGES !== "false";
+  const requireReviewSchema = process.env.CURSOR_REQUIRE_REVIEW_SCHEMA !== "false";
 
   const github = new GitHubClient({ token: githubToken, repository });
   const pullRequest = await github.getPullRequest(prNumber);
@@ -402,9 +516,19 @@ async function main(): Promise<void> {
     return;
   }
 
-  const reviewComment =
+  const fullReviewComment =
     (await findLatestMarkedComment(github, prNumber, REVIEW_MARKER, true)) ??
     "Review context unavailable.";
+  const parsedReviewSchema = parseReviewSchemaFromComment(fullReviewComment);
+  if (requireReviewSchema && !parsedReviewSchema) {
+    throw new Error(
+      `Cursor PR review schema payload missing or invalid. Expected markers ${REVIEW_SCHEMA_START} ... ${REVIEW_SCHEMA_END}.`
+    );
+  }
+  const structuredReviewPriorities = parsedReviewSchema
+    ? summarizeStructuredReviewPriorities(parsedReviewSchema)
+    : "Structured review schema unavailable; falling back to unstructured review text.";
+  const reviewComment = truncate(fullReviewComment, 12000);
   const securityComment =
     (await findLatestMarkedComment(github, prNumber, SECURITY_TRIAGE_MARKER)) ??
     "No security/dependency triage comment detected for this PR.";
@@ -420,6 +544,7 @@ async function main(): Promise<void> {
     headRef: pullRequest.head.ref,
     patchContext,
     reviewComment,
+    structuredReviewPriorities,
     securityComment,
     sonarContext,
   });
@@ -445,6 +570,7 @@ async function main(): Promise<void> {
       headRef: pullRequest.head.ref,
       patchContext,
       reviewComment,
+      structuredReviewPriorities,
       securityComment,
       sonarContext,
       plan,
@@ -465,7 +591,7 @@ async function main(): Promise<void> {
       },
     } as any);
 
-    const run = await (agent as any).send(prompt);
+    const run = await (agent as any).send(executionPrompt);
     const runId = typeof run?.id === "string" ? run.id : "unknown";
     const result = await run.wait();
 

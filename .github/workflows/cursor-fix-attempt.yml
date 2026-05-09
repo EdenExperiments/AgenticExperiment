@@ -72,6 +72,7 @@ jobs:
           CURSOR_FIX_PLANNER_MODEL: ${{ vars.CURSOR_FIX_PLANNER_MODEL || 'composer-2' }}
           CURSOR_FIX_EXECUTION_MODEL: ${{ vars.CURSOR_FIX_EXECUTION_MODEL || vars.CURSOR_FIX_MODEL || 'composer-2-fast' }}
           CURSOR_REQUIRE_TEST_CHANGES: ${{ vars.CURSOR_REQUIRE_TEST_CHANGES || 'true' }}
+          CURSOR_REQUIRE_REVIEW_SCHEMA: ${{ vars.CURSOR_REQUIRE_REVIEW_SCHEMA || 'true' }}
           CURSOR_AGENT_PR_LABELS: ${{ vars.CURSOR_AGENT_PR_LABELS || 'cursor:agent-generated' }}
           CURSOR_AUTO_FIX_EXCLUDED_AUTHORS: ${{ vars.CURSOR_AUTO_FIX_EXCLUDED_AUTHORS || 'cursor[bot]' }}
           CURSOR_CLOUD_REPO_URL: ${{ vars.CURSOR_CLOUD_REPO_URL }}

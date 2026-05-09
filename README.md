@@ -152,6 +152,7 @@ Recommended repository variables:
 - `CURSOR_FIX_EXECUTION_MODEL` - lower-cost model ID for implementation pass (default `composer-2-fast`)
 - `CURSOR_FIX_MODEL` - legacy fallback model variable for execution pass
 - `CURSOR_REQUIRE_TEST_CHANGES` - `true` to fail auto-fix attempts with code changes but no unit-test file changes
+- `CURSOR_REQUIRE_REVIEW_SCHEMA` - `true` to require machine-readable PR review payload before auto-fix planning
 - `CURSOR_AUTO_FIX_EXCLUDED_AUTHORS` - comma-separated PR authors excluded from auto-fix source selection (`cursor[bot]` default)
 - `CURSOR_AGENT_PR_LABELS` - comma-separated labels applied to trusted agent-created PRs (`cursor:agent-generated` default)
 - `CURSOR_AGENT_TRUSTED_LOGINS` - comma-separated logins treated as trusted agent PR authors (`cursor[bot]` default)

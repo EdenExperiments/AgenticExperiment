@@ -62,7 +62,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run JavaScript tests with coverage
-        run: pnpm test -- --coverage
+        run: pnpm test -- -- --coverage
 
       - name: Run Go tests with coverage
         run: cd apps/api && go test ./... -coverprofile=coverage.out -covermode=atomic

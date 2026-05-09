@@ -50,6 +50,7 @@ pnpm --filter @rpgtracker/cursor-agents run fix-attempt:cloud
 - `CURSOR_FIX_EXECUTION_MODEL`: lower-cost execution model for auto-fix implementation.
 - `CURSOR_FIX_MODEL`: legacy execution-model fallback.
 - `CURSOR_REQUIRE_TEST_CHANGES`: fail auto-fix runs when code changes lack unit-test file changes.
+- `CURSOR_REQUIRE_REVIEW_SCHEMA`: require structured PR review payload before auto-fix orchestration.
 - `CURSOR_CLOUD_SKIP_REVIEWER_REQUEST`: defaults to `true` unless explicitly set to `false`.
 
 ## Auto-fix gate policy (recommended)
@@ -82,6 +83,14 @@ Recommended variables:
 - Auto-fix flow enforces unit-test file changes when code files are edited.
 - Sonar workflow enforces PR new-code coverage threshold via `SONAR_MIN_NEW_COVERAGE` (default 80).
 - Keep SonarCloud quality gate configured with "Coverage on New Code >= 80%" for aligned UI and pipeline behavior.
+
+## Review schema contract
+
+- PR review automation now emits a machine-readable payload between:
+  - `<!-- cursor-pr-review-schema:v1 -->`
+  - `<!-- /cursor-pr-review-schema -->`
+- Payload includes normalized `overall_risk`, severity-ranked findings, confidence, location, recommendation, and test plan fields.
+- Auto-fix orchestration parses this payload and prioritizes fixes from structured data rather than free-form text.
 
 ## Safety notes
 

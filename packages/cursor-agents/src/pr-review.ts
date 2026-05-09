@@ -10,6 +10,32 @@ import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
 import { resolvePromptRuntimeOptions, resolveRuntimeMode } from "./runtime-options.js";
 
 const COMMENT_MARKER = "<!-- cursor-pr-review -->";
+const REVIEW_SCHEMA_START = "<!-- cursor-pr-review-schema:v1 -->";
+const REVIEW_SCHEMA_END = "<!-- /cursor-pr-review-schema -->";
+
+type ReviewSeverity = "critical" | "high" | "medium" | "low";
+type ReviewConfidence = "high" | "medium" | "low";
+type ReviewRisk = ReviewSeverity | "none";
+
+interface ReviewFinding {
+  id: string;
+  severity: ReviewSeverity;
+  confidence: ReviewConfidence;
+  category: string;
+  title: string;
+  summary: string;
+  location: string;
+  recommendation: string;
+  test_plan: string;
+}
+
+interface ReviewSchemaV1 {
+  schema_version: "1.0";
+  overall_risk: ReviewRisk;
+  findings: ReviewFinding[];
+  missing_tests: string[];
+  next_actions: string[];
+}
 
 function buildDiffContext(files: PullRequestFile[]): string {
   const changedFiles = files.slice(0, 20).map((file) => {
@@ -41,6 +67,124 @@ function extractAgentText(result: unknown): string {
   return JSON.stringify(result, null, 2);
 }
 
+function tryParseJsonObject(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
+function parseReviewSchema(text: string): ReviewSchemaV1 | null {
+  const fencedMatch = text.match(/```json\s*([\s\S]*?)```/i);
+  const markerRegex = new RegExp(
+    `${REVIEW_SCHEMA_START.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*([\\s\\S]*?)\\s*${REVIEW_SCHEMA_END.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
+    "i"
+  );
+  const markerMatch = text.match(markerRegex);
+  const jsonCandidate =
+    (markerMatch?.[1] ?? "").trim() ||
+    (fencedMatch?.[1] ?? "").trim() ||
+    text.trim();
+
+  const parsed = tryParseJsonObject(jsonCandidate);
+  if (!parsed || typeof parsed !== "object") {
+    return null;
+  }
+
+  return parsed as ReviewSchemaV1;
+}
+
+function validateReviewSchema(value: ReviewSchemaV1): string[] {
+  const errors: string[] = [];
+  if (value.schema_version !== "1.0") {
+    errors.push("schema_version must be '1.0'");
+  }
+
+  const validRisk = new Set<ReviewRisk>(["none", "low", "medium", "high", "critical"]);
+  if (!validRisk.has(value.overall_risk)) {
+    errors.push("overall_risk must be one of none|low|medium|high|critical");
+  }
+
+  if (!Array.isArray(value.findings)) {
+    errors.push("findings must be an array");
+  }
+  if (!Array.isArray(value.missing_tests)) {
+    errors.push("missing_tests must be an array");
+  }
+  if (!Array.isArray(value.next_actions)) {
+    errors.push("next_actions must be an array");
+  }
+
+  const validSeverity = new Set<ReviewSeverity>(["low", "medium", "high", "critical"]);
+  const validConfidence = new Set<ReviewConfidence>(["low", "medium", "high"]);
+  (value.findings ?? []).forEach((finding, index) => {
+    const context = `findings[${index}]`;
+    if (!finding.id || typeof finding.id !== "string") errors.push(`${context}.id missing`);
+    if (!validSeverity.has(finding.severity)) errors.push(`${context}.severity invalid`);
+    if (!validConfidence.has(finding.confidence)) errors.push(`${context}.confidence invalid`);
+    if (!finding.category || typeof finding.category !== "string") {
+      errors.push(`${context}.category missing`);
+    }
+    if (!finding.title || typeof finding.title !== "string") errors.push(`${context}.title missing`);
+    if (!finding.summary || typeof finding.summary !== "string") {
+      errors.push(`${context}.summary missing`);
+    }
+    if (!finding.location || typeof finding.location !== "string") {
+      errors.push(`${context}.location missing`);
+    }
+    if (!finding.recommendation || typeof finding.recommendation !== "string") {
+      errors.push(`${context}.recommendation missing`);
+    }
+    if (!finding.test_plan || typeof finding.test_plan !== "string") {
+      errors.push(`${context}.test_plan missing`);
+    }
+  });
+
+  return errors;
+}
+
+function renderReviewMarkdown(review: ReviewSchemaV1): string {
+  const findingsSection =
+    review.findings.length === 0
+      ? "- No high-confidence issues detected."
+      : review.findings
+          .map((finding) =>
+            [
+              `- [${finding.severity.toUpperCase()}][confidence=${finding.confidence}] ${finding.id} ${finding.title}`,
+              `  - Category: ${finding.category}`,
+              `  - Location: ${finding.location}`,
+              `  - Why it matters: ${finding.summary}`,
+              `  - Recommendation: ${finding.recommendation}`,
+              `  - Test plan: ${finding.test_plan}`,
+            ].join("\n")
+          )
+          .join("\n");
+
+  const missingTestsSection =
+    review.missing_tests.length === 0
+      ? "- No additional missing test gaps identified."
+      : review.missing_tests.map((item) => `- ${item}`).join("\n");
+
+  const nextActionsSection =
+    review.next_actions.length === 0
+      ? "- No follow-up actions required."
+      : review.next_actions.map((item) => `- ${item}`).join("\n");
+
+  return [
+    `Overall risk: **${review.overall_risk.toUpperCase()}**`,
+    "",
+    "### Prioritized findings",
+    findingsSection,
+    "",
+    "### Missing tests or validation risks",
+    missingTestsSection,
+    "",
+    "### Suggested next actions",
+    nextActionsSection,
+  ].join("\n");
+}
+
 function extractRunDiagnostics(result: unknown): string {
   if (!result || typeof result !== "object") {
     return String(result);
@@ -64,7 +208,7 @@ async function requestReviewWithFallback(
   prompt: string,
   apiKey: string,
   runtimeOptions: Record<string, unknown>
-): Promise<{ review: string; modelUsed: string; rawStatus: string }> {
+): Promise<{ review: ReviewSchemaV1; modelUsed: string; rawStatus: string }> {
   const { Agent } = await import("@cursor/sdk");
   const models = (process.env.CURSOR_REVIEW_MODELS ?? "composer-2,composer-2-fast")
     .split(",")
@@ -80,11 +224,25 @@ async function requestReviewWithFallback(
     } as any);
 
     const status = (result as { status?: string }).status ?? "unknown";
-    if (status === "finished") {
-      return { review: extractAgentText(result), modelUsed: modelId, rawStatus: status };
+    if (status !== "finished") {
+      attemptDiagnostics.push(`[${modelId}] ${extractRunDiagnostics(result)}`);
+      continue;
     }
 
-    attemptDiagnostics.push(`[${modelId}] ${extractRunDiagnostics(result)}`);
+    const reviewText = extractAgentText(result);
+    const parsedReview = parseReviewSchema(reviewText);
+    if (!parsedReview) {
+      attemptDiagnostics.push(`[${modelId}] invalid schema: unable to parse JSON payload`);
+      continue;
+    }
+
+    const schemaErrors = validateReviewSchema(parsedReview);
+    if (schemaErrors.length > 0) {
+      attemptDiagnostics.push(`[${modelId}] invalid schema: ${schemaErrors.join("; ")}`);
+      continue;
+    }
+
+    return { review: parsedReview, modelUsed: modelId, rawStatus: status };
   }
 
   throw new Error(
@@ -123,13 +281,32 @@ Changed files count: ${files.length}
 Changed files and partial patches:
 ${diffContext}
 
-Return a concise markdown review with these sections:
-1) High-risk findings (bugs, regressions, security risks)
-2) Medium-risk findings
-3) Missing tests or validation risks
-4) Suggested next actions
+Return ONLY valid JSON matching this exact schema:
+{
+  "schema_version": "1.0",
+  "overall_risk": "none|low|medium|high|critical",
+  "findings": [
+    {
+      "id": "R-001",
+      "severity": "low|medium|high|critical",
+      "confidence": "low|medium|high",
+      "category": "security|correctness|regression|performance|maintainability|testing|other",
+      "title": "short issue title",
+      "summary": "why this matters",
+      "location": "file path or component scope",
+      "recommendation": "specific fix guidance",
+      "test_plan": "specific test or validation needed"
+    }
+  ],
+  "missing_tests": ["..."],
+  "next_actions": ["..."]
+}
 
-If no major issues are found, state that clearly and still include test/verification gaps.
+Constraints:
+- Sort findings by severity descending then confidence descending.
+- Use stable IDs R-001, R-002, ...
+- If no actionable issues, return findings as [] and overall_risk as "none".
+- Do not return markdown, commentary, or code fences.
 `;
 
   const { CursorAgentError } = await import("@cursor/sdk");
@@ -143,10 +320,18 @@ If no major issues are found, state that clearly and still include test/verifica
     console.log(
       `Cursor PR review completed with runtime=${runtimeMode}, model=${modelUsed}, status=${rawStatus}`
     );
+    const markdownReview = renderReviewMarkdown(review);
     const body = `${COMMENT_MARKER}
 ## Cursor PR Review
 
-${review}
+${markdownReview}
+
+### Structured review payload
+${REVIEW_SCHEMA_START}
+\`\`\`json
+${JSON.stringify(review, null, 2)}
+\`\`\`
+${REVIEW_SCHEMA_END}
 
 _Generated by Cursor SDK workflow (cursor-pr-review.yml)._`;
 

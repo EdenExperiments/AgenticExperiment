@@ -69,6 +69,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 - `CURSOR_FIX_EXECUTION_MODEL`: model ID for implementation pass (prefer cheaper default).
 - `CURSOR_FIX_MODEL`: legacy fallback model variable for implementation pass.
 - `CURSOR_REQUIRE_TEST_CHANGES`: fail auto-fix attempts if code changes do not include unit-test file changes.
+- `CURSOR_REQUIRE_REVIEW_SCHEMA`: require machine-readable PR review payload before auto-fix planning.
 - `CURSOR_AUTO_FIX_EXCLUDED_AUTHORS`: PR authors excluded from auto-fix source selection.
 - `CURSOR_AGENT_PR_LABELS`: labels applied to trusted agent-created PRs.
 - `CURSOR_AGENT_TRUSTED_LOGINS`: trusted PR author logins for auto-labeling.
@@ -93,6 +94,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 - For auto-fix flows, require both a global flag and an explicit PR allow label.
 - For cloud-created PRs, apply labels automatically on open so policy checks can evaluate immediately.
 - Use planner and executor model split for remediation loops to control cost while retaining planning quality.
+- Keep reviewer output machine-readable (schema payload) so prioritization and fix routing can consume deterministic severity and confidence fields.
 - Keep generated comments concise and actionable; avoid noisy duplicate comments by updating marker comments.
 
 ## Operating Split
