@@ -71,9 +71,31 @@ interface ReviewSchemaV1 {
   next_actions: string[];
 }
 
-function resolveCloudRepoUrl(repository: string): string {
+function looksLikeGitSha(value: string): boolean {
+  return /^[0-9a-f]{40}$/i.test(value.trim());
+}
+
+/**
+ * Clone URL for cloud agents: default to the PR head repository when the PR comes from a
+ * fork (`head.repo.full_name` differs from `GITHUB_REPOSITORY`). Cloning only the base
+ * repo makes `head.ref` missing upstream; Cursor Cloud may then treat the head commit like a
+ * branch name and fail with: Branch '<40-char-sha>' does not exist.
+ *
+ * `CURSOR_CLOUD_REPO_URL` still wins when set (caller must point at the repo that contains the branch).
+ */
+function resolveCloudRepoUrlForPr(repository: string, pullRequest: PullRequestData): string {
   if (process.env.CURSOR_CLOUD_REPO_URL) {
     return process.env.CURSOR_CLOUD_REPO_URL;
+  }
+  const headRepo = pullRequest.head.repo;
+  if (
+    headRepo?.full_name &&
+    headRepo.full_name.toLowerCase() !== repository.toLowerCase()
+  ) {
+    if (headRepo.clone_url) {
+      return headRepo.clone_url;
+    }
+    return `https://github.com/${headRepo.full_name}.git`;
   }
   return `https://github.com/${repository}.git`;
 }
@@ -85,7 +107,7 @@ function resolveCloudRepoUrl(repository: string): string {
  * and `startingRef` are present — producing validation_error Branch '<40-char-sha>' does not exist.
  */
 function resolveCloudRepoSpec(repository: string, pullRequest: PullRequestData) {
-  const url = resolveCloudRepoUrl(repository);
+  const url = resolveCloudRepoUrlForPr(repository, pullRequest);
   const entry: { url: string; prUrl: string; startingRef?: string } = {
     url,
     prUrl: pullRequest.html_url,
@@ -97,7 +119,7 @@ function resolveCloudRepoSpec(repository: string, pullRequest: PullRequestData) 
   }
 
   const normalized = envRef.replace(/^refs\/heads\//, "").trim();
-  if (/^[0-9a-f]{40}$/i.test(normalized)) {
+  if (looksLikeGitSha(normalized)) {
     return entry;
   }
 

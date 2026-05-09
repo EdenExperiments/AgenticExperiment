@@ -32,6 +32,7 @@ export interface PullRequestData {
     repo?: {
       full_name?: string;
       fork?: boolean;
+      clone_url?: string;
     };
   };
 }
