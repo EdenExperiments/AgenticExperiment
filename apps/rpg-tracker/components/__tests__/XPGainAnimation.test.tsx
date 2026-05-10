@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { XPGainAnimation } from '../XPGainAnimation'
 
-// Mock framer-motion to render children directly
-vi.mock('framer-motion', () => ({
+// Mock Motion for React to render children directly
+vi.mock('motion/react', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   motion: {
     div: ({ children, ...props }: Record<string, unknown> & { children: React.ReactNode }) => (

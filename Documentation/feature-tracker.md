@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-05-10 (daily quality digest, Sonar schedule, PR review calibration)
+Last updated: 2026-05-10 (safe Renovate dependency refresh)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -89,6 +89,7 @@ All Release 1 + Release 2 features through Phase 7.
 | F-057 | Model-routed remediation + test/coverage enforcement | Ops/CI | done | Auto-fix now uses planner/executor model split with unit-test-change enforcement, and Sonar PR workflow now enforces minimum new-code coverage (default 80). |
 | F-058 | Structured reviewer schema contract | Ops/CI | done | `cursor-pr-review` now emits schema-tagged machine-readable findings with severity/confidence fields and normalized IDs. `fix-attempt` now requires and parses this payload for deterministic priority routing. |
 | F-059 | Scheduled scans + daily AI digest + fix/review signal merge | Ops/CI | done | `sonarcloud.yml` gains nightly main-branch scan; `mend-renovate.yml` adds weekly schedule; `cursor-daily-quality-digest.yml` runs `daily-quality-digest.ts` (Sonar branch issues + open dependency-bot PRs → Cursor summary; optional upsert to `CURSOR_DAILY_DIGEST_ISSUE_NUMBER`). PR review prefers cheaper models first, caps findings (`CURSOR_REVIEW_MAX_FINDINGS`), and adds precision prompts. Auto-fix enriches Sonar PR context (measures + configurable severities), injects deterministic merged agent/Sonar brief, and routes planner through `CURSOR_RUNTIME` cloud repo wiring via `resolveFixPlannerPromptOptions`. |
+| F-060 | Safe Renovate dependency refresh | Ops/CI | done | Applied compatible Renovate updates across npm, Go modules, and GitHub Actions after checking app impact. Deferred unsupported/high-risk majors (Node 24, pnpm 11, TypeScript 6, Vitest 4, jsdom 29, Vite React plugin 6) for explicit migration work. |
 
 
 ---

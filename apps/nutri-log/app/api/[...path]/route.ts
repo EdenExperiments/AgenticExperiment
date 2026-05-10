@@ -4,7 +4,8 @@ import { createSupabaseServerClient } from '@rpgtracker/auth/server'
 const GO_API_URL = process.env.GO_API_URL ?? 'http://localhost:8080'
 
 async function proxy(request: NextRequest, path: string): Promise<Response> {
-  const supabase = await createSupabaseServerClient()
+  const responseHeaders = new Headers()
+  const supabase = await createSupabaseServerClient(responseHeaders)
   const { data: { session } } = await supabase.auth.getSession()
 
   const url = `${GO_API_URL}/api/v1/${path}${request.nextUrl.search}`
@@ -22,9 +23,10 @@ async function proxy(request: NextRequest, path: string): Promise<Response> {
   })
 
   const data = await response.text()
+  responseHeaders.set('Content-Type', 'application/json')
   return new Response(data, {
     status: response.status,
-    headers: { 'Content-Type': 'application/json' },
+    headers: responseHeaders,
   })
 }
 

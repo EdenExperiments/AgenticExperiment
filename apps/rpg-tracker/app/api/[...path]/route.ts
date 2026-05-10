@@ -9,7 +9,8 @@ const NO_BODY_METHODS = new Set(['GET', 'HEAD', 'DELETE', 'OPTIONS'])
 const NULL_BODY_STATUSES = new Set([101, 204, 205, 304])
 
 async function proxy(request: NextRequest, path: string): Promise<Response> {
-  const supabase = await createSupabaseServerClient()
+  const responseHeaders = new Headers()
+  const supabase = await createSupabaseServerClient(responseHeaders)
   const { data: { session } } = await supabase.auth.getSession()
 
   const url = `${GO_API_URL}/api/${path}${request.nextUrl.search}`
@@ -36,10 +37,9 @@ async function proxy(request: NextRequest, path: string): Promise<Response> {
     body: hasBody ? await request.text() : undefined,
   })
 
-  // Preserve upstream response headers verbatim; pass through Content-Type,
-  // Cache-Control, X-Request-Id, etc. without overriding them.
+  // Preserve upstream response headers while keeping any Supabase auth
+  // cache-control headers set during session refresh.
   // Strip hop-by-hop headers that must not be forwarded to clients.
-  const responseHeaders = new Headers()
   response.headers.forEach((value, key) => {
     const lower = key.toLowerCase()
     if (
@@ -54,7 +54,9 @@ async function proxy(request: NextRequest, path: string): Promise<Response> {
     ) {
       return
     }
-    responseHeaders.set(key, value)
+    if (!responseHeaders.has(key)) {
+      responseHeaders.set(key, value)
+    }
   })
 
   // Null-body statuses (204, 205, 304) must not carry a response body.

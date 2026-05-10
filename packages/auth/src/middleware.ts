@@ -4,6 +4,7 @@ import { type Theme } from '@rpgtracker/ui'
 import { getSupabaseUrl, getSupabasePublishableKey } from './env'
 
 type CookieToSet = Parameters<NonNullable<CookieMethodsServer['setAll']>>[0][number]
+type HeadersToSet = Parameters<NonNullable<CookieMethodsServer['setAll']>>[1]
 
 interface MiddlewareOptions {
   /** Routes that are public (no auth redirect). Default: /login, /register */
@@ -29,9 +30,12 @@ export function createAuthMiddleware(options: MiddlewareOptions) {
       {
         cookies: {
           getAll() { return request.cookies.getAll() },
-          setAll(cookiesToSet: CookieToSet[]) {
+          setAll(cookiesToSet: CookieToSet[], headers: HeadersToSet) {
             cookiesToSet.forEach(({ name, value, options }) => {
               response.cookies.set(name, value, options)
+            })
+            Object.entries(headers).forEach(([name, value]) => {
+              response.headers.set(name, value)
             })
           },
         },

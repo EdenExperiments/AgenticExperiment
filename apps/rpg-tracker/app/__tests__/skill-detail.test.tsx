@@ -27,7 +27,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
 }))
 
-// Mock XPGainAnimation to avoid framer-motion import issues
+// Mock XPGainAnimation to avoid Motion import issues
 vi.mock('@/components/XPGainAnimation', () => ({
   XPGainAnimation: () => null,
 }))
