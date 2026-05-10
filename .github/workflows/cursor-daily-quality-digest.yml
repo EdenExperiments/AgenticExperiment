@@ -1,14 +1,10 @@
-name: Cursor PR Review
+name: Cursor Daily Quality Digest
 
 on:
-  pull_request:
-    branches:
-      - main
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
+  schedule:
+    # After Sonar nightly (`sonarcloud.yml` ~06:15 UTC) so branch metrics exist for digest prompts.
+    - cron: "35 7 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -16,8 +12,7 @@ permissions:
   pull-requests: read
 
 jobs:
-  cursor-pr-review:
-    if: github.event.pull_request.draft == false
+  digest:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -45,15 +40,18 @@ jobs:
           fi
           echo "CURSOR_RIPGREP_PATH=$(command -v rg)" >> "$GITHUB_ENV"
 
-      - name: Run Cursor PR review agent
+      - name: Run daily Sonar + dependency-queue digest
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.CURSOR_PR_REVIEW_TOKEN != '' && secrets.CURSOR_PR_REVIEW_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
           CURSOR_RUNTIME: ${{ vars.CURSOR_RUNTIME || 'local' }}
           CURSOR_CLOUD_REPO_URL: ${{ vars.CURSOR_CLOUD_REPO_URL }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY != '' && vars.SONAR_PROJECT_KEY || secrets.SONAR_PROJECT_KEY }}
+          SONAR_BRANCH: ${{ vars.SONAR_BRANCH || 'main' }}
+          CURSOR_DAILY_DIGEST_ISSUE_NUMBER: ${{ vars.CURSOR_DAILY_DIGEST_ISSUE_NUMBER }}
+          CURSOR_DAILY_DIGEST_MODEL: ${{ vars.CURSOR_DAILY_DIGEST_MODEL }}
+          CURSOR_DAILY_DIGEST_TOP_ISSUES: ${{ vars.CURSOR_DAILY_DIGEST_TOP_ISSUES }}
           CURSOR_ALLOW_COMMENT_FAILURE: "false"
-          CURSOR_REVIEW_MAX_FINDINGS: ${{ vars.CURSOR_REVIEW_MAX_FINDINGS }}
-          CURSOR_REVIEW_MODELS: ${{ vars.CURSOR_REVIEW_MODELS }}
-        run: pnpm --filter @rpgtracker/cursor-agents run pr-review
+        run: pnpm --filter @rpgtracker/cursor-agents run daily-quality-digest

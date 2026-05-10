@@ -178,6 +178,22 @@ export class GitHubClient {
     );
   }
 
+  async listOpenPullRequests(perPage = 25): Promise<
+    Array<{
+      number: number;
+      title: string;
+      html_url: string;
+      user: { login: string };
+      head: { ref: string };
+      updated_at?: string;
+    }>
+  > {
+    const safe = Math.min(Math.max(perPage, 1), 100);
+    return this.getJson(
+      `/repos/${this.owner}/${this.repo}/pulls?state=open&sort=updated&direction=desc&per_page=${safe}`
+    );
+  }
+
   /**
    * Branch names where `commitSha` is currently HEAD (REST:
    * GET /repos/.../commits/{sha}/branches-where-head).

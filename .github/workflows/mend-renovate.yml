@@ -4,6 +4,8 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 6 * * 1-5"
+    # Weekly catch-up when weekday-only runs miss long-lived branches.
+    - cron: "0 7 * * 0"
 
 permissions:
   contents: read
