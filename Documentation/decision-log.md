@@ -1,6 +1,6 @@
 # Decision Log
 
-Last updated: 2026-05-10 (D-051 added: auto-fix cloud startup must use branch refs)
+Last updated: 2026-05-10 (D-052 added: Renovate workflow pins concrete action releases)
 
 ## How To Read This Log
 
@@ -22,7 +22,7 @@ Last updated: 2026-05-10 (D-051 added: auto-fix cloud startup must use branch re
 | D-033 to D-034 | Progression/logging revisions: gate auto-clear for high starting levels, time-primary quick logging superseding XP-chip-first model.                                    |
 | D-035 to D-037 | Product direction locked: three-theme system, split UI-vs-logic delivery pipeline, hub architecture across apps.                                                        |
 | D-041 to D-043 | Experience refinements locked: single primary-skill pin, avatar storage strategy, Clean/Stylish visual fidelity model.                                                  |
-| D-044 to D-051 | Cursor-first operational model extended with local/cloud routing baseline, repo-managed skills structure, quality onboarding pipelines, a lean docs baseline, dual-gated auto-fix policy, model-routed remediation with PR coverage enforcement, structured reviewer schema contract, auto-fix triggers that recognize threaded replies plus scanner-coordinated waits before planning, and branch-ref preservation for cloud auto-fix startup. |
+| D-044 to D-052 | Cursor-first operational model extended with local/cloud routing baseline, repo-managed skills structure, quality onboarding pipelines, a lean docs baseline, dual-gated auto-fix policy, model-routed remediation with PR coverage enforcement, structured reviewer schema contract, auto-fix triggers that recognize threaded replies plus scanner-coordinated waits before planning, branch-ref preservation for cloud auto-fix startup, and concrete Renovate action release pinning. |
 
 
 ### UX, Theme, And Workflow Index (D-017+)
@@ -52,6 +52,7 @@ Last updated: 2026-05-10 (D-051 added: auto-fix cloud startup must use branch re
 | D-049 | PR reviewer output is schema-driven with severity/confidence fields.            | Enable deterministic fix prioritization and parsing.         |
 | D-050 | Auto-fix triggers may use slash commands, quote replies, or threaded replies to the Cursor PR Review comment; merge gates remain scanner/CI driven. | Preserve humane triggers while keeping deterministic Sonar/CodeQL context before automated remediation planning. |
 | D-051 | Auto-fix cloud startup must preserve the PR head branch ref instead of operating from a detached SHA checkout. | Cursor Cloud branch validation rejects commit SHAs as branch names; the workflow must checkout `refs/heads/<head.ref>` and pass that branch as `CURSOR_CLOUD_STARTING_REF` / `startingRef`. |
+| D-052 | Renovate workflow pins concrete action releases. | Renovate's GitHub Action does not publish moving major refs such as `v43`, so workflow runs must use a fully qualified release tag. |
 
 
 ## Confirmed Decisions (Full Detail)
@@ -112,6 +113,7 @@ Last updated: 2026-05-10 (D-051 added: auto-fix cloud startup must use branch re
 | 2026-05-09 | D-048 | **Model-routed remediation policy with enforced unit-test and PR coverage gates.** Auto-fix orchestration uses two model lanes: planner (`CURSOR_FIX_PLANNER_MODEL`, default `composer-2`) and execution (`CURSOR_FIX_EXECUTION_MODEL`, default `composer-2-fast`, with legacy `CURSOR_FIX_MODEL` fallback). Auto-fix attempts fail policy when code files are changed without unit-test file changes (`CURSOR_REQUIRE_TEST_CHANGES=true` default). SonarCloud PR workflow enforces minimum new-code coverage via `SONAR_MIN_NEW_COVERAGE` (default 80) after scan. | Preserves higher-quality planning where ambiguity is highest while controlling execution cost. Converts "tests should be added" and "80% PR coverage" from guidance into explicit enforceable CI policy. |
 | 2026-05-09 | D-049 | **Structured reviewer schema is mandatory for auto-fix routing.** `cursor-pr-review` emits a machine-readable payload (`cursor-pr-review-schema:v1`) with normalized findings (`id`, `severity`, `confidence`, `category`, `location`, `recommendation`, `test_plan`) and `overall_risk`. `cursor-fix-attempt` parses this payload, prioritizes by severity/confidence, and by default fails if schema is missing (`CURSOR_REQUIRE_REVIEW_SCHEMA=true`). | Eliminates ambiguous free-form review parsing, improves deterministic prioritization, and gives auto-fix orchestration explicit high-signal inputs rather than relying on markdown heuristics. |
 | 2026-05-10 | D-051 | **Auto-fix cloud startup uses branch refs, never detached commit SHAs.** `cursor-fix-attempt.yml` resolves the target PR, checks out `refs/heads/<pr.head.ref>`, and passes the same branch via `CURSOR_CLOUD_STARTING_REF`; `fix-attempt.ts` still refuses SHA-style `startingRef` values and can resolve branch names from GitHub PR metadata if needed. | The Cursor SDK / Cloud validation path can treat the local detached checkout or PR metadata as a branch field. A detached SHA checkout caused startup failure (`Branch '<sha>' does not exist`), so the workflow must keep both local git state and cloud `startingRef` anchored to the PR branch name. |
+| 2026-05-10 | D-052 | **Renovate workflow pins concrete action releases.** `.github/workflows/mend-renovate.yml` uses a fully qualified `renovatebot/github-action` release tag instead of a moving major tag. | The upstream Renovate GitHub Action publishes tags such as `v46.1.13` but not major-only refs such as `v43`; pinning a concrete release prevents GitHub Actions from failing during action resolution. |
 
 
 ## Implementation Assumptions
@@ -138,4 +140,4 @@ Last updated: 2026-05-10 (D-051 added: auto-fix cloud startup must use branch re
 
 ## Open Questions
 
-None. All open questions from the initial pass have been resolved as confirmed decisions (D-010, D-011, D-012) or implementation assumptions (A-001, now superseded by D-015). D-013 is resolved by D-014. D-017 through D-022 were added during UX refinement. D-033 and D-034 were added during progression/logging refinement. D-035–D-037 and D-041–D-043 were added during design-direction consolidation. D-044 through D-051 capture Cursor-first operations, quality onboarding baseline, docs cull decisions, dual-gated auto-fix policy, model-routed remediation with coverage enforcement, structured reviewer schema contract, auto-fix trigger/scanner coordination, and branch-ref startup handling.
+None. All open questions from the initial pass have been resolved as confirmed decisions (D-010, D-011, D-012) or implementation assumptions (A-001, now superseded by D-015). D-013 is resolved by D-014. D-017 through D-022 were added during UX refinement. D-033 and D-034 were added during progression/logging refinement. D-035-D-037 and D-041-D-043 were added during design-direction consolidation. D-044 through D-052 capture Cursor-first operations, quality onboarding baseline, docs cull decisions, dual-gated auto-fix policy, model-routed remediation with coverage enforcement, structured reviewer schema contract, auto-fix trigger/scanner coordination, branch-ref startup handling, and Renovate action pinning.

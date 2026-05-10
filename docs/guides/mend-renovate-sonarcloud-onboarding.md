@@ -18,6 +18,7 @@ This guide captures the first-pass setup in this repo for dependency and code-qu
 - `dependencyDashboard` is enabled for triage visibility.
 - `automerge` remains disabled by default.
 - NPM, Go modules, and GitHub Actions updates are included.
+- The workflow pins `renovatebot/github-action` to a concrete version tag; upstream does not publish moving major tags such as `v43`.
 - If you run Renovate via Mend-hosted app only, keep `renovate.json` and disable/remove the workflow.
 
 ## 2) SonarCloud onboarding
