@@ -19,40 +19,252 @@ on:
 
 permissions:
   contents: read
-  issues: write
-  pull-requests: read
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.decide.outputs.proceed }}
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - name: Decide whether to run auto-fix
+        id: decide
+        uses: actions/github-script@v7
+        env:
+          CURSOR_AUTO_FIX_ENABLED: ${{ vars.CURSOR_AUTO_FIX_ENABLED }}
+          CURSOR_FIX_COMMENT_TRIGGERS: ${{ vars.CURSOR_FIX_COMMENT_TRIGGERS }}
+        with:
+          script: |
+            const enabled = (process.env.CURSOR_AUTO_FIX_ENABLED || '') === 'true';
+
+            if (context.eventName === 'workflow_dispatch') {
+              const inputs = context.payload.inputs || {};
+              const forceRun =
+                inputs.force_run === true ||
+                inputs.force_run === 'true';
+              if (enabled || forceRun) {
+                core.setOutput('proceed', 'true');
+                core.notice(
+                  `workflow_dispatch: proceeding (enabled=${enabled}, force_run=${forceRun}).`
+                );
+              } else {
+                core.setOutput('proceed', 'false');
+                core.notice(
+                  'workflow_dispatch skipped: set CURSOR_AUTO_FIX_ENABLED=true or run with force_run.'
+                );
+              }
+              return;
+            }
+
+            if (context.eventName !== 'issue_comment') {
+              core.setOutput('proceed', 'false');
+              return;
+            }
+
+            if (!enabled) {
+              core.setOutput('proceed', 'false');
+              core.notice('CURSOR_AUTO_FIX_ENABLED is not true; skipping auto-fix.');
+              return;
+            }
+
+            const issue = context.payload.issue;
+            if (!issue?.pull_request) {
+              core.setOutput('proceed', 'false');
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const body = context.payload.comment.body || '';
+            const reviewMarker = '<!-- cursor-pr-review -->';
+
+            const triggers = (process.env.CURSOR_FIX_COMMENT_TRIGGERS || '/cursor-fix,/cursor-auto-fix')
+              .split(',')
+              .map((entry) => entry.trim())
+              .filter(Boolean);
+
+            const normalizeTriggerLine = (line) => {
+              let t = line.trim().replace(/\*+/g, '').replace(/`/g, '');
+              while (t.startsWith('>')) {
+                t = t.slice(1).trim();
+              }
+              return t
+                .replace(/^[-*•]\s+/, '')
+                .replace(/^\d+\.\s+/, '')
+                .trim();
+            };
+
+            const lineMatchesSlashTrigger = (line) => {
+              const normalized = normalizeTriggerLine(line);
+              return triggers.some((trigger) => {
+                const low = normalized.toLowerCase();
+                const tr = trigger.toLowerCase();
+                return low === tr || low.startsWith(tr + ' ');
+              });
+            };
+
+            const bodyHasSlashTrigger = () => {
+              const lines = body.split(/\r?\n/);
+              if (lines.some((line) => lineMatchesSlashTrigger(line))) {
+                return true;
+              }
+              for (const trigger of triggers) {
+                const escaped = trigger.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const re = new RegExp(`(^|\\n)[ \\t]*>?[ \\t]*${escaped}(\\b|[ \\t]|$)`, 'i');
+                if (re.test(body)) {
+                  return true;
+                }
+              }
+              return false;
+            };
+
+            const bodyHasLooseSlashTrigger = () => {
+              const stripped = body.replace(/`/g, '');
+              return triggers.some((t) => {
+                const escaped = t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                return new RegExp(`${escaped}\\b`, 'i').test(stripped);
+              });
+            };
+
+            const login = context.payload.comment.user?.login || '';
+            const userTypeRaw = context.payload.comment.user?.type || '';
+            const actorIsBot =
+              userTypeRaw.toLowerCase() === 'bot' || /\[bot\]$/i.test(login);
+
+            if (bodyHasSlashTrigger() || bodyHasLooseSlashTrigger()) {
+              core.setOutput('proceed', 'true');
+              core.notice('Auto-fix trigger matched (/cursor-fix or /cursor-auto-fix).');
+              return;
+            }
+
+            // Bot-authored comments often contain the marker (Cursor PR Review updates on each push).
+            // Marker-only must NOT qualify — humans quote-reply have user.type === 'User'.
+            if (body.includes(reviewMarker) && !actorIsBot) {
+              core.setOutput('proceed', 'true');
+              core.notice(
+                'Auto-fix trigger matched (quoted Cursor PR Review marker in a human comment).'
+              );
+              return;
+            }
+
+            if (body.includes(reviewMarker) && actorIsBot) {
+              core.notice(
+                'Skipping marker-only match on a bot comment (avoids firing when review/Sonar bots edit their PR comments).'
+              );
+            }
+
+            const maxDepth = 15;
+            const { data: startComment } = await github.rest.issues.getComment({
+              owner,
+              repo,
+              comment_id: context.payload.comment.id,
+            });
+
+            let parentId = startComment.in_reply_to_id;
+            for (let depth = 0; depth < maxDepth && parentId; depth += 1) {
+              const { data: comment } = await github.rest.issues.getComment({
+                owner,
+                repo,
+                comment_id: parentId,
+              });
+
+              if (comment.body && comment.body.includes(reviewMarker)) {
+                core.setOutput('proceed', 'true');
+                core.notice(
+                  `Auto-fix trigger matched (review marker found upstream in reply thread, depth=${depth}).`
+                );
+                return;
+              }
+
+              parentId = comment.in_reply_to_id ?? null;
+            }
+
+            core.setOutput('proceed', 'false');
+            core.notice(
+              `Auto-fix gate skipped: login=${login} type=${userTypeRaw} slashStrict=${bodyHasSlashTrigger()} slashLoose=${bodyHasLooseSlashTrigger()} markerInBody=${body.includes(
+                reviewMarker
+              )} actorIsBot=${actorIsBot} (need /cursor-fix, human quote with marker, or reply thread under review)`
+            );
+
   cursor-auto-fix:
-    if: >-
-      (github.event_name == 'issue_comment' &&
-      vars.CURSOR_AUTO_FIX_ENABLED == 'true' &&
-      github.event.issue.pull_request != null &&
-      contains(github.event.comment.body, '<!-- cursor-pr-review -->')) ||
-      github.event_name == 'workflow_dispatch'
+    needs: gate
+    if: needs.gate.outputs.proceed == 'true'
     concurrency:
-      group: cursor-auto-fix-${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.issue.number }}
+      group: cursor-auto-fix-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number || github.event.issue.number }}
       cancel-in-progress: true
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: read
+      issues: write
+      pull-requests: read
     steps:
-      - name: Check out repository
+      - name: Resolve PR head ref
+        id: pr_head
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number || github.event.issue.number }}
+        with:
+          script: |
+            const prNumber = Number(process.env.PR_NUMBER);
+            if (!Number.isFinite(prNumber) || prNumber <= 0) {
+              core.setFailed(`Invalid PR_NUMBER: ${process.env.PR_NUMBER}`);
+              return;
+            }
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            core.setOutput('sha', pr.head.sha);
+            core.setOutput('ref', pr.head.ref);
+            core.setOutput('is_fork', pr.head.repo?.fork ? 'true' : 'false');
+
+      - name: Skip fork pull requests
+        if: steps.pr_head.outputs.is_fork == 'true'
+        run: |
+          {
+            echo "## Cursor Auto-Fix Attempt"
+            echo
+            echo "Skipped: PR #${PR_NUMBER} comes from a fork and is blocked by policy."
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number || github.event.issue.number }}
+
+      # Pin checkout to the immutable head SHA. GitHub may report pulls.head.ref as a 40-char SHA
+      # when the branch name is unavailable; refs/heads/<sha> is invalid and breaks before fix-attempt
+      # can resolve a real branch name for Cursor Cloud startingRef.
+      - name: Check out repository at PR head commit
+        if: steps.pr_head.outputs.is_fork != 'true'
         uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr_head.outputs.sha }}
+          fetch-depth: 0
 
       - name: Set up pnpm
+        if: steps.pr_head.outputs.is_fork != 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 9.0.0
 
       - name: Set up Node.js
+        if: steps.pr_head.outputs.is_fork != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
 
       - name: Install dependencies
+        if: steps.pr_head.outputs.is_fork != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Configure ripgrep path for Cursor SDK
+        if: steps.pr_head.outputs.is_fork != 'true'
         run: |
           if ! command -v rg >/dev/null 2>&1; then
             sudo apt-get update
@@ -61,13 +273,14 @@ jobs:
           echo "CURSOR_RIPGREP_PATH=$(command -v rg)" >> "$GITHUB_ENV"
 
       - name: Run Cursor auto-fix attempt
+        if: steps.pr_head.outputs.is_fork != 'true'
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.CURSOR_PR_REVIEW_TOKEN != '' && secrets.CURSOR_PR_REVIEW_TOKEN || secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.issue.number }}
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number || github.event.issue.number }}
           CURSOR_AUTO_FIX_ENABLED: ${{ vars.CURSOR_AUTO_FIX_ENABLED || 'false' }}
-          CURSOR_FORCE_AUTO_FIX: ${{ github.event_name == 'workflow_dispatch' && inputs.force_run || 'false' }}
+          CURSOR_FORCE_AUTO_FIX: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.force_run || 'false' }}
           CURSOR_AUTO_FIX_LABEL: ${{ vars.CURSOR_AUTO_FIX_LABEL || 'cursor:auto-fix' }}
           CURSOR_FIX_PLANNER_MODEL: ${{ vars.CURSOR_FIX_PLANNER_MODEL || 'composer-2' }}
           CURSOR_FIX_EXECUTION_MODEL: ${{ vars.CURSOR_FIX_EXECUTION_MODEL || vars.CURSOR_FIX_MODEL || 'composer-2-fast' }}
@@ -76,9 +289,20 @@ jobs:
           CURSOR_AGENT_PR_LABELS: ${{ vars.CURSOR_AGENT_PR_LABELS || 'cursor:agent-generated' }}
           CURSOR_AUTO_FIX_EXCLUDED_AUTHORS: ${{ vars.CURSOR_AUTO_FIX_EXCLUDED_AUTHORS || 'cursor[bot]' }}
           CURSOR_CLOUD_REPO_URL: ${{ vars.CURSOR_CLOUD_REPO_URL }}
+          CURSOR_CLOUD_STARTING_REF: ${{ steps.pr_head.outputs.ref }}
+          CURSOR_CLOUD_OMIT_PR_URL: ${{ vars.CURSOR_CLOUD_OMIT_PR_URL || 'false' }}
+          CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH: ${{ vars.CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH || 'false' }}
+          CURSOR_CLOUD_AUTO_CREATE_PR: ${{ vars.CURSOR_CLOUD_AUTO_CREATE_PR || 'true' }}
           CURSOR_CLOUD_SKIP_REVIEWER_REQUEST: ${{ vars.CURSOR_CLOUD_SKIP_REVIEWER_REQUEST || 'true' }}
           CURSOR_ALLOW_COMMENT_FAILURE: "false"
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_ORGANIZATION: ${{ vars.SONAR_ORGANIZATION != '' && vars.SONAR_ORGANIZATION || secrets.SONAR_ORGANIZATION }}
           SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY != '' && vars.SONAR_PROJECT_KEY || secrets.SONAR_PROJECT_KEY }}
+          CURSOR_AUTO_FIX_WAIT_SCANNERS: ${{ vars.CURSOR_AUTO_FIX_WAIT_SCANNERS || 'true' }}
+          CURSOR_AUTO_FIX_WAIT_TIMEOUT_MS: ${{ vars.CURSOR_AUTO_FIX_WAIT_TIMEOUT_MS || '900000' }}
+          CURSOR_AUTO_FIX_POLL_INTERVAL_MS: ${{ vars.CURSOR_AUTO_FIX_POLL_INTERVAL_MS || '20000' }}
+          CURSOR_AUTO_FIX_OPTIONAL_SCAN_GRACE_MS: ${{ vars.CURSOR_AUTO_FIX_OPTIONAL_SCAN_GRACE_MS || '180000' }}
+          CURSOR_AUTO_FIX_REQUIRED_CHECK_SUBSTRINGS: ${{ vars.CURSOR_AUTO_FIX_REQUIRED_CHECK_SUBSTRINGS || 'SonarCloud' }}
+          CURSOR_AUTO_FIX_OPTIONAL_CHECK_SUBSTRINGS: ${{ vars.CURSOR_AUTO_FIX_OPTIONAL_CHECK_SUBSTRINGS || 'CodeQL,code scanning' }}
+          CURSOR_AUTO_FIX_FAIL_ON_SCANNER_TIMEOUT: ${{ vars.CURSOR_AUTO_FIX_FAIL_ON_SCANNER_TIMEOUT || 'false' }}
         run: pnpm --filter @rpgtracker/cursor-agents run fix-attempt

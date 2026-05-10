@@ -27,8 +27,11 @@ export interface PullRequestData {
   user: { login: string };
   base: { ref: string };
   head: {
+    /** Branch short name, or a 40-char commit SHA when GitHub cannot expose a ref name. */
     ref: string;
     sha: string;
+    /** e.g. `owner:branch-name` — useful when `ref` is a SHA. */
+    label?: string;
     repo?: {
       full_name?: string;
       fork?: boolean;
@@ -60,6 +63,19 @@ export interface DependabotAlert {
     cve_id?: string;
   };
   html_url?: string;
+}
+
+export interface IssueCommentData {
+  id: number;
+  body: string;
+  in_reply_to_id?: number | null;
+}
+
+export interface CheckRunData {
+  name: string;
+  status: string;
+  conclusion: string | null;
+  html_url: string | null;
 }
 
 export class GitHubApiError extends Error {
@@ -162,6 +178,16 @@ export class GitHubClient {
     );
   }
 
+  /**
+   * Branch names where `commitSha` is currently HEAD (REST:
+   * GET /repos/.../commits/{sha}/branches-where-head).
+   */
+  async listBranchesWhereHeadCommit(commitSha: string): Promise<Array<{ name: string }>> {
+    return this.getJson<Array<{ name: string }>>(
+      `/repos/${this.owner}/${this.repo}/commits/${commitSha}/branches-where-head`
+    );
+  }
+
   async listIssueComments(issueNumber: number): Promise<Array<{ id: number; body: string }>> {
     return this.getJson<
       Array<{
@@ -229,6 +255,42 @@ export class GitHubClient {
     return this.getJson<DependabotAlert[]>(
       `/repos/${this.owner}/${this.repo}/dependabot/alerts?state=open&per_page=30`
     );
+  }
+
+  async getIssueComment(commentId: number): Promise<IssueCommentData> {
+    return this.getJson<IssueCommentData>(
+      `/repos/${this.owner}/${this.repo}/issues/comments/${commentId}`
+    );
+  }
+
+  async listCheckRunsForCommit(sha: string): Promise<CheckRunData[]> {
+    const runs: CheckRunData[] = [];
+
+    for (let page = 1; page <= 10; page += 1) {
+      const data = await this.getJson<{
+        check_runs: Array<{
+          name: string;
+          status: string;
+          conclusion: string | null;
+          html_url?: string | null;
+        }>;
+      }>(`/repos/${this.owner}/${this.repo}/commits/${sha}/check-runs?per_page=100&page=${page}`);
+
+      for (const run of data.check_runs) {
+        runs.push({
+          name: run.name,
+          status: run.status,
+          conclusion: run.conclusion,
+          html_url: run.html_url ?? null,
+        });
+      }
+
+      if (data.check_runs.length < 100) {
+        break;
+      }
+    }
+
+    return runs;
   }
 }
 

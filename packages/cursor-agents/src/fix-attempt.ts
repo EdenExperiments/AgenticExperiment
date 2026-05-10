@@ -7,6 +7,15 @@ import {
   type PullRequestFile,
 } from "./github.js";
 import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
+import {
+  buildCheckRunsMarkdown,
+  resolveScannerWaitOptionsFromEnv,
+  waitForScannerReadiness,
+} from "./scanner-context.js";
+import {
+  buildCloudRepoSpec,
+  resolveHeadBranchMetadata,
+} from "./head-branch-resolution.js";
 
 const REVIEW_MARKER = "<!-- cursor-pr-review -->";
 const REVIEW_SCHEMA_START = "<!-- cursor-pr-review-schema:v1 -->";
@@ -63,13 +72,6 @@ interface ReviewSchemaV1 {
   findings: ReviewFinding[];
   missing_tests: string[];
   next_actions: string[];
-}
-
-function resolveCloudRepoUrl(repository: string): string {
-  if (process.env.CURSOR_CLOUD_REPO_URL) {
-    return process.env.CURSOR_CLOUD_REPO_URL;
-  }
-  return `https://github.com/${repository}.git`;
 }
 
 function toNumber(value: string | undefined, fallback: number): number {
@@ -140,14 +142,39 @@ function extractRunDiagnostics(result: unknown): string {
 
   const candidate = result as Record<string, unknown>;
   const status = typeof candidate.status === "string" ? candidate.status : "unknown";
-  const message =
-    typeof candidate.error === "string"
-      ? candidate.error
-      : typeof candidate.message === "string"
-        ? candidate.message
-        : "no explicit message";
+  let message = "no explicit message";
+  if (typeof candidate.error === "string") {
+    message = candidate.error;
+  } else if (typeof candidate.message === "string") {
+    message = candidate.message;
+  }
 
   return `status=${status}; message=${message}; raw=${JSON.stringify(result).slice(0, 2000)}`;
+}
+
+function describeScannerWaitForSummary(enabled: boolean, timedOut: boolean): string {
+  if (!enabled) {
+    return "disabled (CURSOR_AUTO_FIX_WAIT_SCANNERS=false)";
+  }
+  if (timedOut) {
+    return "timed out (proceeded with best-effort context)";
+  }
+  return "ok";
+}
+
+/**
+ * Cloud agent git behavior (SDK `cloud.workOnCurrentBranch` / `cloud.autoCreatePR`).
+ * Default matches historical behavior: open a new PR with the fix attempt.
+ * To push onto the source PR branch instead, set repo var `CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH=true`
+ * and typically `CURSOR_CLOUD_AUTO_CREATE_PR=false`.
+ */
+function resolveCloudAgentGitBehavior(): {
+  workOnCurrentBranch: boolean;
+  autoCreatePR: boolean;
+} {
+  const workOnCurrentBranch = process.env.CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH === "true";
+  const autoCreatePR = process.env.CURSOR_CLOUD_AUTO_CREATE_PR !== "false";
+  return { workOnCurrentBranch, autoCreatePR };
 }
 
 function extractAgentText(result: unknown): string {
@@ -371,6 +398,7 @@ function buildPlanningPrompt(input: {
   structuredReviewPriorities: string;
   securityComment: string;
   sonarContext: string;
+  deterministicGatesContext: string;
 }): string {
   return `
 You are a senior code-change planner for pull request #${input.prNumber} in ${input.repository}.
@@ -394,6 +422,9 @@ ${input.securityComment}
 SonarCloud context:
 ${input.sonarContext}
 
+Deterministic gates / CI signal (includes scanner wait notes and GitHub check runs on HEAD):
+${input.deterministicGatesContext}
+
 Create a concise plan with these sections:
 1) Selected fixes (max 2) and why they are highest signal
 2) File-level edit plan
@@ -416,7 +447,9 @@ function buildExecutionPrompt(input: {
   structuredReviewPriorities: string;
   securityComment: string;
   sonarContext: string;
+  deterministicGatesContext: string;
   plan: string;
+  cloudGitNotes: string;
 }): string {
   return `
 You are preparing an automated fix attempt for pull request #${input.prNumber} in ${input.repository}.
@@ -440,8 +473,13 @@ ${input.securityComment}
 SonarCloud context:
 ${input.sonarContext}
 
+Deterministic gates / CI signal (includes scanner wait notes and GitHub check runs on HEAD):
+${input.deterministicGatesContext}
+
 Approved planning guidance:
 ${input.plan}
+
+${input.cloudGitNotes}
 
 Task requirements:
 1) Implement only the planned high-signal fixes (max 2).
@@ -450,6 +488,7 @@ Task requirements:
 4) Preserve existing behavior except where directly fixing the reported issues.
 5) Run targeted validation commands relevant to edited files.
 6) If no safe fix is possible, explain why and avoid speculative refactors.
+7) Treat the automated PR review as non-binding guidance. Do not “fix the merge gate” by inventing policy — align changes with failing scanners/tests where relevant.
 
 Output expectations:
 - Apply code/documentation changes in this repository.
@@ -516,6 +555,58 @@ async function main(): Promise<void> {
     return;
   }
 
+  const headBranchMeta = await resolveHeadBranchMetadata(github, pullRequest);
+  if (headBranchMeta.summaryNote) {
+    appendStepSummary(`### PR head branch resolution\n\n${headBranchMeta.summaryNote}`);
+  }
+
+  const waitOpts = resolveScannerWaitOptionsFromEnv();
+  let scannerWaitNotes: string[] = [];
+  let scannerWaitTimedOut = false;
+  if (waitOpts.enabled) {
+    const waitResult = await waitForScannerReadiness({
+      github,
+      headSha: pullRequest.head.sha,
+      pollIntervalMs: waitOpts.pollIntervalMs,
+      timeoutMs: waitOpts.timeoutMs,
+      optionalGraceMs: waitOpts.optionalGraceMs,
+      requiredSubstrings: waitOpts.requiredSubstrings,
+      optionalSubstrings: waitOpts.optionalSubstrings,
+      sonarToken: process.env.SONAR_TOKEN,
+      sonarProjectKey: process.env.SONAR_PROJECT_KEY,
+      prNumber,
+    });
+    scannerWaitNotes = waitResult.notes.slice(-50);
+    scannerWaitTimedOut = waitResult.timedOut;
+    appendStepSummary(
+      `### Scanner wait\n\n${truncate(scannerWaitNotes.join("\n"), 12000)}`
+    );
+    if (
+      scannerWaitTimedOut &&
+      process.env.CURSOR_AUTO_FIX_FAIL_ON_SCANNER_TIMEOUT === "true"
+    ) {
+      throw new Error(
+        "Scanner wait timed out while waiting for SonarCloud / optional scanners (CURSOR_AUTO_FIX_FAIL_ON_SCANNER_TIMEOUT=true)."
+      );
+    }
+  }
+
+  const checkRuns = await github.listCheckRunsForCommit(pullRequest.head.sha);
+  const ciCheckSummary = buildCheckRunsMarkdown(checkRuns);
+  const scannerWaitLog = waitOpts.enabled
+    ? scannerWaitNotes.join("\n")
+    : "Scanner wait disabled (set CURSOR_AUTO_FIX_WAIT_SCANNERS=false).";
+
+  const deterministicGatesContext = [
+    "Policy: Automated PR review comments are advisory (implementation quality and gaps vs intent). Merge readiness is determined by CI and configured scanners (for example SonarCloud quality gate and CodeQL / GitHub code scanning), not by the review narrative alone.",
+    "",
+    "### Scanner wait log",
+    truncate(scannerWaitLog || "(empty)", 6000),
+    "",
+    "### GitHub check runs on PR HEAD",
+    truncate(ciCheckSummary, 8000),
+  ].join("\n");
+
   const fullReviewComment =
     (await findLatestMarkedComment(github, prNumber, REVIEW_MARKER, true)) ??
     "Review context unavailable.";
@@ -541,12 +632,13 @@ async function main(): Promise<void> {
     prNumber,
     prTitle: pullRequest.title,
     baseRef: pullRequest.base.ref,
-    headRef: pullRequest.head.ref,
+    headRef: headBranchMeta.branchShortName,
     patchContext,
     reviewComment,
     structuredReviewPriorities,
     securityComment,
     sonarContext,
+    deterministicGatesContext,
   });
 
   let agent: { [Symbol.asyncDispose](): Promise<void> } | null = null;
@@ -562,31 +654,57 @@ async function main(): Promise<void> {
     }
     const plan = extractAgentText(planningResult);
 
+    const cloudGit = resolveCloudAgentGitBehavior();
+    appendStepSummary(
+      [
+        "### Cursor cloud git behavior",
+        "",
+        `- \`workOnCurrentBranch\`: **${cloudGit.workOnCurrentBranch}** (\`CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH\`)`,
+        `- \`autoCreatePR\`: **${cloudGit.autoCreatePR}** (\`CURSOR_CLOUD_AUTO_CREATE_PR\`)`,
+        "",
+        "Default opens a **new** PR for the fix. To push onto the **current** PR branch instead, set repo variables `CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH=true` and `CURSOR_CLOUD_AUTO_CREATE_PR=false`.",
+      ].join("\n")
+    );
+
+    let cloudGitNotes = "";
+    if (cloudGit.workOnCurrentBranch && !cloudGit.autoCreatePR) {
+      cloudGitNotes = `Git / PR workflow:\n- Commit and push to the existing branch for PR #${prNumber}; do not open a separate pull request.`;
+    } else if (cloudGit.workOnCurrentBranch) {
+      cloudGitNotes = `Git / PR workflow:\n- Prefer commits on the current PR branch (runtime: workOnCurrentBranch=true).`;
+    }
+
     const executionPrompt = buildExecutionPrompt({
       repository,
       prNumber,
       prTitle: pullRequest.title,
       baseRef: pullRequest.base.ref,
-      headRef: pullRequest.head.ref,
+      headRef: headBranchMeta.branchShortName,
       patchContext,
       reviewComment,
       structuredReviewPriorities,
       securityComment,
       sonarContext,
+      deterministicGatesContext,
       plan,
+      cloudGitNotes,
     });
+
+    const cloudRepoEntry = buildCloudRepoSpec(
+      repository,
+      pullRequest,
+      headBranchMeta.branchShortName,
+    );
+    appendStepSummary(
+      `### Cursor cloud repo payload\n\n\`\`\`json\n${JSON.stringify(cloudRepoEntry, null, 2)}\n\`\`\`\n\nGitHub \`head.ref\`=\`${pullRequest.head.ref}\`, \`head.sha\`=\`${pullRequest.head.sha.slice(0, 7)}…\` (\`CURSOR_CLOUD_OMIT_PR_URL\`=${process.env.CURSOR_CLOUD_OMIT_PR_URL ?? "unset"})\n`
+    );
 
     agent = await Agent.create({
       apiKey,
       model: { id: executionModel },
       cloud: {
-        repos: [
-          {
-            url: resolveCloudRepoUrl(repository),
-            startingRef: pullRequest.head.sha,
-          },
-        ],
-        autoCreatePR: true,
+        repos: [cloudRepoEntry],
+        workOnCurrentBranch: cloudGit.workOnCurrentBranch,
+        autoCreatePR: cloudGit.autoCreatePR,
         skipReviewerRequest: process.env.CURSOR_CLOUD_SKIP_REVIEWER_REQUEST !== "false",
       },
     } as any);
@@ -644,6 +762,7 @@ Run ID: \`${runId}\`
 Planner model: \`${plannerModel}\`
 Execution model: \`${executionModel}\`
 Required label: \`${requiredLabel}\`
+Scanner wait: ${describeScannerWaitForSummary(waitOpts.enabled, scannerWaitTimedOut)}
 
 ${fixPrUrl ? `Fix attempt PR: ${fixPrUrl}` : "Run finished, but no PR URL was returned by the SDK response."}
 
