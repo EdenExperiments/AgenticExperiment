@@ -46,7 +46,11 @@ function wrapper({ children }: { children: React.ReactNode }) {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
+  mockGetGoal.mockReset()
+  mockUpdateGoal.mockReset()
+  mockListSkills.mockReset()
+  mockPush.mockReset()
+  mockBack.mockReset()
   mockGetGoal.mockResolvedValue(makeGoal())
   mockUpdateGoal.mockResolvedValue(makeGoal({ title: 'Updated Goal' }))
   mockListSkills.mockResolvedValue([])
@@ -102,6 +106,7 @@ test('calls updateGoal with updated data on submit', async () => {
 })
 
 test('navigates to goal detail on success', async () => {
+  mockUpdateGoal.mockResolvedValueOnce(makeGoal({ title: 'Updated Goal' }))
   render(<GoalEditPage />, { wrapper })
   await screen.findByLabelText(/title/i)
 
@@ -113,7 +118,7 @@ test('navigates to goal detail on success', async () => {
 })
 
 test('shows error message when updateGoal fails', async () => {
-  mockUpdateGoal.mockRejectedValue(new Error('server error'))
+  mockUpdateGoal.mockRejectedValueOnce(new Error('server error'))
   render(<GoalEditPage />, { wrapper })
   await screen.findByLabelText(/title/i)
 
