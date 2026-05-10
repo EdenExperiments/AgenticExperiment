@@ -223,28 +223,45 @@ jobs:
 
             core.setOutput('sha', pr.head.sha);
             core.setOutput('ref', pr.head.ref);
+            core.setOutput('is_fork', pr.head.repo?.fork ? 'true' : 'false');
 
-      - name: Check out repository at PR head
+      - name: Skip fork pull requests
+        if: steps.pr_head.outputs.is_fork == 'true'
+        run: |
+          {
+            echo "## Cursor Auto-Fix Attempt"
+            echo
+            echo "Skipped: PR #${PR_NUMBER} comes from a fork and is blocked by policy."
+          } >> "$GITHUB_STEP_SUMMARY"
+        env:
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number || github.event.issue.number }}
+
+      - name: Check out repository at PR head branch
+        if: steps.pr_head.outputs.is_fork != 'true'
         uses: actions/checkout@v4
         with:
-          ref: ${{ steps.pr_head.outputs.sha }}
+          ref: refs/heads/${{ steps.pr_head.outputs.ref }}
           fetch-depth: 0
 
       - name: Set up pnpm
+        if: steps.pr_head.outputs.is_fork != 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 9.0.0
 
       - name: Set up Node.js
+        if: steps.pr_head.outputs.is_fork != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: pnpm
 
       - name: Install dependencies
+        if: steps.pr_head.outputs.is_fork != 'true'
         run: pnpm install --frozen-lockfile
 
       - name: Configure ripgrep path for Cursor SDK
+        if: steps.pr_head.outputs.is_fork != 'true'
         run: |
           if ! command -v rg >/dev/null 2>&1; then
             sudo apt-get update
@@ -253,6 +270,7 @@ jobs:
           echo "CURSOR_RIPGREP_PATH=$(command -v rg)" >> "$GITHUB_ENV"
 
       - name: Run Cursor auto-fix attempt
+        if: steps.pr_head.outputs.is_fork != 'true'
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.CURSOR_PR_REVIEW_TOKEN != '' && secrets.CURSOR_PR_REVIEW_TOKEN || secrets.GITHUB_TOKEN }}
@@ -268,6 +286,7 @@ jobs:
           CURSOR_AGENT_PR_LABELS: ${{ vars.CURSOR_AGENT_PR_LABELS || 'cursor:agent-generated' }}
           CURSOR_AUTO_FIX_EXCLUDED_AUTHORS: ${{ vars.CURSOR_AUTO_FIX_EXCLUDED_AUTHORS || 'cursor[bot]' }}
           CURSOR_CLOUD_REPO_URL: ${{ vars.CURSOR_CLOUD_REPO_URL }}
+          CURSOR_CLOUD_STARTING_REF: ${{ steps.pr_head.outputs.ref }}
           CURSOR_CLOUD_OMIT_PR_URL: ${{ vars.CURSOR_CLOUD_OMIT_PR_URL || 'false' }}
           CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH: ${{ vars.CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH || 'false' }}
           CURSOR_CLOUD_AUTO_CREATE_PR: ${{ vars.CURSOR_CLOUD_AUTO_CREATE_PR || 'true' }}
