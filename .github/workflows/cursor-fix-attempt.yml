@@ -236,11 +236,14 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.pr_number || github.event.issue.number }}
 
-      - name: Check out repository at PR head branch
+      # Pin checkout to the immutable head SHA. GitHub may report pulls.head.ref as a 40-char SHA
+      # when the branch name is unavailable; refs/heads/<sha> is invalid and breaks before fix-attempt
+      # can resolve a real branch name for Cursor Cloud startingRef.
+      - name: Check out repository at PR head commit
         if: steps.pr_head.outputs.is_fork != 'true'
         uses: actions/checkout@v4
         with:
-          ref: refs/heads/${{ steps.pr_head.outputs.ref }}
+          ref: ${{ steps.pr_head.outputs.sha }}
           fetch-depth: 0
 
       - name: Set up pnpm
