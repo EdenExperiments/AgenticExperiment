@@ -241,7 +241,7 @@ jobs:
       # can resolve a real branch name for Cursor Cloud startingRef.
       - name: Check out repository at PR head commit
         if: steps.pr_head.outputs.is_fork != 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: ${{ steps.pr_head.outputs.sha }}
           fetch-depth: 0
