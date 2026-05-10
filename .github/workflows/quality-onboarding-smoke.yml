@@ -47,7 +47,7 @@ jobs:
 
       - name: Validate Renovate configuration syntax
         if: ${{ inputs.run_renovate_config_validation }}
-        run: pnpm dlx renovate-config-validator renovate.json
+        run: pnpm dlx --package renovate renovate-config-validator renovate.json
 
       - name: Validate SonarCloud secret and variable wiring
         env:
