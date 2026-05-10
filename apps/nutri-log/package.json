@@ -10,25 +10,25 @@
     "test:coverage": "vitest run --pool=threads --coverage"
   },
   "dependencies": {
-    "@rpgtracker/ui": "workspace:*",
-    "@rpgtracker/auth": "workspace:*",
     "@rpgtracker/api-client": "workspace:*",
-    "next": "16.1.7",
+    "@rpgtracker/auth": "workspace:*",
+    "@rpgtracker/ui": "workspace:*",
+    "next": "16.2.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@rpgtracker/tsconfig": "workspace:*",
-    "@tailwindcss/postcss": "^4",
-    "@testing-library/react": "^16.0.0",
-    "@testing-library/jest-dom": "^6.0.0",
+    "@tailwindcss/postcss": "^4.3.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^4.0.0",
-    "jsdom": "^25.0.0",
-    "tailwindcss": "^4",
-    "typescript": "^5",
-    "vitest": "^2.0.0"
+    "@vitejs/plugin-react": "^4.7.0",
+    "jsdom": "^25.0.1",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.9"
   }
 }

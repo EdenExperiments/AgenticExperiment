@@ -11,6 +11,6 @@
   },
   "devDependencies": {
     "@rpgtracker/tsconfig": "workspace:*",
-    "vitest": "^2.0.0"
+    "vitest": "^2.1.9"
   }
 }
