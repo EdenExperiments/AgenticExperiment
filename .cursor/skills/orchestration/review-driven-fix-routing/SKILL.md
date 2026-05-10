@@ -28,7 +28,7 @@ Use this for both human-authored PRs and trusted agent-authored PR remediation l
 
 ## Procedure
 
-1. Gather context from PR diffs, review comments, security triage signals, and SonarCloud metrics.
+1. Gather context from PR diffs, review comments, security triage signals, and SonarCloud metrics (including deterministic merges of structured review findings with Sonar issue samples when both exist).
 2. Run a planner model first (`CURSOR_FIX_PLANNER_MODEL`) to decide scope and validation order.
 3. Run a cheaper executor model (`CURSOR_FIX_EXECUTION_MODEL`) to implement only the approved plan.
 4. Require test updates when code files change; fail policy if code changed without test-file changes.

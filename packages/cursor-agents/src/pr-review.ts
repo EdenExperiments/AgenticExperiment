@@ -95,6 +95,15 @@ function parseReviewSchema(text: string): ReviewSchemaV1 | null {
   return parsed as ReviewSchemaV1;
 }
 
+function maxReviewFindings(): number {
+  const raw = process.env.CURSOR_REVIEW_MAX_FINDINGS;
+  const parsed = raw ? Number(raw) : 10;
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return 10;
+  }
+  return Math.min(Math.floor(parsed), 25);
+}
+
 function validateReviewSchema(value: ReviewSchemaV1): string[] {
   const errors: string[] = [];
   if (value.schema_version !== "1.0") {
@@ -114,6 +123,11 @@ function validateReviewSchema(value: ReviewSchemaV1): string[] {
   }
   if (!Array.isArray(value.next_actions)) {
     errors.push("next_actions must be an array");
+  }
+
+  const maxFindings = maxReviewFindings();
+  if (Array.isArray(value.findings) && value.findings.length > maxFindings) {
+    errors.push(`findings must contain at most ${maxFindings} items (CURSOR_REVIEW_MAX_FINDINGS)`);
   }
 
   const validSeverity = new Set<ReviewSeverity>(["low", "medium", "high", "critical"]);
@@ -214,7 +228,8 @@ async function requestReviewWithFallback(
     .split(",")
     .map((entry) => entry.trim())
     .filter(Boolean);
-  const fallbackModels = ["composer-2", "gpt-5.4-mini"];
+  /** Prefer faster/cheaper models first; escalate only if schema validation fails. */
+  const fallbackModels = ["composer-2-fast", "composer-2", "gpt-5.4-mini"];
   const models = [...new Set([...envModels, ...fallbackModels])];
   const attemptDiagnostics: string[] = [];
 
@@ -319,6 +334,10 @@ Return ONLY valid JSON matching this exact schema:
 Constraints:
 - Sort findings by severity descending then confidence descending.
 - Use stable IDs R-001, R-002, ...
+- Cap findings at ${maxReviewFindings()} items maximum (precision over recall).
+- **Precision / false-positive control:** Only report a finding when you can cite evidence from the patches above (quote the relevant changed lines or file:line). If you are inferring beyond the diff, set confidence to "low" or omit the finding.
+- Prefer zero findings over speculative ones. Skip formatting-only nits unless they indicate a real regression risk.
+- Align with repo harness: respect AGENTS.md zone boundaries and keep suggestions reversible; reference applicable checks (tests, Sonar, security) conceptually without inventing failing CI state.
 - If no actionable issues, return findings as [] and overall_risk as "none".
 - Do not return markdown, commentary, or code fences.
 `;

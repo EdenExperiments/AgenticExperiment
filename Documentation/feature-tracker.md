@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-05-10 (agentic operations hardening: auto-fix branch-ref startup fix)
+Last updated: 2026-05-10 (daily quality digest, Sonar schedule, PR review calibration)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -88,6 +88,7 @@ All Release 1 + Release 2 features through Phase 7.
 | F-056 | Gated Cursor cloud auto-fix attempt loop          | Ops/CI   | done   | Added `cursor-fix-attempt.yml` + `fix-attempt.ts` with dual gates, Sonar ingestion, planner/executor routing, and fix PR labeling. Gate recognizes `/cursor-fix`, quote replies, and threaded replies to the Cursor PR Review comment; checkout targets the PR head branch ref and passes that ref as Cursor Cloud `startingRef` to avoid detached-SHA startup failures; scanner wait coordinates SonarCloud + optional CodeQL before planning; prompts separate advisory review guidance from deterministic merge gates (Sonar/CodeQL/CI). |
 | F-057 | Model-routed remediation + test/coverage enforcement | Ops/CI | done | Auto-fix now uses planner/executor model split with unit-test-change enforcement, and Sonar PR workflow now enforces minimum new-code coverage (default 80). |
 | F-058 | Structured reviewer schema contract | Ops/CI | done | `cursor-pr-review` now emits schema-tagged machine-readable findings with severity/confidence fields and normalized IDs. `fix-attempt` now requires and parses this payload for deterministic priority routing. |
+| F-059 | Scheduled scans + daily AI digest + fix/review signal merge | Ops/CI | done | `sonarcloud.yml` gains nightly main-branch scan; `mend-renovate.yml` adds weekly schedule; `cursor-daily-quality-digest.yml` runs `daily-quality-digest.ts` (Sonar branch issues + open dependency-bot PRs → Cursor summary; optional upsert to `CURSOR_DAILY_DIGEST_ISSUE_NUMBER`). PR review prefers cheaper models first, caps findings (`CURSOR_REVIEW_MAX_FINDINGS`), and adds precision prompts. Auto-fix enriches Sonar PR context (measures + configurable severities), injects deterministic merged agent/Sonar brief, and routes planner through `CURSOR_RUNTIME` cloud repo wiring via `resolveFixPlannerPromptOptions`. |
 
 
 ---

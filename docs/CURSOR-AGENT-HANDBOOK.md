@@ -48,7 +48,8 @@ Pure visual composition work is validated by visual review and design-guide comp
 - Agent PR auto-labeling automation lives in `.github/workflows/cursor-agent-pr-labels.yml`.
 - Security signal generation lives in `.github/workflows/codeql.yml` and `.github/dependabot.yml`.
 - Renovate dependency updates can run via `.github/workflows/mend-renovate.yml` and `renovate.json`.
-- SonarCloud analysis runs via `.github/workflows/sonarcloud.yml` and `sonar-project.properties`.
+- SonarCloud analysis runs via `.github/workflows/sonarcloud.yml` and `sonar-project.properties` (includes a nightly **main-branch** scan schedule).
+- Daily Cursor digest (`Sonar` branch snapshot + open Renovate/Mend/Dependabot-shaped PRs → prioritized markdown) runs via `.github/workflows/cursor-daily-quality-digest.yml`.
 - Onboarding smoke checks run via `.github/workflows/quality-onboarding-smoke.yml`.
 
 ## CI/CD Runtime Contract
@@ -62,6 +63,8 @@ Pure visual composition work is validated by visual review and design-guide comp
 ### Recommended Variables
 
 - `CURSOR_RUNTIME`: `local` (default) or `cloud` for SDK workflow lane routing.
+- `CURSOR_REVIEW_MODELS`: optional comma-ordered list for PR review model fallback attempts (defaults prefer **`composer-2-fast`** first for cost control).
+- `CURSOR_REVIEW_MAX_FINDINGS`: hard cap on structured PR-review findings (default `10`, max `25`) to reduce noisy threads.
 - `CURSOR_CLOUD_OMIT_PR_URL`: set to `true` to stop sending `repos[].prUrl` to Cursor Cloud (keeps `url` + `startingRef` only). Try if cloud validation still fails with a SHA-style branch error; you lose automatic PR ↔ clone linkage on Cursor’s side until their API improves (`false` default).
 - `CURSOR_CLOUD_REPO_URL`: explicit repository URL for cloud runtime execution.
 - `CURSOR_CLOUD_WORK_ON_CURRENT_BRANCH`: when `true`, cloud agents target the PR’s existing branch instead of only detached work (`false` default).
@@ -90,6 +93,15 @@ Pure visual composition work is validated by visual review and design-guide comp
 - `CURSOR_AUTO_FIX_REQUIRED_CHECK_SUBSTRINGS`: comma-separated substrings matched against GitHub check run names that **must** complete (`SonarCloud` default).
 - `CURSOR_AUTO_FIX_OPTIONAL_CHECK_SUBSTRINGS`: optional scanners; if no matching run appears after the grace window, the wait stops blocking on that pattern (`CodeQL,code scanning` default).
 - `CURSOR_AUTO_FIX_FAIL_ON_SCANNER_TIMEOUT`: set to `true` to fail the workflow when the scanner wait hits the timeout instead of continuing with partial context (`false` default).
+- `CURSOR_AUTO_FIX_SONAR_SEVERITIES`: comma-separated Sonar severities for PR issue sampling in fix attempts (`BLOCKER,CRITICAL,MAJOR` default; widen cautiously to reduce noise).
+- `CURSOR_AUTO_FIX_MERGED_SIGNAL_LIMIT`: max rows pulled from **both** agent-review findings and Sonar samples into the deterministic merged brief (`5` default).
+
+### Daily digest (scheduled)
+
+- `SONAR_BRANCH`: SonarCloud branch key for non-PR digest queries (`main` default).
+- `CURSOR_DAILY_DIGEST_ISSUE_NUMBER`: optional GitHub issue number; when set, the digest upserts a marker comment there instead of only writing the Actions step summary.
+- `CURSOR_DAILY_DIGEST_MODEL`: model id for digest narration (`composer-2-fast` default).
+- `CURSOR_DAILY_DIGEST_TOP_ISSUES`: Sonar issues fetched per run (`12` default).
 
 ### Permissions Model
 
@@ -97,6 +109,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 - `cursor-security-triage.yml`: `contents:read`, `security-events:read`, `pull-requests:read`, `issues:write`
 - `cursor-fix-attempt.yml`: lightweight gate job (`issues:read`, `pull-requests:read`) validates triggers; fix job uses `contents:read`, `pull-requests:read`, `issues:write`
 - `cursor-agent-pr-labels.yml`: `contents:read`, `pull-requests:write`
+- `cursor-daily-quality-digest.yml`: `contents:read`, `pull-requests:read`, `issues:write`
 - `codeql.yml`: `security-events:write` for publishing scan findings
 
 ### Automation Guardrails
@@ -106,7 +119,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 - Promote to auto-fix only after repeated stable runs and explicit policy approval.
 - For auto-fix flows, require both a global flag and an explicit PR allow label.
 - For cloud-created PRs, apply labels automatically on open so policy checks can evaluate immediately.
-- Use planner and executor model split for remediation loops to control cost while retaining planning quality.
+- Use planner and executor model split for remediation loops to control cost while retaining planning quality (see `.cursor/skills/orchestration/review-driven-fix-routing/SKILL.md`).
 - Keep reviewer output machine-readable (schema payload) so prioritization and fix routing can consume deterministic severity and confidence fields.
 - Keep generated comments concise and actionable; avoid noisy duplicate comments by updating marker comments.
 

@@ -2,6 +2,9 @@ name: SonarCloud
 
 on:
   workflow_dispatch:
+  schedule:
+    # Nightly main-branch scan so SonarCloud branch dashboards stay fresh between merges.
+    - cron: "15 6 * * *"
   push:
     branches:
       - main

@@ -16,6 +16,8 @@ import {
   buildCloudRepoSpec,
   resolveHeadBranchMetadata,
 } from "./head-branch-resolution.js";
+import { resolveFixPlannerPromptOptions, resolveRuntimeMode } from "./runtime-options.js";
+import { buildMergedRemediationBrief, type SonarIssueBriefInput } from "./remediation-brief.js";
 
 const REVIEW_MARKER = "<!-- cursor-pr-review -->";
 const REVIEW_SCHEMA_START = "<!-- cursor-pr-review-schema:v1 -->";
@@ -280,6 +282,30 @@ function summarizeStructuredReviewPriorities(schema: ReviewSchemaV1): string {
   ].join("\n");
 }
 
+function reviewFindingsForBrief(schema: ReviewSchemaV1 | null): Array<{
+  id: string;
+  severity: string;
+  confidence: string;
+  title: string;
+  location: string;
+}> {
+  if (!schema) {
+    return [];
+  }
+  const ordered = [...schema.findings].sort((a, b) => {
+    const severityDiff = severityScore(b.severity) - severityScore(a.severity);
+    if (severityDiff !== 0) return severityDiff;
+    return confidenceScore(b.confidence) - confidenceScore(a.confidence);
+  });
+  return ordered.map((finding) => ({
+    id: finding.id,
+    severity: finding.severity,
+    confidence: finding.confidence,
+    title: finding.title,
+    location: finding.location,
+  }));
+}
+
 function isTestFile(filePath: string): boolean {
   return (
     /(^|\/)__tests__\//.test(filePath) ||
@@ -312,12 +338,45 @@ async function fetchSonarJson<T>(
   return (await response.json()) as T;
 }
 
-async function buildSonarContext(prNumber: number): Promise<string> {
+interface SonarMeasuresResponse {
+  component?: {
+    measures?: Array<{ metric?: string; value?: string }>;
+  };
+}
+
+function parseSonarSeverityFilter(): string {
+  const raw =
+    process.env.CURSOR_AUTO_FIX_SONAR_SEVERITIES ?? "BLOCKER,CRITICAL,MAJOR";
+  const normalized = raw
+    .split(",")
+    .map((entry) => entry.trim().toUpperCase())
+    .filter(Boolean);
+  return normalized.length > 0 ? normalized.join(",") : "BLOCKER,CRITICAL,MAJOR";
+}
+
+function measureMap(response: SonarMeasuresResponse): Record<string, string> {
+  const rows = response.component?.measures ?? [];
+  const out: Record<string, string> = {};
+  for (const row of rows) {
+    if (row.metric && row.value !== undefined) {
+      out[row.metric] = row.value;
+    }
+  }
+  return out;
+}
+
+async function buildSonarRemediationContext(prNumber: number): Promise<{
+  text: string;
+  issues: SonarIssueBriefInput[];
+}> {
   const token = process.env.SONAR_TOKEN;
   const projectKey = process.env.SONAR_PROJECT_KEY;
 
   if (!token || !projectKey) {
-    return "SonarCloud context unavailable: SONAR_TOKEN or SONAR_PROJECT_KEY is not configured.";
+    return {
+      text: "SonarCloud context unavailable: SONAR_TOKEN or SONAR_PROJECT_KEY is not configured.",
+      issues: [],
+    };
   }
 
   try {
@@ -331,12 +390,26 @@ async function buildSonarContext(prNumber: number): Promise<string> {
       token
     );
 
+    const metrics =
+      "new_coverage,new_line_coverage,new_violations,new_bugs,new_vulnerabilities,new_security_hotspots_reviewed";
+    const measuresParams = new URLSearchParams({
+      component: projectKey,
+      pullRequest: String(prNumber),
+      metricKeys: metrics,
+    });
+    const measures = await fetchSonarJson<SonarMeasuresResponse>(
+      "measures/component",
+      measuresParams,
+      token
+    );
+    const measureValues = measureMap(measures);
+
     const issueLimit = toNumber(process.env.CURSOR_AUTO_FIX_MAX_SONAR_ISSUES, 8);
     const issuesParams = new URLSearchParams({
       componentKeys: projectKey,
       pullRequest: String(prNumber),
       statuses: "OPEN,CONFIRMED,REOPENED",
-      severities: "BLOCKER,CRITICAL,MAJOR",
+      severities: parseSonarSeverityFilter(),
       ps: String(issueLimit),
     });
     const issues = await fetchSonarJson<SonarIssuesResponse>("issues/search", issuesParams, token);
@@ -348,23 +421,50 @@ async function buildSonarContext(prNumber: number): Promise<string> {
         return `- ${condition.metricKey ?? "metric"}: actual=${condition.actualValue ?? "?"}, threshold=${condition.errorThreshold ?? "?"}`;
       });
 
-    const issueLines = (issues.issues ?? []).map((issue) => {
+    const briefIssues: SonarIssueBriefInput[] = (issues.issues ?? []).map((issue) => ({
+      severity: String(issue.severity ?? "UNKNOWN"),
+      message: String(issue.message ?? "No message"),
+      component: issue.component,
+      line: issue.line,
+    }));
+
+    const issueLines = briefIssues.map((issue) => {
       const location = issue.component
-        ? `${issue.component}${issue.line ? `:${issue.line}` : ""}`
+        ? `${issue.component}${issue.line !== undefined ? `:${issue.line}` : ""}`
         : "unknown-location";
-      return `- [${issue.severity ?? "UNKNOWN"}] ${issue.message ?? "No message"} (${location})`;
+      return `- [${issue.severity}] ${issue.message} (${location})`;
     });
 
-    return [
+    const coverageBits = [
+      measureValues.new_coverage
+        ? `new_coverage=${measureValues.new_coverage}%`
+        : null,
+      measureValues.new_line_coverage
+        ? `new_line_coverage=${measureValues.new_line_coverage}%`
+        : null,
+      measureValues.new_violations ? `new_violations=${measureValues.new_violations}` : null,
+      measureValues.new_bugs ? `new_bugs=${measureValues.new_bugs}` : null,
+      measureValues.new_vulnerabilities ? `new_vulnerabilities=${measureValues.new_vulnerabilities}` : null,
+    ].filter(Boolean);
+
+    const text = [
       `Quality Gate: ${gateStatus}`,
       failingConditions.length > 0
         ? `Failing conditions:\n${failingConditions.join("\n")}`
         : "Failing conditions: none reported",
-      `Issue sample (${issueLines.length}/${issues.total ?? 0}):`,
-      issueLines.length > 0 ? issueLines.join("\n") : "- No open BLOCKER/CRITICAL/MAJOR issues returned for this PR",
-    ].join("\n");
+      coverageBits.length > 0 ? `New-code measures (PR): ${coverageBits.join(", ")}` : null,
+      `Issue sample (${issueLines.length}/${issues.total ?? 0}) — severities=${parseSonarSeverityFilter()}:`,
+      issueLines.length > 0 ? issueLines.join("\n") : "- No open issues returned for this filter",
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    return { text, issues: briefIssues };
   } catch (error) {
-    return `SonarCloud context query failed: ${error instanceof Error ? error.message : String(error)}`;
+    return {
+      text: `SonarCloud context query failed: ${error instanceof Error ? error.message : String(error)}`,
+      issues: [],
+    };
   }
 }
 
@@ -398,6 +498,7 @@ function buildPlanningPrompt(input: {
   structuredReviewPriorities: string;
   securityComment: string;
   sonarContext: string;
+  mergedRemediationBrief: string;
   deterministicGatesContext: string;
 }): string {
   return `
@@ -422,6 +523,9 @@ ${input.securityComment}
 SonarCloud context:
 ${input.sonarContext}
 
+Merged remediation signals (agent review ∩ Sonar sample):
+${input.mergedRemediationBrief}
+
 Deterministic gates / CI signal (includes scanner wait notes and GitHub check runs on HEAD):
 ${input.deterministicGatesContext}
 
@@ -431,6 +535,10 @@ Create a concise plan with these sections:
 3) Unit test plan (new/updated tests required)
 4) Validation plan (commands to run)
 5) Risks and rollback notes
+
+Planning constraints:
+- Prefer fixes backed by **both** failing/overridden deterministic gates (Sonar conditions, failing checks) **and** overlapping narrative signals above.
+- Treat Cursor PR review prose as non-binding; do not invent merge policy—anchor work in scanner/test failures when possible.
 
 Do not write code in this response. Return markdown only.
 `.trim();
@@ -447,9 +555,11 @@ function buildExecutionPrompt(input: {
   structuredReviewPriorities: string;
   securityComment: string;
   sonarContext: string;
+  mergedRemediationBrief: string;
   deterministicGatesContext: string;
   plan: string;
   cloudGitNotes: string;
+  orchestrationNotes: string;
 }): string {
   return `
 You are preparing an automated fix attempt for pull request #${input.prNumber} in ${input.repository}.
@@ -473,6 +583,9 @@ ${input.securityComment}
 SonarCloud context:
 ${input.sonarContext}
 
+Merged remediation signals (agent review ∩ Sonar sample):
+${input.mergedRemediationBrief}
+
 Deterministic gates / CI signal (includes scanner wait notes and GitHub check runs on HEAD):
 ${input.deterministicGatesContext}
 
@@ -480,6 +593,9 @@ Approved planning guidance:
 ${input.plan}
 
 ${input.cloudGitNotes}
+
+Runtime/orchestration:
+${input.orchestrationNotes}
 
 Task requirements:
 1) Implement only the planned high-signal fixes (max 2).
@@ -623,7 +739,15 @@ async function main(): Promise<void> {
   const securityComment =
     (await findLatestMarkedComment(github, prNumber, SECURITY_TRIAGE_MARKER)) ??
     "No security/dependency triage comment detected for this PR.";
-  const sonarContext = await buildSonarContext(prNumber);
+  const sonarRemediation = await buildSonarRemediationContext(prNumber);
+  const sonarContext = sonarRemediation.text;
+  const mergedBriefLimit = toNumber(process.env.CURSOR_AUTO_FIX_MERGED_SIGNAL_LIMIT, 5);
+  const mergedRemediationBrief = buildMergedRemediationBrief({
+    reviewFindings: reviewFindingsForBrief(parsedReviewSchema),
+    sonarIssues: sonarRemediation.issues,
+    maxReview: mergedBriefLimit,
+    maxSonar: mergedBriefLimit,
+  });
   const sourcePrFiles = await github.getPullRequestFiles(prNumber);
   const patchContext = buildPatchContext(sourcePrFiles);
 
@@ -638,16 +762,27 @@ async function main(): Promise<void> {
     structuredReviewPriorities,
     securityComment,
     sonarContext,
+    mergedRemediationBrief,
     deterministicGatesContext,
   });
 
   let agent: { [Symbol.asyncDispose](): Promise<void> } | null = null;
 
   try {
+    const plannerRuntime = resolveFixPlannerPromptOptions(
+      repository,
+      pullRequest,
+      headBranchMeta.branchShortName
+    );
+    const runtimeMode = resolveRuntimeMode();
+    appendStepSummary(
+      `### Fix-attempt planner runtime\n\n- **CURSOR_RUNTIME**: ${runtimeMode}\n- Planner uses ${runtimeMode === "cloud" ? "**Cursor Cloud** with the same repo startingRef/prUrl wiring as the executor" : "**local** CI workspace (Agent.prompt)"}.\n`
+    );
+
     const planningResult = await Agent.prompt(planningPrompt, {
       apiKey,
       model: { id: plannerModel },
-      local: { cwd: process.cwd() },
+      ...plannerRuntime,
     } as any);
     if ((planningResult as { status?: string }).status !== "finished") {
       throw new Error(`Planning run failed: ${extractRunDiagnostics(planningResult)}`);
@@ -673,6 +808,12 @@ async function main(): Promise<void> {
       cloudGitNotes = `Git / PR workflow:\n- Prefer commits on the current PR branch (runtime: workOnCurrentBranch=true).`;
     }
 
+    const orchestrationNotes = [
+      `- Planner **CURSOR_RUNTIME**: ${runtimeMode}`,
+      "- Executor: Cursor Cloud Agent.create against the PR-linked repo entry (see workflow logs for payload JSON).",
+      "- Follow cloudGitNotes for branch versus new PR behavior.",
+    ].join("\n");
+
     const executionPrompt = buildExecutionPrompt({
       repository,
       prNumber,
@@ -684,9 +825,11 @@ async function main(): Promise<void> {
       structuredReviewPriorities,
       securityComment,
       sonarContext,
+      mergedRemediationBrief,
       deterministicGatesContext,
       plan,
       cloudGitNotes,
+      orchestrationNotes,
     });
 
     const cloudRepoEntry = buildCloudRepoSpec(

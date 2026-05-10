@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --import tsx --test src/__tests__/scanner-context.test.ts src/__tests__/head-branch-resolution.test.ts",
+    "test": "node --import tsx --test src/__tests__/scanner-context.test.ts src/__tests__/head-branch-resolution.test.ts src/__tests__/remediation-brief.test.ts",
     "test:watch": "node --import tsx --watch --test src/__tests__",
     "pr-review": "tsx src/pr-review.ts",
     "pr-review:local": "CURSOR_RUNTIME=local tsx src/pr-review.ts",
@@ -13,7 +13,8 @@
     "security-triage:local": "CURSOR_RUNTIME=local tsx src/security-triage.ts",
     "security-triage:cloud": "CURSOR_RUNTIME=cloud tsx src/security-triage.ts",
     "fix-attempt": "tsx src/fix-attempt.ts",
-    "fix-attempt:cloud": "CURSOR_RUNTIME=cloud tsx src/fix-attempt.ts"
+    "fix-attempt:cloud": "CURSOR_RUNTIME=cloud tsx src/fix-attempt.ts",
+    "daily-quality-digest": "tsx src/daily-quality-digest.ts"
   },
   "devDependencies": {
     "@cursor/sdk": "^1.0.12",
