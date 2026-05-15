@@ -1,0 +1,1 @@
+"""SQLite result cache — placeholder."""

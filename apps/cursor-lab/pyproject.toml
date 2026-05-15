@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "cursor-lab"
+version = "0.0.1"
+description = "Cursor plugin evaluation harness (lab → judge → registry → prod)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+cursor-lab = "cursor_lab.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["cursor_lab"]

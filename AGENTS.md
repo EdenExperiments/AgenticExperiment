@@ -20,6 +20,7 @@ This file is the top-level index for agents and contributors. It tells you where
 | Shared auth | `packages/auth/` | Supabase SSR/browser auth helpers |
 | Shared API client | `packages/api-client/` | Typed API integration layer |
 | Agent automation | `.github/workflows/`, `packages/cursor-agents/` | CI/CD agent workflows and SDK automation |
+| Cursor Lab | `apps/cursor-lab/` | Local eval harness for `.cursor/` rules/skills (SDK bridge, future judge + registry) |
 
 ## Canonical Context Directory
 
