@@ -158,7 +158,7 @@ tree copied into the sandbox `cwd`.
 
 ### 4.3 Rubric Matrix
 
-Capability taxonomy (initial set; extendable):
+Capability taxonomy (initial set; extendable and highly customizable):
 
 | Capability        | What it measures                                                       |
 | ----------------- | ---------------------------------------------------------------------- |
@@ -170,8 +170,12 @@ Capability taxonomy (initial set; extendable):
 | `process`         | Follows skill/rule steps (intake, plan, verify) rather than freelancing |
 | `safety`          | Avoids destructive ops without confirmation; respects scope             |
 
+**Crucially, the rubric is not limited to generic buckets.** It is designed to be context-specific to enforce organizational standards. For example:
+- A `doc_update` fixture might override the default criterion to specifically measure: *"Documentation uses tight, caveman-style wording without fluff."*
+- A `code_gen` fixture for a backend skill might measure: *"Implementation strictly adheres to the company's .NET API standards and dependency injection patterns."*
+
 A rubric entry is a triple `(capability, criterion, weight)`. Defaults live in
-`judge/rubric.py`; per-fixture overrides go in the fixture `manifest.yaml`.
+`judge/rubric.py`; per-fixture overrides (which provide the specific standards) go in the fixture `manifest.yaml`.
 
 ### 4.4 Run Unit
 
@@ -457,11 +461,9 @@ class ArtifactJudge(dspy.Module):
 
 ### 7.4 Judge model
 
-- Default judge LM: a stronger model (e.g. `gpt-4o-class` or Claude Opus-class via DSPy LM
-  config — separate from the executor model used by the Cursor agent).
+- Default judge LM: a specific, strong model (e.g., `gpt-4o` or `claude-3-5-sonnet-latest` via DSPy LM config). We specify exact models, not just families, to ensure deterministic behavior.
 - Configured via `CURSOR_LAB_JUDGE_MODEL` and `CURSOR_LAB_JUDGE_API_KEY` env vars.
-- Keep executor and judge models **distinct**: the executor is what we're evaluating (via the
-  Cursor SDK), the judge is the rater. Sharing a model risks self-grading bias.
+- Keep executor and judge models **distinct**: the executor is what we're evaluating (e.g., `composer-2` via the Cursor SDK), the judge is the rater. Sharing a model risks self-grading bias.
 
 ### 7.5 Aggregation
 
@@ -686,17 +688,12 @@ work sessions. Local stays the default.
 - Wire `evaluate` into a CI workflow that runs on PRs into the testing repo.
 - All of this is **a swap of two functions**; the core orchestrator and judge stay unchanged.
 
-## 16. Open Questions
+## 16. Resolved Design Choices (from Open Questions)
 
-- Judge LM choice: which third-party LM (and SDK) do we standardize on? Anthropic via DSPy is
-  straightforward; OpenAI also works. Pick one before Phase C.
-- Hook artifact evaluation: hooks are not pure prompts — they're triggered by lifecycle events.
-  May need a separate fixture shape that simulates the trigger. Out of scope for Phases A–D.
-- Should the judge be allowed to read the live artifact text (currently yes via
-  `artifact_full_text`) or only the artifact's claimed *summary* (to discourage the judge from
-  excusing skipped steps)? Default: full text + summary; revisit if process scores look too kind.
-- Calibration set: do we maintain a small set of hand-labeled "should pass / should fail" runs
-  to detect judge drift? Recommended; defer until after Phase C.
+- **Judge LM choice:** We will specify exact models (e.g., `gpt-4o` or `claude-3-5-sonnet-latest`) rather than families. The executor will default to `composer-2` (the Cursor default).
+- **Hook artifact evaluation:** Hooks will be evaluated by verifying their side-effects (e.g., ensuring a linter actually ran, or specific checks completed) rather than just prompt output.
+- **Calibration set:** We will **not** rely on "source of truth" / golden datasets (except for extremely specific cases) to reduce bias. Instead, we rely heavily on the nuanced, context-specific rubric measurements (e.g., checking for "caveman wording" or ".NET API standards") to evaluate the output dynamically.
+- **Artifact visibility:** The judge will see the full artifact text + summary to accurately score process adherence.
 
 ## 17. Out of Scope
 
