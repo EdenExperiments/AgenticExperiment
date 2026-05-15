@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-05-15 (Cursor Lab eval flow plan added — F-061)
+Last updated: 2026-05-15 (Cursor Lab Phase A scaffold — F-061)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -90,7 +90,7 @@ All Release 1 + Release 2 features through Phase 7.
 | F-058 | Structured reviewer schema contract | Ops/CI | done | `cursor-pr-review` now emits schema-tagged machine-readable findings with severity/confidence fields and normalized IDs. `fix-attempt` now requires and parses this payload for deterministic priority routing. |
 | F-059 | Scheduled scans + daily AI digest + fix/review signal merge | Ops/CI | done | `sonarcloud.yml` gains nightly main-branch scan; `mend-renovate.yml` adds weekly schedule; `cursor-daily-quality-digest.yml` runs `daily-quality-digest.ts` (Sonar branch issues + open dependency-bot PRs → Cursor summary; optional upsert to `CURSOR_DAILY_DIGEST_ISSUE_NUMBER`). PR review prefers cheaper models first, caps findings (`CURSOR_REVIEW_MAX_FINDINGS`), and adds precision prompts. Auto-fix enriches Sonar PR context (measures + configurable severities), injects deterministic merged agent/Sonar brief, and routes planner through `CURSOR_RUNTIME` cloud repo wiring via `resolveFixPlannerPromptOptions`. |
 | F-060 | Safe Renovate dependency refresh | Ops/CI | done | Applied compatible Renovate updates across npm, Go modules, and GitHub Actions after checking app impact. Deferred unsupported/high-risk majors (Node 24, pnpm 11, TypeScript 6, Vitest 4, jsdom 29, Vite React plugin 6) for explicit migration work. |
-| F-061 | Cursor Lab: LLM-as-judge eval flow (plan) | Ops/CI | ready-for-build | Detailed plan landed at `docs/guides/cursor-lab-eval-flow-plan.md`. Scoped to `apps/cursor-lab/` (Python + DSPy judge + Node bridge wrapping `@cursor/sdk` `Agent.prompt`). Solo simulation of an enterprise testing-repo → prod-plugin-repo flow with fingerprint-based change detection, capability rubric matrix, variance-gated promotion, and explicit local sandbox isolation (`local.settingSources = []`). |
+| F-061 | Cursor Lab: LLM-as-judge eval flow | Ops/CI | in-progress | Plan: `docs/guides/cursor-lab-eval-flow-plan.md`. **Phase A landed:** `apps/cursor-lab/` Python package + pnpm workspace with `@cursor/sdk` bridge (`run-agent.ts`), `cursor-lab doctor` / `list`, artifact discovery skeleton. Next: sandbox, fixtures, judge JSON, registry gates. |
 
 
 ---

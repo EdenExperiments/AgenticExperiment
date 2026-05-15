@@ -21,6 +21,24 @@ importers:
         specifier: ^2.9.12
         version: 2.9.12
 
+  apps/cursor-lab:
+    devDependencies:
+      '@cursor/sdk':
+        specifier: ^1.0.12
+        version: 1.0.12
+      '@rpgtracker/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
+      '@types/node':
+        specifier: ^20
+        version: 20.19.37
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   apps/landing:
     dependencies:
       '@rpgtracker/ui':
