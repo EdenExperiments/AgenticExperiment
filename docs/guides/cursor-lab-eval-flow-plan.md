@@ -1,13 +1,14 @@
 # Cursor Lab: LLM-as-Judge Evaluation Flow — Detailed Plan
 
 Status: draft (planning only — no implementation in this change)
-Branch: `cursor/cursor-lab-eval-flow-plan-45ac`
-Owner: personal (single-author lab simulation of a future enterprise two-repo flow)
+Owner: personal (solo use in this monorepo; day-job workspaces stay separate)
 
 This document describes a self-contained, repeatable evaluation harness for Cursor plugin content
 (rules, skills, hooks) before they are promoted into the live `.cursor/` folder. It is sized for a
 solo project but mirrors the shape of an enterprise “testing repo → CI build → prod plugin repo”
-pipeline so the core logic transfers later.
+pipeline so the core logic transfers later. **Repository choice:** the harness stays under
+`apps/cursor-lab/` in this repo for cohesion; a future split to a dedicated testing repo is an
+implementation swap, not a redesign.
 
 ## 1. Goals and Non-Goals
 
@@ -19,14 +20,16 @@ pipeline so the core logic transfers later.
   isolated workspace so behavior is reproducible and not contaminated by the host workspace.
 - Score outputs with a **DSPy-based LLM-as-judge** along a rubric matrix (refactor, command,
   doc-update, code-gen, debug, etc.), and measure **inter-run variance** for stability.
-- Only promote artifacts whose **scores clear thresholds and variance bound** to the live
-  `.cursor/`. Skip unchanged artifacts since the last successful run to control cost and time.
+- Only **approve** artifacts (see §10 registry) whose scores clear thresholds and variance
+  bounds; the prod build materializes from approved rows only. Skip unchanged artifacts since the
+  last successful run to control cost and time.
 - Keep the entire flow runnable locally on a personal machine, with a clear seam where the
   enterprise two-repo / CI version can later attach.
 
 ### Non-Goals (this iteration)
 
-- No two-repo split yet: lab and prod live as sibling folders inside one Python project.
+- No separate harness repository yet: lab, prod, harness, and fixtures live under one tree
+  rooted at `apps/cursor-lab/` inside this monorepo.
 - No GitHub Actions / CI runner yet. Manual invocation via CLI.
 - No hosted dashboard. Reports are markdown + JSON on disk.
 - No multi-tenant judge orchestration. Single judge model per run.
@@ -48,25 +51,35 @@ Solo simulation in this plan:
 ```text
 cursor-lab/
   lab/                # candidate .cursor content under evaluation
-  prod/               # last-known-good .cursor content (the "shipped" plugin)
+  lab/registry.yaml   # lifecycle + last eval metadata per artifact (source of truth for prod)
+  prod/               # materialized output: only artifacts approved in registry
   harness/            # python project: orchestrator + judge + bridge
-  fixtures/           # per-artifact inputs and rubrics
+  fixtures/           # per-artifact inputs and rubrics (mirrors artifact_path; see §4.1)
   reports/            # run outputs (json + markdown)
   cache/              # diff + result cache (SQLite or JSON)
 ```
 
-Promotion in solo mode = copying approved files from `lab/` to `prod/` and optionally to the
-repo-root `.cursor/`. Later, the same code path becomes "open PR to prod-plugin-repo."
+Promotion in solo mode = updating **`lab/registry.yaml`** (lifecycle and eval pointers), then
+running a **prod build** that copies **approved** artifact files from `lab/.cursor/` into
+`prod/.cursor/` (and optionally into the repo-root `.cursor/`). Later, the same registry + build
+idea becomes “open PR to prod-plugin-repo.”
 
 ## 3. Repository Placement
 
-Add the lab as `apps/cursor-lab/` so it sits beside the other workspace apps and is ignored by
-the existing TypeScript build:
+Add the lab as `apps/cursor-lab/` so it sits beside the other workspace apps. **pnpm:** the root
+`pnpm-workspace.yaml` globs `apps/*`; every workspace package expects a **`package.json`** at
+`apps/cursor-lab/package.json` (minimal `private: true` + scripts that delegate to `uv run` or the
+Node bridge) so `pnpm install` stays valid. **Turbo:** either omit `build`/`test` scripts for this
+package or wire no-op scripts so `turbo build` does not assume a Next.js app.
 
 ```text
 apps/cursor-lab/
   README.md
+  package.json               # required pnpm workspace member (thin wrapper)
   pyproject.toml             # uv- or poetry-managed python project
+  lab/
+    registry.yaml            # artifact lifecycle + last eval (see §10)
+    .cursor/                 # candidate plugin tree (mirror of repo .cursor layout)
   cursor_lab/
     __init__.py
     cli.py                   # entry points: `evaluate`, `promote`, `report`, `list`
@@ -78,7 +91,7 @@ apps/cursor-lab/
       node_bridge/
         package.json
         tsconfig.json
-        run-agent.ts         # uses @cursor/sdk Agent.prompt
+        run-agent.ts         # @cursor/sdk: prompt or streaming executor (see §5)
     judge/
       __init__.py
       signatures.py          # DSPy signatures (typed)
@@ -91,17 +104,15 @@ apps/cursor-lab/
     promotion/
       __init__.py
       gate.py                # threshold + variance evaluation
-      promote.py             # copy lab -> prod (and optionally repo .cursor/)
+      promote.py             # apply registry transitions; invoke prod materializer
     reporting/
       __init__.py
       markdown.py
       json_report.py
-  lab/
-    .cursor/                 # mirror of repo .cursor layout (rules, skills)
   prod/
-    .cursor/                 # last-approved state (seeded from current repo .cursor)
+    .cursor/                 # materialized from lab + registry (approved only)
   fixtures/
-    <artifact-id>/
+    <artifact_path>/         # directory mirrors artifact_path (see §4.1), e.g. skills/core/safe-edit-and-verify/
       manifest.yaml
       inputs/
         case-01.md
@@ -115,13 +126,13 @@ apps/cursor-lab/
 Rationale for `apps/cursor-lab/`:
 
 - Repo conventions already treat `apps/*` as independent surfaces.
-- `pnpm-workspace.yaml` only globs `apps/*` and `packages/*` for JS; a python app there is inert
-  to the JS toolchain.
 - Keeps lab `.cursor` clearly separated from the repo-root `.cursor`.
+- Same monorepo as the real plugin content: one PR can change a skill, its fixture, and the
+  registry entry together.
 
 ## 4. Core Concepts
 
-### 4.1 Artifact
+### 4.1 Artifact identity
 
 A unit under evaluation. Discovered from `lab/.cursor/`:
 
@@ -129,18 +140,34 @@ A unit under evaluation. Discovered from `lab/.cursor/`:
 - **Skill**: `lab/.cursor/skills/<domain>/<name>/SKILL.md`
 - **Hook**: `lab/.cursor/hooks/*` (future)
 
-Each artifact gets a stable `artifact_id` derived from path (e.g. `skill:core/safe-edit-and-verify`).
+**Canonical fields (use everywhere: manifests, cache keys, reports, registry):**
+
+- **`artifact_kind`**: `rule` | `skill` | `hook`
+- **`artifact_path`**: path relative to `.cursor/`, POSIX, no leading `./`, e.g.
+  `skills/core/safe-edit-and-verify` or `rules/skills-docs-routing.mdc`
+
+**Stable string ID** (logs, DB, filenames that allow a delimiter):
+
+- `artifact_id = "${artifact_kind}:${artifact_path}"`  
+  Example: `skill:skills/core/safe-edit-and-verify`
+
+**Fixture directory on disk:** mirror `artifact_path` under `fixtures/` (no colons, portable):
+
+`fixtures/skills/core/safe-edit-and-verify/manifest.yaml`
 
 ### 4.2 Fixture
 
-A test case for an artifact, stored under `fixtures/<artifact_id>/`:
+A test case for an artifact lives under `fixtures/<artifact_path>/` as above.
 
 ```yaml
-# fixtures/skill:core.safe-edit-and-verify/manifest.yaml
-artifact_id: skill:core/safe-edit-and-verify
+# fixtures/skills/core/safe-edit-and-verify/manifest.yaml
+artifact_kind: skill
+artifact_path: skills/core/safe-edit-and-verify
 description: Validate that the skill produces a planned, verified edit on a small TS file.
 cases:
   - id: case-01-rename-symbol
+    sandbox_profile: strict        # strict | bundled | workspace_slice (see §6)
+    bundled_artifact_paths: []    # when sandbox_profile=bundled: more lab/.cursor paths to copy
     input_file: inputs/case-01.md
     seed_dir: seed/case-01
     capability_mix:    # weights summing to 1.0
@@ -150,6 +177,8 @@ cases:
     thresholds:
       min_score: 0.75
       max_variance: 0.10
+      min_success_rate: 0.67       # e.g. 2/3 runs must finish; default tunable (was hard 1.0)
+      min_process_mean: 0.7
     runs: 3
 ```
 
@@ -180,131 +209,121 @@ A rubric entry is a triple `(capability, criterion, weight)`. Defaults live in
 ### 4.4 Run Unit
 
 `(artifact, case, seed_index)` is the unit the orchestrator submits to the executor. With
-`runs: 3`, three independent run units are produced per case. Each run unit produces:
+`runs: 3`, three independent run units are produced per case. Each run unit produces a **run
+record** aligned with what the bridge actually captures (see §5):
 
 ```jsonc
 {
-  "run_id": "...",                  // SDK run id
-  "agent_id": "...",                // SDK agent id
-  "artifact_id": "skill:core/safe-edit-and-verify",
+  "run_id": "...",                  // SDK RunResult.id (verify against installed @cursor/sdk)
+  "agent_id": "...",                // if exposed on RunResult for this SDK version; else null
+  "artifact_id": "skill:skills/core/safe-edit-and-verify",
   "case_id": "case-01-rename-symbol",
   "seed_index": 0,
-  "status": "finished" | "error" | "startup_error",
-  "result_text": "...",
-  "tool_events": [...],             // captured assistant tool-use blocks
+  "executor_mode": "prompt" | "stream",   // which bridge path was used
+  "status": "finished" | "error" | "cancelled" | "startup_error",
+  "result_text": "...",             // final assistant text (RunResult.result)
+  "tool_events": [...],             // populated only in stream mode; see §5
   "file_diffs": [{ path, before, after }],
-  "stdout": "...",
-  "stderr": "...",
+  "stderr_tail": "...",
   "duration_ms": 12345
 }
 ```
 
+**SDK fact check:** `Agent.prompt(...)` returns `Promise<RunResult>` with summary fields such as
+`status`, `result`, and `durationMs` — suitable for diff+text judging. **`tool_call` / transcript
+events** are documented on `run.stream()` after `Agent.create` + `agent.send` (see Cursor SDK
+TypeScript docs). If a rubric needs tool traces, use **stream mode** for those cases; otherwise
+default to **prompt mode** and leave `tool_events` empty with `tool_event_summary` derived only
+from text+diff heuristics or omitted.
+
 ## 5. Execution: Cursor SDK Bridge
 
-The Cursor SDK is currently TypeScript-only. The harness is Python (DSPy). We need a minimal
-Python → Node bridge.
+The Cursor SDK is TypeScript-first. The harness is Python (DSPy). Use a minimal Python → Node
+bridge. Public SDK reference: [Cursor SDK — TypeScript](https://cursor.com/docs/sdk/typescript)
+and [Evals](https://cursor.com/docs/evals).
 
-### 5.1 Design choice: pattern selection
+### 5.1 Design choice: prompt vs stream (aligned with the SDK)
 
-Per the SDK skill, three invocation shapes exist:
+Documented shapes:
 
-- `Agent.prompt(...)` — one-shot, disposes for you.
-- `Agent.create(...).send(...)` — durable, streaming, multi-turn.
-- `Agent.resume(...)` — pick up across processes.
+- **`Agent.prompt(message, options)`** — one-shot: create → send → wait → dispose. Returns
+  **`Promise<RunResult>`** with at least `status` (`finished` | `error` | `cancelled`), `result`
+  (final assistant text), and `durationMs`. Best for **cost, simplicity, and leak avoidance** on
+  bulk runs.
+- **`Agent.create` + `agent.send` + `run.stream()`** — yields **`SDKMessage`** union including
+  **`tool_call`** events (`SDKToolUseMessage`: name, args, result, truncation flags). Use this
+  **stream mode** when the rubric must see tool traces or multi-turn behavior. Always dispose the
+  agent (`await using` / explicit async dispose per SDK docs).
 
-**This harness uses `Agent.prompt(...) per run unit`.** Each evaluation is fire-and-forget,
-no follow-ups, no streaming required. This is the safest shape: the SDK disposes the agent on
-exit, eliminating leaked executors across hundreds of fixture runs.
+**Harness policy:**
 
-If a future fixture needs multi-turn (e.g. "ask, observe, follow-up"), upgrade only that case
-to `Agent.create + send + wait` with explicit `[Symbol.asyncDispose]` in `finally`.
+- **Default executor mode:** `prompt` — one run unit = one `Agent.prompt` call.
+- **Opt-in per case:** `stream` in the bridge request when `manifest.yaml` marks the case (e.g.
+  `executor_mode: stream`) or when `command_running` / process rubrics require tool evidence.
+- **Cancelled runs:** treat `status === "cancelled"` like a non-success for gates unless the
+  fixture explicitly allows interruption.
 
-### 5.2 Runtime: local with isolated cwd
+Multi-turn follow-ups beyond one `send` stay out of scope until a fixture declares them; then use
+`Agent.create` + multiple `send` with the same disposal discipline.
 
-Per the SDK skill we always pass `local: { cwd, settingSources }` (or `cloud: { repos }`)
-**explicitly**. For this harness:
+### 5.2 Runtime: local with isolated cwd and SDK bootstrap
 
-- **Default = local**. We need full control over which `.cursor/` is visible to the agent. The
-  whole point of evaluation is that *only the lab artifact under test* informs behavior.
-- `settingSources: []` (the default, but set it explicitly anyway) so the agent does not pull
-  in the host user's project/team/MDM settings.
-- The sandbox `cwd` is a freshly-created temp dir that contains:
-  - `case seed/` files copied in
-  - a single `.cursor/` folder containing **only** the artifact under test plus mandatory
-    `.cursor/skills/skills.index.json` if a skill is being evaluated
+Always pass **`local: { cwd, settingSources }`** (or `cloud: { repos }`) **explicitly**.
 
-Optional **cloud lane** (later iteration): for slow / heavy fixtures, switch to
-`cloud: { repos: [{ url, startingRef }] }` pointing at a throwaway eval repo with the lab
-content materialized. Same harness, swap the bridge invocation.
+- **Default = local** so only the lab-built `.cursor/` under `cwd` affects the agent.
+- **`settingSources: []`** (explicit) so project/user/team/MDM/plugin settings from the host do
+  not leak in.
+- **Ripgrep:** mirror `packages/cursor-agents` (`bootstrapCursorSdkRuntime`, **`CURSOR_RIPGREP_PATH`**):
+  sandboxes and CI must expose a working `rg` binary (PATH or explicit path). **`cursor-lab doctor`**
+  should verify this alongside API keys — missing ripgrep shows up as noisy startup failures in
+  thin environments.
 
-### 5.3 Bridge contract
+Optional **cloud lane** (later): `cloud: { repos: [{ url, startingRef }] }` for long fixtures.
 
-Node side (`bridge/node_bridge/run-agent.ts`) reads a JSON request on stdin and writes a JSON
-response on stdout. Stderr stays human-readable for debugging.
+### 5.3 Child process and secrets
 
-Request:
+- **Preferred:** the Python orchestrator spawns Node with **`env` containing `CURSOR_API_KEY`** (and
+  any bridge-only vars) scoped to that child; the JSON request body on stdin carries **no secrets**.
+  Redact keys from logs and from persisted `raw_json` blobs.
+- **Acceptable for local debugging only:** pass key in the request — never enable in CI artifacts.
+
+### 5.4 Bridge contract
+
+Node (`bridge/node_bridge/run-agent.ts`) reads a JSON request on **stdin** and writes JSON on
+**stdout**. Stderr stays human-readable.
+
+Request (secrets excluded; keys come from child env):
 
 ```jsonc
 {
-  "apiKey": "cursor_...",              // explicit; do not rely on env in the child
-  "model": { "id": "composer-2" },     // required for local
+  "executorMode": "prompt",
+  "model": { "id": "composer-2" },
   "cwd": "/tmp/.../sandbox-abc",
-  "prompt": "...",                     // user-style input
-  "settingSources": [],                // explicit empty
-  "mcpServers": null,                  // optional; pass-through
+  "prompt": "...",
+  "settingSources": [],
+  "mcpServers": null,
   "timeoutMs": 600000
 }
 ```
 
-Response (always JSON, even on failure):
+Response shapes (always JSON):
 
-```jsonc
-{
-  "ok": true,
-  "agentId": "...",
-  "runId": "...",
-  "status": "finished",
-  "result": "...",                     // result.result text
-  "model": "composer-2",
-  "durationMs": 12345
-}
-```
+**Success-ish (prompt mode):** `ok` true when `status === "finished"`; when `status === "error"`
+or `cancelled`, still return ids + `result` text but set `ok` false and `kind: "run_error"` (or
+dedicated `cancelled` flag — pick one convention in code and keep it stable).
 
-Or:
+**Startup failure:** `kind: "startup_error"`, `isRetryable` from `CursorAgentError`.
 
-```jsonc
-{
-  "ok": false,
-  "kind": "startup_error",             // CursorAgentError caught
-  "isRetryable": true,
-  "message": "...",
-  "agentId": null,
-  "runId": null
-}
-```
+**Stream mode:** same envelope plus `toolEvents: SDKToolUseMessage[]` (or a trimmed summary) collected
+from `for await (const m of run.stream())` until `run.wait()` completes.
 
-Or:
+Orchestrator branching (unchanged intent):
 
-```jsonc
-{
-  "ok": false,
-  "kind": "run_error",                 // result.status === "error"
-  "agentId": "...",
-  "runId": "...",
-  "result": "..."
-}
-```
+- `startup_error` + `isRetryable` → exponential backoff, max 3.
+- `startup_error` non-retryable → fail fast (auth/config).
+- `run_error` / failed completion → score partial output; count toward **`min_success_rate`** (§4.2).
 
-This mirrors the SDK skill's mandatory distinction between **startup failures** (`CursorAgentError`,
-the run never executed) and **run failures** (`result.status === "error"`, the agent did work and
-the work failed). The orchestrator treats them differently:
-
-- `startup_error` with `isRetryable=true` → exponential backoff retry, max 3 attempts.
-- `startup_error` with `isRetryable=false` → fail the whole batch; this is auth/config.
-- `run_error` → recorded as a real (low) score in the rubric, not a retry. The judge still gets
-  to evaluate the partial output. Variance now also reflects "sometimes the run errors."
-
-Bridge node script skeleton (Agent.prompt path):
+Prompt-mode skeleton (verify `RunResult` field names against the installed `@cursor/sdk` version):
 
 ```typescript
 import { Agent, CursorAgentError } from "@cursor/sdk";
@@ -314,15 +333,16 @@ async function main() {
   const started = Date.now();
   try {
     const result = await Agent.prompt(req.prompt, {
-      apiKey: req.apiKey,
+      apiKey: process.env.CURSOR_API_KEY!,
       model: req.model,
       local: { cwd: req.cwd, settingSources: req.settingSources ?? [] },
       mcpServers: req.mcpServers ?? undefined,
     });
+    const failed = result.status === "error" || result.status === "cancelled";
     writeJsonStdout({
-      ok: result.status !== "error",
-      kind: result.status === "error" ? "run_error" : undefined,
-      agentId: result.agentId,
+      executorMode: "prompt",
+      ok: !failed,
+      kind: failed ? "run_error" : undefined,
       runId: result.id,
       status: result.status,
       result: result.result,
@@ -344,23 +364,26 @@ async function main() {
 }
 ```
 
-### 5.4 Python wrapper
+Stream-mode implementation should follow the **“Stream events for transcripts”** pattern in the
+Cursor evals doc: accumulate `tool_call` messages (and optional assistant text blocks), then merge
+with `run.wait()` output for final `result` text.
 
-`bridge/cursor_agent_bridge.py` shells out to `node run-agent.js` (compiled once at install
-time, or run via `tsx`). It serializes the request, reads stdout, validates the JSON envelope,
-captures stderr into the run record, and returns a typed dataclass.
+### 5.5 Python wrapper
+
+`bridge/cursor_agent_bridge.py` shells out to `node run-agent.js` (compiled at install or `tsx`).
+It sets the child env (API key), passes the JSON request on stdin, reads stdout, validates the
+envelope, captures stderr into the run record, and returns a typed dataclass.
 
 API:
 
 ```python
 class CursorAgentBridge:
     def __init__(self, api_key: str, model_id: str = "composer-2", node_cmd: list[str] | None = None): ...
-    def run_once(self, *, cwd: Path, prompt: str, timeout_s: int = 600,
+    def run_once(self, *, cwd: Path, prompt: str, executor_mode: str = "prompt", timeout_s: int = 600,
                  mcp_servers: list[dict] | None = None) -> RunResult: ...
 ```
 
-`RunResult` mirrors the bridge response with `status`, `kind`, `result`, `agent_id`, `run_id`,
-`duration_ms`, `stderr_tail`.
+`RunResult` mirrors the bridge response (including optional `tool_events`, `stderr_tail`).
 
 ## 6. Sandbox Builder
 
@@ -369,13 +392,19 @@ each `run_once`:
 
 1. Create `tempfile.mkdtemp(prefix="cursor-lab-")`.
 2. Copy the case `seed/` tree into the sandbox (if present).
-3. Materialize a minimal `.cursor/` inside the sandbox:
-   - For a **rule** artifact: copy only that `.mdc` into `sandbox/.cursor/rules/`.
-   - For a **skill** artifact: copy the skill directory into `sandbox/.cursor/skills/<domain>/<name>/`,
-     plus a one-entry `sandbox/.cursor/skills/skills.index.json` so discovery works.
-   - Do **not** copy any other rules, skills, or `AGENTS.md` from the host or lab. This is
-     deliberate — we want to attribute behavior to the artifact under test.
-4. Optionally write an `AGENTS.md` stub if the case requires repo-level context.
+3. Materialize `.cursor/` inside the sandbox according to **`sandbox_profile`** on the case
+   (from `manifest.yaml`; see §4.2):
+   - **`strict` (default):** copy **only** the primary artifact (same rules as before: one `.mdc`,
+     or one skill tree + minimal `skills.index.json`). Do **not** copy other lab rules/skills or
+     host `AGENTS.md` — maximizes attribution to the artifact under test.
+   - **`bundled`:** copy the primary artifact **plus** paths listed in `bundled_artifact_paths`
+     (resolved under `lab/.cursor/`). Use when a skill legitimately depends on another lab skill
+     or companion rule.
+   - **`workspace_slice`:** copy `strict` (or `bundled`) content **and** an optional allowlisted
+     slice (e.g. stub `AGENTS.md`, a few package files) declared in the fixture so repo-context
+     prompts behave realistically without mounting the whole monorepo.
+4. For skills in **`strict`**, still emit a one-entry `sandbox/.cursor/skills/skills.index.json`
+   when required for discovery.
 5. Initialize as an empty git repo (`git init`) so the agent can stage/diff edits naturally.
 6. Yield the sandbox path; clean up after run.
 
@@ -392,7 +421,47 @@ DSPy gives us typed signatures, modular judges, and the ability to optimize prom
 typed-Predict pattern produces structured scores that the orchestrator can aggregate
 deterministically.
 
-### 7.2 Signatures
+### 7.2 Versioned JSON verdict (primary machine output)
+
+The **authoritative judge artifact** is **versioned JSON** validated in code (Zod, Pydantic, or
+Ajv) — same discipline as `packages/cursor-agents` PR review (“return ONLY JSON matching …”). DSPy
+can still orchestrate internal calls, but the **stored verdict** and promotion gates consume
+parsed JSON only.
+
+**Illustrative schema (extend as needed):**
+
+```jsonc
+{
+  "schema_version": "1.0",
+  "artifact_id": "skill:skills/core/safe-edit-and-verify",
+  "overall": {
+    "score": 0.0,
+    "rationale": "2–4 sentences with concrete references to diff/result/tools"
+  },
+  "dimensions": [
+    {
+      "id": "refactor",
+      "score": 0.0,
+      "weight": 0.7,
+      "rationale": "...",
+      "evidence": [{ "kind": "diff_hunk|tool_call|result_quote", "ref": "..." }]
+    }
+  ],
+  "process_adherence": {
+    "score": 0.0,
+    "deviations": ["skipped verification step", "..."]
+  },
+  "improvement_suggestions": ["...", "..."]
+}
+```
+
+**Calibration rule (state clearly):** a tiny **golden replay set** may exist **only** to verify
+the judge implementation (schema compliance, temperature, drift). **Golden outputs do not define
+artifact promotion truth.** Rubric scores measure real fixture runs; goldens measure the **instrument**.
+
+On parse failure: one **repair** prompt (“emit valid JSON only”) or fail the run with diagnostics.
+
+### 7.3 Signatures
 
 ```python
 # judge/signatures.py
@@ -419,10 +488,10 @@ class ProcessAdherence(dspy.Signature):
     tool_event_summary: str = dspy.InputField()
 
     adherence: float = dspy.OutputField(desc="0.0 to 1.0")
-    deviations: list[str] = dspy.OutputField(desc="Concrete steps skipped or violated")
+    deviations: list[str] = dspy.OutputField(desc="Concrete steps skipped or violated (best-effort; JSON verdict carries canonical deviations[])")
 ```
 
-### 7.3 Judge module
+### 7.4 Judge module
 
 ```python
 # judge/judge.py
@@ -459,21 +528,29 @@ class ArtifactJudge(dspy.Module):
         )
 ```
 
-### 7.4 Judge model
+Persist the **§7.2 JSON verdict** as the canonical scored artifact; the module above illustrates how
+DSPy might produce inputs to that schema.
+
+### 7.5 Judge model
 
 - Default judge LM: a specific, strong model (e.g., `gpt-4o` or `claude-3-5-sonnet-latest` via DSPy LM config). We specify exact models, not just families, to ensure deterministic behavior.
 - Configured via `CURSOR_LAB_JUDGE_MODEL` and `CURSOR_LAB_JUDGE_API_KEY` env vars.
 - Keep executor and judge models **distinct**: the executor is what we're evaluating (e.g., `composer-2` via the Cursor SDK), the judge is the rater. Sharing a model risks self-grading bias.
 
-### 7.5 Aggregation
+### 7.6 Aggregation
 
 For each `(artifact, case)` with `runs = N`:
 
 - `score_mean = mean(weighted_score across runs)`
 - `score_std = stdev(weighted_score across runs)`
-- `success_rate = fraction of runs with status == "finished"`
+- `success_rate = fraction of runs with status == "finished"` (after retries; define whether
+  `cancelled` counts as failure — default yes)
 - `process_mean = mean(process_adherence)`
-- Per-capability mean + std
+- Per-dimension mean + std, plus **persist full per-run judge JSON** (scores, rationales,
+  evidence, suggestions) for human review and harness improvement.
+
+Gate comparison uses each case’s **`min_success_rate`** and **`min_process_mean`** from the
+manifest (§4.2), not hard-coded literals.
 
 The orchestrator persists these alongside raw run records.
 
@@ -504,7 +581,9 @@ fingerprint = sha256(
   || all fixture seed files
   || rubric defaults version
   || executor_model_id
+  || executor_mode            # prompt | stream
   || judge_model_id
+  || judge_schema_version     # bump when §7.2 JSON shape changes
 )
 ```
 
@@ -528,10 +607,17 @@ CREATE TABLE artifact_runs (
 CREATE TABLE artifact_verdicts (
   artifact_id TEXT, fingerprint TEXT,
   score_mean REAL, score_std REAL, success_rate REAL,
-  promoted INTEGER, created_at TIMESTAMP,
+  process_mean REAL,
+  gate_pass INTEGER,              -- all cases pass thresholds for this fingerprint
+  judge_verdict_json TEXT,        -- latest aggregated JSON (or path under reports/)
+  created_at TIMESTAMP,
   PRIMARY KEY (artifact_id, fingerprint)
 );
 ```
+
+**Lifecycle is not duplicated here:** `lab/registry.yaml` owns `draft | edited | candidate |
+approved | retired`. Cache rows only record **eval math** (`gate_pass`) so reruns skip work.
+Promotion updates the registry and runs the prod materializer (§10).
 
 CLI flow:
 
@@ -540,45 +626,70 @@ CLI flow:
 - `evaluate --since <git-ref>` — only consider artifacts whose files differ vs. that ref. Useful
   inside CI later.
 
-## 10. Promotion Gate
+## 10. Promotion, registry, and prod materialization
 
-After evaluation, the gate decides per-artifact:
+### 10.1 Gate (per artifact, across cases)
+
+After evaluation, aggregate per artifact (worst case or weighted aggregate — pick one policy in
+code and document it). A **candidate** passes the gate when **every** case satisfies its own
+thresholds:
 
 ```text
-PROMOTE if and only if:
-  score_mean    >= fixture.thresholds.min_score   (default 0.75)
-  AND score_std <= fixture.thresholds.max_variance (default 0.10)
-  AND success_rate == 1.0
-  AND process_mean >= 0.7
+PASS_GATE if for every case:
+  score_mean      >= thresholds.min_score
+  AND score_std   <= thresholds.max_variance
+  AND success_rate >= thresholds.min_success_rate
+  AND process_mean >= thresholds.min_process_mean
 ```
 
-Failing any clause: the artifact stays in `lab/` only. Failures are reported with the specific
-clause and the worst offending case.
+Failures list the clause and worst case id.
 
-`promote` CLI:
+### 10.2 Registry (source of truth)
 
-- Reads `artifact_verdicts` for the current fingerprints.
-- For each PROMOTE verdict that differs from `prod/.cursor/`, copies the file(s) from
-  `lab/.cursor/` to `prod/.cursor/`.
-- With `--apply-to-repo`, also copies into the repo-root `.cursor/` (this is the "real" plugin
-  for the personal account) and prints the resulting paths so they can be reviewed before
-  committing. Promotion is never auto-committed.
+`lab/registry.yaml` lists every artifact under management. Example row:
 
-In the enterprise version, "copy to prod" becomes "open PR to prod-plugin-repo from a generated
-branch with only the approved diff." The interface is the same.
+```yaml
+artifacts:
+  - artifact_id: skill:skills/core/safe-edit-and-verify
+    lifecycle: draft            # draft | edited | candidate | approved | retired
+    lab_path: skills/core/safe-edit-and-verify   # relative to lab/.cursor/
+    last_fingerprint: "sha256:..."
+    last_eval_at: "2026-05-15T12:00:00Z"
+    last_report: reports/2026-05-15T1200/summary.md
+    approval: null              # { at, by } when human or CLI approves
+```
+
+**`evaluate`** (or `gate`) updates **`last_*`** fields and may set **`lifecycle`** to:
+
+- `edited` — artifact bytes changed since last approval.
+- `candidate` — latest eval **`gate_pass`** is true for the current fingerprint.
+
+**`approve`** (human or explicit CLI) sets **`lifecycle: approved`**, fills **`approval`**, and
+records the fingerprint that was approved. **Nothing auto-approves** without an explicit command
+unless you later add a `--auto-approve` flag for solo use.
+
+**`promote` / `materialize-prod`** reads **only `lifecycle === approved`** rows and copies the
+corresponding paths from `lab/.cursor/` into `prod/.cursor/`, pruning files in prod that are no
+longer approved (policy: mirror exactly approved set, or additive-only — choose one; default
+**mirror** for personal use). **`--apply-to-repo`** also copies into the repo-root `.cursor/` and
+prints paths for review; never auto-commit.
+
+In an enterprise port, registry + approved diff becomes “open PR to prod-plugin-repo.”
 
 ## 11. CLI Surface
 
 ```text
-cursor-lab list                       # show artifacts + fixtures + last verdict
+cursor-lab list                       # artifacts + registry lifecycle + last verdict
 cursor-lab evaluate                   # run; reuse cached verdicts where fingerprint matches
 cursor-lab evaluate --force           # ignore cache
 cursor-lab evaluate --artifact <id>   # narrow scope
 cursor-lab evaluate --since HEAD~1    # only artifacts changed vs git ref
+cursor-lab gate                       # compute gate_pass from latest runs; set registry to candidate/edited
+cursor-lab approve --artifact <id>    # mark approved (after reviewing reports)
 cursor-lab report                     # write reports/latest.md + reports/latest.json
-cursor-lab promote                    # copy passing artifacts lab/ -> prod/
-cursor-lab promote --apply-to-repo    # also copy into ../../.cursor/
-cursor-lab doctor                     # check API keys, node bridge, judge LM reachable
+cursor-lab materialize-prod           # lab/registry → prod/.cursor/ (approved only)
+cursor-lab materialize-prod --apply-to-repo
+cursor-lab doctor                     # API keys, node bridge, judge LM, ripgrep path
 ```
 
 `evaluate` outputs both a console summary and full per-run JSON under `reports/<timestamp>/`.
@@ -588,10 +699,10 @@ cursor-lab doctor                     # check API keys, node bridge, judge LM re
 Per run, write:
 
 - `reports/<ts>/summary.md` — per-artifact table: score_mean, score_std, success_rate,
-  promote/hold, top deviations.
+  gate_pass, registry lifecycle, top deviations and **judge rationales** (link or inline).
 - `reports/<ts>/runs.jsonl` — one line per run unit, full record (for offline analysis).
-- `reports/<ts>/diffs/<artifact_id>/<case_id>/<seed_index>.patch` — unified diff written by the
-  agent in the sandbox.
+- `reports/<ts>/diffs/<artifact_path...>/<case_id>/<seed_index>.patch` — unified diff (mirror
+  `artifact_path` with safe directory segments, e.g. `diffs/skills/core/safe-edit-and-verify/...`).
 
 The summary file is the human-readable artifact; the JSONL is the machine input for any later
 optimizer (DSPy `BootstrapFewShot` learning from accepted/rejected verdicts).
@@ -600,8 +711,10 @@ optimizer (DSPy `BootstrapFewShot` learning from accepted/rejected verdicts).
 
 Required env vars:
 
-- `CURSOR_API_KEY` — for the executor SDK runs (already used elsewhere in this repo).
-- `CURSOR_LAB_JUDGE_API_KEY` — judge LM credential.
+- `CURSOR_API_KEY` — executor SDK runs (already used elsewhere in this repo). Injected **only**
+  into the Node child environment by the Python bridge; **not** logged and not embedded in saved
+  request JSON for CI runs.
+- `CURSOR_LAB_JUDGE_API_KEY` — judge LM credential (same hygiene).
 - `CURSOR_LAB_JUDGE_MODEL` — judge model id.
 
 Optional:
@@ -609,8 +722,11 @@ Optional:
 - `CURSOR_LAB_EXECUTOR_MODEL` — defaults to `composer-2`.
 - `CURSOR_LAB_RUNTIME` — `local` (default) or `cloud`.
 - `CURSOR_LAB_CLOUD_REPO_URL` / `CURSOR_LAB_CLOUD_STARTING_REF` — if `cloud`.
+- `CURSOR_RIPGREP_PATH` — explicit `rg` binary for sandboxes/CI (see `packages/cursor-agents`).
 
-All passed explicitly into the bridge so the child node process does not depend on ambient env.
+**Data sent to the judge LM** may include diffs and tool traces. For sensitive codebases, support
+**redaction** (strip env blocks, truncate diffs) or a **self-hosted / VPC** judge endpoint — out of
+scope for the first skeleton but reserved as config flags.
 
 ## 14. Failure Modes and Mitigations
 
@@ -621,7 +737,10 @@ All passed explicitly into the bridge so the child node process does not depend 
 | Startup vs run errors conflated                           | Bridge always tags `kind` and lets orchestrator branch.                                          |
 | Judge self-grading bias                                   | Executor and judge models are explicitly different LMs.                                          |
 | Cost explosion as fixtures grow                           | Fingerprint cache + `--since` scope + `runs` default 3 + cheap executor model (`composer-2-fast` allowed). |
-| Resource leaks (long-running sessions, executors)         | Use `Agent.prompt` exclusively; node bridge exits per run.                                       |
+| Resource leaks (long-running sessions, executors)         | Default `prompt` mode; `stream` mode uses `await using` / explicit dispose per SDK docs.          |
+| No tool transcript on prompt path                          | Expected per SDK; use `stream` mode when rubrics require `tool_call` evidence.                    |
+| Thin CI missing ripgrep                                    | Set `CURSOR_RIPGREP_PATH` or install `rg`; run `cursor-lab doctor`.                                 |
+| pnpm / turbo break when adding `apps/cursor-lab`           | Add `package.json` + no-op or delegated scripts; keep turbo from assuming a web build.            |
 | Variance noise hides real regressions                     | Track `score_std` as a first-class gate input, not just `score_mean`.                            |
 | Fixture rot (artifact changed but fixture didn't)         | Fingerprint includes fixture content; require explicit fixture update for shape changes.        |
 | Network flakes in cloud runtime                           | Respect `CursorAgentError.isRetryable`; backoff retry; cap retries at 3.                         |
@@ -633,41 +752,42 @@ Each phase produces a usable artifact. No phase blocks on a later one for partia
 
 **Phase A — Skeleton + bridge (smallest useful loop)**
 
-- `apps/cursor-lab/` scaffolded (pyproject, package layout).
-- Node bridge implemented with `Agent.prompt`, error-tagging, JSON I/O.
+- `apps/cursor-lab/` scaffolded (`pyproject.toml`, **`package.json`** for pnpm, package layout).
+- Node bridge: **`prompt` mode** first (`Agent.prompt`), error-tagging, JSON stdout; child env
+  carries `CURSOR_API_KEY`.
 - Python wrapper with typed `RunResult`.
-- `cursor-lab doctor` validates API keys and bridge round-trip on a trivial prompt.
+- `cursor-lab doctor`: API keys, bridge smoke test, **`CURSOR_RIPGREP_PATH` / `rg` on PATH**.
 
 Dependencies/risks: requires `@cursor/sdk` resolvable from the bridge's `package.json`. Node 20+.
 Validates the foundational interop before any judging logic.
 
 **Phase B — Sandbox + fixtures + one artifact**
 
-- Sandbox builder with snapshot/diff.
-- Discovery walks `lab/.cursor/` and produces work units.
-- One real fixture authored for `core/safe-edit-and-verify` skill, three cases.
+- Sandbox builder with snapshot/diff and **`sandbox_profile`** (§6).
+- Discovery walks `lab/.cursor/` and `fixtures/<artifact_path>/`.
+- One real fixture for `skills/core/safe-edit-and-verify`, three cases (mix of `strict` and one
+  optional `stream` case if tool evidence is needed).
 - `cursor-lab evaluate --artifact ...` runs end-to-end but **skips the judge** (raw runs only).
 
 Dependencies/risks: shape of the per-run record and diff capture is finalized here; the judge
 later just consumes it.
 
-**Phase C — DSPy judge (single capability)**
+**Phase C — Judge JSON + DSPy (optional orchestration)**
 
-- DSPy LM configured.
-- `CapabilityScore` + `ProcessAdherence` predictors implemented.
-- `judge.forward` aggregates one capability with one weight.
-- Reports written.
+- Implement **§7.2 versioned JSON verdict** + validation (primary persistence).
+- DSPy may back individual dimensions if desired; aggregated output still passes through the JSON
+  schema.
+- Reports include **rationales, evidence[], improvement_suggestions[]**.
 
-Dependencies/risks: judge LM cost. Validate the judge collapses to stable scores on a "golden"
-fixture run replayed three times before turning it loose on the full set.
+Dependencies/risks: judge LM cost. Use a **tiny golden replay** only to verify the **judge
+instrument** (schema + stability per §7.2), not to score artifacts.
 
-**Phase D — Variance, multi-capability, gate, cache**
+**Phase D — Variance, multi-capability, gate, cache, registry**
 
-- `runs: N` parallelization (asyncio + a bounded worker pool around `run_once`).
+- `runs: N` parallelization (asyncio + bounded worker pool around `run_once`).
 - Capability mix from fixture manifest.
-- Fingerprint + SQLite cache.
-- Promotion gate with thresholds.
-- `cursor-lab promote` implemented.
+- Fingerprint + SQLite cache (§9.2).
+- **`lab/registry.yaml`**, `cursor-lab gate`, `cursor-lab approve`, **`cursor-lab materialize-prod`**.
 
 Dependencies/risks: variance numbers are only meaningful with `N >= 3`. Parallelism is bounded
 so per-machine concurrency stays at 2–4 to avoid SDK rate limits.
@@ -684,20 +804,20 @@ work sessions. Local stays the default.
 
 **Phase F — Productionization seams (for the enterprise port later)**
 
-- Replace `promote --apply-to-repo` body with "open PR to prod-plugin-repo from generated diff."
+- Replace `materialize-prod --apply-to-repo` with "open PR to prod-plugin-repo from generated diff."
 - Wire `evaluate` into a CI workflow that runs on PRs into the testing repo.
 - All of this is **a swap of two functions**; the core orchestrator and judge stay unchanged.
 
 ## 16. Resolved Design Choices (from Open Questions)
 
-- **Judge LM choice:** We will specify exact models (e.g., `gpt-4o` or `claude-3-5-sonnet-latest`) rather than families. The executor will default to `composer-2` (the Cursor default).
-- **Hook artifact evaluation:** Hooks will be evaluated by verifying their side-effects (e.g., ensuring a linter actually ran, or specific checks completed) rather than just prompt output.
-- **Calibration set:** We will **not** rely on "source of truth" / golden datasets (except for extremely specific cases) to reduce bias. Instead, we rely heavily on the nuanced, context-specific rubric measurements (e.g., checking for "caveman wording" or ".NET API standards") to evaluate the output dynamically.
-- **Artifact visibility:** The judge will see the full artifact text + summary to accurately score process adherence.
+- **Judge LM choice:** Specify exact models (e.g., `gpt-4o` or `claude-3-5-sonnet-latest`) rather than families. The executor defaults to `composer-2` (Cursor default) unless overridden.
+- **Hook artifact evaluation:** Hooks are evaluated by side-effects (e.g., linter ran) where possible, not only final text.
+- **Calibration / goldens:** Goldens exist **only** to validate the **judge instrument** (JSON schema compliance, low drift). **Artifact scores** come from real rubric runs — no golden-output matching as a promotion gate.
+- **Artifact visibility:** The judge receives enough artifact text to score process adherence; redact if sending externally.
 
 ## 17. Out of Scope
 
-- Multi-repo orchestration with real PR automation.
+- Enterprise multi-repo orchestration with real PR automation (the **materialize** seam is reserved).
 - Hosted UI for browsing runs.
 - Distributed evaluation across multiple machines.
 - Optimization (MIPRO/BootstrapFewShot) of the judge — possible later once verdicts have human
@@ -705,10 +825,13 @@ work sessions. Local stays the default.
 
 ## 18. References
 
-- Cursor SDK skill (manual): `Agent.prompt` one-shot pattern, `local.settingSources = []`
+- Cursor SDK — TypeScript API (RunResult, Agent.prompt, streaming, errors):  
+  https://cursor.com/docs/sdk/typescript  
+- Cursor evals (transcript / `tool_call` streaming pattern):  
+  https://cursor.com/docs/evals  
+- Cursor SDK skill (internal): `Agent.prompt` one-shot pattern, `local.settingSources = []`
   isolation, mandatory `CursorAgentError` vs `result.status === "error"` distinction, mandatory
   disposal, explicit `apiKey`/`model`/runtime.
 - Repo conventions: `AGENTS.md`, `docs/CURSOR-AGENT-HANDBOOK.md`,
   `.cursor/skills/skills.index.json`, `.cursor/rules/skills-docs-routing.mdc`.
-- Existing automation precedent: `packages/cursor-agents/` (TypeScript SDK use), runtime
-  selector pattern in `runtime-options.ts`.
+- Existing automation precedent: `packages/cursor-agents/` (TypeScript SDK use, `bootstrapCursorSdkRuntime`, `CURSOR_RIPGREP_PATH`), runtime selector pattern in `runtime-options.ts`.
