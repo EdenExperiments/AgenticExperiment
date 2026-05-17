@@ -10,7 +10,7 @@
     "test": "node --import tsx --test cursor_lab/bridge/node_bridge/run-agent.test.ts"
   },
   "devDependencies": {
-    "@cursor/sdk": "^1.0.12",
+    "@cursor/sdk": "^1.0.13",
     "@rpgtracker/tsconfig": "workspace:*",
     "@types/node": "^20",
     "tsx": "^4.21.0",
