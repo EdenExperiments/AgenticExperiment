@@ -20,7 +20,7 @@
     "react-dom": "19.2.6"
   },
   "devDependencies": {
-    "@playwright/test": "^1.59.1",
+    "@playwright/test": "^1.60.0",
     "@rpgtracker/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "^4.3.0",
     "@tanstack/react-query-devtools": "^5.100.10",
