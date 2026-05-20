@@ -23,7 +23,7 @@
     "@types/react": "^19.0.0",
     "@vitejs/plugin-react": "^4.7.0",
     "jsdom": "^25.0.1",
-    "vitest": "^2.1.9"
+    "vitest": "^4.1.7"
   },
   "dependencies": {
     "@rpgtracker/ui": "workspace:*",
