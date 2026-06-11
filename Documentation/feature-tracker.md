@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-05-15 (Cursor Lab Phase A scaffold — F-061)
+Last updated: 2026-06-11 (CI recovery: react alignment + agent model-slug fallback — F-062)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -91,6 +91,7 @@ All Release 1 + Release 2 features through Phase 7.
 | F-059 | Scheduled scans + daily AI digest + fix/review signal merge | Ops/CI | done | `sonarcloud.yml` gains nightly main-branch scan; `mend-renovate.yml` adds weekly schedule; `cursor-daily-quality-digest.yml` runs `daily-quality-digest.ts` (Sonar branch issues + open dependency-bot PRs → Cursor summary; optional upsert to `CURSOR_DAILY_DIGEST_ISSUE_NUMBER`). PR review prefers cheaper models first, caps findings (`CURSOR_REVIEW_MAX_FINDINGS`), and adds precision prompts. Auto-fix enriches Sonar PR context (measures + configurable severities), injects deterministic merged agent/Sonar brief, and routes planner through `CURSOR_RUNTIME` cloud repo wiring via `resolveFixPlannerPromptOptions`. |
 | F-060 | Safe Renovate dependency refresh | Ops/CI | done | Applied compatible Renovate updates across npm, Go modules, and GitHub Actions after checking app impact. Deferred unsupported/high-risk majors (Node 24, pnpm 11, TypeScript 6, Vitest 4, jsdom 29, Vite React plugin 6) for explicit migration work. |
 | F-061 | Cursor Lab: LLM-as-judge eval flow | Ops/CI | in-progress | Plan: `docs/guides/cursor-lab-eval-flow-plan.md`. **Phase A landed:** `apps/cursor-lab/` Python package + pnpm workspace with `@cursor/sdk` bridge (`run-agent.ts`), `cursor-lab doctor` / `list`, artifact discovery skeleton. Next: sandbox, fixtures, judge JSON, registry gates. |
+| F-062 | CI recovery + agent model-slug resilience | Ops/CI | done | Restored green CI by aligning `react` to 19.2.6 (react-dom mismatch had failed 21/23 `packages/ui` test files since 2026-05-17). Replaced retired `composer-2-fast` defaults with `composer-2.5` and added shared `model-fallback.ts` (D-054) used by digest, triage, and PR review. Security triage now degrades gracefully when code-scanning API access is denied (403). Renovate workflow skips cleanly when `RENOVATE_TOKEN` is absent. |
 
 
 ---

@@ -10,6 +10,7 @@ import {
 } from "./github.js";
 import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
 import { resolvePromptRuntimeOptions, resolveRuntimeMode } from "./runtime-options.js";
+import { promptWithModelFallback, resolveModelCandidates } from "./model-fallback.js";
 
 const COMMENT_MARKER = "<!-- cursor-security-triage -->";
 type PromptAgent = {
@@ -111,11 +112,15 @@ Produce markdown with:
 4) Merge recommendation (safe now / safe with follow-up / hold)
 `;
 
-  const result = await agent.prompt(prompt, {
-    apiKey: requireEnv("CURSOR_API_KEY"),
-    model: { id: process.env.CURSOR_TRIAGE_MODEL ?? "composer-2" },
-    ...runtimeOptions,
-  } as any);
+  const { result } = await promptWithModelFallback(
+    resolveModelCandidates(process.env.CURSOR_TRIAGE_MODEL),
+    (modelId) =>
+      agent.prompt(prompt, {
+        apiKey: requireEnv("CURSOR_API_KEY"),
+        model: { id: modelId },
+        ...runtimeOptions,
+      } as any)
+  );
 
   const status = (result as { status?: string }).status;
   if (status && status !== "finished") {
@@ -150,7 +155,12 @@ async function runAlertTriage(
   agent: PromptAgent,
   runtimeOptions: Record<string, unknown>
 ): Promise<string> {
-  const codeAlerts = await github.listCodeScanningAlerts();
+  let codeScanningSummary = "Code scanning alert query unavailable.";
+  try {
+    codeScanningSummary = summarizeCodeScanningAlerts(await github.listCodeScanningAlerts());
+  } catch {
+    codeScanningSummary = "Code scanning alert query unavailable with current token permissions.";
+  }
   let dependabotSummary = "Dependabot alert query unavailable.";
   try {
     dependabotSummary = summarizeDependabotAlerts(await github.listDependabotAlerts());
@@ -164,7 +174,7 @@ You are triaging repository security findings.
 Repository: ${repository}
 
 Open code scanning alerts:
-${summarizeCodeScanningAlerts(codeAlerts)}
+${codeScanningSummary}
 
 Open dependabot alerts:
 ${dependabotSummary}
@@ -176,11 +186,15 @@ Produce markdown with:
 4) Suggested owners and verification checks
 `;
 
-  const result = await agent.prompt(prompt, {
-    apiKey: requireEnv("CURSOR_API_KEY"),
-    model: { id: process.env.CURSOR_TRIAGE_MODEL ?? "composer-2" },
-    ...runtimeOptions,
-  } as any);
+  const { result } = await promptWithModelFallback(
+    resolveModelCandidates(process.env.CURSOR_TRIAGE_MODEL),
+    (modelId) =>
+      agent.prompt(prompt, {
+        apiKey: requireEnv("CURSOR_API_KEY"),
+        model: { id: modelId },
+        ...runtimeOptions,
+      } as any)
+  );
 
   const status = (result as { status?: string }).status;
   if (status && status !== "finished") {

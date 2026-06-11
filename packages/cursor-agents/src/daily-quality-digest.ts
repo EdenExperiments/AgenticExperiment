@@ -7,6 +7,11 @@ import {
 } from "./github.js";
 import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
 import { resolvePromptRuntimeOptions } from "./runtime-options.js";
+import {
+  isModelUnavailableError,
+  promptWithModelFallback,
+  resolveModelCandidates,
+} from "./model-fallback.js";
 
 const DIGEST_MARKER = "<!-- cursor-daily-quality-digest -->";
 
@@ -106,7 +111,7 @@ async function main(): Promise<void> {
   const sonarProjectKey = process.env.SONAR_PROJECT_KEY;
   const branch = (process.env.SONAR_BRANCH ?? "main").trim() || "main";
   const topIssues = toPositiveInt(process.env.CURSOR_DAILY_DIGEST_TOP_ISSUES, 12);
-  const digestModel = process.env.CURSOR_DAILY_DIGEST_MODEL ?? "composer-2-fast";
+  const digestModelCandidates = resolveModelCandidates(process.env.CURSOR_DAILY_DIGEST_MODEL);
 
   let sonarSection = "SonarCloud not configured (SONAR_TOKEN / SONAR_PROJECT_KEY missing).";
   if (sonarToken && sonarProjectKey) {
@@ -186,11 +191,24 @@ Rules:
   const runtimeOptions = resolvePromptRuntimeOptions();
 
   try {
-    const result = await Agent.prompt(prompt, {
-      apiKey,
-      model: { id: digestModel },
-      ...runtimeOptions,
-    } as any);
+    const { result, modelUsed, attempts } = await promptWithModelFallback(
+      digestModelCandidates,
+      (modelId) =>
+        Agent.prompt(prompt, {
+          apiKey,
+          model: { id: modelId },
+          ...runtimeOptions,
+        } as any),
+      (error) => error instanceof CursorAgentError && isModelUnavailableError(error)
+    );
+    const digestModel = modelUsed;
+    if (attempts.length > 0) {
+      appendStepSummary(
+        `> Note: skipped unavailable model(s): ${attempts
+          .map((attempt) => `\`${attempt.modelId}\``)
+          .join(", ")}; used \`${modelUsed}\`.`
+      );
+    }
 
     if ((result as { status?: string }).status !== "finished") {
       throw new Error(`Daily digest agent failed: ${extractRunDiagnostics(result)}`);
