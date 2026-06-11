@@ -220,4 +220,4 @@ Overview of the Maintenance Queue pipeline, showing the pipeline and the automat
 ![maintenance queue pipeline](maintenance_queue_via_automations.svg)
 
 Overview of the Agent Layer, showing the three layers (Base, Stack, and Role).
-![agent layer](agent_layer.svg)
+![agent layer](agent-layer.svg)

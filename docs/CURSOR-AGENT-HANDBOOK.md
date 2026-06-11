@@ -9,6 +9,17 @@ This handbook defines the Cursor-first operating model for this repository.
 - Use this handbook for workflow, coordination, and automation standards.
 - Use `.cursor/skills/skills.index.json` for repo-managed skill discovery.
 
+## Target Architecture: Agentic Pipeline (D-055)
+
+`Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md` is the adopted target design for agentic operations:
+
+- **Pillar A** — dependency hygiene: Renovate baseline + assessment agent (`deps:safe` automerge behind CI+Sonar, `deps:breaking` research comments).
+- **Pillar B** — review loop: native Bugbot Autofix tuned via `BUGBOT.md`, propose mode first, severity status check as the merge gate (D-056). The custom SDK review/fix loop runs in parallel until retired.
+- **Pillar C** — maintenance queue: Sonar issues + `tech-debt` GitHub Issues normalised into one prioritised queue, dispatched via Cursor Automations with a concurrent bot-PR cap.
+- **Pillar D** — command-driven delivery: `/fix`, `/feature`, `/epic`, `/new-project` commands route to skill chains (`.cursor/skills/delivery/`), TDD with separated subagents (`.cursor/agents/`), draft PRs into the Pillar B convergence loop.
+- **Layered agent config (§4c)**: base (root `AGENTS.md`, `security-baseline.mdc`, hooks) → stack (nested `AGENTS.md` per zone) → role (`.cursor/agents/*.md`). See `docs/guides/agent-composition-contract.md`.
+- Operator-side setup (Bugbot, Automations, branch protection, usage caps) is tracked in `docs/guides/agentic-pipeline-operator-checklist.md`.
+
 ## Development Paths (D-036)
 
 
