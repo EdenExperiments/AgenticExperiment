@@ -50,3 +50,6 @@ static/css/app.css
 
 # Turbo (local cache and task logs)
 .turbo/
+
+# TDD lock sentinel (created by delivery orchestrator during implementation runs)
+.cursor/tdd-lock
