@@ -1,14 +1,18 @@
 
-> @rpgtracker/api-client@0.0.1 test /home/meden/GolandProjects/RpgTracker/packages/api-client
-> vitest run
+> @rpgtracker/api-client@0.0.1 test /workspace/packages/api-client
+> vitest run --pool=threads
 
 
- RUN  v2.1.9 /home/meden/GolandProjects/RpgTracker/packages/api-client
+ RUN  v2.1.9 /workspace/packages/api-client
 
- ✓ src/__tests__/client.test.ts (3 tests) 19ms
+ ✓ src/__tests__/ai-contracts.test.ts (35 tests) 9ms
+ ✓ src/__tests__/goals.test.ts (26 tests) 10ms
+ ✓ src/__tests__/goals-edge-cases.test.ts (39 tests) 11ms
+ ✓ src/__tests__/client.test.ts (3 tests) 4ms
+ ✓ src/__tests__/changePassword.test.ts (6 tests) 7ms
 
- Test Files  1 passed (1)
-      Tests  3 passed (3)
-   Start at  12:48:50
-   Duration  650ms (transform 213ms, setup 0ms, collect 168ms, tests 19ms, environment 0ms, prepare 260ms)
+ Test Files  5 passed (5)
+      Tests  109 passed (109)
+   Start at  22:13:22
+   Duration  405ms (transform 188ms, setup 0ms, collect 237ms, tests 42ms, environment 1ms, prepare 257ms)
 

@@ -1,19 +1,19 @@
 
-> @rpgtracker/landing@0.1.0 test /home/meden/GolandProjects/RpgTracker/apps/landing
-> vitest run
+> @rpgtracker/landing@0.1.0 test /workspace/apps/landing
+> vitest run --pool=threads
 
 [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
 
- RUN  v2.1.9 /home/meden/GolandProjects/RpgTracker/apps/landing
+ RUN  v2.1.9 /workspace/apps/landing
 
 stderr | app/__tests__/landing.test.tsx > layout has a skip link pointing to #main-content
 In HTML, <html> cannot be a child of <div>.
 This will cause a hydration error.
 
- ✓ app/__tests__/landing.test.tsx (5 tests) 282ms
+ ✓ app/__tests__/landing.test.tsx (5 tests) 132ms
 
  Test Files  1 passed (1)
       Tests  5 passed (5)
-   Start at  12:48:50
-   Duration  2.73s (transform 584ms, setup 131ms, collect 901ms, tests 282ms, environment 671ms, prepare 140ms)
+   Start at  22:13:31
+   Duration  1.07s (transform 323ms, setup 43ms, collect 460ms, tests 132ms, environment 253ms, prepare 42ms)
 

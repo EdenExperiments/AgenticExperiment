@@ -1,12 +1,14 @@
 
-> @rpgtracker/auth@0.0.1 test /home/meden/GolandProjects/RpgTracker/packages/auth
-> vitest run
+> @rpgtracker/auth@0.0.1 test /workspace/packages/auth
+> vitest run --pool=threads
 
 [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
 
- RUN  v2.1.9 /home/meden/GolandProjects/RpgTracker/packages/auth
+ RUN  v2.1.9 /workspace/packages/auth
 
- ✓ src/__tests__/social-auth.test.ts (7 tests) 7ms
+ ✓ src/__tests__/social-auth.test.ts (7 tests) 5ms
+ ✓ src/__tests__/env.test.ts (4 tests) 2ms
+ ✓ src/__tests__/hooks.test.tsx (1 test) 17ms
 stderr | src/__tests__/hooks.test.tsx > useSession > returns null session initially then resolves to user
 An update to TestComponent inside a test was not wrapped in act(...).
 
@@ -19,10 +21,9 @@ act(() => {
 
 This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
 
- ✓ src/__tests__/hooks.test.tsx (1 test) 31ms
 
- Test Files  2 passed (2)
-      Tests  8 passed (8)
-   Start at  12:48:50
-   Duration  1.79s (transform 140ms, setup 173ms, collect 180ms, tests 38ms, environment 1.51s, prepare 415ms)
+ Test Files  3 passed (3)
+      Tests  12 passed (12)
+   Start at  22:13:30
+   Duration  702ms (transform 70ms, setup 147ms, collect 150ms, tests 25ms, environment 958ms, prepare 202ms)
 
