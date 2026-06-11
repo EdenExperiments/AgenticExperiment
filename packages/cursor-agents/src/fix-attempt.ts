@@ -630,7 +630,7 @@ async function main(): Promise<void> {
   const requiredLabel = (process.env.CURSOR_AUTO_FIX_LABEL ?? "cursor:auto-fix").trim();
   const plannerModel = process.env.CURSOR_FIX_PLANNER_MODEL ?? "composer-2";
   const executionModel =
-    process.env.CURSOR_FIX_EXECUTION_MODEL ?? process.env.CURSOR_FIX_MODEL ?? "composer-2-fast";
+    process.env.CURSOR_FIX_EXECUTION_MODEL ?? process.env.CURSOR_FIX_MODEL ?? "composer-2.5";
   const excludedAuthors = parseCsv(process.env.CURSOR_AUTO_FIX_EXCLUDED_AUTHORS ?? "cursor[bot]");
   const fixAttemptPrLabels = parseCsv(
     process.env.CURSOR_AGENT_PR_LABELS ?? "cursor:agent-generated"

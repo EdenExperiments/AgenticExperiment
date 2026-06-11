@@ -63,7 +63,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 ### Recommended Variables
 
 - `CURSOR_RUNTIME`: `local` (default) or `cloud` for SDK workflow lane routing.
-- `CURSOR_REVIEW_MODELS`: optional comma-ordered list for PR review model fallback attempts (defaults prefer **`composer-2-fast`** first for cost control).
+- `CURSOR_REVIEW_MODELS`: optional comma-ordered list for PR review model fallback attempts (defaults prefer **`composer-2.5`** first for cost control; stale slugs are skipped via the shared model-fallback helper).
 - `CURSOR_REVIEW_MAX_FINDINGS`: hard cap on structured PR-review findings (default `10`, max `25`) to reduce noisy threads.
 - `CURSOR_CLOUD_OMIT_PR_URL`: set to `true` to stop sending `repos[].prUrl` to Cursor Cloud (keeps `url` + `startingRef` only). Try if cloud validation still fails with a SHA-style branch error; you lose automatic PR ↔ clone linkage on Cursor’s side until their API improves (`false` default).
 - `CURSOR_CLOUD_REPO_URL`: explicit repository URL for cloud runtime execution.
@@ -100,7 +100,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 
 - `SONAR_BRANCH`: SonarCloud branch key for non-PR digest queries (`main` default).
 - `CURSOR_DAILY_DIGEST_ISSUE_NUMBER`: optional GitHub issue number; when set, the digest upserts a marker comment there instead of only writing the Actions step summary.
-- `CURSOR_DAILY_DIGEST_MODEL`: model id for digest narration (`composer-2-fast` default).
+- `CURSOR_DAILY_DIGEST_MODEL`: preferred model id for digest narration (default `composer-2.5`; falls back through `composer-2`, `gpt-5.4-mini` when a slug is unavailable).
 - `CURSOR_DAILY_DIGEST_TOP_ISSUES`: Sonar issues fetched per run (`12` default).
 
 ### Permissions Model

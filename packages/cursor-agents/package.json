@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --import tsx --test src/__tests__/scanner-context.test.ts src/__tests__/head-branch-resolution.test.ts src/__tests__/remediation-brief.test.ts",
+    "test": "node --import tsx --test src/__tests__/scanner-context.test.ts src/__tests__/head-branch-resolution.test.ts src/__tests__/remediation-brief.test.ts src/__tests__/model-fallback.test.ts",
     "test:watch": "node --import tsx --watch --test src/__tests__",
     "pr-review": "tsx src/pr-review.ts",
     "pr-review:local": "CURSOR_RUNTIME=local tsx src/pr-review.ts",
