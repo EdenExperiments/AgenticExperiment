@@ -57,8 +57,8 @@ Pure visual composition work is validated by visual review and design-guide comp
 - Security and dependency triage automation lives in `.github/workflows/cursor-security-triage.yml`.
 - Auto-fix attempt automation lives in `.github/workflows/cursor-fix-attempt.yml` (lightweight gate job + fix job; `/cursor-fix`, human quote-replies, or threaded replies qualify — **bot** comments are ignored for marker-only matches so review/Sonar bot comment updates on push do not re-trigger a fix run).
 - Agent PR auto-labeling automation lives in `.github/workflows/cursor-agent-pr-labels.yml`.
-- Security signal generation lives in `.github/workflows/codeql.yml` and `.github/dependabot.yml`.
-- Renovate dependency updates can run via `.github/workflows/mend-renovate.yml` and `renovate.json`.
+- Security signal generation lives in `.github/workflows/codeql.yml` (plus GitHub Dependabot security alerts; Dependabot version updates are retired per D-057).
+- Renovate is the single dependency-update path (`.github/workflows/mend-renovate.yml` + `renovate.json`): patch updates labeled `deps:safe` automerge behind green CI + Sonar; majors are labeled `deps:breaking` and require dashboard approval plus an assessment-agent research comment.
 - SonarCloud analysis runs via `.github/workflows/sonarcloud.yml` and `sonar-project.properties` (includes a nightly **main-branch** scan schedule).
 - Daily Cursor digest (`Sonar` branch snapshot + open Renovate/Mend/Dependabot-shaped PRs → prioritized markdown) runs via `.github/workflows/cursor-daily-quality-digest.yml`.
 - Onboarding smoke checks run via `.github/workflows/quality-onboarding-smoke.yml`.
