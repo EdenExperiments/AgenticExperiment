@@ -53,9 +53,10 @@ Pure visual composition work is validated by visual review and design-guide comp
 ## CI/CD Agent Workflows
 
 - Baseline build/test remains in `.github/workflows/ci.yml`.
-- PR review automation lives in `.github/workflows/cursor-pr-review.yml`.
+- Bugbot reviews PRs against the repo-level `BUGBOT.md` rules file; Autofix runs in propose mode with a 3-iteration cap (D-056). Enablement is dashboard-side — see `docs/guides/agentic-pipeline-operator-checklist.md`.
+- PR review automation lives in `.github/workflows/cursor-pr-review.yml`. **Transition note (D-056):** this custom loop runs in parallel with Bugbot Autofix during the M3 comparison window and is retired once comparison evidence justifies it.
 - Security and dependency triage automation lives in `.github/workflows/cursor-security-triage.yml`.
-- Auto-fix attempt automation lives in `.github/workflows/cursor-fix-attempt.yml` (lightweight gate job + fix job; `/cursor-fix`, human quote-replies, or threaded replies qualify — **bot** comments are ignored for marker-only matches so review/Sonar bot comment updates on push do not re-trigger a fix run).
+- Auto-fix attempt automation lives in `.github/workflows/cursor-fix-attempt.yml` (lightweight gate job + fix job; `/cursor-fix`, human quote-replies, or threaded replies qualify — **bot** comments are ignored for marker-only matches so review/Sonar bot comment updates on push do not re-trigger a fix run). Also subject to the D-056 retirement plan alongside the custom review loop.
 - Agent PR auto-labeling automation lives in `.github/workflows/cursor-agent-pr-labels.yml`.
 - Security signal generation lives in `.github/workflows/codeql.yml` (plus GitHub Dependabot security alerts; Dependabot version updates are retired per D-057).
 - Renovate is the single dependency-update path (`.github/workflows/mend-renovate.yml` + `renovate.json`): patch updates labeled `deps:safe` automerge behind green CI + Sonar; majors are labeled `deps:breaking` and require dashboard approval plus an assessment-agent research comment.
