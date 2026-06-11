@@ -46,7 +46,11 @@ export function buildRunSummary(input: RunSummaryInput, now: Date = new Date()):
 export function writeRunSummary(input: RunSummaryInput): RunSummary | undefined {
   const summary = buildRunSummary(input);
   try {
-    const dir = process.env.CURSOR_RUN_SUMMARY_DIR ?? "cursor-agent-run-summaries";
+    // pnpm runs package scripts from the package dir; anchor artifacts to the
+    // workspace root so workflow upload paths stay stable.
+    const dir =
+      process.env.CURSOR_RUN_SUMMARY_DIR ??
+      path.join(process.env.GITHUB_WORKSPACE ?? process.cwd(), "cursor-agent-run-summaries");
     mkdirSync(dir, { recursive: true });
     const filename = `${input.job}-${summary.startedAt.replace(/[:.]/g, "-")}.json`;
     writeFileSync(path.join(dir, filename), `${JSON.stringify(summary, null, 2)}\n`);

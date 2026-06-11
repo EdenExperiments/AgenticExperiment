@@ -1,5 +1,6 @@
 ---
 name: test-writer-ts
+model: composer-2.5[fast=false]
 description: Use when writing tests from a requirements artifact for tasks touching apps/rpg-tracker/**, apps/nutri-log/**, apps/mental-health/**, or packages/** (TypeScript). Writes failing tests only — never implementation code.
 ---
 

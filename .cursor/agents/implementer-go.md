@@ -1,5 +1,6 @@
 ---
 name: implementer-go
+model: composer-2.5[fast=false]
 description: Use when implementing tasks touching apps/api/** (Go) against already-written failing tests. Never edits test files.
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: verifier
+model: gpt-5.5[context=272k,reasoning=high,fast=false]
 description: Use when independently verifying a completed task against its artifact's acceptance criteria, on any stack. Read-only plus test execution — never edits files.
 readonly: true
 ---

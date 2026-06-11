@@ -1,5 +1,6 @@
 ---
 name: test-writer-go
+model: composer-2.5[fast=false]
 description: Use when writing tests from a requirements artifact for tasks touching apps/api/** (Go). Writes failing tests only — never implementation code.
 ---
 

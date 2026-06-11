@@ -1,5 +1,6 @@
 ---
 name: implementer-ts
+model: composer-2.5[fast=false]
 description: Use when implementing tasks touching apps/rpg-tracker/**, apps/nutri-log/**, apps/mental-health/**, or packages/** (TypeScript) against already-written failing tests. Never edits test files.
 ---
 
