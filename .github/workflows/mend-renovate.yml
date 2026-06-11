@@ -20,16 +20,25 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
-      - name: Validate token availability
+      - name: Check token availability
+        id: token-check
         env:
           RENOVATE_TOKEN: ${{ secrets.RENOVATE_TOKEN }}
         run: |
           if [ -z "$RENOVATE_TOKEN" ]; then
-            echo "RENOVATE_TOKEN is not configured."
-            exit 1
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "## Mend Renovate skipped"
+              echo ""
+              echo "\`RENOVATE_TOKEN\` is not configured in repository secrets."
+              echo "Add a GitHub App token or PAT with repo scope to enable Renovate runs."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run Renovate
+        if: steps.token-check.outputs.available == 'true'
         uses: renovatebot/github-action@v46.1.14
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}

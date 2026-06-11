@@ -149,7 +149,7 @@ Recommended repository variables:
 - `CURSOR_AUTO_FIX_ENABLED` - `true` to allow automatic cloud fix attempts from workflow triggers
 - `CURSOR_AUTO_FIX_LABEL` - PR label required for auto-fix (`cursor:auto-fix` by default)
 - `CURSOR_FIX_PLANNER_MODEL` - model ID for planning pass in auto-fix workflow (default `composer-2`)
-- `CURSOR_FIX_EXECUTION_MODEL` - lower-cost model ID for implementation pass (default `composer-2-fast`)
+- `CURSOR_FIX_EXECUTION_MODEL` - lower-cost model ID for implementation pass (default `composer-2.5`)
 - `CURSOR_FIX_MODEL` - legacy fallback model variable for execution pass
 - `CURSOR_REQUIRE_TEST_CHANGES` - `true` to fail auto-fix attempts with code changes but no unit-test file changes
 - `CURSOR_REQUIRE_REVIEW_SCHEMA` - `true` to require machine-readable PR review payload before auto-fix planning

@@ -8,6 +8,7 @@ import {
 } from "./github.js";
 import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
 import { resolvePromptRuntimeOptions, resolveRuntimeMode } from "./runtime-options.js";
+import { DEFAULT_MODEL_FALLBACKS } from "./model-fallback.js";
 
 const COMMENT_MARKER = "<!-- cursor-pr-review -->";
 const REVIEW_SCHEMA_START = "<!-- cursor-pr-review-schema:v1 -->";
@@ -229,8 +230,7 @@ async function requestReviewWithFallback(
     .map((entry) => entry.trim())
     .filter(Boolean);
   /** Prefer faster/cheaper models first; escalate only if schema validation fails. */
-  const fallbackModels = ["composer-2-fast", "composer-2", "gpt-5.4-mini"];
-  const models = [...new Set([...envModels, ...fallbackModels])];
+  const models = [...new Set([...envModels, ...DEFAULT_MODEL_FALLBACKS])];
   const attemptDiagnostics: string[] = [];
 
   for (const modelId of models) {
