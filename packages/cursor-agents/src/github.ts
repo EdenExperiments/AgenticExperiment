@@ -218,6 +218,22 @@ export class GitHubClient {
     );
   }
 
+  async listRecentClosedPullRequests(perPage = 50): Promise<
+    Array<{
+      number: number;
+      title: string;
+      merged_at: string | null;
+      closed_at: string | null;
+      created_at: string;
+      user: { login: string };
+      head: { ref: string };
+    }>
+  > {
+    return this.getJson(
+      `/repos/${this.owner}/${this.repo}/pulls?state=closed&sort=updated&direction=desc&per_page=${perPage}`
+    );
+  }
+
   async listOpenIssuesByLabel(
     label: string,
     perPage = 50

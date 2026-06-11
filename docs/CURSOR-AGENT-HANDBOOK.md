@@ -63,6 +63,8 @@ Pure visual composition work is validated by visual review and design-guide comp
 - SonarCloud analysis runs via `.github/workflows/sonarcloud.yml` and `sonar-project.properties` (includes a nightly **main-branch** scan schedule).
 - Daily Cursor digest (`Sonar` branch snapshot + open Renovate/Mend/Dependabot-shaped PRs → prioritized markdown) runs via `.github/workflows/cursor-daily-quality-digest.yml`.
 - Onboarding smoke checks run via `.github/workflows/quality-onboarding-smoke.yml`.
+- Weekly outcome metrics (PR throughput by surface, merge rate, cycle time, Sonar burn-down) run via `.github/workflows/cursor-weekly-metrics.yml`; agent jobs emit `cursor-agent-run-summary:v1` JSON artifacts (M6).
+- The unified maintenance queue (Pillar C) is built in the daily digest workflow (`maintenance-queue.json` artifact); dispatch of selected items is a Cursor Automation (see `docs/guides/agentic-pipeline-operator-checklist.md`).
 
 ## CI/CD Runtime Contract
 
@@ -107,6 +109,15 @@ Pure visual composition work is validated by visual review and design-guide comp
 - `CURSOR_AUTO_FIX_FAIL_ON_SCANNER_TIMEOUT`: set to `true` to fail the workflow when the scanner wait hits the timeout instead of continuing with partial context (`false` default).
 - `CURSOR_AUTO_FIX_SONAR_SEVERITIES`: comma-separated Sonar severities for PR issue sampling in fix attempts (`BLOCKER,CRITICAL,MAJOR` default; widen cautiously to reduce noise).
 - `CURSOR_AUTO_FIX_MERGED_SIGNAL_LIMIT`: max rows pulled from **both** agent-review findings and Sonar samples into the deterministic merged brief (`5` default).
+
+### Agentic pipeline variables (M0/M4/M6)
+
+- `AGENTS_ENABLED`: repo-side kill-switch; `false` skips every `cursor-*` agent workflow. Mirror with Cursor-dashboard disables for Automations/Bugbot (brief §6).
+- `CURSOR_QUEUE_BOT_PR_CAP`: concurrent open bot-PR cap for maintenance dispatch (`4` default).
+- `CURSOR_QUEUE_TOP_K`: max items selected per queue run (`3` default).
+- `CURSOR_QUEUE_ISSUE_LABEL`: backlog intake label (`tech-debt` default).
+- `CURSOR_QUEUE_SONAR_SEVERITIES`: Sonar severities pulled into the queue (`BLOCKER,CRITICAL,MAJOR` default).
+- `CURSOR_METRICS_ISSUE_NUMBER`: issue that receives the weekly metrics comment.
 
 ### Daily digest (scheduled)
 
