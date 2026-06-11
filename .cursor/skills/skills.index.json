@@ -3,6 +3,24 @@
   "lastUpdated": "2026-06-11",
   "skills": [
     {
+      "name": "requirements-elicitation",
+      "path": ".cursor/skills/delivery/requirements-elicitation/SKILL.md",
+      "domain": "delivery",
+      "when_to_use": "At the start of /feature, /epic, /new-project flows to produce the signed requirements artifact."
+    },
+    {
+      "name": "task-decomposition",
+      "path": ".cursor/skills/delivery/task-decomposition/SKILL.md",
+      "domain": "delivery",
+      "when_to_use": "In /epic and /new-project flows to split signed requirements into independently-verifiable, routed tasks."
+    },
+    {
+      "name": "tdd-dispatch",
+      "path": ".cursor/skills/delivery/tdd-dispatch/SKILL.md",
+      "domain": "delivery",
+      "when_to_use": "To run the TDD chain (test-writer red, implementer with tests locked, verifier) for one task artifact, ending in a draft PR."
+    },
+    {
       "name": "requirements-docs-maintainer",
       "path": ".cursor/skills/docs/requirements-docs-maintainer/SKILL.md",
       "domain": "docs",
