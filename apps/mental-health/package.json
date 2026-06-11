@@ -14,7 +14,7 @@
     "@rpgtracker/auth": "workspace:*",
     "@rpgtracker/ui": "workspace:*",
     "next": "16.2.6",
-    "react": "19.2.3",
+    "react": "19.2.6",
     "react-dom": "19.2.6"
   },
   "devDependencies": {
