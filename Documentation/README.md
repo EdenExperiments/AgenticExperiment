@@ -1,42 +1,36 @@
 # Documentation Index
 
-Use this file as the canonical map for project documentation.
+Canonical map for product, platform, and agent workflow docs. Entry points: `AGENTS.md` · this file · `docs/CURSOR-AGENT-HANDBOOK.md`.
 
-## Core Canonical Documents
+## Active Canonical Documents
 
-- `product-requirements.md` - product vision, scope, requirements, and release framing.
-- `architecture.md` - domain model, API and schema contracts, and implementation constraints.
-- `decision-log.md` - binding decisions and unresolved questions.
-- `feature-tracker.md` - feature status, readiness, and deferred backlog.
-- `planning-handoff.md` - delivery sequencing context and planning history.
-- `PLATFORM-DECISIONS.md` - platform-level rationale (monorepo, BFF, theme system, pipeline split).
+| Path | Purpose |
+|------|---------|
+| `product-requirements.md` | Product vision, scope, release framing |
+| `architecture.md` | Domain model, schema, integration contracts, platform overview (§10) |
+| `decision-log.md` | Binding decisions and open questions (digest + full detail) |
+| `feature-tracker.md` | Feature status, active work, deferred backlog |
+| `agentic-pipeline/Agentic-Pipeline-Brief-v2.md` | Target agentic-operations architecture (D-055–D-058) |
+| `delivery/` | Signed delivery artifacts (`/fix`, `/feature`, `/epic`, `/new-project`) |
+| `style-guide/` | Shared + per-theme design rules |
+| `page-guides/` | Page-specific implementation briefs |
+| `ux-spec.md` | Historical UX narrative — binding UX decisions are in `decision-log.md` (D-017–D-034) |
+| `analytics-instrumentation.md` | Analytics event schema (AI goal funnel) |
 
-## Design Implementation References
+## Operational Docs (`docs/`)
 
-- `style-guide/` - shared + per-theme design rules.
-- `page-guides/` - page-specific implementation briefs (EXISTING/NEW/MODIFIED components).
-- `Design_Discussion.md` - historical design rationale source material.
+| Path | Purpose |
+|------|---------|
+| `docs/CURSOR-AGENT-HANDBOOK.md` | Workflow, CI/CD agent model, runtime variables |
+| `docs/setup.md` | Local Supabase trigger setup |
+| `docs/guides/` | Runbooks (composition contract, operator checklist, onboarding, cursor-lab) |
 
-## Agent Workflow References
+## Documentation Contract (D-059)
 
-- `agentic-pipeline/Agentic-Pipeline-Brief-v2.md` - target architecture for agentic operations (pillars A-D, milestones M0-M6, layered agent config). Adopted via D-055 to D-058.
-- `../AGENTS.md` - root directory for repository zones and context links.
-- `../docs/CURSOR-AGENT-HANDBOOK.md` - Cursor-first operating workflow for local agents, cloud agents, and CI automation.
+**Always:** update `feature-tracker.md` when status changes; `decision-log.md` when a binding decision is made.
 
-## Pruning And Archive Policy
+**Delivery:** requirements in `Documentation/delivery/` artifacts — update `product-requirements.md` only when product scope/vision changes.
 
-- Keep canonical docs concise and current; avoid duplicating the same guidance in multiple files.
-- When replacing a document, move the old content to `../docs/archive/` with a short deprecation note and replacement link.
-- Legacy implementation artifacts were intentionally culled from `docs/` to keep the working set lean; use git history when deeper historical trace is needed.
-- Prefer updating canonical docs over creating new ad hoc narrative files.
+## Archive Policy
 
-## Update Expectations
-
-For substantive product/planning changes, review:
-
-1. `product-requirements.md`
-2. `planning-handoff.md`
-3. `feature-tracker.md`
-4. `decision-log.md`
-
-If only one or two files change, explicitly state why the others were not updated.
+Historical planning and design docs live in `docs/archive/` with deprecation headers. Use git history for deep trace. Do not treat archived files as current sequencing.

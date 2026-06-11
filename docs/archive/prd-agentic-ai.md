@@ -1,6 +1,8 @@
 # PRD: Personal Agentic AI Lab (Local Testing and Experimentation)
 
-**Status:** Active draft for personal build-out  
+> **ARCHIVED** — superseded by `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md`. See `docs/archive/README.md`.
+
+**Status:** Archived (was active draft for personal build-out)  
 **Owner:** Mac  
 **Last updated:** 2026-05-09
 

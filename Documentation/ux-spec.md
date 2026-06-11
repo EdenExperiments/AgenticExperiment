@@ -1,5 +1,7 @@
 # UX Specification — Information Architecture, Navigation, and Core Journeys
 
+> **Historical narrative reference** — binding UX decisions live in `Documentation/decision-log.md` (D-017–D-034). Use this file for journey context, not as the authority for new implementation.
+
 Last updated: 2026-05-06 (added current-state summary, aligned quick-log and navigation behavior with latest decisions, trimmed historical handoff-heavy sections)
 
 ---
