@@ -1,0 +1,8 @@
+{
+  "build": {
+    "context": ".",
+    "dockerfile": "Dockerfile"
+  },
+  "install": "pnpm install --frozen-lockfile && cd apps/api && go mod download",
+  "terminals": []
+}

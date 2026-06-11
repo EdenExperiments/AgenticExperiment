@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": ".cursor/hooks/guard-protected-paths.py",
+        "matcher": "Write|Delete|StrReplace|Edit"
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/guard-shell.py",
+        "matcher": "\\.github/workflows|--force|-rf /"
+      }
+    ]
+  }
+}

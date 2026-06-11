@@ -218,6 +218,49 @@ export class GitHubClient {
     );
   }
 
+  async listRecentClosedPullRequests(perPage = 50): Promise<
+    Array<{
+      number: number;
+      title: string;
+      merged_at: string | null;
+      closed_at: string | null;
+      created_at: string;
+      user: { login: string };
+      head: { ref: string };
+    }>
+  > {
+    return this.getJson(
+      `/repos/${this.owner}/${this.repo}/pulls?state=closed&sort=updated&direction=desc&per_page=${perPage}`
+    );
+  }
+
+  async listOpenIssuesByLabel(
+    label: string,
+    perPage = 50
+  ): Promise<Array<{ number: number; title: string; body: string | null; labels: string[] }>> {
+    const issues = await this.getJson<
+      Array<{
+        number: number;
+        title: string;
+        body: string | null;
+        labels: Array<{ name?: string } | string>;
+        pull_request?: unknown;
+      }>
+    >(
+      `/repos/${this.owner}/${this.repo}/issues?state=open&labels=${encodeURIComponent(label)}&per_page=${perPage}`
+    );
+    return issues
+      .filter((issue) => issue.pull_request === undefined)
+      .map((issue) => ({
+        number: issue.number,
+        title: issue.title,
+        body: issue.body,
+        labels: issue.labels.map((entry) =>
+          typeof entry === "string" ? entry : entry.name ?? ""
+        ),
+      }));
+  }
+
   async listIssueLabels(issueNumber: number): Promise<Array<{ name: string }>> {
     return this.getJson<Array<{ name: string }>>(
       `/repos/${this.owner}/${this.repo}/issues/${issueNumber}/labels?per_page=100`

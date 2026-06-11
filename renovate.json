@@ -1,27 +1,73 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended"],
+  "extends": ["config:recommended", ":dependencyDashboard"],
   "enabledManagers": ["npm", "gomod", "github-actions"],
-  "dependencyDashboard": true,
   "labels": ["dependencies", "renovate"],
   "rangeStrategy": "bump",
   "rebaseWhen": "behind-base-branch",
+  "minimumReleaseAge": "3 days",
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "schedule": ["before 6am on monday"],
   "packageRules": [
     {
-      "description": "Keep update PRs manual until signal quality is proven.",
-      "matchManagers": ["npm", "gomod", "github-actions"],
+      "description": "Patch updates are safe by default: label deps:safe and automerge (squash) behind green CI + Sonar (D-057). Branch protection required checks are the actual gate.",
+      "matchUpdateTypes": ["patch"],
+      "addLabels": ["deps:safe"],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "Minor updates stay manual-merge but are flagged safe for the assessment agent.",
+      "matchUpdateTypes": ["minor"],
+      "addLabels": ["deps:safe"],
       "automerge": false
     },
     {
-      "description": "Require dashboard approval for major updates.",
+      "description": "Major updates are breaking-risk: label deps:breaking, require dashboard approval, never automerge. The dep-assessment agent posts a research comment (Pillar A).",
       "matchUpdateTypes": ["major"],
-      "dependencyDashboardApproval": true
+      "addLabels": ["deps:breaking"],
+      "dependencyDashboardApproval": true,
+      "automerge": false
+    },
+    {
+      "description": "Pre-1.0 packages can break on minor: treat as breaking-risk, no automerge.",
+      "matchCurrentVersion": "<1.0.0",
+      "matchUpdateTypes": ["minor", "patch"],
+      "addLabels": ["deps:breaking"],
+      "automerge": false
+    },
+    {
+      "description": "Group non-major npm dev tooling to cut PR noise.",
+      "matchManagers": ["npm"],
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "npm dev tooling (non-major)"
+    },
+    {
+      "description": "Group non-major GitHub Actions updates.",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "github actions (non-major)"
     },
     {
       "description": "Allow indirect Go module updates.",
       "matchManagers": ["gomod"],
       "matchDepTypes": ["indirect"],
       "enabled": true
+    },
+    {
+      "description": "Deferred toolchain majors (D-053): require explicit migration work, never auto-propose past approval.",
+      "matchPackageNames": ["node", "pnpm", "typescript", "vitest", "jsdom", "@vitejs/plugin-react"],
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["deps:breaking"],
+      "dependencyDashboardApproval": true,
+      "automerge": false
     }
-  ]
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["deps:security"],
+    "schedule": ["at any time"]
+  }
 }

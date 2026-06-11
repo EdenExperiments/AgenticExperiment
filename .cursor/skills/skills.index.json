@@ -1,7 +1,49 @@
 {
   "version": 1,
-  "lastUpdated": "2026-05-09",
+  "lastUpdated": "2026-06-11",
   "skills": [
+    {
+      "name": "requirements-elicitation",
+      "path": ".cursor/skills/delivery/requirements-elicitation/SKILL.md",
+      "domain": "delivery",
+      "when_to_use": "At the start of /feature, /epic, /new-project flows to produce the signed requirements artifact."
+    },
+    {
+      "name": "task-decomposition",
+      "path": ".cursor/skills/delivery/task-decomposition/SKILL.md",
+      "domain": "delivery",
+      "when_to_use": "In /epic and /new-project flows to split signed requirements into independently-verifiable, routed tasks."
+    },
+    {
+      "name": "tdd-dispatch",
+      "path": ".cursor/skills/delivery/tdd-dispatch/SKILL.md",
+      "domain": "delivery",
+      "when_to_use": "To run the TDD chain (test-writer red, implementer with tests locked, verifier) for one task artifact, ending in a draft PR."
+    },
+    {
+      "name": "requirements-docs-maintainer",
+      "path": ".cursor/skills/docs/requirements-docs-maintainer/SKILL.md",
+      "domain": "docs",
+      "when_to_use": "When a change affects requirements, planning, feature status, decisions, or workflow policy and canonical docs must stay synchronized."
+    },
+    {
+      "name": "finish-branch-and-pr",
+      "path": ".cursor/skills/release/finish-branch-and-pr/SKILL.md",
+      "domain": "release",
+      "when_to_use": "When implementation is complete and the branch needs verification, docs sync, and PR preparation."
+    },
+    {
+      "name": "local-dev-and-ci",
+      "path": ".cursor/skills/ops/local-dev-and-ci/SKILL.md",
+      "domain": "ops",
+      "when_to_use": "For local environment setup, CI baseline checks, and operational workflow updates."
+    },
+    {
+      "name": "security-and-dependency-triage",
+      "path": ".cursor/skills/quality/security-and-dependency-triage/SKILL.md",
+      "domain": "quality",
+      "when_to_use": "For GitHub security findings, dependency-bot alerts/PRs, and security remediation discipline."
+    },
     {
       "name": "task-intake-and-scope",
       "path": ".cursor/skills/core/task-intake-and-scope/SKILL.md",

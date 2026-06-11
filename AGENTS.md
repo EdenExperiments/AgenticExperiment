@@ -31,6 +31,15 @@ This file is the top-level index for agents and contributors. It tells you where
 - Delivery sequencing and planning history: `Documentation/planning-handoff.md`
 - Theme and page implementation standards: `Documentation/style-guide/`, `Documentation/page-guides/`
 - Agent workflow protocol and CI automation model: `docs/CURSOR-AGENT-HANDBOOK.md`
+- Agentic operations target architecture (pillars A-D, M0-M6): `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md` (adopted via D-055 to D-058)
+
+## Agent Config Layering (Brief §4c)
+
+Every agent run composes three layers — see `docs/guides/agent-composition-contract.md`:
+
+1. **Base**: this file + `.cursor/rules/` (`alwaysApply` security baseline) + `.cursor/hooks.json` enforcement.
+2. **Stack**: nested `AGENTS.md` in `apps/api/` (Go), `apps/rpg-tracker/` + `packages/AGENTS.md` (TypeScript), `apps/cursor-lab/` (Python tooling).
+3. **Role**: subagent definitions in `.cursor/agents/` (test-writer/implementer per stack, shared verifier).
 
 ## Working Rules
 

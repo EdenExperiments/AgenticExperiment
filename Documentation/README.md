@@ -19,6 +19,7 @@ Use this file as the canonical map for project documentation.
 
 ## Agent Workflow References
 
+- `agentic-pipeline/Agentic-Pipeline-Brief-v2.md` - target architecture for agentic operations (pillars A-D, milestones M0-M6, layered agent config). Adopted via D-055 to D-058.
 - `../AGENTS.md` - root directory for repository zones and context links.
 - `../docs/CURSOR-AGENT-HANDBOOK.md` - Cursor-first operating workflow for local agents, cloud agents, and CI automation.
 

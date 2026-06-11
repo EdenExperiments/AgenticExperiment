@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-06-11 (CI recovery: react alignment + agent model-slug fallback — F-062)
+Last updated: 2026-06-11 (Agentic Pipeline Brief v2 adoption — F-063 to F-070)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -80,7 +80,7 @@ All Release 1 + Release 2 features through Phase 7.
 | ----- | ------------------------------------------------ | -------- | ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | F-049 | Cursor-first docs and workflow cutover           | Docs/Ops | done   | `AGENTS.md` rewritten as repo context directory. Added `Documentation/README.md` index and `docs/CURSOR-AGENT-HANDBOOK.md`. Claude-specific repo setup deprecated/removed.             |
 | F-050 | Cursor SDK PR review automation                  | Ops/CI   | done   | Added `.github/workflows/cursor-pr-review.yml` and `packages/cursor-agents/src/pr-review.ts` for automated PR analysis comments and step summaries.                                    |
-| F-051 | Cursor SDK security/dependency triage automation | Ops/CI   | done   | Added `.github/workflows/cursor-security-triage.yml`, `.github/workflows/codeql.yml`, and `.github/dependabot.yml` with triage script `packages/cursor-agents/src/security-triage.ts`. |
+| F-051 | Cursor SDK security/dependency triage automation | Ops/CI   | done   | Added `.github/workflows/cursor-security-triage.yml`, `.github/workflows/codeql.yml`, and `.github/dependabot.yml` with triage script `packages/cursor-agents/src/security-triage.ts`. Dependabot version updates later retired in favour of Renovate (D-057, F-066). |
 | F-052 | Pre-commit lint/test gate                         | Ops/CI   | done   | Added Husky pre-commit hook and root `check:precommit` script (`lint` + JS `test` + Go `go test`) to catch easy issues before commit.                                                 |
 | F-053 | Repo skill library baseline                       | Docs/Ops | done   | Added `.cursor/skills/` structure, skill index, starter skills, plus `pnpm validate:skills` for index/file consistency enforcement.                                                      |
 | F-054 | Mend Renovate + SonarCloud onboarding starter     | Ops/CI   | done   | Added `renovate.json`, `mend-renovate.yml`, `sonarcloud.yml`, `sonar-project.properties`, onboarding guides, and one-click `quality-onboarding-smoke.yml`. Renovate workflow pins a concrete `renovatebot/github-action` tag because upstream does not publish moving major tags. |
@@ -92,6 +92,24 @@ All Release 1 + Release 2 features through Phase 7.
 | F-060 | Safe Renovate dependency refresh | Ops/CI | done | Applied compatible Renovate updates across npm, Go modules, and GitHub Actions after checking app impact. Deferred unsupported/high-risk majors (Node 24, pnpm 11, TypeScript 6, Vitest 4, jsdom 29, Vite React plugin 6) for explicit migration work. |
 | F-061 | Cursor Lab: LLM-as-judge eval flow | Ops/CI | in-progress | Plan: `docs/guides/cursor-lab-eval-flow-plan.md`. **Phase A landed:** `apps/cursor-lab/` Python package + pnpm workspace with `@cursor/sdk` bridge (`run-agent.ts`), `cursor-lab doctor` / `list`, artifact discovery skeleton. Next: sandbox, fixtures, judge JSON, registry gates. |
 | F-062 | CI recovery + agent model-slug resilience | Ops/CI | done | Restored green CI by aligning `react` to 19.2.6 (react-dom mismatch had failed 21/23 `packages/ui` test files since 2026-05-17). Replaced retired `composer-2-fast` defaults with `composer-2.5` and added shared `model-fallback.ts` (D-054) used by digest, triage, and PR review. Security triage now degrades gracefully when code-scanning API access is denied (403). Renovate workflow skips cleanly when `RENOVATE_TOKEN` is absent. |
+
+
+## New — Agentic Pipeline (Brief v2 Adoption, D-055 to D-058)
+
+Target design: `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md`. Milestones M0–M6 map to the features below.
+
+
+| ID    | Feature                                            | Milestone | Status      | Notes                                                                                                                                                                                            |
+| ----- | -------------------------------------------------- | --------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F-063 | Brief canonicalisation + adoption decisions        | Pre-M0    | done        | Brief + diagrams moved to `Documentation/agentic-pipeline/`; D-055–D-058 recorded; handbook + `AGENTS.md` reference the pipeline.                                                                  |
+| F-064 | Layered agent config (base/stack/role, §4c)        | M0        | done        | `security-baseline.mdc` (alwaysApply), `.cursor/hooks.json` guardrails, nested `AGENTS.md` (Go/TS/Python), `.cursor/agents/` roster (test-writer/implementer per stack + shared verifier).         |
+| F-065 | Repo controls + cloud agent environment            | M0        | done        | `CODEOWNERS`, `AGENTS_ENABLED` kill-switch wiring in agent workflows, `.cursor/environment.json` + Dockerfile, skills consolidation into `.cursor/skills/`, composition-contract guide.            |
+| F-066 | Renovate baseline (Pillar A, M1)                   | M1        | done        | packageRules patch/minor vs major, `deps:safe`/`deps:breaking` labels, `minimumReleaseAge`, patch automerge behind CI+Sonar; Dependabot version updates retired (D-057).                          |
+| F-067 | Dependency assessment agent (Pillar A, M2)         | M2        | done        | `dep-assess` entry in `packages/cursor-agents`: classifies Renovate PRs; breaking bumps get release-note digest + affected call-site scan + structured impact comment. Highlight, never auto-fix. |
+| F-068 | Bugbot Autofix adoption (Pillar B, M3)             | M3        | in-progress | `BUGBOT.md` shipped + dashboard checklist in `docs/guides/`. Dashboard enablement, severity status check in branch protection, and custom-loop retirement (D-056) are operator actions.            |
+| F-069 | Unified maintenance queue (Pillar C, M4)           | M4        | in-progress | Queue normaliser + triage scoring + concurrent-PR cap in `packages/cursor-agents/src/maintenance-queue*`; Cursor Automations dispatch documented (dashboard setup is an operator action).          |
+| F-070 | Command-driven delivery (Pillar D, M5)             | M5        | done        | `.cursor/commands/` (`/fix`, `/feature`, `/epic`, `/new-project`) + `.cursor/skills/delivery/` chains (elicitation → decomposition → TDD dispatch); artifacts under `Documentation/delivery/`.    |
+| F-071 | Telemetry + outcome metrics (M6)                   | M6        | in-progress | Structured JSON run summaries from agent jobs + weekly metrics aggregation workflow; per-surface outcome metrics feed the future eval project via `apps/cursor-lab`.                              |
 
 
 ---

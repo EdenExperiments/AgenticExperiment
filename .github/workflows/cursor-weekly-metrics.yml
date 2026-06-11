@@ -1,0 +1,58 @@
+name: Cursor Weekly Metrics
+
+# M6 telemetry: deterministic weekly aggregation of agentic pipeline outcome metrics
+# (PR throughput by surface, merge rates, cycle time, Sonar burn-down datum, open
+# dependency-bot PR count). No model calls; posts to the metrics dashboard issue
+# when CURSOR_METRICS_ISSUE_NUMBER is set.
+
+on:
+  schedule:
+    # Monday 08:00 UTC, after the weekend Renovate window and Monday queue run.
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  weekly-metrics:
+    # vars.AGENTS_ENABLED is the repo-side kill-switch for all agent automation (brief §4, M0).
+    if: vars.AGENTS_ENABLED != 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20.20.2
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Aggregate weekly metrics
+        env:
+          GITHUB_TOKEN: ${{ secrets.CURSOR_PR_REVIEW_TOKEN != '' && secrets.CURSOR_PR_REVIEW_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY != '' && vars.SONAR_PROJECT_KEY || secrets.SONAR_PROJECT_KEY }}
+          SONAR_BRANCH: ${{ vars.SONAR_BRANCH || 'main' }}
+          CURSOR_METRICS_ISSUE_NUMBER: ${{ vars.CURSOR_METRICS_ISSUE_NUMBER }}
+        run: pnpm --filter @rpgtracker/cursor-agents run weekly-metrics
+
+      - name: Upload run summaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-summary-weekly-metrics-${{ github.run_id }}
+          path: cursor-agent-run-summaries/
+          if-no-files-found: ignore

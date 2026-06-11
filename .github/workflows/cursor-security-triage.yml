@@ -19,14 +19,66 @@ permissions:
   pull-requests: read
 
 jobs:
-  dependabot-pr-triage:
+  # Pillar A (M2): structured assessment of Renovate PRs — classify safe/risky/breaking,
+  # research breaking bumps (changelog digest + call-site scan), highlight but never auto-fix.
+  dependency-assessment:
     if: >-
+      vars.AGENTS_ENABLED != 'false' &&
       github.event_name == 'pull_request' && (
-        github.event.pull_request.user.login == 'dependabot[bot]' ||
         github.event.pull_request.user.login == 'renovate[bot]' ||
         github.event.pull_request.user.login == 'mend-for-github[bot]' ||
         startsWith(github.head_ref, 'renovate/')
       )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20.20.2
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Configure ripgrep path for Cursor SDK
+        run: |
+          if ! command -v rg >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y ripgrep
+          fi
+          echo "CURSOR_RIPGREP_PATH=$(command -v rg)" >> "$GITHUB_ENV"
+
+      - name: Run dependency assessment agent
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.CURSOR_PR_REVIEW_TOKEN != '' && secrets.CURSOR_PR_REVIEW_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          CURSOR_RUNTIME: ${{ vars.CURSOR_RUNTIME || 'local' }}
+          CURSOR_CLOUD_REPO_URL: ${{ vars.CURSOR_CLOUD_REPO_URL }}
+        run: pnpm --filter @rpgtracker/cursor-agents run dep-assess
+
+      - name: Upload run summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-summary-dep-assessment-${{ github.run_id }}
+          path: cursor-agent-run-summaries/
+          if-no-files-found: ignore
+
+  dependabot-pr-triage:
+    if: >-
+      vars.AGENTS_ENABLED != 'false' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -65,7 +117,7 @@ jobs:
         run: pnpm --filter @rpgtracker/cursor-agents run security-triage
 
   security-alert-triage:
-    if: github.event_name != 'pull_request'
+    if: vars.AGENTS_ENABLED != 'false' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository

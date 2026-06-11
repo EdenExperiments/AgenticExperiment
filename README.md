@@ -129,7 +129,7 @@ Additional automation workflows:
 - `.github/workflows/cursor-fix-attempt.yml` - cloud auto-fix attempt loop (PR review + Sonar context -> fix attempt PR)
 - `.github/workflows/cursor-agent-pr-labels.yml` - auto-label trusted cloud-agent PRs at open/reopen
 - `.github/workflows/codeql.yml` - code scanning signal generation
-- `.github/dependabot.yml` - dependency update PR generation
+- `renovate.json` + `.github/workflows/mend-renovate.yml` - dependency update PR generation (single path, D-057)
 - `.github/workflows/mend-renovate.yml` - Renovate dependency update pipeline (token-based)
 - `.github/workflows/sonarcloud.yml` - SonarCloud static analysis pipeline
 - `.github/workflows/quality-onboarding-smoke.yml` - one-click onboarding smoke checklist

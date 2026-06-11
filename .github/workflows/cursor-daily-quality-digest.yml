@@ -13,6 +13,8 @@ permissions:
 
 jobs:
   digest:
+    # vars.AGENTS_ENABLED is the repo-side kill-switch for all agent automation (brief §4, M0).
+    if: vars.AGENTS_ENABLED != 'false'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -55,3 +57,29 @@ jobs:
           CURSOR_DAILY_DIGEST_TOP_ISSUES: ${{ vars.CURSOR_DAILY_DIGEST_TOP_ISSUES }}
           CURSOR_ALLOW_COMMENT_FAILURE: "false"
         run: pnpm --filter @rpgtracker/cursor-agents run daily-quality-digest
+
+      # Pillar C (M4): build the unified maintenance queue (Sonar + tech-debt issues),
+      # apply triage scoring + the concurrent bot-PR cap, and publish the selection.
+      # Dispatch of selected items is handled by a Cursor Automation (see
+      # docs/guides/agentic-pipeline-operator-checklist.md), not by this workflow.
+      - name: Build maintenance queue selection
+        env:
+          GITHUB_TOKEN: ${{ secrets.CURSOR_PR_REVIEW_TOKEN != '' && secrets.CURSOR_PR_REVIEW_TOKEN || secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY != '' && vars.SONAR_PROJECT_KEY || secrets.SONAR_PROJECT_KEY }}
+          SONAR_BRANCH: ${{ vars.SONAR_BRANCH || 'main' }}
+          CURSOR_QUEUE_BOT_PR_CAP: ${{ vars.CURSOR_QUEUE_BOT_PR_CAP }}
+          CURSOR_QUEUE_TOP_K: ${{ vars.CURSOR_QUEUE_TOP_K }}
+          CURSOR_QUEUE_ISSUE_LABEL: ${{ vars.CURSOR_QUEUE_ISSUE_LABEL }}
+        run: pnpm --filter @rpgtracker/cursor-agents run maintenance-queue
+
+      - name: Upload maintenance queue + run summaries
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maintenance-queue-${{ github.run_id }}
+          path: |
+            maintenance-queue.json
+            cursor-agent-run-summaries/
+          if-no-files-found: ignore

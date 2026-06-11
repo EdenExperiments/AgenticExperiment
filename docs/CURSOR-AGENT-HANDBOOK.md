@@ -9,6 +9,17 @@ This handbook defines the Cursor-first operating model for this repository.
 - Use this handbook for workflow, coordination, and automation standards.
 - Use `.cursor/skills/skills.index.json` for repo-managed skill discovery.
 
+## Target Architecture: Agentic Pipeline (D-055)
+
+`Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md` is the adopted target design for agentic operations:
+
+- **Pillar A** — dependency hygiene: Renovate baseline + assessment agent (`deps:safe` automerge behind CI+Sonar, `deps:breaking` research comments).
+- **Pillar B** — review loop: native Bugbot Autofix tuned via `BUGBOT.md`, propose mode first, severity status check as the merge gate (D-056). The custom SDK review/fix loop runs in parallel until retired.
+- **Pillar C** — maintenance queue: Sonar issues + `tech-debt` GitHub Issues normalised into one prioritised queue, dispatched via Cursor Automations with a concurrent bot-PR cap.
+- **Pillar D** — command-driven delivery: `/fix`, `/feature`, `/epic`, `/new-project` commands route to skill chains (`.cursor/skills/delivery/`), TDD with separated subagents (`.cursor/agents/`), draft PRs into the Pillar B convergence loop.
+- **Layered agent config (§4c)**: base (root `AGENTS.md`, `security-baseline.mdc`, hooks) → stack (nested `AGENTS.md` per zone) → role (`.cursor/agents/*.md`). See `docs/guides/agent-composition-contract.md`.
+- Operator-side setup (Bugbot, Automations, branch protection, usage caps) is tracked in `docs/guides/agentic-pipeline-operator-checklist.md`.
+
 ## Development Paths (D-036)
 
 
@@ -42,15 +53,18 @@ Pure visual composition work is validated by visual review and design-guide comp
 ## CI/CD Agent Workflows
 
 - Baseline build/test remains in `.github/workflows/ci.yml`.
-- PR review automation lives in `.github/workflows/cursor-pr-review.yml`.
+- Bugbot reviews PRs against the repo-level `BUGBOT.md` rules file; Autofix runs in propose mode with a 3-iteration cap (D-056). Enablement is dashboard-side — see `docs/guides/agentic-pipeline-operator-checklist.md`.
+- PR review automation lives in `.github/workflows/cursor-pr-review.yml`. **Transition note (D-056):** this custom loop runs in parallel with Bugbot Autofix during the M3 comparison window and is retired once comparison evidence justifies it.
 - Security and dependency triage automation lives in `.github/workflows/cursor-security-triage.yml`.
-- Auto-fix attempt automation lives in `.github/workflows/cursor-fix-attempt.yml` (lightweight gate job + fix job; `/cursor-fix`, human quote-replies, or threaded replies qualify — **bot** comments are ignored for marker-only matches so review/Sonar bot comment updates on push do not re-trigger a fix run).
+- Auto-fix attempt automation lives in `.github/workflows/cursor-fix-attempt.yml` (lightweight gate job + fix job; `/cursor-fix`, human quote-replies, or threaded replies qualify — **bot** comments are ignored for marker-only matches so review/Sonar bot comment updates on push do not re-trigger a fix run). Also subject to the D-056 retirement plan alongside the custom review loop.
 - Agent PR auto-labeling automation lives in `.github/workflows/cursor-agent-pr-labels.yml`.
-- Security signal generation lives in `.github/workflows/codeql.yml` and `.github/dependabot.yml`.
-- Renovate dependency updates can run via `.github/workflows/mend-renovate.yml` and `renovate.json`.
+- Security signal generation lives in `.github/workflows/codeql.yml` (plus GitHub Dependabot security alerts; Dependabot version updates are retired per D-057).
+- Renovate is the single dependency-update path (`.github/workflows/mend-renovate.yml` + `renovate.json`): patch updates labeled `deps:safe` automerge behind green CI + Sonar; majors are labeled `deps:breaking` and require dashboard approval plus an assessment-agent research comment.
 - SonarCloud analysis runs via `.github/workflows/sonarcloud.yml` and `sonar-project.properties` (includes a nightly **main-branch** scan schedule).
 - Daily Cursor digest (`Sonar` branch snapshot + open Renovate/Mend/Dependabot-shaped PRs → prioritized markdown) runs via `.github/workflows/cursor-daily-quality-digest.yml`.
 - Onboarding smoke checks run via `.github/workflows/quality-onboarding-smoke.yml`.
+- Weekly outcome metrics (PR throughput by surface, merge rate, cycle time, Sonar burn-down) run via `.github/workflows/cursor-weekly-metrics.yml`; agent jobs emit `cursor-agent-run-summary:v1` JSON artifacts (M6).
+- The unified maintenance queue (Pillar C) is built in the daily digest workflow (`maintenance-queue.json` artifact); dispatch of selected items is a Cursor Automation (see `docs/guides/agentic-pipeline-operator-checklist.md`).
 
 ## CI/CD Runtime Contract
 
@@ -95,6 +109,15 @@ Pure visual composition work is validated by visual review and design-guide comp
 - `CURSOR_AUTO_FIX_FAIL_ON_SCANNER_TIMEOUT`: set to `true` to fail the workflow when the scanner wait hits the timeout instead of continuing with partial context (`false` default).
 - `CURSOR_AUTO_FIX_SONAR_SEVERITIES`: comma-separated Sonar severities for PR issue sampling in fix attempts (`BLOCKER,CRITICAL,MAJOR` default; widen cautiously to reduce noise).
 - `CURSOR_AUTO_FIX_MERGED_SIGNAL_LIMIT`: max rows pulled from **both** agent-review findings and Sonar samples into the deterministic merged brief (`5` default).
+
+### Agentic pipeline variables (M0/M4/M6)
+
+- `AGENTS_ENABLED`: repo-side kill-switch; `false` skips every `cursor-*` agent workflow. Mirror with Cursor-dashboard disables for Automations/Bugbot (brief §6).
+- `CURSOR_QUEUE_BOT_PR_CAP`: concurrent open bot-PR cap for maintenance dispatch (`4` default).
+- `CURSOR_QUEUE_TOP_K`: max items selected per queue run (`3` default).
+- `CURSOR_QUEUE_ISSUE_LABEL`: backlog intake label (`tech-debt` default).
+- `CURSOR_QUEUE_SONAR_SEVERITIES`: Sonar severities pulled into the queue (`BLOCKER,CRITICAL,MAJOR` default).
+- `CURSOR_METRICS_ISSUE_NUMBER`: issue that receives the weekly metrics comment.
 
 ### Daily digest (scheduled)
 
