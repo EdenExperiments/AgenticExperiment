@@ -22,6 +22,8 @@ permissions:
 
 jobs:
   gate:
+    # vars.AGENTS_ENABLED is the repo-side kill-switch for all agent automation (brief §4, M0).
+    if: vars.AGENTS_ENABLED != 'false'
     runs-on: ubuntu-latest
     outputs:
       proceed: ${{ steps.decide.outputs.proceed }}

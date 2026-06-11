@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   label-agent-pr:
-    if: ${{ vars.CURSOR_AGENT_PR_LABELING_ENABLED != 'false' }}
+    if: ${{ vars.AGENTS_ENABLED != 'false' && vars.CURSOR_AGENT_PR_LABELING_ENABLED != 'false' }}
     runs-on: ubuntu-latest
     steps:
       - name: Apply labels to trusted agent PRs

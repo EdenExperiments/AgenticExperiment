@@ -1,0 +1,19 @@
+# Sensitive paths require human (owner) review regardless of who authored the change.
+# Agents are additionally hook-blocked from editing workflow files (.cursor/hooks.json);
+# CODEOWNERS is the layer no agent can touch (brief §4c, "rules instruct, hooks enforce").
+
+# CI and agent automation workflows
+/.github/                       @EdenExperiments
+
+# Agent configuration: rules, skills, hooks, subagents, commands
+/.cursor/                       @EdenExperiments
+
+# Bugbot review standards
+/BUGBOT.md                      @EdenExperiments
+
+# Canonical decisions and target architecture
+/Documentation/decision-log.md  @EdenExperiments
+/Documentation/agentic-pipeline/ @EdenExperiments
+
+# Agent automation package (review/fix/triage/queue entry points)
+/packages/cursor-agents/        @EdenExperiments

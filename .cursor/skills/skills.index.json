@@ -1,7 +1,31 @@
 {
   "version": 1,
-  "lastUpdated": "2026-05-09",
+  "lastUpdated": "2026-06-11",
   "skills": [
+    {
+      "name": "requirements-docs-maintainer",
+      "path": ".cursor/skills/docs/requirements-docs-maintainer/SKILL.md",
+      "domain": "docs",
+      "when_to_use": "When a change affects requirements, planning, feature status, decisions, or workflow policy and canonical docs must stay synchronized."
+    },
+    {
+      "name": "finish-branch-and-pr",
+      "path": ".cursor/skills/release/finish-branch-and-pr/SKILL.md",
+      "domain": "release",
+      "when_to_use": "When implementation is complete and the branch needs verification, docs sync, and PR preparation."
+    },
+    {
+      "name": "local-dev-and-ci",
+      "path": ".cursor/skills/ops/local-dev-and-ci/SKILL.md",
+      "domain": "ops",
+      "when_to_use": "For local environment setup, CI baseline checks, and operational workflow updates."
+    },
+    {
+      "name": "security-and-dependency-triage",
+      "path": ".cursor/skills/quality/security-and-dependency-triage/SKILL.md",
+      "domain": "quality",
+      "when_to_use": "For GitHub security findings, dependency-bot alerts/PRs, and security remediation discipline."
+    },
     {
       "name": "task-intake-and-scope",
       "path": ".cursor/skills/core/task-intake-and-scope/SKILL.md",

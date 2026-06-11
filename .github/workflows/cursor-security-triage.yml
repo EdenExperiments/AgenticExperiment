@@ -21,6 +21,7 @@ permissions:
 jobs:
   dependabot-pr-triage:
     if: >-
+      vars.AGENTS_ENABLED != 'false' &&
       github.event_name == 'pull_request' && (
         github.event.pull_request.user.login == 'dependabot[bot]' ||
         github.event.pull_request.user.login == 'renovate[bot]' ||
@@ -65,7 +66,7 @@ jobs:
         run: pnpm --filter @rpgtracker/cursor-agents run security-triage
 
   security-alert-triage:
-    if: github.event_name != 'pull_request'
+    if: vars.AGENTS_ENABLED != 'false' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
