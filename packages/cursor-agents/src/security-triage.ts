@@ -11,6 +11,7 @@ import {
 import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
 import { resolvePromptRuntimeOptions, resolveRuntimeMode } from "./runtime-options.js";
 import { promptWithModelFallback, resolveModelCandidates } from "./model-fallback.js";
+import { writeRunSummary } from "./run-summary.js";
 
 const COMMENT_MARKER = "<!-- cursor-security-triage -->";
 type PromptAgent = {
@@ -208,21 +209,62 @@ async function main(): Promise<void> {
   bootstrapCursorSdkRuntime();
   const { Agent, CursorAgentError } = await import("@cursor/sdk");
 
+  const startedAt = new Date();
   const githubToken = requireEnv("GITHUB_TOKEN");
   const repository = requireEnv("GITHUB_REPOSITORY");
   const github = new GitHubClient({ token: githubToken, repository });
   const runtimeMode = resolveRuntimeMode();
   const runtimeOptions = resolvePromptRuntimeOptions();
+  const prNumberRaw = process.env.PR_NUMBER?.trim();
+  const prNumber = prNumberRaw ? Number(prNumberRaw) : undefined;
+  const trigger = prNumber ? `pr#${prNumber}` : process.env.GITHUB_EVENT_NAME ?? "schedule";
 
   try {
-    const output = process.env.PR_NUMBER
-      ? await runDependabotPrTriage(github, repository, Agent, runtimeOptions)
-      : await runAlertTriage(github, repository, Agent, runtimeOptions);
+    let dependabotAlertCount = 0;
+    let codeScanningAlertCount = 0;
+    let output: string;
+
+    if (prNumber) {
+      output = await runDependabotPrTriage(github, repository, Agent, runtimeOptions);
+    } else {
+      try {
+        codeScanningAlertCount = (await github.listCodeScanningAlerts()).length;
+      } catch {
+        codeScanningAlertCount = 0;
+      }
+      try {
+        dependabotAlertCount = (await github.listDependabotAlerts()).length;
+      } catch {
+        dependabotAlertCount = 0;
+      }
+      output = await runAlertTriage(github, repository, Agent, runtimeOptions);
+    }
 
     console.log(`Cursor security triage completed with runtime=${runtimeMode}`);
 
     appendStepSummary(output);
+
+    writeRunSummary({
+      job: "security-triage",
+      trigger,
+      runtime: runtimeMode,
+      startedAt,
+      outcome: "success",
+      details: {
+        prNumber: prNumber ?? null,
+        dependabotAlertCount,
+        codeScanningAlertCount,
+      },
+    });
   } catch (error) {
+    writeRunSummary({
+      job: "security-triage",
+      trigger,
+      runtime: runtimeMode,
+      startedAt,
+      outcome: "failure",
+      details: { error: String(error) },
+    });
     if (error instanceof CursorAgentError) {
       throw new Error(
         `Cursor agent startup failed (retryable=${error.isRetryable}): ${error.message}`
