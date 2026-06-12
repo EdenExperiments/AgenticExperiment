@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter, Press_Start_2P, Space_Grotesk, Rajdhani } from 'next/font/google'
-import { ThemeProvider } from '@rpgtracker/ui'
+import { cookies } from 'next/headers'
+import { ThemeProvider, VALID_MODES, type VisualMode } from '@rpgtracker/ui'
 import './landing-tokens.css'
 import './globals.css'
 
@@ -58,11 +59,15 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies()
+  const rawMode = cookieStore.get('rpgt-mode')?.value ?? 'clean'
+  const mode: VisualMode = VALID_MODES.includes(rawMode as VisualMode) ? (rawMode as VisualMode) : 'clean'
+
   return (
-    <html lang="en" data-theme="minimal" className={fontClassNames} suppressHydrationWarning>
+    <html lang="en" data-theme="minimal" data-mode={mode} className={fontClassNames} suppressHydrationWarning>
       <body>
-        <ThemeProvider theme="minimal">
+        <ThemeProvider theme="minimal" mode={mode}>
           <a href="#main-content" className="skip-link">Skip to content</a>
           {children}
         </ThemeProvider>

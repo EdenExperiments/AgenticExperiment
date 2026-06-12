@@ -1,6 +1,6 @@
 import { createServerClient, type CookieMethodsServer } from '@supabase/ssr'
 import { type NextRequest, NextResponse } from 'next/server'
-import { type Theme } from '@rpgtracker/ui'
+import { type Theme, type VisualMode } from '@rpgtracker/ui'
 import { getSupabaseUrl, getSupabasePublishableKey } from './env'
 
 type CookieToSet = Parameters<NonNullable<CookieMethodsServer['setAll']>>[0][number]
@@ -11,6 +11,7 @@ interface MiddlewareOptions {
   publicRoutes?: string[]
   /** Default theme for unauthenticated users */
   defaultTheme: Theme
+  defaultMode?: VisualMode
 }
 
 /**
@@ -57,15 +58,21 @@ export function createAuthMiddleware(options: MiddlewareOptions) {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 
-    // Apply theme: if no theme cookie yet, set it so SSR layout can read it without a DB call
+    const cookieOptions = {
+      httpOnly: false,
+      sameSite: 'lax' as const,
+      path: '/',
+      maxAge: 60 * 60 * 24 * 365,
+    }
+
     const themeCookie = request.cookies.get('rpgt-theme')?.value as Theme | undefined
     if (!themeCookie) {
-      response.cookies.set('rpgt-theme', options.defaultTheme, {
-        httpOnly: false,  // must be readable by JS for client-side ThemeProvider sync
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 365,  // 1 year
-      })
+      response.cookies.set('rpgt-theme', options.defaultTheme, cookieOptions)
+    }
+
+    const modeCookie = request.cookies.get('rpgt-mode')?.value as VisualMode | undefined
+    if (!modeCookie) {
+      response.cookies.set('rpgt-mode', options.defaultMode ?? 'clean', cookieOptions)
     }
 
     return response

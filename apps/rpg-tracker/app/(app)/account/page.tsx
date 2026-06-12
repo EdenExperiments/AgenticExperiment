@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { getAccount, getAPIKeyStatus, getAccountStats, uploadAvatar, deleteAvatar } from '@rpgtracker/api-client'
-import { PlayerCard, AvatarCropModal, ThemePickerPreview } from '@rpgtracker/ui'
+import { PlayerCard, AvatarCropModal, ThemePickerPreview, ModeSwitcher } from '@rpgtracker/ui'
 import { createBrowserClient } from '@rpgtracker/auth/client'
 
 export default function AccountPage() {
@@ -72,6 +72,12 @@ export default function AccountPage() {
       />
 
       <ThemePickerPreview />
+
+      <section className="rounded-xl p-5 space-y-3" style={{ backgroundColor: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}>
+        <h2 className="font-semibold" style={{ fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))', color: 'var(--color-text)' }}>Visual mode</h2>
+        <p className="text-sm" style={{ color: 'var(--color-muted)' }}>Stylish mode adds more motion and decoration on top of your theme. Clean mode keeps things minimal.</p>
+        <ModeSwitcher />
+      </section>
 
       <div data-testid="settings-grid" className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <section
