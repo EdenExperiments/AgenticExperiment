@@ -1,0 +1,7 @@
+{
+  "name": "case-03-minimal-doc-edit",
+  "private": true,
+  "scripts": {
+    "test": "node --input-type=module -e \"import { subtract } from './src/util.ts'; if (subtract(5, 2) !== 3) process.exit(1); console.log('ok')\""
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "case-02-add-verification",
+  "private": true,
+  "scripts": {
+    "test": "node --input-type=module -e \"import { add } from './src/util.ts'; if (add(2, 3) !== 5) process.exit(1); console.log('ok')\""
+  }
+}
