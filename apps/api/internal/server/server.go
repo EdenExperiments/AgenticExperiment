@@ -123,6 +123,12 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.With(entitlementChecker.RequireFeature(entitlements.FeatureAIGoalPlanner)).
 			Post("/goals/plan", goalPlanHandler.HandlePostGoalPlan)
 		r.Get("/goals/{id}/forecast", goalHandler.HandleGetGoalForecast)
+
+		nutrilogWeightHandler := handlers.NewNutrilogWeightHandler()
+		r.Post("/nutrilog/weight-logs", nutrilogWeightHandler.HandlePostWeightLog)
+		r.Get("/nutrilog/weight-logs", nutrilogWeightHandler.HandleGetWeightLogs)
+		r.Get("/nutrilog/weight-chart", nutrilogWeightHandler.HandleGetWeightChart)
+		r.Delete("/nutrilog/weight-logs/{id}", nutrilogWeightHandler.HandleDeleteWeightLog)
 	})
 
 	httpServer := &http.Server{
