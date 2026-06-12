@@ -261,3 +261,11 @@ jobs:
           CURSOR_AUTO_FIX_SONAR_SEVERITIES: ${{ vars.CURSOR_AUTO_FIX_SONAR_SEVERITIES }}
           CURSOR_AUTO_FIX_MERGED_SIGNAL_LIMIT: ${{ vars.CURSOR_AUTO_FIX_MERGED_SIGNAL_LIMIT }}
         run: pnpm --filter @rpgtracker/cursor-agents run fix-attempt
+
+      - name: Upload run summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-summary-fix-attempt-${{ github.run_id }}
+          path: cursor-agent-run-summaries/
+          if-no-files-found: ignore

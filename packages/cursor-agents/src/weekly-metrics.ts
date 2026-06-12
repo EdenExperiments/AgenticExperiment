@@ -9,22 +9,74 @@
  * feeds the future eval project via apps/cursor-lab.
  */
 
+import { writeFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
 import { appendStepSummary, GitHubClient, isNonFatalCommentPermissionError, requireEnv } from "./github.js";
 import { writeRunSummary } from "./run-summary.js";
 import { classifySurface, type Surface } from "./surface-classification.js";
 
 const METRICS_MARKER = "<!-- cursor-weekly-metrics -->";
-const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+export const WEEKLY_METRICS_WINDOW_DAYS = 7;
+const WEEK_MS = WEEKLY_METRICS_WINDOW_DAYS * 24 * 60 * 60 * 1000;
 
-interface SurfaceStats {
+export interface SurfaceStats {
   opened: number;
   merged: number;
   closedUnmerged: number;
   totalCycleTimeMs: number;
 }
 
-function emptyStats(): SurfaceStats {
+export interface WeeklyMetricsSurfaceEntry {
+  opened: number;
+  merged: number;
+  closedUnmerged: number;
+  mergeRate: number | null;
+  avgCycleTimeMs: number | null;
+}
+
+export interface WeeklyMetricsJson {
+  schema: "cursor-weekly-metrics:v1";
+  windowDays: typeof WEEKLY_METRICS_WINDOW_DAYS;
+  bySurface: Record<Surface, WeeklyMetricsSurfaceEntry>;
+  openDependencyPrs: number;
+  sonarOpenIssues: number | null;
+}
+
+export function emptyStats(): SurfaceStats {
   return { opened: 0, merged: 0, closedUnmerged: 0, totalCycleTimeMs: 0 };
+}
+
+export function buildWeeklyMetricsJson(input: {
+  statsBySurface: Map<Surface, SurfaceStats>;
+  openDependencyPrs: number;
+  sonarOpenIssues: number | null;
+}): WeeklyMetricsJson {
+  const bySurface = {} as Record<Surface, WeeklyMetricsSurfaceEntry>;
+  for (const [surface, stats] of input.statsBySurface) {
+    bySurface[surface] = {
+      opened: stats.opened,
+      merged: stats.merged,
+      closedUnmerged: stats.closedUnmerged,
+      mergeRate: stats.opened === 0 ? null : stats.merged / stats.opened,
+      avgCycleTimeMs: stats.merged === 0 ? null : Math.round(stats.totalCycleTimeMs / stats.merged),
+    };
+  }
+  return {
+    schema: "cursor-weekly-metrics:v1",
+    windowDays: WEEKLY_METRICS_WINDOW_DAYS,
+    bySurface,
+    openDependencyPrs: input.openDependencyPrs,
+    sonarOpenIssues: input.sonarOpenIssues,
+  };
+}
+
+export function writeWeeklyMetricsJson(
+  metrics: WeeklyMetricsJson,
+  outputPath = `${process.env.GITHUB_WORKSPACE ?? process.cwd()}/weekly-metrics.json`
+): void {
+  writeFileSync(outputPath, `${JSON.stringify(metrics, null, 2)}\n`);
 }
 
 function formatHours(ms: number): string {
@@ -97,20 +149,29 @@ async function main(): Promise<void> {
       (pr) => classifySurface(pr.user.login, pr.head.ref) === "dependency-bot"
     );
 
+    let sonarOpenIssues: number | null = null;
     let sonarLine = "Sonar issue count: not configured.";
     const sonarToken = process.env.SONAR_TOKEN;
     const sonarProjectKey = process.env.SONAR_PROJECT_KEY;
     if (sonarToken && sonarProjectKey) {
-      const total = await fetchSonarIssueCount(
+      sonarOpenIssues = await fetchSonarIssueCount(
         sonarToken,
         sonarProjectKey,
         (process.env.SONAR_BRANCH ?? "main").trim() || "main"
       );
       sonarLine =
-        total === null
+        sonarOpenIssues === null
           ? "Sonar issue count: query failed."
-          : `Sonar open issue count (burn-down datum): **${total}**`;
+          : `Sonar open issue count (burn-down datum): **${sonarOpenIssues}**`;
     }
+
+    writeWeeklyMetricsJson(
+      buildWeeklyMetricsJson({
+        statsBySurface,
+        openDependencyPrs: openDepPrs.length,
+        sonarOpenIssues,
+      })
+    );
 
     const rows = [...statsBySurface.entries()].map(([surface, stats]) => {
       const mergeRate = stats.opened === 0 ? "—" : `${Math.round((stats.merged / stats.opened) * 100)}%`;
@@ -181,4 +242,10 @@ _Workflow: cursor-weekly-metrics.yml · marker ${METRICS_MARKER}_
   }
 }
 
-void main();
+const isDirectRun =
+  process.argv[1] !== undefined &&
+  fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+
+if (isDirectRun) {
+  void main();
+}
