@@ -48,7 +48,7 @@ Release 1–2 + Phase 7 + 9A. Detail in git history and archived `docs/archive/r
 | ----- | --------------------------------- | -------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | F-045 | Clean/Stylish mode infrastructure | Frontend | ready-for-build | `data-mode="clean|stylish"` on `<html>`. Cookie persistence. Mode switcher on account page. CSS selector pattern `[data-theme][data-mode="stylish"]`. Default: clean. Both modes WCAG AA.              |
 | F-046 | Per-theme Stylish treatments      | Frontend | ready-for-build | Background atmosphere, dashboard/skill card/gate/history variants, density tokens, nav atmosphere. Additive CSS layers — same HTML, different visual treatment. See `style-guide/` and `page-guides/`. |
-| F-047 | Cinematic landing page (Stylish)  | Frontend | ready-for-build | Full section flow: Hero (theme switcher) → Key Features (per-theme animations) → Suite Apps → Social Proof → CTA. Only in Stylish mode — Clean gets basic landing from F-044.                          |
+| F-047 | Cinematic landing page (Stylish)  | Frontend | in-review | task-05: atmosphere gated on `data-mode="stylish"`; per-theme scroll reveals; Clean baseline preserved. Visual review pending (D-036).                          |
 
 
 ---

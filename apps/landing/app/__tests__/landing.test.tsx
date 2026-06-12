@@ -74,9 +74,10 @@ test('page has a <main id="main-content"> landmark', () => {
 
 // ─── Test 4: Skip link (AC-5) ─────────────────────────────────────────────────
 
-test('layout has a skip link pointing to #main-content', () => {
+test('layout has a skip link pointing to #main-content', async () => {
   // Skip link lives in layout.tsx, not page.tsx — test the layout component directly.
-  render(<RootLayout><div /></RootLayout>)
+  const jsx = await RootLayout({ children: <div /> })
+  render(jsx)
 
   expect(document.querySelector('a[href="#main-content"]')).not.toBeNull()
 })
