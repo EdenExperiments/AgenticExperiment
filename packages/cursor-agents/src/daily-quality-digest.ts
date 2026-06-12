@@ -6,7 +6,8 @@ import {
   truncate,
 } from "./github.js";
 import { bootstrapCursorSdkRuntime } from "./sdk-bootstrap.js";
-import { resolvePromptRuntimeOptions } from "./runtime-options.js";
+import { resolvePromptRuntimeOptions, resolveRuntimeMode } from "./runtime-options.js";
+import { writeRunSummary } from "./run-summary.js";
 import {
   isModelUnavailableError,
   promptWithModelFallback,
@@ -102,6 +103,10 @@ async function main(): Promise<void> {
   bootstrapCursorSdkRuntime();
   const { Agent, CursorAgentError } = await import("@cursor/sdk");
 
+  const startedAt = new Date();
+  const runtimeMode = resolveRuntimeMode();
+  const trigger = process.env.GITHUB_EVENT_NAME ?? "schedule";
+
   const apiKey = requireEnv("CURSOR_API_KEY");
   const githubToken = requireEnv("GITHUB_TOKEN");
   const repository = requireEnv("GITHUB_REPOSITORY");
@@ -113,6 +118,7 @@ async function main(): Promise<void> {
   const topIssues = toPositiveInt(process.env.CURSOR_DAILY_DIGEST_TOP_ISSUES, 12);
   const digestModelCandidates = resolveModelCandidates(process.env.CURSOR_DAILY_DIGEST_MODEL);
 
+  let sonarIssueCount = 0;
   let sonarSection = "SonarCloud not configured (SONAR_TOKEN / SONAR_PROJECT_KEY missing).";
   if (sonarToken && sonarProjectKey) {
     try {
@@ -136,6 +142,7 @@ async function main(): Promise<void> {
         issueParams,
         sonarToken
       );
+      sonarIssueCount = issues.total ?? (issues.issues ?? []).length;
 
       const lines = (issues.issues ?? []).map((issue) => {
         const loc =
@@ -158,6 +165,7 @@ async function main(): Promise<void> {
 
   const openPulls = await github.listOpenPullRequests(35);
   const botPulls = openPulls.filter((pr) => botLogin(pr.user.login));
+  const dependencyPrCount = botPulls.length;
   const botPrLines = botPulls.slice(0, 15).map((pr) => {
     return `- #${pr.number} ${pr.title} (@${pr.user.login}, \`${pr.head.ref}\`)`;
   });
@@ -259,7 +267,28 @@ _Workflow: cursor-daily-quality-digest.yml · marker ${DIGEST_MARKER}_
         );
       }
     }
+
+    writeRunSummary({
+      job: "daily-quality-digest",
+      trigger,
+      runtime: runtimeMode,
+      startedAt,
+      outcome: "success",
+      details: {
+        model: digestModel,
+        sonarIssueCount,
+        dependencyPrCount,
+      },
+    });
   } catch (error) {
+    writeRunSummary({
+      job: "daily-quality-digest",
+      trigger,
+      runtime: runtimeMode,
+      startedAt,
+      outcome: "failure",
+      details: { error: String(error) },
+    });
     if (error instanceof CursorAgentError) {
       throw new Error(
         `Daily digest agent startup failed (retryable=${error.isRetryable}): ${error.message}`
