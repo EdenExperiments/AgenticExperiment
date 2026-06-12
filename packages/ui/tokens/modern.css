@@ -52,3 +52,36 @@
     --motion-scale: 0;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Stylish mode — additive token overrides (F-046)                     */
+/* Clean mode rules above remain the baseline.                         */
+/* ------------------------------------------------------------------ */
+
+[data-theme="modern"][data-mode="stylish"] {
+  /* Full fluid motion budget — atmospheric HUD effects */
+  --motion-scale: 1.0;
+
+  /* Deeper glass surfaces and accent glow */
+  --color-surface: rgba(15, 23, 42, 0.72);
+  --color-accent-muted: rgba(0, 212, 255, 0.14);
+  --color-border-strong: rgba(0, 212, 255, 0.55);
+
+  /* Glow-tinted elevation shadows */
+  --shadow-sm: 0 1px 4px 0 rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 212, 255, 0.06);
+  --shadow-md: 0 4px 10px -1px rgba(0, 0, 0, 0.6), 0 0 20px rgba(0, 212, 255, 0.08);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.7), 0 0 32px rgba(0, 212, 255, 0.12);
+}
+
+@media (min-width: 1024px) {
+  [data-theme="modern"][data-mode="stylish"] {
+    /* Balanced/immersive spacing per style-guide/modern.md */
+    --density-scale: 1.1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="modern"][data-mode="stylish"] {
+    --motion-scale: 0;
+  }
+}
