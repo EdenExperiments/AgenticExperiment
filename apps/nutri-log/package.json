@@ -13,6 +13,7 @@
     "@rpgtracker/api-client": "workspace:*",
     "@rpgtracker/auth": "workspace:*",
     "@rpgtracker/ui": "workspace:*",
+    "@tanstack/react-query": "^5.100.10",
     "next": "16.2.6",
     "react": "19.2.6",
     "react-dom": "19.2.6"
