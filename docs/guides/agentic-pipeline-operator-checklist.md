@@ -39,7 +39,6 @@ GitHub/Cursor dashboard settings an operator must apply. Track completion here.
 - [ ] Add the **"no open medium+ Bugbot findings" status check** to branch protection required
   checks once it starts reporting.
 - [ ] Confirm custom SDK pipeline reviewer is retired in repo (D-060); Bugbot is the sole PR reviewer.
-- [ ] Apply workflow YAML patches from `Documentation/delivery/D-060-pipeline-reviewer-retirement.md` if not yet merged (CODEOWNER).
 
 ## M4 — Maintenance queue dispatch (Pillar C)
 

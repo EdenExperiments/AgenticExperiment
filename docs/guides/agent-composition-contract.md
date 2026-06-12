@@ -20,7 +20,7 @@ flowchart TD
 |---|---|
 | `AGENTS.md` (root) | Repo map, working rules, doc-update obligations |
 | `.cursor/rules/*.mdc` with `alwaysApply: true` | Security baseline, repo context, workflow rules |
-| `.cursor/hooks.json` + `.cursor/hooks/` | Enforcement: deny `.github/workflows/**` edits, deny test-file edits while `.cursor/tdd-lock` exists, deny force-push and workflow writes via shell |
+| `.cursor/hooks.json` + `.cursor/hooks/` | Enforcement: deny test-file edits while `.cursor/tdd-lock` exists, deny force-push and destructive shell patterns. Workflow-path denies temporarily relaxed during pipeline iteration (D-061). |
 | `.github/CODEOWNERS` + branch protection | The layer no agent can touch |
 
 Operating principle: **rules instruct, hooks enforce.** Anything security-critical has a hook; the
@@ -36,23 +36,28 @@ rule exists so agents understand why and do not waste iterations fighting it.
 | `apps/cursor-lab/AGENTS.md` | Python tooling | `cursor-lab doctor`, pytest |
 
 This layer is the pattern library: agents pick these up based on where they work; orchestrators
-never inject stack context manually. On-demand knowledge lives in `.cursor/skills/`
-(`skills.index.json` is the discovery index).
+never inject stack context manually. On-demand knowledge lives in `.cursor/skills/` (`skills.index.json` is the discovery index).
+Orchestration manifests live in `.cursor/flows/` (entry → skill chain → subagents — see
+`docs/guides/cursor-skills-and-orchestration.md`).
 
 ### Layer 3 — Role (`.cursor/agents/`)
 
-| Definition | Paths (mutually exclusive routing) |
+| Definition | Paths / mode |
 |---|---|
 | `test-writer-go.md` / `implementer-go.md` | `apps/api/**` |
 | `test-writer-ts.md` / `implementer-ts.md` | `apps/rpg-tracker/**`, `apps/nutri-log/**`, `apps/mental-health/**`, `packages/**` |
 | `verifier.md` | Any stack (read-only + run the artifact's named verification command) |
+| `delivery-orchestrator.md` | Pillar D multi-task flows (thin parent) |
+| `deps-highlight.md` | Renovate `deps:breaking` (read-only highlight comments) |
+| `maintenance-scout.md` | Pillar C queue scoring (read-only) |
 
 Routing is mechanical: the decomposition stage tags each task with target paths; each variant's
-`description` frontmatter states its paths so delegation never dithers.
+`description` frontmatter states "Use when…" so delegation never dithers. Built-in `explore` /
+`bash` subagents handle noisy reads; repo agents handle stack procedure.
 
 **Anti-explosion rule:** a role earns a stack variant only when its mechanics differ (toolchain,
-runner, build commands). Pure knowledge differences belong in Layer 2. Ceiling for v1: 3 roles x
-2 stacks (D-058); Python tooling is Layer-2-only.
+runner, build commands). Pure knowledge differences belong in Layer 2 skills. Ceiling for v1: 3
+core roles × 2 stacks (D-058) plus orchestration scouts; Python tooling is Layer-2-only.
 
 ## Conflict Resolution
 

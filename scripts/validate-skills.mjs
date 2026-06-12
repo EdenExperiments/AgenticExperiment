@@ -37,13 +37,38 @@ function relativePosix(filePath) {
   return path.relative(repoRoot, filePath).split(path.sep).join("/");
 }
 
-function validateSkillMarkdown(content, expectedName) {
+function parseFrontmatterBlock(content) {
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  return match ? match[1] : null;
+}
+
+function folderNameFromSkillPath(skillPath) {
+  const parts = skillPath.split("/");
+  const skillIdx = parts.lastIndexOf("SKILL.md") - 1;
+  return skillIdx >= 0 ? parts[skillIdx] : null;
+}
+
+function validateSkillMarkdown(content, expectedName, skillPath) {
   const issues = [];
+  const frontmatter = parseFrontmatterBlock(content);
+  if (!frontmatter) {
+    issues.push("missing YAML frontmatter");
+  }
   if (!content.includes("name:")) {
     issues.push("missing frontmatter name");
   }
   if (!content.includes("description:")) {
     issues.push("missing frontmatter description");
+  }
+  const folderName = folderNameFromSkillPath(skillPath);
+  if (folderName && expectedName && folderName !== expectedName) {
+    issues.push(`directory name '${folderName}' does not match skill name '${expectedName}'`);
+  }
+  if (frontmatter && frontmatter.includes("paths:")) {
+    const pathsSection = frontmatter.split("paths:")[1] ?? "";
+    if (!pathsSection.includes("- ")) {
+      issues.push("paths frontmatter present but no list entries found");
+    }
   }
   if (!content.includes("## When to use")) {
     issues.push("missing '## When to use' section");
@@ -120,7 +145,7 @@ async function main() {
     }
 
     const content = await fs.readFile(absolutePath, "utf8");
-    const issues = validateSkillMarkdown(content, skill.name);
+    const issues = validateSkillMarkdown(content, skill.name, skill.path);
     for (const issue of issues) {
       failures.push(`${skill.path}: ${issue}`);
     }

@@ -23,8 +23,8 @@ it is. You never edit files; you read and you run the named verification command
    the implementer's claims.
 3. Check for vacuous satisfaction: tests that cannot fail, criteria met by deleting functionality,
    suspicious test skips/timeouts, weakened assertions.
-4. Check the base-layer rules were respected: no workflow-file edits, no secrets in the diff, no
-   test edits during implementation.
+4. Check the base-layer rules were respected: no secrets in the diff, no test edits during
+   implementation (TDD lock), no force-push patterns.
 
 ## Output
 

@@ -73,6 +73,30 @@
       "path": ".cursor/skills/quality/dependency-quality-triage/SKILL.md",
       "domain": "quality",
       "when_to_use": "When handling dependency/security findings from Renovate, SonarCloud, or scanners."
+    },
+    {
+      "name": "pipeline-orchestration",
+      "path": ".cursor/skills/orchestration/pipeline-orchestration/SKILL.md",
+      "domain": "orchestration",
+      "when_to_use": "When routing work across Bugbot, SDK, and Automations lanes or starting Pillar D delivery."
+    },
+    {
+      "name": "sdk-remediation-routing",
+      "path": ".cursor/skills/orchestration/sdk-remediation-routing/SKILL.md",
+      "domain": "orchestration",
+      "when_to_use": "When /cursor-fix or cursor-fix-attempt.yml runs gated SDK remediation."
+    },
+    {
+      "name": "maintenance-dispatch",
+      "path": ".cursor/skills/orchestration/maintenance-dispatch/SKILL.md",
+      "domain": "orchestration",
+      "when_to_use": "When processing maintenance-queue.json for Pillar C weekly dispatch."
+    },
+    {
+      "name": "bugbot-advisory",
+      "path": ".cursor/skills/quality/bugbot-advisory/SKILL.md",
+      "domain": "quality",
+      "when_to_use": "When consuming Bugbot output as advisory context for SDK or IDE remediation without duplicating review."
     }
   ]
 }

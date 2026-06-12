@@ -23,7 +23,7 @@ Canonical map for product, platform, and agent workflow docs. Entry points: `AGE
 |------|---------|
 | `docs/CURSOR-AGENT-HANDBOOK.md` | Workflow, CI/CD agent model, runtime variables |
 | `docs/setup.md` | Local Supabase trigger setup |
-| `docs/guides/` | Runbooks (composition contract, operator checklist, onboarding, cursor-lab) |
+| `docs/guides/` | Runbooks (composition contract, skills/orchestration, operator checklist, onboarding, cursor-lab) |
 
 ## Documentation Contract (D-059)
 
