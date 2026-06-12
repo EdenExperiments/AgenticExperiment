@@ -11,6 +11,7 @@ from pathlib import Path
 
 from cursor_lab.bridge.cursor_agent_bridge import CursorAgentBridge
 from cursor_lab.discovery import discover_artifacts
+from cursor_lab.orchestrator import EvaluateOptions, EvaluationAborted, run_evaluation
 from cursor_lab.registry import (
     RegistryError,
     assert_artifact_registered,
@@ -37,7 +38,19 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    print("registry gate passed; full evaluation orchestration is task-03")
+    api_key = os.environ.get("CURSOR_API_KEY")
+    if not api_key:
+        print("error: CURSOR_API_KEY is not set.", file=sys.stderr)
+        return 1
+
+    options = EvaluateOptions(artifact_id=args.artifact, force=args.force)
+    try:
+        result = run_evaluation(home, registry=registry, options=options)
+    except EvaluationAborted as exc:
+        print(f"error: evaluation aborted: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"Wrote {result.run_count} run(s) to {result.runs_path}")
     return 0
 
 
