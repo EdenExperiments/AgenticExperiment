@@ -121,9 +121,12 @@ func (h *SkillHandler) HandlePostSkill(w http.ResponseWriter, r *http.Request) {
 
 	startingLevel := 1
 	if sl := r.FormValue("starting_level"); sl != "" {
-		if n, err := parsePositiveInt(sl); err == nil {
-			startingLevel = n
+		n, err := parsePositiveInt(sl)
+		if err != nil {
+			api.RespondError(w, http.StatusUnprocessableEntity, "starting_level must be between 1 and 99")
+			return
 		}
+		startingLevel = n
 	}
 	if startingLevel < 1 || startingLevel > 99 {
 		api.RespondError(w, http.StatusUnprocessableEntity, "starting_level must be between 1 and 99")
