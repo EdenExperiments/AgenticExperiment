@@ -92,6 +92,32 @@
 
 
 /* ------------------------------------------------------------------ */
+/* Minimal Stylish — page + nav atmosphere (F-046)                     */
+/* Desktop-focused; mobile largely matches Clean (R-046-4).            */
+/* ------------------------------------------------------------------ */
+
+[data-theme="minimal"][data-mode="stylish"] body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+@media (min-width: 1024px) {
+  [data-theme="minimal"][data-mode="stylish"] body {
+    background: linear-gradient(
+      180deg,
+      var(--color-bg) 0%,
+      color-mix(in srgb, var(--color-surface) 35%, var(--color-bg)) 100%
+    );
+    min-height: 100dvh;
+  }
+
+  [data-theme="minimal"][data-mode="stylish"] .nav-panel {
+    background-color: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  [data-theme="minimal"][data-mode="stylish"] .sidebar {
 /* Modern Stylish — command-centre atmosphere (F-046)                    */
 /* Desktop-focused; mobile largely matches Clean (R-046-4).            */
 /* Smooth gradients and glass only — no Retro textures.                */

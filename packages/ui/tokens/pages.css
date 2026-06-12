@@ -1521,6 +1521,60 @@
 
 
 /* ================================================================== */
+/* MINIMAL STYLISH MODE — F-046 additive treatments                    */
+/* Scoped: [data-theme="minimal"][data-mode="stylish"]                */
+/* Clean mode rules above remain unchanged. Desktop-first atmosphere. */
+/* ================================================================== */
+
+/* --- Dashboard: stat cards + primary skill focus --- */
+
+@media (min-width: 1024px) {
+  [data-theme="minimal"][data-mode="stylish"] .stat-card {
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
+      box-shadow calc(var(--duration-fast) * var(--motion-scale)) ease;
+  }
+
+  @media (hover: hover) {
+    [data-theme="minimal"][data-mode="stylish"] .stat-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+  }
+
+  [data-theme="minimal"][data-mode="stylish"] .stat-card [data-testid="stat-value"] {
+    font-weight: 800;
+  }
+
+  /* Primary skill focus card (dashboard) */
+  [data-theme="minimal"][data-mode="stylish"] .max-w-2xl > .relative.rounded-xl {
+    box-shadow: var(--shadow-md);
+    transition:
+      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
+      box-shadow calc(var(--duration-normal) * var(--motion-scale)) ease;
+  }
+
+  @media (hover: hover) {
+    [data-theme="minimal"][data-mode="stylish"] .max-w-2xl > .relative.rounded-xl:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-1px);
+    }
+  }
+}
+
+/* --- Skill cards --- */
+
+@media (min-width: 1024px) {
+  [data-theme="minimal"][data-mode="stylish"] .skill-card {
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
+      box-shadow calc(var(--duration-fast) * var(--motion-scale)) ease;
+  }
+
+  @media (hover: hover) {
+    [data-theme="minimal"][data-mode="stylish"] .skill-card:hover {
 /* MODERN STYLISH MODE — F-046 additive treatments                   */
 /* Scoped: [data-theme="modern"][data-mode="stylish"]                 */
 /* Clean mode rules above remain unchanged. Desktop-first atmosphere. */
@@ -1638,6 +1692,42 @@
   }
 }
 
+/* --- Gate section — enhanced challenge card --- */
+
+@media (min-width: 1024px) {
+  [data-theme="minimal"][data-mode="stylish"] .gate-section {
+    border-left: 3px solid var(--color-accent);
+    box-shadow: var(--shadow-md);
+    padding: 1.25rem 1.5rem;
+  }
+
+  [data-theme="minimal"][data-mode="stylish"] .gate-section__title {
+    font-weight: 800;
+  }
+}
+
+/* --- Activity history — styled list --- */
+
+@media (min-width: 1024px) {
+  [data-theme="minimal"][data-mode="stylish"] .activity-history {
+    gap: 0.25rem;
+  }
+
+  [data-theme="minimal"][data-mode="stylish"] .activity-history__date-header {
+    padding: 0.75rem 0 0.375rem;
+    border-bottom-color: color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+  }
+
+  [data-theme="minimal"][data-mode="stylish"] .activity-history__entry {
+    padding: 0.5rem 0.75rem;
+    border-bottom: none;
+    border-radius: var(--radius-sm);
+    background-color: var(--color-surface);
+    margin-bottom: 0.125rem;
+  }
+
+  [data-theme="minimal"][data-mode="stylish"] .activity-history__entry:nth-child(even) {
+    background-color: color-mix(in srgb, var(--color-surface) 60%, var(--color-bg));
 /* --- Gate section — holographic security checkpoint --- */
 
 @media (min-width: 1024px) {
@@ -1748,6 +1838,41 @@
 
 @media (prefers-reduced-motion: no-preference) {
   @media (min-width: 1024px) {
+    [data-theme="minimal"][data-mode="stylish"] .activity-history__entry {
+      animation: minimal-entry-fade-in calc(250ms * var(--motion-scale)) ease-out both;
+    }
+
+    [data-theme="minimal"][data-mode="stylish"] .activity-history__entry:nth-child(1) { animation-delay: calc(50ms * var(--motion-scale)); }
+    [data-theme="minimal"][data-mode="stylish"] .activity-history__entry:nth-child(2) { animation-delay: calc(100ms * var(--motion-scale)); }
+    [data-theme="minimal"][data-mode="stylish"] .activity-history__entry:nth-child(3) { animation-delay: calc(150ms * var(--motion-scale)); }
+  }
+}
+
+@keyframes minimal-entry-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Navigation — light sidebar / bottom-tab atmosphere --- */
+
+@media (min-width: 1024px) {
+  [data-theme="minimal"][data-mode="stylish"] .sidebar__item--active {
+    box-shadow: inset 3px 0 0 var(--color-accent);
+    background-color: var(--color-accent-muted);
+  }
+
+  [data-theme="minimal"][data-mode="stylish"] .sidebar__item:hover {
+    background-color: color-mix(in srgb, var(--color-accent-muted) 70%, transparent);
+  }
+}
+
+[data-theme="minimal"][data-mode="stylish"] .bottom-tabs {
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+}
+
+@media (min-width: 1024px) {
+  [data-theme="minimal"][data-mode="stylish"] .bottom-tabs {
+    box-shadow: none;
     [data-theme="modern"][data-mode="stylish"] .activity-history__entry {
       animation: modern-log-fade-in calc(300ms * var(--motion-scale)) ease-out both;
     }

@@ -52,3 +52,37 @@
     --motion-scale: 0;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Stylish mode — additive token overrides (F-046)                     */
+/* Clean mode rules above remain the baseline.                         */
+/* ------------------------------------------------------------------ */
+
+[data-theme="minimal"][data-mode="stylish"] {
+  /* Slightly elevated motion budget — still functional, not decorative */
+  --motion-scale: 0.45;
+
+  /* Subtle depth refinement on surfaces */
+  --color-bg: #fafbfc;
+  --color-surface: #f3f4f6;
+  --color-bg-elevated: #ffffff;
+  --color-accent-muted: rgba(37, 99, 235, 0.12);
+
+  /* Gentle elevation shadows */
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 8px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 20px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -4px rgba(0, 0, 0, 0.06);
+}
+
+@media (min-width: 1024px) {
+  [data-theme="minimal"][data-mode="stylish"] {
+    /* Desktop: slightly more breathing room while staying data-dense */
+    --density-scale: 1.08;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="minimal"][data-mode="stylish"] {
+    --motion-scale: 0;
+  }
+}
