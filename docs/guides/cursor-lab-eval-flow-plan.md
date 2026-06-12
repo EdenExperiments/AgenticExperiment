@@ -709,6 +709,6 @@ work sessions. Local stays the default.
   isolation, mandatory `CursorAgentError` vs `result.status === "error"` distinction, mandatory
   disposal, explicit `apiKey`/`model`/runtime.
 - Repo conventions: `AGENTS.md`, `docs/CURSOR-AGENT-HANDBOOK.md`,
-  `.cursor/skills/skills.index.json`, `.cursor/rules/skills-docs-routing.mdc`.
+  `.cursor/skills/skills.index.json`, `.cursor/rules/repo-routing.mdc`.
 - Existing automation precedent: `packages/cursor-agents/` (TypeScript SDK use), runtime
   selector pattern in `runtime-options.ts`.

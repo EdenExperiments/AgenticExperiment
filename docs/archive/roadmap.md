@@ -1,5 +1,7 @@
 # Implementation Roadmap
 
+> **ARCHIVED** — superseded by `Documentation/feature-tracker.md`. See `docs/archive/README.md`.
+
 > Built from `style-guide/`, `page-guides/`, and `Design_Discussion.md`.
 > Each phase is independently shippable.
 

@@ -1,5 +1,7 @@
 # Platform Architecture Decisions
 
+> **ARCHIVED** — superseded by `Documentation/architecture.md` §10 and `Documentation/decision-log.md` (D-035–D-037). See `docs/archive/README.md`.
+
 > Condensed from `2026-03-17-monorepo-foundation.md` and `2026-03-17-platform-suite-redesign.md`.
 > Historical planning artifacts were culled from active docs; use git history for deep historical trace when needed.
 

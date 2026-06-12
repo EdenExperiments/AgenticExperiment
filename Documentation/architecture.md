@@ -729,6 +729,22 @@ The following confirmed decisions are added to decision-log.md:
 
 ---
 
+## 10. Platform Overview (D-035–D-037)
+
+Condensed from archived `PLATFORM-DECISIONS.md`. Binding decisions live in `decision-log.md`.
+
+**Monorepo:** Turborepo + pnpm workspaces. Apps: `apps/rpg-tracker`, `apps/nutri-log`, `apps/mental-health`, `apps/api` (Go). Shared: `packages/ui`, `packages/auth`, `packages/api-client`, `packages/tsconfig`.
+
+**BFF:** Next.js route-handler proxy attaches the Supabase JWT server-side; auth tokens never reach client JS.
+
+**Three-theme system:** Minimal / Retro / Modern via `data-theme` on `<html>`. Three layers: CSS custom properties (~60%), theme-scoped component CSS (~25%), component variants (~15%). Visual implementation: `Documentation/style-guide/` + `Documentation/page-guides/`.
+
+**Hub model (D-037):** LifeQuest is the central progression hub; suite apps feed unified character/skill progression — not a passive aggregation dashboard.
+
+**Development pipeline split (D-036):** Logic/API → spec → TDD → implement → review (tests required). UI/visual → style guide → page guide → implement → visual review (no faux-TDD on pure composition).
+
+---
+
 ## 9. Handoff
 
 ### What changed in this pass

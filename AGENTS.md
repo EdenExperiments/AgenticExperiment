@@ -1,6 +1,6 @@
 # Agent And Repo Directory
 
-This file is the top-level index for agents and contributors. It tells you where context lives and which document is authoritative for each concern.
+Top-level index for agents and contributors. Entry-point routing also lives in `.cursor/rules/repo-routing.mdc`.
 
 ## Start Here
 
@@ -20,42 +20,31 @@ This file is the top-level index for agents and contributors. It tells you where
 | Shared auth | `packages/auth/` | Supabase SSR/browser auth helpers |
 | Shared API client | `packages/api-client/` | Typed API integration layer |
 | Agent automation | `.github/workflows/`, `packages/cursor-agents/` | CI/CD agent workflows and SDK automation |
-| Cursor Lab | `apps/cursor-lab/` | Local eval harness for `.cursor/` rules/skills (SDK bridge, future judge + registry) |
+| Cursor Lab | `apps/cursor-lab/` | Local eval harness for `.cursor/` rules/skills |
 
 ## Canonical Context Directory
 
-- Product scope and release framing: `Documentation/product-requirements.md`
-- Platform and architecture constraints: `Documentation/architecture.md`
-- Binding decisions and open questions: `Documentation/decision-log.md`
-- Feature status and readiness: `Documentation/feature-tracker.md`
-- Delivery sequencing and planning history: `Documentation/planning-handoff.md`
-- Theme and page implementation standards: `Documentation/style-guide/`, `Documentation/page-guides/`
-- Agent workflow protocol and CI automation model: `docs/CURSOR-AGENT-HANDBOOK.md`
-- Agentic operations target architecture (pillars A-D, M0-M6): `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md` (adopted via D-055 to D-058)
+| Concern | Path |
+|---------|------|
+| Product scope | `Documentation/product-requirements.md` |
+| Platform / schema | `Documentation/architecture.md` |
+| Binding decisions | `Documentation/decision-log.md` |
+| Feature status | `Documentation/feature-tracker.md` |
+| Delivery artifacts | `Documentation/delivery/` |
+| Agentic pipeline target | `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md` |
+| Visual implementation | `Documentation/style-guide/`, `Documentation/page-guides/` |
+| Workflow / CI | `docs/CURSOR-AGENT-HANDBOOK.md` |
 
 ## Agent Config Layering (Brief §4c)
 
-Every agent run composes three layers — see `docs/guides/agent-composition-contract.md`:
+See `docs/guides/agent-composition-contract.md`:
 
-1. **Base**: this file + `.cursor/rules/` (`alwaysApply` security baseline) + `.cursor/hooks.json` enforcement.
-2. **Stack**: nested `AGENTS.md` in `apps/api/` (Go), `apps/rpg-tracker/` + `packages/AGENTS.md` (TypeScript), `apps/cursor-lab/` (Python tooling).
-3. **Role**: subagent definitions in `.cursor/agents/` (test-writer/implementer per stack, shared verifier).
+1. **Base** — this file + `.cursor/rules/` + `.cursor/hooks.json`
+2. **Stack** — nested `AGENTS.md` per zone (`apps/api/`, `apps/rpg-tracker/`, `packages/`, `apps/cursor-lab/`)
+3. **Role** — `.cursor/agents/` (test-writer/implementer per stack, shared verifier)
 
-## Working Rules
+## Documentation Contract (D-059)
 
-- Treat `Documentation/` as source of truth for product, architecture, decisions, and tracking.
-- Keep updates small and explicit so another agent can resume without rereading the entire repository.
-- Preserve the distinction between confirmed requirements, assumptions, and open questions.
-- If requirements, dependencies, or feature scope change, update `Documentation/feature-tracker.md` in the same turn.
-- If a decision is made (or a major unresolved question appears), update `Documentation/decision-log.md`.
-
-## Required Outputs For Product/Planning Changes
-
-For substantive requirement or planning updates, review and update the relevant set:
-
-1. `Documentation/product-requirements.md`
-2. `Documentation/planning-handoff.md`
-3. `Documentation/feature-tracker.md`
-4. `Documentation/decision-log.md`
-
-If only a subset changes, explain why the others were not updated.
+- **Always:** tracker row when status changes; decision-log entry when a binding decision is made.
+- **Delivery:** signed requirements in `Documentation/delivery/` — PRD updates only for scope/vision changes.
+- Historical planning docs: `docs/archive/` (not canonical).

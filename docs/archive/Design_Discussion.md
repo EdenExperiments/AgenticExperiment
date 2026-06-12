@@ -1,5 +1,7 @@
 # Design Discussion
 
+> **ARCHIVED** — superseded by `Documentation/style-guide/` and `Documentation/page-guides/`. See `docs/archive/README.md`.
+
 This document captures the **finalised** design direction for the three-theme system (F-023, D-035). All questions have been answered. This is the source material from which `style-guide/` and `page-guides/` were created.
 
 All inspiration images are in `Documentation/design-inspiration/`.

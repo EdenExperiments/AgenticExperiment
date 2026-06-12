@@ -1,0 +1,14 @@
+---
+description: Entry points, zones, skills, and guides — single routing rule
+alwaysApply: true
+---
+
+# Repo Routing
+
+**Entry points:** `AGENTS.md` (zone map) · `Documentation/README.md` (canonical docs) · `docs/CURSOR-AGENT-HANDBOOK.md` (workflow/CI).
+
+**Zones:** `apps/api/` (Go) · `apps/rpg-tracker/`, `apps/nutri-log/`, `apps/mental-health/` (frontends) · `packages/*` (shared — coordinate cross-cutting changes).
+
+**Skills:** `.cursor/skills/<domain>/<skill>/SKILL.md` · index `.cursor/skills/skills.index.json` · validate with `pnpm validate:skills`.
+
+**Guides:** operational runbooks in `docs/guides/`.

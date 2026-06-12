@@ -92,9 +92,9 @@ packages/
   tsconfig/         Shared TypeScript config
 docs/
   CURSOR-AGENT-HANDBOOK.md Cursor-first workflow and CI/CD agent model
-  prd-agentic-ai.md Personal experimentation roadmap
   guides/           Operational guides for onboarding and runtime lanes
   setup.md          One-time Supabase trigger setup
+  archive/          Historical planning docs (superseded; see README there)
 Documentation/
   architecture.md   DB schema, domain model, integration contracts
   decision-log.md   Confirmed product and architectural decisions

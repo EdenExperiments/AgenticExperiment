@@ -1,5 +1,7 @@
 # Planning Handoff
 
+> **ARCHIVED** — superseded by `Documentation/feature-tracker.md` and `Documentation/delivery/` artifacts. See `docs/archive/README.md`.
+
 > **Status (2026-05-06): Historical Release 1 planning artifact.** This document preserves the original release-1 planning baseline. Current shipped/in-progress/deferred status is maintained in `Documentation/feature-tracker.md`. Use the Cursor-first workflow documented in `AGENTS.md` and `docs/CURSOR-AGENT-HANDBOOK.md` for new work.
 
 Last updated: 2026-05-06 (clarified this file as historical release-1 planning baseline; operational status moved to feature tracker)

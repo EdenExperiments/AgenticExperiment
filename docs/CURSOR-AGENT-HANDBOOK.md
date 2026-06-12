@@ -1,13 +1,6 @@
 # Cursor Agent Handbook
 
-This handbook defines the Cursor-first operating model for this repository.
-
-## Primary Entry Points
-
-- Start with `AGENTS.md` for directory-level context.
-- Use `Documentation/README.md` for canonical product and architecture docs.
-- Use this handbook for workflow, coordination, and automation standards.
-- Use `.cursor/skills/skills.index.json` for repo-managed skill discovery.
+Workflow and CI reference for this repository. Entry points and zone map: `AGENTS.md` · canonical docs index: `Documentation/README.md`.
 
 ## Target Architecture: Agentic Pipeline (D-055)
 
@@ -32,17 +25,10 @@ This handbook defines the Cursor-first operating model for this repository.
 Tests are required for business logic, API contracts, and component behavior.  
 Pure visual composition work is validated by visual review and design-guide compliance.
 
-## Zone Coordination
-
-- Treat `packages/*` as shared zones requiring explicit coordination.
-- Keep work scoped to one zone when possible.
-- For cross-zone work, record sequencing and dependencies in the active spec/plan before implementation.
-
 ## Session And Handoff Expectations
 
 - Keep updates resumable: what changed, why, and what remains.
-- Capture post-merge learnings as concise entries in `Documentation/decision-log.md` and `Documentation/feature-tracker.md`.
-- Surface blockers and decision gaps in `Documentation/decision-log.md` and `Documentation/feature-tracker.md`.
+- Documentation contract (D-059): tracker row on status change; decision-log entry on binding decisions; delivery requirements in `Documentation/delivery/` artifacts.
 
 ## Cursor Usage Model
 

@@ -1,46 +1,36 @@
 # Feature Tracker
 
-Last updated: 2026-06-11 (Agentic Pipeline Brief v2 adoption — F-063 to F-070)
+Last updated: 2026-06-11 (docs slim-down — F-072; Agentic Pipeline F-063 to F-071)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
 ---
 
-## Shipped Features
+## Shipped (compact index)
 
-All Release 1 + Release 2 features through Phase 7.
+Release 1–2 + Phase 7 + 9A. Detail in git history and archived `docs/archive/roadmap.md`.
 
-### Release 1 (all done)
-
-
-| ID    | Feature                 | Key Details                                                                                                                                      |
-| ----- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| F-001 | App shell & navigation  | Sidebar (desktop) + bottom tabs (mobile). Fixed sidebar positioning. 4 sections: Dashboard, LifeQuest, NutriLog placeholder, Account.            |
-| F-002 | Supabase auth & profile | Email/password (D-012). ES256 JWT support. Password change flow. Auth trigger is manual setup.                                                   |
-| F-003 | Claude API key storage  | AES-256-GCM envelope encryption (D-015). Per-user DEK. Key never in client/cookies/logs.                                                         |
-| F-004 | Skill CRUD              | Create, read, update, soft-delete. Preserves XP history.                                                                                         |
-| F-005 | AI skill calibration    | Optional AI path with manual fallback. Starting level max 99 (D-018). Degrades on 401/429/other with specific messages.                          |
-| F-006 | Quick XP logging        | 3-tap primary path baseline (D-019) with time-primary quick-log input model (D-034). QuickLogSheet bottom sheet + QuickLogPanel inline. Server-side 1s dedup. |
-| F-008 | XP & level progression  | Quadratic curve with tier multipliers (D-014). 11 tiers (Novice→Legend). Tier colour system (D-020). Transition modal on every boundary (D-022). |
-| F-009 | Blocker gates           | Gate visibility + locked state (D-010). Gate replaces XP bar (D-021). XP accrues behind gate (D-007). First-hit notification.                    |
-
-
-### Release 2 (shipped)
-
-
-| ID    | Feature                   | Phase | Key Details                                                                                                                                                    |
-| ----- | ------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| F-023 | Three-theme system        | 0+1   | Minimal/Retro/Modern. L1 tokens, L2 theme CSS, L3 component variants. Cookie persistence. 4 fonts.                                                             |
-| F-024 | Focus timer / Pomodoro    | 2     | `/skills/[id]/session`. 3 timer variants. Pomodoro state machine. Browser notifications. Post-session summary. Context-aware return.                           |
-| F-032 | Categories & tags         | 3     | 9 preset categories (D-038). User tags (max 5/skill). AND filters. Toolbar with sort dropdown, tier/category/tag dropdowns, responsive bottom sheet (<1024px). |
-| F-033 | Favourites / pinning      | 3     | `is_favourite` with PATCH toggle. Optimistic UI + rollback. Dimming on un-favourite in filtered view (P3-D12).                                                 |
-| F-034 | Primary Skill Focus       | 4     | `computeFocusSkill()`: pinned → streak → favourite → recency. PrimarySkillCard. Single pin (D-041).                                                            |
-| F-035 | Quick Session + Dashboard | 4     | "Start Session" from dashboard. QuickLogPanel inline. HubPlaceholderCards. XPBarChart rolling average. Empty state.                                            |
-| F-036 | Avatar system             | 5     | Supabase Storage upload/delete. 256x256 JPEG crop. 3 themed default avatars (CSS/SVG). D-042.                                                                  |
-| F-037 | Account stats             | 5     | `GET /api/v1/account/stats`. PlayerCard. ThemePickerPreview. Total XP, streak, categories.                                                                     |
-| F-038 | Skill create overhaul     | 6     | 2-step flow (Identity → Starting Level). PathSelector, PresetGallery, ArbiterAvatar + ArbiterDialogue (3 variants). LevelPicker. Gate auto-clear (D-033).      |
-| F-041 | Landing page overhaul     | 7     | Auth pages restyled. Registration with FeaturePreview + FreeTrial callout.                                                                                     |
-
+| ID | Feature | Note |
+| --- | --- | --- |
+| F-001 | App shell & navigation | Sidebar + bottom tabs; 4 sections incl. NutriLog placeholder |
+| F-002 | Supabase auth & profile | Email/password (D-012); ES256 JWT |
+| F-003 | Claude API key storage | AES-256-GCM envelope encryption (D-015) |
+| F-004 | Skill CRUD | Soft-delete; preserves XP history |
+| F-005 | AI skill calibration | Optional AI path; starting level max 99 (D-018) |
+| F-006 | Quick XP logging | Time-primary quick log (D-034); 3-tap baseline (D-019) |
+| F-008 | XP & level progression | Quadratic curve; 11 tiers (D-014, D-020, D-022) |
+| F-009 | Blocker gates | Visibility + locked state (D-010, D-021) |
+| F-023 | Three-theme system | Minimal/Retro/Modern; three-layer architecture (D-035) |
+| F-024 | Focus timer / Pomodoro | Session page; 3 timer variants |
+| F-032 | Categories & tags | 9 presets; user tags; filters |
+| F-033 | Favourites / pinning | Optimistic toggle |
+| F-034 | Primary Skill Focus | Single pin (D-041) |
+| F-035 | Quick Session + Dashboard | Hub cards; inline quick log |
+| F-036 | Avatar system | Supabase Storage (D-042) |
+| F-037 | Account stats | PlayerCard; theme preview |
+| F-038 | Skill create overhaul | 2-step flow; gate auto-clear (D-033) |
+| F-041 | Landing page overhaul | Auth restyle; registration callouts |
+| F-044 | Clean UI cleanup | Phase 9A polish |
 
 ### Partially Shipped
 
@@ -51,17 +41,7 @@ All Release 1 + Release 2 features through Phase 7.
 | F-049 | AI goal planning + entitlement gate | in-progress | `POST /api/v1/goals/plan` ships with `degraded_response` contract, API-key prerequisite, and Pro-tier entitlement (`ai_goal_planner`). Frontend wizard at `/goals/ai/new` is wired; broader paywall/upgrade UX is still being refined. |
 
 
----
-
-## Phase 9A: Clean UI Polish (done)
-
-
-| ID    | Feature          | Area     | Status | Notes                                                                                                                                                                                                                                                                                                |
-| ----- | ---------------- | -------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| F-044 | Clean UI cleanup | Frontend | done   | Removed GrindOverlay/GrindAnimation/PostSessionScreen. XP chart day differentiation (empty days fade, active glow). Landing page copy updated. Theme switcher styled. Pomodoro bugs fixed (config apply, Keep Going reset, Simple mode, Abandon flow). Chart/history layout breakpoint raised to xl. |
-
-
-## New — Phase 9B: Stylish Mode (D-043)
+## Phase 9B: Stylish Mode (D-043)
 
 
 | ID    | Feature                           | Area     | Status          | Notes                                                                                                                                                                                                  |
@@ -110,6 +90,7 @@ Target design: `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md`. Mi
 | F-069 | Unified maintenance queue (Pillar C, M4)           | M4        | in-progress | Queue normaliser + triage scoring + concurrent-PR cap in `packages/cursor-agents/src/maintenance-queue*`; Cursor Automations dispatch documented (dashboard setup is an operator action).          |
 | F-070 | Command-driven delivery (Pillar D, M5)             | M5        | done        | `.cursor/commands/` (`/fix`, `/feature`, `/epic`, `/new-project`) + `.cursor/skills/delivery/` chains (elicitation → decomposition → TDD dispatch); artifacts under `Documentation/delivery/`.    |
 | F-071 | Telemetry + outcome metrics (M6)                   | M6        | in-progress | Structured JSON run summaries from agent jobs + weekly metrics aggregation workflow; per-surface outcome metrics feed the future eval project via `apps/cursor-lab`.                              |
+| F-072 | Documentation slim-down for agentic workflow     | Docs/Ops  | done        | Archived historical planning docs to `docs/archive/`; merged routing rules; 2-tier doc contract (D-059); compact shipped index; removed legacy CLAUDE memory files.                              |
 
 
 ---
