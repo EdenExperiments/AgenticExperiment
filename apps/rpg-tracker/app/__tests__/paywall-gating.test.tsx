@@ -1,10 +1,10 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import AiGoalWizardPage from '../(app)/goals/ai/new/page'
 import GoalDetailPage from '../(app)/goals/[id]/page'
 import GoalsPage from '../(app)/goals/page'
-
-// ─── API client mocks ─────────────────────────────────────────────────────────
+import { PaywallCTA } from '../../components/PaywallCTA'
+import { setAnalyticsDispatcher } from '@/lib/analytics'
 
 const mockGetAIEntitlement = vi.fn()
 const mockPlanGoal = vi.fn()
@@ -20,6 +20,7 @@ const mockUpdateGoal = vi.fn()
 const mockUpdateMilestone = vi.fn()
 const mockDeleteMilestone = vi.fn()
 const mockCreateCheckIn = vi.fn()
+const mockTrack = vi.fn()
 
 vi.mock('@rpgtracker/api-client', () => ({
   getAIEntitlement: (...args: unknown[]) => mockGetAIEntitlement(...args),
@@ -42,8 +43,6 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: vi.fn(), back: vi.fn() }),
   useParams: () => ({ id: 'goal-1' }),
 }))
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function wrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -99,13 +98,13 @@ function makeForecast(overrides = {}) {
 }
 
 function makeForbiddenError() {
-  const err = Object.assign(new Error('Forbidden'), { status: 403 })
-  return err
+  return Object.assign(new Error('Forbidden'), { status: 403 })
 }
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'api_key_set' })
+  setAnalyticsDispatcher(mockTrack)
+  mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'ready' })
   mockListGoals.mockResolvedValue([])
   mockDeleteGoal.mockResolvedValue(undefined)
   mockGetGoal.mockResolvedValue(makeGoal())
@@ -115,25 +114,84 @@ beforeEach(() => {
   mockUpdateGoal.mockResolvedValue(makeGoal())
 })
 
-// ─── AI Wizard — paywall gating ───────────────────────────────────────────────
+afterEach(() => {
+  setAnalyticsDispatcher(null)
+})
 
-describe('AI Wizard paywall gate', () => {
-  test('shows paywall CTA when user is not entitled (no API key)', async () => {
-    mockGetAIEntitlement.mockResolvedValue({ entitled: false, reason: 'no_api_key' })
-    render(<AiGoalWizardPage />, { wrapper })
-
-    await screen.findByTestId('paywall-cta')
-    expect(screen.getByRole('region', { name: /ai feature locked/i })).toBeInTheDocument()
-    expect(screen.getByText(/AI Goal Coach requires an API key/i)).toBeInTheDocument()
+describe('PaywallCTA', () => {
+  test('api_key gate renders default title and links to /account/api-key', () => {
+    render(<PaywallCTA gate="api_key" />)
+    expect(screen.getByText(/AI features require an API key/i)).toBeInTheDocument()
+    expect(screen.getByTestId('paywall-upgrade-btn')).toHaveAttribute('href', '/account/api-key')
   })
 
-  test('paywall CTA links to account settings', async () => {
+  test('subscription gate renders Pro title and links to /account#subscription', () => {
+    render(<PaywallCTA gate="subscription" />)
+    expect(screen.getByText(/AI Goal Coach requires Pro/i)).toBeInTheDocument()
+    expect(screen.getByTestId('paywall-upgrade-btn')).toHaveAttribute('href', '/account#subscription')
+  })
+
+  test('emits paywall_viewed on mount with feature_gate for api_key', async () => {
+    render(<PaywallCTA gate="api_key" surface="ai_goal_coach" />)
+    await waitFor(() => {
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'paywall_viewed',
+          payload: { surface: 'ai_goal_coach', trigger: 'feature_gate' },
+        }),
+      )
+    })
+  })
+
+  test('emits paywall_viewed on mount with upgrade_prompt for subscription', async () => {
+    render(<PaywallCTA gate="subscription" surface="account" />)
+    await waitFor(() => {
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'paywall_viewed',
+          payload: { surface: 'account', trigger: 'upgrade_prompt' },
+        }),
+      )
+    })
+  })
+
+  test('upgrade_clicked fires on CTA click', () => {
+    render(<PaywallCTA gate="subscription" surface="ai_goal_coach" />)
+    mockTrack.mockClear()
+    fireEvent.click(screen.getByTestId('paywall-upgrade-btn'))
+    expect(mockTrack).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'upgrade_clicked',
+        payload: { surface: 'ai_goal_coach', trigger: 'paywall' },
+      }),
+    )
+  })
+})
+
+describe('AI Wizard paywall gate', () => {
+  test('shows API-key paywall when user is not entitled (no API key)', async () => {
     mockGetAIEntitlement.mockResolvedValue({ entitled: false, reason: 'no_api_key' })
     render(<AiGoalWizardPage />, { wrapper })
 
     await screen.findByTestId('paywall-cta')
-    const upgradeBtn = screen.getByTestId('paywall-upgrade-btn')
-    expect(upgradeBtn).toHaveAttribute('href', '/account')
+    expect(screen.getByText(/AI features require an API key/i)).toBeInTheDocument()
+  })
+
+  test('shows subscription paywall when reason is subscription_required', async () => {
+    mockGetAIEntitlement.mockResolvedValue({ entitled: false, reason: 'subscription_required' })
+    render(<AiGoalWizardPage />, { wrapper })
+
+    await screen.findByTestId('paywall-cta')
+    expect(screen.getByText(/AI Goal Coach requires Pro/i)).toBeInTheDocument()
+    expect(screen.getByTestId('paywall-upgrade-btn')).toHaveAttribute('href', '/account#subscription')
+  })
+
+  test('API-key paywall links to /account/api-key', async () => {
+    mockGetAIEntitlement.mockResolvedValue({ entitled: false, reason: 'no_api_key' })
+    render(<AiGoalWizardPage />, { wrapper })
+
+    await screen.findByTestId('paywall-cta')
+    expect(screen.getByTestId('paywall-upgrade-btn')).toHaveAttribute('href', '/account/api-key')
   })
 
   test('paywall page shows manual goal link for free users', async () => {
@@ -151,7 +209,7 @@ describe('AI Wizard paywall gate', () => {
   })
 
   test('shows wizard when user is entitled', async () => {
-    mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'api_key_set' })
+    mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'ready' })
     render(<AiGoalWizardPage />, { wrapper })
 
     await screen.findByRole('heading', { name: /ai goal coach/i })
@@ -159,7 +217,7 @@ describe('AI Wizard paywall gate', () => {
     expect(screen.queryByTestId('paywall-cta')).not.toBeInTheDocument()
   })
 
-  test('paywall does not appear when entitlement check unknown (fails gracefully as entitled=false)', async () => {
+  test('paywall blocks wizard when entitlement check unknown', async () => {
     mockGetAIEntitlement.mockResolvedValue({ entitled: false, reason: 'unknown' })
     render(<AiGoalWizardPage />, { wrapper })
 
@@ -168,25 +226,16 @@ describe('AI Wizard paywall gate', () => {
   })
 })
 
-// ─── Forecast — 403 paywall ───────────────────────────────────────────────────
-
-describe('Goal forecast 403 paywall', () => {
-  test('shows paywall CTA when forecast returns 403', async () => {
+describe('Goal forecast errors', () => {
+  test('shows unavailable message when forecast returns 403 (no paywall)', async () => {
     mockGetGoalForecast.mockRejectedValue(makeForbiddenError())
     render(<GoalDetailPage />, { wrapper })
 
     await screen.findByText('Run 100km')
-    await screen.findByTestId('forecast-paywall-cta')
-    expect(screen.getByText(/AI Weekly Review requires an API key/i)).toBeInTheDocument()
-  })
-
-  test('forecast paywall links to account settings', async () => {
-    mockGetGoalForecast.mockRejectedValue(makeForbiddenError())
-    render(<GoalDetailPage />, { wrapper })
-
-    await screen.findByTestId('forecast-paywall-cta')
-    const btn = screen.getByTestId('paywall-upgrade-btn')
-    expect(btn).toHaveAttribute('href', '/account')
+    await screen.findByRole('status')
+    expect(screen.getByText(/forecast unavailable/i)).toBeInTheDocument()
+    expect(screen.queryByTestId('forecast-paywall-cta')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('paywall-cta')).not.toBeInTheDocument()
   })
 
   test('shows standard unavailable message for non-403 forecast errors', async () => {
@@ -198,7 +247,7 @@ describe('Goal forecast 403 paywall', () => {
     expect(screen.queryByTestId('forecast-paywall-cta')).not.toBeInTheDocument()
   })
 
-  test('shows forecast when data is available (entitled)', async () => {
+  test('shows forecast when data is available', async () => {
     render(<GoalDetailPage />, { wrapper })
 
     await screen.findByText('Run 100km')
@@ -207,32 +256,30 @@ describe('Goal forecast 403 paywall', () => {
   })
 })
 
-// ─── Goals list — AI Plan button lock state ────────────────────────────────────
-
 describe('Goals list AI Plan button', () => {
-  test('shows locked AI Plan button linking to /account when not entitled', async () => {
+  test('shows locked AI Plan button linking to /goals/ai/new when not entitled', async () => {
     mockGetAIEntitlement.mockResolvedValue({ entitled: false, reason: 'no_api_key' })
     render(<GoalsPage />, { wrapper })
 
     await waitFor(() => {
       expect(screen.getByTestId('ai-plan-locked-btn')).toBeInTheDocument()
     })
-    expect(screen.getByTestId('ai-plan-locked-btn')).toHaveAttribute('href', '/account')
+    expect(screen.getByTestId('ai-plan-locked-btn')).toHaveAttribute('href', '/goals/ai/new')
     expect(screen.queryByTestId('ai-plan-btn')).not.toBeInTheDocument()
   })
 
-  test('locked AI Plan button has accessible label indicating setup required', async () => {
+  test('locked AI Plan button has accessible label indicating unlock required', async () => {
     mockGetAIEntitlement.mockResolvedValue({ entitled: false, reason: 'no_api_key' })
     render(<GoalsPage />, { wrapper })
 
     await waitFor(() => {
       const btn = screen.getByTestId('ai-plan-locked-btn')
-      expect(btn).toHaveAttribute('aria-label', expect.stringMatching(/set up AI/i))
+      expect(btn).toHaveAttribute('aria-label', expect.stringMatching(/unlock AI goal planning/i))
     })
   })
 
   test('shows enabled AI Plan button linking to /goals/ai/new when entitled', async () => {
-    mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'api_key_set' })
+    mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'ready' })
     render(<GoalsPage />, { wrapper })
 
     await waitFor(() => {
@@ -241,19 +288,7 @@ describe('Goals list AI Plan button', () => {
     expect(screen.getByTestId('ai-plan-btn')).toHaveAttribute('href', '/goals/ai/new')
     expect(screen.queryByTestId('ai-plan-locked-btn')).not.toBeInTheDocument()
   })
-
-  test('upgrade CTA click navigates to /account settings', async () => {
-    mockGetAIEntitlement.mockResolvedValue({ entitled: false, reason: 'no_api_key' })
-    render(<GoalsPage />, { wrapper })
-
-    await waitFor(() => {
-      expect(screen.getByTestId('ai-plan-locked-btn')).toBeInTheDocument()
-    })
-    expect(screen.getByTestId('ai-plan-locked-btn')).toHaveAttribute('href', '/account')
-  })
 })
-
-// ─── Manual goal flows — unaffected ──────────────────────────────────────────
 
 describe('Manual goal flows are unaffected by paywall', () => {
   test('New Goal button always links to /goals/new regardless of entitlement', async () => {
@@ -269,9 +304,7 @@ describe('Manual goal flows are unaffected by paywall', () => {
 
   test('goals list renders goal cards for free users', async () => {
     mockGetAIEntitlement.mockResolvedValue({ entitled: false, reason: 'no_api_key' })
-    mockListGoals.mockResolvedValue([
-      makeGoal({ id: 'g1', title: 'My Manual Goal' }),
-    ])
+    mockListGoals.mockResolvedValue([makeGoal({ id: 'g1', title: 'My Manual Goal' })])
     render(<GoalsPage />, { wrapper })
 
     await screen.findByText('My Manual Goal')
@@ -287,7 +320,7 @@ describe('Manual goal flows are unaffected by paywall', () => {
     expect(screen.getByRole('link', { name: /edit goal/i })).toBeInTheDocument()
   })
 
-  test('check-in form is available for free users even when forecast is gated', async () => {
+  test('check-in form is available for free users even when forecast errors', async () => {
     mockGetGoalForecast.mockRejectedValue(makeForbiddenError())
     render(<GoalDetailPage />, { wrapper })
 

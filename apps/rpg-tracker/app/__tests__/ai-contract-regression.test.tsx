@@ -36,7 +36,7 @@ vi.mock('@rpgtracker/api-client', () => ({
   getAIEntitlement: () =>
     Promise.resolve({
       entitled: true,
-      reason: 'api_key_set' as const,
+      reason: 'ready' as const,
     }),
   updateGoal: () => Promise.resolve({}),
   updateMilestone: () => Promise.resolve({}),

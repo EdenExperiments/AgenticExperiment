@@ -49,7 +49,7 @@ function makePlanResponse(overrides = {}) {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'api_key_set' })
+  mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'ready' })
   setAnalyticsDispatcher(mockTrack)
   mockPlanGoal.mockResolvedValue(makePlanResponse())
   mockCreateGoal.mockResolvedValue({
@@ -287,7 +287,21 @@ test('shows API key error when planGoal returns 402', async () => {
   fireEvent.click(screen.getByRole('button', { name: /generate plan/i }))
 
   await screen.findByText(/ai key not configured/i)
-  expect(screen.getByRole('link', { name: /account settings/i })).toBeInTheDocument()
+  const settingsLink = screen.getByRole('link', { name: /account settings/i })
+  expect(settingsLink).toBeInTheDocument()
+  expect(settingsLink).toHaveAttribute('href', '/account/api-key')
+})
+
+test('shows subscription error when planGoal returns 403 subscription_required', async () => {
+  const err = Object.assign(new Error('subscription_required'), { status: 403 })
+  mockPlanGoal.mockRejectedValue(err)
+  render(<AiGoalWizardPage />, { wrapper })
+  fireEvent.change(screen.getByLabelText(/goal statement/i), { target: { value: 'Run a 5km race' } })
+  fireEvent.click(screen.getByRole('button', { name: /generate plan/i }))
+
+  await screen.findByText(/pro subscription required/i)
+  const upgradeLink = screen.getByRole('link', { name: /upgrade to pro/i })
+  expect(upgradeLink).toHaveAttribute('href', '/account#subscription')
 })
 
 test('shows rate limit error when planGoal returns 429', async () => {

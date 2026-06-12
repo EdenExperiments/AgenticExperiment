@@ -121,11 +121,7 @@ export function deleteAPIKey(): Promise<void> {
 
 export async function getAIEntitlement(): Promise<AIEntitlement> {
   try {
-    const status = await getAPIKeyStatus()
-    return {
-      entitled: status.has_key,
-      reason: status.has_key ? 'api_key_set' : 'no_api_key',
-    }
+    return await request<AIEntitlement>('/api/v1/account/ai-entitlement')
   } catch {
     return { entitled: false, reason: 'unknown' }
   }

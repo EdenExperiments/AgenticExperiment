@@ -73,6 +73,59 @@ export default function AccountPage() {
 
       <ThemePickerPreview />
 
+      <section
+        id="subscription"
+        data-testid="subscription-section"
+        className="rounded-xl p-5 space-y-3"
+        style={{ backgroundColor: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}
+      >
+        <h2
+          className="font-semibold"
+          style={{
+            fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
+            color: 'var(--color-text)',
+          }}
+        >
+          Subscription
+        </h2>
+        <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+          Current plan:{' '}
+          <span className="font-medium" style={{ color: 'var(--color-text)' }}>
+            {account?.subscription_tier === 'pro' ? 'Pro' : 'Free'}
+          </span>
+        </p>
+        {account?.subscription_tier !== 'pro' ? (
+          <div className="space-y-3">
+            <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
+              Start with a 14-day free trial — explore AI Goal Coach and all Pro features with no commitment.
+              Billing integration is coming soon; this is informational only.
+            </p>
+            <Link
+              href="/account#subscription"
+              className="btn btn-primary inline-flex px-6 py-3 text-sm min-h-[44px] items-center justify-center"
+              data-testid="subscription-upgrade-btn"
+            >
+              Start free trial
+            </Link>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
+              You&apos;re on Pro. AI features also require a Claude API key.
+            </p>
+            {!keyStatus?.has_key && (
+              <Link
+                href="/account/api-key"
+                className="inline-block text-sm font-medium hover:underline"
+                style={{ color: 'var(--color-accent)' }}
+              >
+                Set up your API key
+              </Link>
+            )}
+          </div>
+        )}
+      </section>
+
       <section className="rounded-xl p-5 space-y-3" style={{ backgroundColor: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}>
         <h2 className="font-semibold" style={{ fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))', color: 'var(--color-text)' }}>Visual mode</h2>
         <p className="text-sm" style={{ color: 'var(--color-muted)' }}>Stylish mode adds more motion and decoration on top of your theme. Clean mode keeps things minimal.</p>
