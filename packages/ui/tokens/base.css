@@ -41,4 +41,10 @@
   --duration-slow: 500ms;
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --density-scale: 1;
+}
+
+[data-theme][data-mode="stylish"] {
+  --density-scale: 1.05;
 }
