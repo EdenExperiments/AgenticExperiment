@@ -28,13 +28,27 @@ export function useAIEntitlement(): AIEntitlementState {
   }
 }
 
+export function isSubscriptionError(error: unknown): boolean {
+  if (!error) return false
+  if (typeof error === 'object' && 'status' in error) {
+    const e = error as { status: number; message?: string }
+    return e.status === 403 && (e.message?.includes('subscription_required') ?? false)
+  }
+  if (error instanceof Error) {
+    const msg = error.message.toLowerCase()
+    return msg.includes('403') && msg.includes('subscription')
+  }
+  return false
+}
+
 export function isEntitlementError(error: unknown): boolean {
   if (!error) return false
   if (typeof error === 'object' && 'status' in error) {
-    return (error as { status: number }).status === 403
+    return (error as { status: number }).status === 402
   }
   if (error instanceof Error) {
-    return error.message.includes('403') || error.message.toLowerCase().includes('forbidden')
+    const msg = error.message.toLowerCase()
+    return msg.includes('402') || msg.includes('no ai key') || msg.includes('api key')
   }
   return false
 }

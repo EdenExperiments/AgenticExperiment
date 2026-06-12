@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { planGoal, createGoal, createMilestone } from '@rpgtracker/api-client'
 import type { PlanGoalResponse, GoalPlanMilestone } from '@rpgtracker/api-client'
-import { useAIEntitlement, isEntitlementError } from '../../../../../lib/useAIEntitlement'
+import { useAIEntitlement, isEntitlementError, isSubscriptionError } from '../../../../../lib/useAIEntitlement'
 import { PaywallCTA } from '../../../../../components/PaywallCTA'
 import { trackEvent } from '@/lib/analytics'
 
@@ -47,13 +47,31 @@ function DegradedBanner() {
 function AiErrorMessage({ error }: { error: Error }) {
   const msg = error.message ?? ''
 
+  if (isSubscriptionError(error) || (msg.includes('403') && msg.toLowerCase().includes('subscription'))) {
+    return (
+      <div role="alert" className="rounded-xl p-4 space-y-2" style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}>
+        <p className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>Pro subscription required</p>
+        <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+          AI Goal Coach requires a Pro subscription.{' '}
+          <Link href="/account#subscription" className="underline" style={{ color: 'var(--color-accent)' }}>
+            Upgrade to Pro
+          </Link>{' '}
+          to enable smart goal planning.
+        </p>
+        <Link href="/goals/new" className="btn btn-ghost text-sm px-3 py-2 inline-block mt-1">
+          Create manually instead
+        </Link>
+      </div>
+    )
+  }
+
   if (isEntitlementError(error) || msg.includes('402') || msg.toLowerCase().includes('no ai key') || msg.toLowerCase().includes('api key')) {
     return (
       <div role="alert" className="rounded-xl p-4 space-y-2" style={{ background: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}>
         <p className="font-semibold text-sm" style={{ color: 'var(--color-text)' }}>AI key not configured</p>
         <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
           Set up your AI API key in{' '}
-          <Link href="/account" className="underline" style={{ color: 'var(--color-accent)' }}>
+          <Link href="/account/api-key" className="underline" style={{ color: 'var(--color-accent)' }}>
             Account settings
           </Link>{' '}
           to enable smart goal planning.
@@ -408,7 +426,7 @@ function PreviewStep({
 export default function AiGoalWizardPage() {
   const router = useRouter()
   const qc = useQueryClient()
-  const { entitled, isLoading: entitlementLoading } = useAIEntitlement()
+  const { entitled, isLoading: entitlementLoading, reason } = useAIEntitlement()
 
   const [step, setStep] = useState<WizardStep>('input')
   const [statement, setStatement] = useState('')
@@ -510,11 +528,9 @@ export default function AiGoalWizardPage() {
           </h1>
         </div>
         <PaywallCTA
+          gate={reason === 'subscription_required' ? 'subscription' : 'api_key'}
+          surface="ai_goal_coach"
           variant="inline"
-          title="AI Goal Coach requires an API key"
-          description="Set up your AI API key to unlock smart goal planning — describe your goal in plain language and get an actionable plan."
-          ctaLabel="Set up AI in Account"
-          ctaHref="/account"
         />
         <div className="text-center">
           <Link
