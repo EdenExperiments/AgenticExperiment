@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --import tsx --test src/__tests__/scanner-context.test.ts src/__tests__/head-branch-resolution.test.ts src/__tests__/remediation-brief.test.ts src/__tests__/model-fallback.test.ts src/__tests__/dep-classification.test.ts src/__tests__/maintenance-queue.test.ts src/__tests__/maintenance-dispatch.test.ts src/__tests__/run-summary.test.ts",
+    "test": "node --import tsx --test src/__tests__/scanner-context.test.ts src/__tests__/head-branch-resolution.test.ts src/__tests__/remediation-brief.test.ts src/__tests__/model-fallback.test.ts src/__tests__/dep-classification.test.ts src/__tests__/maintenance-queue.test.ts src/__tests__/maintenance-dispatch.test.ts src/__tests__/run-summary.test.ts src/__tests__/weekly-metrics.test.ts",
     "test:watch": "node --import tsx --watch --test src/__tests__",
     "security-triage": "tsx src/security-triage.ts",
     "security-triage:local": "CURSOR_RUNTIME=local tsx src/security-triage.ts",
