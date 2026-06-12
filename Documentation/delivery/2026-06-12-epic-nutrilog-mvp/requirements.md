@@ -119,7 +119,7 @@ Each criterion is independently verifiable.
 ## Sign-off
 
 ```
-Signed off by: ____________________  on __________
+Signed off by: Macaulay on 12/06/2026
 ```
 
 Until signed, downstream TDD dispatch must not start.

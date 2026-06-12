@@ -130,5 +130,5 @@ Ship a **visual fidelity dimension** alongside the existing three themes (Minima
 ## Sign-off
 
 ```
-Signed off by: ____________________ on __________
+Signed off by: Macaulay on 12/06/2026
 ```

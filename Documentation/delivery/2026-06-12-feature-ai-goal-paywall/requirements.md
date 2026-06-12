@@ -79,7 +79,5 @@ Each criterion is independently verifiable.
 ## Sign-off
 
 ```
-Signed off by:
-Date:
-Notes:
+Signed off by: Macaulay on 12/06/2026
 ```

@@ -166,4 +166,4 @@ Close the remaining gaps in the agentic pipeline's **evaluation harness**, **rev
 
 ## Sign-off
 
-Signed off by: ____________________ on __________
+Signed off by: Macaulay on 12/06/2026

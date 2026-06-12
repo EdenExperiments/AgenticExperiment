@@ -48,3 +48,9 @@ from the feature tracker; fixes are minimal and only when a test exposes a real 
 | Go integration | `cd apps/api && go test -tags integration ./internal/skills/...` |
 | UI package | `pnpm --filter @rpgtracker/ui test` |
 | RPG Tracker | `pnpm --filter rpg-tracker test` |
+
+## Sign-off
+
+```
+Signed off by: Macaulay on 12/06/2026
+```
