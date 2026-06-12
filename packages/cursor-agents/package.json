@@ -14,6 +14,7 @@
     "daily-quality-digest": "tsx src/daily-quality-digest.ts",
     "dep-assess": "tsx src/dep-assessment.ts",
     "maintenance-queue": "tsx src/maintenance-queue-run.ts",
+    "maintenance-dispatch": "tsx src/maintenance-dispatch-run.ts",
     "weekly-metrics": "tsx src/weekly-metrics.ts"
   },
   "devDependencies": {
