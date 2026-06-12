@@ -25,6 +25,7 @@ def _cli_env(home: Path) -> dict[str, str]:
     env = dict(os.environ)
     env["CURSOR_LAB_HOME"] = str(home)
     env["PYTHONPATH"] = str(_lab_home())
+    env.setdefault("CURSOR_API_KEY", "test-key")
     return env
 
 
@@ -145,4 +146,5 @@ artifacts:
         text=True,
     )
     assert result.returncode == 0, result.stderr + result.stdout
+    assert "runs.jsonl" in (result.stderr + result.stdout).lower()
     assert "registry gate" in (result.stderr + result.stdout).lower()

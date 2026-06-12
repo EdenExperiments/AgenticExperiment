@@ -1518,3 +1518,297 @@
   border-width: 2px;
   border-radius: var(--radius-md);
 }
+
+
+/* ================================================================== */
+/* MODERN STYLISH MODE — F-046 additive treatments                   */
+/* Scoped: [data-theme="modern"][data-mode="stylish"]                 */
+/* Clean mode rules above remain unchanged. Desktop-first atmosphere. */
+/* ================================================================== */
+
+/* --- Dashboard: HUD stat readouts + active mission briefing --- */
+
+@media (min-width: 1024px) {
+  @supports (backdrop-filter: blur(1px)) {
+    [data-theme="modern"][data-mode="stylish"] .stat-card {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background-color: rgba(15, 23, 42, 0.55);
+      border-color: rgba(0, 212, 255, 0.2);
+    }
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .stat-card {
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
+      box-shadow calc(var(--duration-fast) * var(--motion-scale)) ease,
+      border-color calc(var(--duration-fast) * var(--motion-scale)) ease;
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .stat-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 40%,
+      rgba(0, 212, 255, 0.04) 50%,
+      transparent 60%
+    );
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity calc(var(--duration-normal) * var(--motion-scale)) ease;
+  }
+
+  @media (hover: hover) {
+    [data-theme="modern"][data-mode="stylish"] .stat-card:hover {
+      border-color: var(--color-border-strong);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    [data-theme="modern"][data-mode="stylish"] .stat-card:hover::after {
+      opacity: 1;
+    }
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .stat-card [data-testid="stat-value"] {
+    text-shadow:
+      0 0 12px rgba(0, 212, 255, 0.45),
+      0 0 24px rgba(0, 212, 255, 0.15);
+    color: var(--color-accent);
+  }
+
+  /* Primary skill — active mission briefing card */
+  [data-theme="modern"][data-mode="stylish"] .max-w-2xl > .relative.rounded-xl {
+    border-color: rgba(0, 212, 255, 0.25);
+    box-shadow:
+      var(--shadow-md),
+      0 0 24px rgba(0, 212, 255, 0.08);
+    transition:
+      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
+      box-shadow calc(var(--duration-normal) * var(--motion-scale)) ease,
+      border-color calc(var(--duration-fast) * var(--motion-scale)) ease;
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    [data-theme="modern"][data-mode="stylish"] .max-w-2xl > .relative.rounded-xl {
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      background-color: rgba(15, 23, 42, 0.5);
+    }
+  }
+
+  @media (hover: hover) {
+    [data-theme="modern"][data-mode="stylish"] .max-w-2xl > .relative.rounded-xl:hover {
+      border-color: var(--color-border-strong);
+      box-shadow:
+        var(--shadow-lg),
+        0 0 32px rgba(0, 212, 255, 0.12);
+    }
+  }
+}
+
+/* --- Skill cards — glass panels with subtle glow --- */
+
+@media (min-width: 1024px) {
+  [data-theme="modern"][data-mode="stylish"] .skill-card {
+    border-color: rgba(0, 212, 255, 0.18);
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
+      box-shadow calc(var(--duration-fast) * var(--motion-scale)) ease,
+      border-color calc(var(--duration-fast) * var(--motion-scale)) ease;
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    [data-theme="modern"][data-mode="stylish"] .skill-card {
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      background-color: rgba(15, 23, 42, 0.5);
+    }
+  }
+
+  @media (hover: hover) {
+    [data-theme="modern"][data-mode="stylish"] .skill-card:hover {
+      border-color: var(--color-border-strong);
+      box-shadow: var(--shadow-md);
+    }
+  }
+}
+
+/* --- Gate section — holographic security checkpoint --- */
+
+@media (min-width: 1024px) {
+  [data-theme="modern"][data-mode="stylish"] .gate-section {
+    border-color: var(--color-secondary);
+    box-shadow:
+      var(--shadow-md),
+      0 0 24px rgba(224, 64, 251, 0.12),
+      inset 0 0 0 1px rgba(224, 64, 251, 0.08);
+    padding: 1.25rem 1.75rem;
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    [data-theme="modern"][data-mode="stylish"] .gate-section {
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      background-color: rgba(15, 23, 42, 0.55);
+    }
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .gate-section::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(224, 64, 251, 0.06) 50%,
+      transparent 100%
+    );
+    pointer-events: none;
+    opacity: 0.6;
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .gate-section__title {
+    text-shadow:
+      0 0 14px rgba(224, 64, 251, 0.5),
+      0 0 28px rgba(224, 64, 251, 0.15);
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .gate-section__progress-bar-fill {
+    box-shadow:
+      0 0 10px rgba(224, 64, 251, 0.5),
+      0 0 20px rgba(224, 64, 251, 0.2);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @media (min-width: 1024px) {
+    [data-theme="modern"][data-mode="stylish"] .gate-section::after {
+      animation: modern-gate-shimmer calc(4s * var(--motion-scale)) ease-in-out infinite;
+    }
+  }
+}
+
+@keyframes modern-gate-shimmer {
+  0%, 100% { opacity: 0.4; transform: translateX(-10%); }
+  50%       { opacity: 0.8; transform: translateX(10%); }
+}
+
+/* --- Activity history — scrolling data log --- */
+
+@media (min-width: 1024px) {
+  [data-theme="modern"][data-mode="stylish"] .activity-history {
+    padding: 0.75rem;
+    border: 1px solid rgba(0, 212, 255, 0.15);
+    border-radius: var(--radius-md);
+    background-color: rgba(10, 14, 26, 0.6);
+    box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.03);
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    [data-theme="modern"][data-mode="stylish"] .activity-history {
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .activity-history::before {
+    box-shadow:
+      0 0 8px rgba(0, 212, 255, 0.4),
+      0 0 16px rgba(0, 212, 255, 0.15);
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .activity-history__date-header {
+    font-family: var(--font-mono);
+    letter-spacing: 0.12em;
+    text-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .activity-history__entry {
+    background-color: rgba(15, 23, 42, 0.4);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(0, 212, 255, 0.08);
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .activity-history__entry::before {
+    box-shadow:
+      0 0 10px rgba(0, 212, 255, 0.7),
+      0 0 20px rgba(0, 212, 255, 0.25);
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .activity-history__timestamp {
+    font-family: var(--font-mono);
+    color: var(--color-text-secondary);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @media (min-width: 1024px) {
+    [data-theme="modern"][data-mode="stylish"] .activity-history__entry {
+      animation: modern-log-fade-in calc(300ms * var(--motion-scale)) ease-out both;
+    }
+
+    [data-theme="modern"][data-mode="stylish"] .activity-history__entry:nth-child(1) { animation-delay: calc(50ms * var(--motion-scale)); }
+    [data-theme="modern"][data-mode="stylish"] .activity-history__entry:nth-child(2) { animation-delay: calc(100ms * var(--motion-scale)); }
+    [data-theme="modern"][data-mode="stylish"] .activity-history__entry:nth-child(3) { animation-delay: calc(150ms * var(--motion-scale)); }
+
+    [data-theme="modern"][data-mode="stylish"] .activity-history__entry::before {
+      animation: node-pulse calc(2s * var(--motion-scale)) ease-in-out 1;
+    }
+  }
+}
+
+@keyframes modern-log-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Navigation — glass HUD atmosphere --- */
+
+@media (min-width: 1024px) {
+  [data-theme="modern"][data-mode="stylish"] .sidebar__item--active {
+    background-color: rgba(0, 212, 255, 0.12);
+    border-left: 2px solid var(--color-accent);
+    box-shadow:
+      inset 0 0 12px rgba(0, 212, 255, 0.1),
+      0 0 8px rgba(0, 212, 255, 0.06);
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .sidebar__item--active .sidebar__item-icon {
+    filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.6));
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .sidebar__item:hover {
+    background-color: rgba(0, 212, 255, 0.08);
+    box-shadow: inset 0 0 8px rgba(0, 212, 255, 0.05);
+  }
+}
+
+@supports (backdrop-filter: blur(1px)) {
+  [data-theme="modern"][data-mode="stylish"] .bottom-tabs {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background-color: rgba(15, 23, 42, 0.65);
+    border-top-color: rgba(0, 212, 255, 0.2);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.3);
+  }
+}
+
+[data-theme="modern"][data-mode="stylish"] .bottom-tabs__item--active::after {
+  box-shadow:
+    0 0 8px rgba(0, 212, 255, 0.7),
+    0 0 16px rgba(0, 212, 255, 0.3);
+}
+
+@media (min-width: 1024px) {
+  [data-theme="modern"][data-mode="stylish"] .bottom-tabs {
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background-color: transparent;
+  }
+}

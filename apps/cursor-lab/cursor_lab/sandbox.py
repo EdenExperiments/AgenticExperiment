@@ -10,21 +10,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterator
 
-from cursor_lab.discovery import ArtifactRef, lab_cursor_root
+from cursor_lab.discovery import ArtifactRef, FixtureCase, lab_cursor_root
+
+__all__ = ["FixtureCase", "Sandbox", "build_sandbox"]
 
 _AGENTS_MD_STUB = """# Cursor Lab Sandbox
 
 Minimal repo context for artifact evaluation.
 """
-
-
-@dataclass(frozen=True)
-class FixtureCase:
-    """Minimal fixture case stub (manifest parsing is task 02)."""
-
-    case_id: str
-    seed_dir: Path | None = None
-    include_agents_md: bool = False
 
 
 def _walk_files(root: Path) -> dict[str, str]:
