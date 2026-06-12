@@ -92,6 +92,12 @@
 
 
 /* ------------------------------------------------------------------ */
+/* Retro Stylish — page + nav atmosphere (F-046)                       */
+/* Desktop-focused; mobile largely matches Clean (R-046-4).            */
+/* No glassmorphism — warm scanlines, grid texture, game-menu framing. */
+/* ------------------------------------------------------------------ */
+
+[data-theme="retro"][data-mode="stylish"] body {
 /* Minimal Stylish — page + nav atmosphere (F-046)                     */
 /* Desktop-focused; mobile largely matches Clean (R-046-4).            */
 /* ------------------------------------------------------------------ */
@@ -102,6 +108,12 @@
 }
 
 @media (min-width: 1024px) {
+  [data-theme="retro"][data-mode="stylish"] body {
+    background: linear-gradient(
+      180deg,
+      var(--color-bg) 0%,
+      color-mix(in srgb, var(--color-secondary) 8%, var(--color-bg)) 50%,
+      var(--color-bg) 100%
   [data-theme="minimal"][data-mode="stylish"] body {
     background: linear-gradient(
       180deg,
@@ -111,6 +123,8 @@
     min-height: 100dvh;
   }
 
+  /* Subtle grid texture beneath scanlines */
+  [data-theme="retro"][data-mode="stylish"] body::before {
   [data-theme="minimal"][data-mode="stylish"] .nav-panel {
     background-color: var(--color-surface);
     border-right: 1px solid var(--color-border);
@@ -151,6 +165,34 @@
     position: fixed;
     inset: 0;
     pointer-events: none;
+    z-index: 9998;
+    background-image:
+      linear-gradient(rgba(212, 168, 83, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(212, 168, 83, 0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Stronger scanline overlay for Stylish */
+  [data-theme="retro"][data-mode="stylish"] body::after {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.12) 2px,
+      rgba(0, 0, 0, 0.12) 4px
+    );
+  }
+
+  /* Game-menu nav panel framing */
+  [data-theme="retro"][data-mode="stylish"] .nav-panel {
+    background-color: var(--color-surface);
+    border-right: 2px solid var(--color-border);
+    box-shadow:
+      inset -1px 0 0 rgba(212, 168, 83, 0.12),
+      4px 0 12px rgba(0, 0, 0, 0.3);
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .sidebar {
     z-index: 0;
     background:
       radial-gradient(ellipse 60% 40% at 15% 20%, rgba(0, 212, 255, 0.06) 0%, transparent 70%),
