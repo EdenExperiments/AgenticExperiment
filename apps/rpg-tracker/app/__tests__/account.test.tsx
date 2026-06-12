@@ -43,3 +43,21 @@ test('renders account heading', () => {
   expect(screen.getByRole('heading', { name: /account/i })).toBeInTheDocument()
 })
 
+describe('visual mode switcher (AC-045-5)', () => {
+  test('renders Clean and Stylish mode controls on account page', () => {
+    render(<AccountPage />, { wrapper })
+
+    expect(screen.getByRole('group', { name: /visual mode/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /clean/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /stylish/i })).toBeInTheDocument()
+  })
+
+  test('renders helper text explaining Stylish mode', () => {
+    render(<AccountPage />, { wrapper })
+
+    expect(
+      screen.getByText(/stylish.*more motion|more motion.*decoration/i)
+    ).toBeInTheDocument()
+  })
+})
+
