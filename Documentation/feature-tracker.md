@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-06-12 (skills/flows expansion — F-074; Agentic Pipeline F-063 to F-071)
+Last updated: 2026-06-12 (Wave 2 delivery: F-045–F-047, paywall F-049, NutriLog F-013, cursor-lab F-061 Phases B–D)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -31,6 +31,11 @@ Release 1–2 + Phase 7 + 9A. Detail in git history and archived `docs/archive/r
 | F-038 | Skill create overhaul | 2-step flow; gate auto-clear (D-033) |
 | F-041 | Landing page overhaul | Auth restyle; registration callouts |
 | F-044 | Clean UI cleanup | Phase 9A polish |
+| F-045 | Clean/Stylish mode infrastructure | `data-mode` cookie + switcher; SSR hydration (D-043) |
+| F-046 | Per-theme Stylish treatments | Minimal, Retro, Modern additive CSS layers |
+| F-047 | Cinematic landing (Stylish) | Landing atmosphere gated on `data-mode="stylish"` |
+| F-075 | AI goal planning + paywall UX | `POST /goals/plan`, wizard, `GET /account/ai-entitlement`, PaywallCTA gating |
+| F-013 | NutriLog weight logging MVP | API + typed client + NutriLog dashboard (chart, log, delete) |
 
 ### Partially Shipped
 
@@ -38,17 +43,7 @@ Release 1–2 + Phase 7 + 9A. Detail in git history and archived `docs/archive/r
 | ID    | Feature                           | Status      | Notes                                                         |
 | ----- | --------------------------------- | ----------- | ------------------------------------------------------------- |
 | F-039 | Social auth (Google/GitHub/Apple) | in-progress | UI buttons shipped. Supabase provider config not yet enabled. |
-| F-049 | AI goal planning + entitlement gate | in-progress | `POST /api/v1/goals/plan` ships with `degraded_response` contract, API-key prerequisite, and Pro-tier entitlement (`ai_goal_planner`). Frontend wizard at `/goals/ai/new` is wired; broader paywall/upgrade UX is still being refined. |
-
-
-## Phase 9B: Stylish Mode (D-043)
-
-
-| ID    | Feature                           | Area     | Status          | Notes                                                                                                                                                                                                  |
-| ----- | --------------------------------- | -------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| F-045 | Clean/Stylish mode infrastructure | Frontend | ready-for-build | `data-mode="clean|stylish"` on `<html>`. Cookie persistence. Mode switcher on account page. CSS selector pattern `[data-theme][data-mode="stylish"]`. Default: clean. Both modes WCAG AA.              |
-| F-046 | Per-theme Stylish treatments      | Frontend | ready-for-build | Background atmosphere, dashboard/skill card/gate/history variants, density tokens, nav atmosphere. Additive CSS layers — same HTML, different visual treatment. See `style-guide/` and `page-guides/`. |
-| F-047 | Cinematic landing page (Stylish)  | Frontend | in-review | task-05: atmosphere gated on `data-mode="stylish"`; per-theme scroll reveals; Clean baseline preserved. Visual review pending (D-036).                          |
+| F-048 | AI goal product funnel analytics  | in-progress | Event schema shipped; provider integration deferred. Paywall hooks wired in F-075. |
 
 
 ---
@@ -70,7 +65,7 @@ Release 1–2 + Phase 7 + 9A. Detail in git history and archived `docs/archive/r
 | F-058 | Structured reviewer schema contract | Ops/CI | retired | **Retired D-060:** schema was for removed pipeline reviewer. Superseded by Sonar-first remediation brief. |
 | F-059 | Scheduled scans + daily AI digest + scanner signal merge | Ops/CI | done | Nightly Sonar main scan; weekly Renovate schedule; daily digest workflow. SDK remediation enriches Sonar PR context and merged brief (Sonar-primary post D-060). |
 | F-060 | Safe Renovate dependency refresh | Ops/CI | done | Applied compatible Renovate updates across npm, Go modules, and GitHub Actions after checking app impact. Deferred unsupported/high-risk majors (Node 24, pnpm 11, TypeScript 6, Vitest 4, jsdom 29, Vite React plugin 6) for explicit migration work. |
-| F-061 | Cursor Lab: LLM-as-judge eval flow | Ops/CI | in-progress | Plan: `docs/guides/cursor-lab-eval-flow-plan.md`. **Phase A landed:** `apps/cursor-lab/` Python package + pnpm workspace with `@cursor/sdk` bridge (`run-agent.ts`), `cursor-lab doctor` / `list`, artifact discovery skeleton. Next: sandbox, fixtures, judge JSON, registry gates. |
+| F-061 | Cursor Lab: LLM-as-judge eval flow | Ops/CI | in-progress | Phases A–D landed: sandbox, fixtures/registry, evaluate orchestrator, DSPy judge, reporting, cache/gate/promote CLI. Remaining: operator golden-PR runs, CI wiring (Phase F). |
 | F-062 | CI recovery + agent model-slug resilience | Ops/CI | done | Restored green CI by aligning `react` to 19.2.6 (react-dom mismatch had failed 21/23 `packages/ui` test files since 2026-05-17). Replaced retired `composer-2-fast` defaults with `composer-2.5` and added shared `model-fallback.ts` (D-054) used by digest and triage. Security triage now degrades gracefully when code-scanning API access is denied (403). Renovate workflow skips cleanly when `RENOVATE_TOKEN` is absent. |
 
 
@@ -89,9 +84,9 @@ Target design: `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md`. Mi
 | F-068 | Bugbot Autofix adoption (Pillar B, M3)             | M3        | in-progress | `BUGBOT.md` shipped; custom pipeline reviewer + workflow YAML retired (D-060). Remaining: dashboard Bugbot enablement + severity status check in branch protection.            |
 | F-073 | Pipeline reviewer retirement + lane clarification  | M3/Docs   | done        | D-060: removed `pr-review.ts`; refactored `fix-attempt`; archived stale skill/guide; handbook three-lane model (Bugbot / SDK / Automations). Delivery artifact: `Documentation/delivery/D-060-pipeline-reviewer-retirement.md`. |
 | F-074 | Skills, flows, and subagent orchestration expansion | M0/M5   | done        | D-062: `.cursor/flows/` manifests; 4 orchestration/quality skills; 3 subagents (`delivery-orchestrator`, `deps-highlight`, `maintenance-scout`); `validate:agents` + `validate:cursor`; guide `docs/guides/cursor-skills-and-orchestration.md`. |
-| F-069 | Unified maintenance queue (Pillar C, M4)           | M4        | in-progress | Queue normaliser + triage scoring + concurrent-PR cap in `packages/cursor-agents/src/maintenance-queue*`; Cursor Automations dispatch documented (dashboard setup is an operator action).          |
+| F-069 | Unified maintenance queue (Pillar C, M4)           | M4        | in-progress | Queue normaliser + triage scoring + `maintenance-dispatch` brief generator shipped. Remaining: weekly tech-debt Automation cron (operator task-10).          |
 | F-070 | Command-driven delivery (Pillar D, M5)             | M5        | done        | `.cursor/commands/` (`/fix`, `/feature`, `/epic`, `/new-project`) + `.cursor/skills/delivery/` chains (elicitation → decomposition → TDD dispatch); artifacts under `Documentation/delivery/`.    |
-| F-071 | Telemetry + outcome metrics (M6)                   | M6        | in-progress | Structured JSON run summaries from agent jobs + weekly metrics aggregation workflow; per-surface outcome metrics feed the future eval project via `apps/cursor-lab`.                              |
+| F-071 | Telemetry + outcome metrics (M6)                   | M6        | in-progress | Run summaries on all agent jobs + weekly metrics workflow. `weekly-metrics.json` export + workflow artifact uploads in flight. Remaining: `CURSOR_METRICS_ISSUE_NUMBER` dashboard issue (operator task-13).                              |
 | F-072 | Documentation slim-down for agentic workflow     | Docs/Ops  | done        | Archived historical planning docs to `docs/archive/`; merged routing rules; 2-tier doc contract (D-059); compact shipped index; removed legacy CLAUDE memory files.                              |
 
 
@@ -126,12 +121,11 @@ Target design: `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md`. Mi
 | F-029  | Mastery system (sub-skills)        | F-011                | Deep-dive skill breakdown.                                               |
 
 
-### NutriLog (all deferred — schema namespace reserved with `nl_` prefix)
+### NutriLog (schema namespace `nl_`; F-013 shipped — see compact index)
 
 
 | ID    | Feature                        | Notes                 |
 | ----- | ------------------------------ | --------------------- |
-| F-013 | Weight logging and trend chart | —                     |
 | F-014 | Calorie and macro logging      | Food data source TBD. |
 | F-015 | Barcode scanning               | Mobile camera flow.   |
 | F-016 | Saved meals and templates      | QoL feature.          |
@@ -152,7 +146,7 @@ Target design: `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md`. Mi
 | F-027 | Intel / knowledge base             | Curated resources, expert guidance, book recs.                                                                                                                                                                          |
 | F-030 | Location-aware guidance            | Nearest classes/centres. Long-term vision.                                                                                                                                                                              |
 | F-040 | Free trial system                  | 14-day messaging shipped. Server-side enforcement TBD (D-039). Analytics schema reserves `paywall_viewed` and `upgrade_clicked`; UI hooks pending a paywall/upgrade surface.                                            |
-| F-048 | AI goal product funnel analytics   | Event schema + frontend scaffold shipped for goal creation, AI plan generation/acceptance, weekly check-ins, and recovery hooks. Provider integration and paywall/upgrade UI hooks deferred until those surfaces exist. |
+| F-048 | AI goal product funnel analytics   | Event schema + frontend scaffold shipped for goal creation, AI plan generation/acceptance, weekly check-ins, and recovery hooks. Paywall viewed/clicked wired via F-075; provider analytics integration deferred. |
 
 
 ---
