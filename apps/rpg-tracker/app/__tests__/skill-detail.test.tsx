@@ -82,3 +82,55 @@ test('shows date-grouped activity with Today header', async () => {
   expect(screen.getByText('Morning run')).toBeInTheDocument()
   expect(screen.getByText('Yesterday')).toBeInTheDocument()
 })
+
+function makeSkillWithActiveGate() {
+  return {
+    id: 'skill-1',
+    name: 'Running',
+    description: 'Running practice',
+    unit: 'km',
+    user_id: 'u1',
+    preset_id: null,
+    starting_level: 1,
+    current_xp: 5000,
+    current_level: 10,
+    effective_level: 10,
+    quick_log_chips: [50, 100, 250, 500],
+    tier_name: 'Apprentice',
+    tier_number: 2,
+    gates: [
+      {
+        id: 'g1',
+        skill_id: 'skill-1',
+        gate_level: 9,
+        title: 'Prove Your Endurance',
+        description: 'Run 5km without stopping',
+        first_notified_at: '2026-01-01T00:00:00Z',
+        is_cleared: false,
+        cleared_at: null,
+      },
+    ],
+    recent_logs: [],
+    xp_to_next_level: 800,
+    xp_for_current_level: 100,
+    created_at: '',
+    updated_at: '',
+    tags: [],
+    is_custom: true,
+  }
+}
+
+test('shows BlockerGateSection instead of XPProgressBar when active gate exists (D-021)', async () => {
+  mockGetSkill.mockResolvedValue(makeSkillWithActiveGate())
+  render(<SkillDetailPage />, { wrapper })
+  await screen.findByText('Prove Your Endurance')
+  expect(screen.getByText(/gate locked/i)).toBeInTheDocument()
+  expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+})
+
+test('shows XPProgressBar when no active gate (D-021)', async () => {
+  render(<SkillDetailPage />, { wrapper })
+  await screen.findByText('Running')
+  expect(screen.getByRole('progressbar')).toBeInTheDocument()
+  expect(screen.queryByText(/gate locked/i)).not.toBeInTheDocument()
+})
