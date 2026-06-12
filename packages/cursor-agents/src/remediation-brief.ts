@@ -14,8 +14,8 @@ export interface SonarIssueBriefInput {
 }
 
 /**
- * Deterministic merge of agent review priorities and Sonar sample issues for planner/executor prompts.
- * Keeps routing explainable without another model call.
+ * Deterministic merge of optional advisory findings and Sonar sample issues for planner/executor prompts.
+ * Sonar is primary; advisory rows are optional overlap hints.
  */
 export function buildMergedRemediationBrief(input: {
   reviewFindings: ReviewFindingBriefInput[];
@@ -24,7 +24,7 @@ export function buildMergedRemediationBrief(input: {
   maxSonar: number;
 }): string {
   const reviewLines = input.reviewFindings.slice(0, input.maxReview).map((f) => {
-    return `- [AGENT] ${f.id} ${f.severity}/${f.confidence}: ${f.title} @ ${f.location}`;
+    return `- [ADVISORY] ${f.id} ${f.severity}/${f.confidence}: ${f.title} @ ${f.location}`;
   });
   const sonarLines = input.sonarIssues.slice(0, input.maxSonar).map((issue) => {
     const loc =
@@ -37,12 +37,12 @@ export function buildMergedRemediationBrief(input: {
   return [
     "Merged remediation signals (deterministic; use with PR patch + scanner gates):",
     "",
-    "Top agent-review findings:",
-    reviewLines.length > 0 ? reviewLines.join("\n") : "- none parsed",
+    "Top advisory findings (optional):",
+    reviewLines.length > 0 ? reviewLines.join("\n") : "- none",
     "",
     "Top SonarCloud issues (sample):",
     sonarLines.length > 0 ? sonarLines.join("\n") : "- none returned",
     "",
-    "Planning rule: prefer fixes where Sonar rule/message overlaps a review finding location or theme.",
+    "Planning rule: prefer fixes backed by Sonar issues and failing checks; use advisory overlap as a tie-breaker only.",
   ].join("\n");
 }

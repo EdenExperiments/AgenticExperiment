@@ -38,12 +38,12 @@ GitHub/Cursor dashboard settings an operator must apply. Track completion here.
 - [ ] Set the **iteration cap** (recommended: 3 review→fix cycles, then escalate to human).
 - [ ] Add the **"no open medium+ Bugbot findings" status check** to branch protection required
   checks once it starts reporting.
-- [ ] Start the comparison window vs the custom SDK loop; record the retirement decision in
-  `Documentation/decision-log.md` when made.
+- [ ] Confirm custom SDK pipeline reviewer is retired in repo (D-060); Bugbot is the sole PR reviewer.
+- [ ] Apply workflow YAML patches from `Documentation/delivery/D-060-pipeline-reviewer-retirement.md` if not yet merged (CODEOWNER).
 
 ## M4 — Maintenance queue dispatch (Pillar C)
 
-- [ ] Create a **Cursor Automation: weekly tech-debt cron** (suggested: Monday 06:00 UTC).
+- [ ] *(Optional)* Create a **Cursor Automation: weekly tech-debt cron** (suggested: Monday 06:00 UTC) when cloud dispatch is preferred over running agents from GH Actions alone.
   Prompt: run the maintenance queue selection (`pnpm --filter @rpgtracker/cursor-agents run
   maintenance-queue`) and dispatch one cloud agent per eligible item, each producing a small
   test-backed PR referencing the originating finding. Respect the concurrent bot-PR cap reported

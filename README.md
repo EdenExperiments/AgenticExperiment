@@ -124,9 +124,8 @@ This project uses Cursor-first agentic workflows for feature development, review
 
 Additional automation workflows:
 
-- `.github/workflows/cursor-pr-review.yml` - Cursor SDK PR review summaries/comments
-- `.github/workflows/cursor-security-triage.yml` - Dependabot/code-scanning triage
-- `.github/workflows/cursor-fix-attempt.yml` - cloud auto-fix attempt loop (PR review + Sonar context -> fix attempt PR)
+- `.github/workflows/cursor-security-triage.yml` - Dependabot/code-scanning triage + Renovate dep-assess highlights
+- `.github/workflows/cursor-fix-attempt.yml` - optional gated SDK remediation (`/cursor-fix`; Sonar-first; Bugbot advisory)
 - `.github/workflows/cursor-agent-pr-labels.yml` - auto-label trusted cloud-agent PRs at open/reopen
 - `.github/workflows/codeql.yml` - code scanning signal generation
 - `renovate.json` + `.github/workflows/mend-renovate.yml` - dependency update PR generation (single path, D-057)
@@ -152,7 +151,6 @@ Recommended repository variables:
 - `CURSOR_FIX_EXECUTION_MODEL` - lower-cost model ID for implementation pass (default `composer-2.5`)
 - `CURSOR_FIX_MODEL` - legacy fallback model variable for execution pass
 - `CURSOR_REQUIRE_TEST_CHANGES` - `true` to fail auto-fix attempts with code changes but no unit-test file changes
-- `CURSOR_REQUIRE_REVIEW_SCHEMA` - `true` to require machine-readable PR review payload before auto-fix planning
 - `CURSOR_AUTO_FIX_EXCLUDED_AUTHORS` - comma-separated PR authors excluded from auto-fix source selection (`cursor[bot]` default)
 - `CURSOR_AGENT_PR_LABELS` - comma-separated labels applied to trusted agent-created PRs (`cursor:agent-generated` default)
 - `CURSOR_AGENT_TRUSTED_LOGINS` - comma-separated logins treated as trusted agent PR authors (`cursor[bot]` default)
