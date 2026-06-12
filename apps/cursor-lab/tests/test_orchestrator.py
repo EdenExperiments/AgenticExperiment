@@ -195,7 +195,7 @@ def test_cmd_evaluate_invokes_orchestrator(
 
     calls: list[str] = []
 
-    def _stub_eval(lab_home, *, registry, options, bridge=None, sleep_fn=None):
+    def _stub_eval(lab_home, *, registry, options, bridge=None, sleep_fn=None, judge=None, cache=None):
         calls.append(options.artifact_id or "")
         report_dir = lab_home / "reports" / "test-ts"
         report_dir.mkdir(parents=True, exist_ok=True)

@@ -1,29 +1,45 @@
-"""Run loop: discover work units, execute bridge runs, write runs.jsonl."""
+"""Run loop: discover work units, execute bridge runs, judge, cache, write runs.jsonl."""
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
+import statistics
+import sys
 import time
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
 from cursor_lab.bridge.cursor_agent_bridge import BridgeRunResult, CursorAgentBridge
+from cursor_lab.diff.cache import ResultCache
+from cursor_lab.diff.fingerprint import compute_fingerprint
 from cursor_lab.discovery import (
     ArtifactRef,
     FixtureCase,
     FixtureManifest,
+    Thresholds,
     discover_artifacts,
     discover_fixtures,
 )
+from cursor_lab.judge.judge import (
+    ArtifactJudge,
+    artifact_full_text,
+    artifact_summary,
+)
+from cursor_lab.promotion.gate import CaseAggregate, GateDecision, evaluate_artifact_gate, gate_label
 from cursor_lab.registry import Registry, is_artifact_registered
+from cursor_lab.reporting.json_report import build_json_report, write_reports
 from cursor_lab.sandbox import FixtureCase as SandboxFixtureCase
 from cursor_lab.sandbox import build_sandbox
 
 MAX_STARTUP_ATTEMPTS = 3
 BACKOFF_BASE_S = 1.0
+MAX_WORKERS = 4
+MIN_WORKERS = 2
 
 
 class EvaluationAborted(RuntimeError):
@@ -50,6 +66,7 @@ class EvaluateResult:
     report_dir: Path
     runs_path: Path
     run_count: int
+    cache_hits: int = 0
 
 
 def discover_work_units(
@@ -147,9 +164,10 @@ def _run_record(
     bridge_result: BridgeRunResult,
     file_diffs: list[dict[str, str]],
     prompt: str,
+    judge_verdict: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     raw = bridge_result.raw
-    return {
+    record: dict[str, Any] = {
         "run_id": raw.get("runId"),
         "agent_id": raw.get("agentId"),
         "artifact_id": unit.artifact.artifact_id,
@@ -164,6 +182,9 @@ def _run_record(
         "duration_ms": int(raw.get("durationMs") or 0),
         "prompt": prompt,
     }
+    if judge_verdict is not None:
+        record["judge_verdict"] = judge_verdict
+    return record
 
 
 def _sandbox_case(unit: WorkUnit) -> SandboxFixtureCase:
@@ -172,68 +193,6 @@ def _sandbox_case(unit: WorkUnit) -> SandboxFixtureCase:
         seed_dir=unit.case.resolved_seed_dir(unit.manifest.fixture_root),
         include_agents_md=unit.case.include_agents_md,
     )
-
-
-def run_evaluation(
-    lab_home: Path,
-    *,
-    registry: Registry,
-    options: EvaluateOptions,
-    bridge: CursorAgentBridge | None = None,
-    sleep_fn: Callable[[float], None] = time.sleep,
-) -> EvaluateResult:
-    """Execute all work units and write `reports/<timestamp>/runs.jsonl`."""
-    if options.force:
-        pass  # cache bypass — task 06
-
-    units = discover_work_units(lab_home, registry=registry, artifact_id=options.artifact_id)
-    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    report_dir = lab_home / "reports" / ts
-    report_dir.mkdir(parents=True, exist_ok=True)
-    runs_path = report_dir / "runs.jsonl"
-
-    api_key = os.environ.get("CURSOR_API_KEY", "")
-    agent_bridge = bridge or CursorAgentBridge(api_key=api_key)
-
-    records: list[dict[str, Any]] = []
-    for unit in units:
-        prompt = unit.case.input_path(unit.manifest.fixture_root).read_text(encoding="utf-8")
-        sandbox_case = _sandbox_case(unit)
-
-        with build_sandbox(lab_home, unit.artifact, sandbox_case) as sandbox:
-            before = sandbox.snapshot_before()
-            bridge_result = run_with_startup_retry(
-                agent_bridge,
-                cwd=sandbox.path,
-                prompt=prompt,
-                timeout_s=options.timeout_s,
-                sleep_fn=sleep_fn,
-            )
-            after_files = _walk_after(sandbox.path)
-            diffs = _file_diffs(before, after_files)
-
-        records.append(
-            _run_record(
-                unit,
-                bridge_result=bridge_result,
-                file_diffs=diffs,
-                prompt=prompt,
-            )
-        )
-
-        if (
-            not bridge_result.ok
-            and bridge_result.raw.get("kind") == "startup_error"
-            and bridge_result.raw.get("isRetryable")
-        ):
-            # Exhausted retries on a retryable startup error — continue to next unit.
-            continue
-
-    with runs_path.open("w", encoding="utf-8") as fh:
-        for record in records:
-            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
-
-    return EvaluateResult(report_dir=report_dir, runs_path=runs_path, run_count=len(records))
 
 
 def _walk_after(root: Path) -> dict[str, str]:
@@ -246,3 +205,227 @@ def _walk_after(root: Path) -> dict[str, str]:
             continue
         files[rel] = path.read_text(encoding="utf-8")
     return files
+
+
+def _default_thresholds(case: FixtureCase) -> Thresholds:
+    if case.thresholds is not None:
+        return case.thresholds
+    return Thresholds(min_score=0.75, max_variance=0.10)
+
+
+def _aggregate_case_runs(artifact_id: str, case_id: str, runs: list[dict[str, Any]]) -> CaseAggregate:
+    weighted: list[float] = []
+    process: list[float] = []
+    finished = 0
+    for run in runs:
+        if run.get("status") == "finished":
+            finished += 1
+        verdict = run.get("judge_verdict") or {}
+        if verdict:
+            weighted.append(float(verdict.get("weighted_score", 0.0)))
+            process.append(float(verdict.get("process_adherence", 0.0)))
+
+    return CaseAggregate(
+        artifact_id=artifact_id,
+        case_id=case_id,
+        score_mean=statistics.mean(weighted) if weighted else 0.0,
+        score_std=statistics.pstdev(weighted) if len(weighted) > 1 else 0.0,
+        success_rate=finished / len(runs) if runs else 0.0,
+        process_mean=statistics.mean(process) if process else 0.0,
+        per_capability={},
+        top_deviations=[],
+    )
+
+
+def _execute_unit(
+    lab_home: Path,
+    unit: WorkUnit,
+    *,
+    bridge: CursorAgentBridge,
+    judge: ArtifactJudge | None,
+    timeout_s: int,
+    sleep_fn: Callable[[float], None],
+) -> dict[str, Any]:
+    prompt = unit.case.input_path(unit.manifest.fixture_root).read_text(encoding="utf-8")
+    sandbox_case = _sandbox_case(unit)
+
+    with build_sandbox(lab_home, unit.artifact, sandbox_case) as sandbox:
+        before = sandbox.snapshot_before()
+        bridge_result = run_with_startup_retry(
+            bridge,
+            cwd=sandbox.path,
+            prompt=prompt,
+            timeout_s=timeout_s,
+            sleep_fn=sleep_fn,
+        )
+        after_files = _walk_after(sandbox.path)
+        diffs = _file_diffs(before, after_files)
+
+    record = _run_record(
+        unit,
+        bridge_result=bridge_result,
+        file_diffs=diffs,
+        prompt=prompt,
+    )
+
+    if judge is not None and record["status"] == "finished":
+        verdict = judge.forward(
+            run_record=record,
+            fixture=unit.case,
+            artifact=unit.artifact,
+            input_text=prompt,
+            artifact_summary=artifact_summary(lab_home, unit.artifact),
+            artifact_full_text=artifact_full_text(lab_home, unit.artifact),
+        )
+        judge_payload: dict[str, Any] | None = None
+        to_dict = getattr(verdict, "to_dict", None)
+        if callable(to_dict):
+            payload = to_dict()
+            if isinstance(payload, dict):
+                judge_payload = payload
+        if judge_payload is None:
+            per_cap: dict[str, list[float | str]] = {}
+            for cap, values in dict(verdict.per_capability).items():
+                per_cap[cap] = list(values) if isinstance(values, (tuple, list)) else [values]
+            judge_payload = {
+                "weighted_score": float(verdict.weighted_score),
+                "process_adherence": float(verdict.process_adherence),
+                "deviations": list(verdict.deviations),
+                "per_capability": per_cap,
+            }
+        record["judge_verdict"] = judge_payload
+
+    return record
+
+
+async def _run_units_concurrent(
+    lab_home: Path,
+    units: list[WorkUnit],
+    *,
+    bridge: CursorAgentBridge,
+    judge: ArtifactJudge | None,
+    timeout_s: int,
+    sleep_fn: Callable[[float], None],
+) -> list[dict[str, Any]]:
+    worker_count = min(MAX_WORKERS, max(MIN_WORKERS, len(units)))
+    semaphore = asyncio.Semaphore(worker_count)
+
+    async def _one(unit: WorkUnit) -> dict[str, Any]:
+        async with semaphore:
+            return await asyncio.to_thread(
+                _execute_unit,
+                lab_home,
+                unit,
+                bridge=bridge,
+                judge=judge,
+                timeout_s=timeout_s,
+                sleep_fn=sleep_fn,
+            )
+
+    return list(await asyncio.gather(*[_one(unit) for unit in units]))
+
+
+def _artifact_thresholds(units: list[WorkUnit]) -> Thresholds:
+    thresholds = [_default_thresholds(u.case) for u in units]
+    return thresholds[0] if thresholds else Thresholds(min_score=0.75, max_variance=0.10)
+
+
+def run_evaluation(
+    lab_home: Path,
+    *,
+    registry: Registry,
+    options: EvaluateOptions,
+    bridge: CursorAgentBridge | None = None,
+    judge: ArtifactJudge | None = None,
+    cache: ResultCache | None = None,
+    sleep_fn: Callable[[float], None] = time.sleep,
+) -> EvaluateResult:
+    """Execute work units with cache, judging, and bounded concurrency."""
+    all_units = discover_work_units(lab_home, registry=registry, artifact_id=options.artifact_id)
+    ts = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    report_dir = lab_home / "reports" / ts
+    report_dir.mkdir(parents=True, exist_ok=True)
+    runs_path = report_dir / "runs.jsonl"
+
+    api_key = os.environ.get("CURSOR_API_KEY", "")
+    agent_bridge = bridge or CursorAgentBridge(api_key=api_key)
+    result_cache = cache or ResultCache(lab_home / "cache" / "results.db")
+
+    by_artifact: dict[str, list[WorkUnit]] = defaultdict(list)
+    for unit in all_units:
+        by_artifact[unit.artifact.artifact_id].append(unit)
+
+    records: list[dict[str, Any]] = []
+    cache_hits = 0
+    gate_decisions: dict[str, str] = {}
+
+    for artifact_id, units in sorted(by_artifact.items()):
+        fingerprint = compute_fingerprint(lab_home, artifact_id)
+        if not options.force and result_cache.has_verdict(artifact_id, fingerprint):
+            print(f"cache hit: {artifact_id} (fingerprint {fingerprint[:12]}…)", file=sys.stdout)
+            cache_hits += 1
+            cached = result_cache.get_verdict(artifact_id, fingerprint)
+            if cached is not None:
+                gate_decisions[artifact_id] = "promote" if cached.promoted else "hold"
+            continue
+
+        artifact_records = asyncio.run(
+            _run_units_concurrent(
+                lab_home,
+                units,
+                bridge=agent_bridge,
+                judge=judge,
+                timeout_s=options.timeout_s,
+                sleep_fn=sleep_fn,
+            )
+        )
+        records.extend(artifact_records)
+
+        for record in artifact_records:
+            result_cache.store_run(
+                artifact_id=record["artifact_id"],
+                case_id=record["case_id"],
+                seed_index=int(record["seed_index"]),
+                fingerprint=fingerprint,
+                record=record,
+            )
+
+        case_groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for record in artifact_records:
+            case_groups[str(record["case_id"])].append(record)
+
+        aggregates = [
+            _aggregate_case_runs(artifact_id, case_id, case_runs)
+            for case_id, case_runs in sorted(case_groups.items())
+        ]
+        thresholds = _artifact_thresholds(units)
+        decision = evaluate_artifact_gate(aggregates, thresholds=thresholds)
+        gate_decisions[artifact_id] = gate_label(decision)
+
+        if aggregates:
+            all_weighted = [a.score_mean for a in aggregates]
+            all_process = [a.process_mean for a in aggregates]
+            all_std = [a.score_std for a in aggregates]
+            result_cache.store_verdict(
+                artifact_id=artifact_id,
+                fingerprint=fingerprint,
+                score_mean=statistics.mean(all_weighted),
+                score_std=max(all_std) if all_std else 0.0,
+                success_rate=min(a.success_rate for a in aggregates),
+                process_mean=statistics.mean(all_process),
+                promoted=decision == GateDecision.PROMOTE,
+            )
+
+    with runs_path.open("w", encoding="utf-8") as fh:
+        for record in records:
+            fh.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    if records:
+        write_reports(lab_home, report_dir=report_dir, gate_decisions=gate_decisions)
+
+    return EvaluateResult(
+        report_dir=report_dir,
+        runs_path=runs_path,
+        run_count=len(records),
+        cache_hits=cache_hits,
+    )
