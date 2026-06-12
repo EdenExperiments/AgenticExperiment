@@ -45,7 +45,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'api_key_set' })
+  mockGetAIEntitlement.mockResolvedValue({ entitled: true, reason: 'ready' })
   mockListGoals.mockResolvedValue([makeGoal()])
   mockDeleteGoal.mockResolvedValue(undefined)
 })

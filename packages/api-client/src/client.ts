@@ -1,4 +1,4 @@
-import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast } from './types'
+import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast, WeightLog, WeightChartResponse } from './types'
 
 export class ApiRequestError extends Error {
   status: number
@@ -121,11 +121,7 @@ export function deleteAPIKey(): Promise<void> {
 
 export async function getAIEntitlement(): Promise<AIEntitlement> {
   try {
-    const status = await getAPIKeyStatus()
-    return {
-      entitled: status.has_key,
-      reason: status.has_key ? 'api_key_set' : 'no_api_key',
-    }
+    return await request<AIEntitlement>('/api/v1/account/ai-entitlement')
   } catch {
     return { entitled: false, reason: 'unknown' }
   }
@@ -363,4 +359,30 @@ export function planGoal(data: PlanGoalRequest): Promise<PlanGoalResponse> {
 // Goal Forecast (T13)
 export function getGoalForecast(goalId: string): Promise<GoalForecast> {
   return request<GoalForecast>(`/api/v1/goals/${goalId}/forecast`)
+}
+
+// NutriLog weight logs
+export function createWeightLog(data: {
+  weight_kg: number
+  note?: string
+  measured_at?: string
+}): Promise<WeightLog> {
+  return request<WeightLog>('/api/v1/nutrilog/weight-logs', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function listWeightLogs(params?: { limit?: number }): Promise<WeightLog[]> {
+  const qs = params?.limit ? `?limit=${params.limit}` : ''
+  return request<WeightLog[]>(`/api/v1/nutrilog/weight-logs${qs}`)
+}
+
+export function getWeightChart(days?: number): Promise<WeightChartResponse> {
+  const qs = days ? `?days=${days}` : ''
+  return request<WeightChartResponse>(`/api/v1/nutrilog/weight-chart${qs}`)
+}
+
+export function deleteWeightLog(id: string): Promise<void> {
+  return request<void>(`/api/v1/nutrilog/weight-logs/${id}`, { method: 'DELETE' })
 }

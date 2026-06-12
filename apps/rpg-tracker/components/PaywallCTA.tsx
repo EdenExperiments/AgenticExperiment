@@ -1,9 +1,36 @@
 'use client'
 
+import { useEffect } from 'react'
 import Link from 'next/link'
 import { trackEvent } from '@/lib/analytics'
+import type { AnalyticsEventPayloads } from '@/lib/analytics'
+
+type PaywallGate = 'api_key' | 'subscription'
+type PaywallSurface = AnalyticsEventPayloads['paywall_viewed']['surface']
+
+const GATE_PRESETS: Record<
+  PaywallGate,
+  { title: string; description: string; ctaLabel: string; ctaHref: string; trigger: 'feature_gate' | 'upgrade_prompt' }
+> = {
+  api_key: {
+    title: 'AI features require an API key',
+    description: 'Set up your AI API key to unlock smart goal planning, forecasts, and coaching.',
+    ctaLabel: 'Set up AI in Account',
+    ctaHref: '/account/api-key',
+    trigger: 'feature_gate',
+  },
+  subscription: {
+    title: 'AI Goal Coach requires Pro',
+    description: 'Upgrade to Pro to unlock AI goal planning — describe your goal in plain language and get an actionable plan.',
+    ctaLabel: 'Upgrade to Pro',
+    ctaHref: '/account#subscription',
+    trigger: 'upgrade_prompt',
+  },
+}
 
 export interface PaywallCTAProps {
+  gate?: PaywallGate
+  surface?: PaywallSurface
   title?: string
   description?: string
   ctaLabel?: string
@@ -14,18 +41,33 @@ export interface PaywallCTAProps {
 }
 
 export function PaywallCTA({
-  title = 'AI features require an API key',
-  description = 'Set up your AI API key to unlock smart goal planning, forecasts, and coaching.',
-  ctaLabel = 'Set up AI in Account',
-  ctaHref = '/account',
+  gate = 'api_key',
+  surface = 'ai_goal_coach',
+  title,
+  description,
+  ctaLabel,
+  ctaHref,
   onCtaClick,
   variant = 'inline',
   testId = 'paywall-cta',
 }: PaywallCTAProps) {
+  const preset = GATE_PRESETS[gate]
+  const resolvedTitle = title ?? preset.title
+  const resolvedDescription = description ?? preset.description
+  const resolvedCtaLabel = ctaLabel ?? preset.ctaLabel
+  const resolvedCtaHref = ctaHref ?? preset.ctaHref
   const isPage = variant === 'page'
+
+  useEffect(() => {
+    trackEvent('paywall_viewed', {
+      surface,
+      trigger: preset.trigger,
+    })
+  }, [surface, preset.trigger])
+
   const handleUpgradeClick = () => {
     trackEvent('upgrade_clicked', {
-      surface: 'ai_goal_coach',
+      surface,
       trigger: 'paywall',
     })
     onCtaClick?.()
@@ -71,13 +113,13 @@ export function PaywallCTA({
           className={`font-semibold ${isPage ? 'text-xl' : 'text-sm'}`}
           style={{ color: 'var(--color-text)', fontFamily: 'var(--font-display)' }}
         >
-          {title}
+          {resolvedTitle}
         </p>
         <p
           className={isPage ? 'text-base' : 'text-sm'}
           style={{ color: 'var(--color-text-secondary)' }}
         >
-          {description}
+          {resolvedDescription}
         </p>
       </div>
 
@@ -89,16 +131,16 @@ export function PaywallCTA({
             className="btn btn-primary px-6 py-3 text-sm min-h-[44px]"
             data-testid="paywall-upgrade-btn"
           >
-            {ctaLabel}
+            {resolvedCtaLabel}
           </button>
         ) : (
           <Link
-            href={ctaHref}
+            href={resolvedCtaHref}
             onClick={handleUpgradeClick}
             className="btn btn-primary px-6 py-3 text-sm min-h-[44px] inline-flex items-center justify-center"
             data-testid="paywall-upgrade-btn"
           >
-            {ctaLabel}
+            {resolvedCtaLabel}
           </Link>
         )}
         <p className="text-xs" style={{ color: 'var(--color-muted)' }}>

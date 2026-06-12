@@ -186,9 +186,9 @@ export default function GoalsPage() {
         <div className="flex items-center gap-2">
           {!aiEntitlementLoading && !aiEntitled ? (
             <Link
-              href="/account"
+              href="/goals/ai/new"
               className="btn btn-ghost px-3 py-2 text-sm min-h-[44px] flex items-center gap-1"
-              aria-label="Set up AI to unlock AI goal planning"
+              aria-label="Unlock AI goal planning"
               data-testid="ai-plan-locked-btn"
               style={{ opacity: 0.7 }}
             >
