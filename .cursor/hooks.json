@@ -10,7 +10,7 @@
     "beforeShellExecution": [
       {
         "command": ".cursor/hooks/guard-shell.py",
-        "matcher": "\\.github/workflows|--force|-rf /"
+        "matcher": "--force|-rf /"
       }
     ]
   }

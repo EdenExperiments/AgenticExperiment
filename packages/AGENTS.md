@@ -9,8 +9,9 @@ ripple into every app, so coordinate explicitly.
 - `packages/auth/` — Supabase SSR/browser auth helpers.
 - `packages/api-client/` — typed API integration layer; must stay aligned with the Go API contract
   in `apps/api` and `Documentation/architecture.md`.
-- `packages/cursor-agents/` — CI/CD agent automation (`@cursor/sdk`); follow the conventions in
-  `docs/CURSOR-AGENT-HANDBOOK.md` (marker-comment idempotency, model fallback via
+- `packages/cursor-agents/` — CI/CD agent automation (`@cursor/sdk`): `dep-assess` (Renovate highlights),
+  `security-triage`, `fix-attempt` (gated SDK remediation), `maintenance-queue`, digest/metrics.
+  PR review is Bugbot-only (D-060). Follow `docs/CURSOR-AGENT-HANDBOOK.md` (marker idempotency,
   `model-fallback.ts` per D-054, kill-switch respect).
 
 ## Toolchain

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "lastUpdated": "2026-06-11",
+  "lastUpdated": "2026-06-12",
   "skills": [
     {
       "name": "requirements-elicitation",
@@ -67,12 +67,6 @@
       "path": ".cursor/skills/orchestration/local-cloud-route/SKILL.md",
       "domain": "orchestration",
       "when_to_use": "When deciding whether an agent run should be local or cloud."
-    },
-    {
-      "name": "review-driven-fix-routing",
-      "path": ".cursor/skills/orchestration/review-driven-fix-routing/SKILL.md",
-      "domain": "orchestration",
-      "when_to_use": "When auto-fix orchestration should read PR review, dependency/security context, and SonarCloud findings with planner/executor model routing."
     },
     {
       "name": "dependency-quality-triage",

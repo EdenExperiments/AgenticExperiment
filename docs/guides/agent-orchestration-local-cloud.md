@@ -1,98 +1,51 @@
-# Agent Orchestration: Local and Cloud (Starter)
+# Agent Orchestration: Local and Cloud
 
-This repo now supports a basic runtime split for SDK automation in `packages/cursor-agents/`.
+SDK automation in `packages/cursor-agents/` supports a **local vs cloud** runtime split.
+PR **review** is owned by **Bugbot** (`BUGBOT.md`); SDK scripts supplement with highlights and
+optional gated remediation.
+
+Full architecture: `docs/CURSOR-AGENT-HANDBOOK.md` · Brief: `Documentation/agentic-pipeline/`.
 
 ## Runtime selector
 
-- Environment variable: `CURSOR_RUNTIME`
-- Supported values:
-  - `local` (default)
-  - `cloud`
+- `CURSOR_RUNTIME`: `local` (default) or `cloud`
+- Cloud runs need `CURSOR_CLOUD_REPO_URL` or `GITHUB_REPOSITORY` in CI
 
-If `CURSOR_RUNTIME=cloud`, provide:
-
-- `CURSOR_CLOUD_REPO_URL` (recommended explicit value), or
-- `GITHUB_REPOSITORY` (workflow fallback used to derive `https://github.com/<owner>/<repo>.git`)
-
-## Local lane
-
-Use local lane for fast iteration and direct workspace feedback.
+## Active SDK scripts
 
 ```bash
-pnpm --filter @rpgtracker/cursor-agents run pr-review:local
+# Security / dependency triage (comments)
 pnpm --filter @rpgtracker/cursor-agents run security-triage:local
-```
 
-## Cloud lane
+# Renovate breaking-dep assessment (highlight-only comments)
+pnpm --filter @rpgtracker/cursor-agents run dep-assess
 
-Use cloud lane for longer-running unattended runs or remote execution experiments.
-
-```bash
-CURSOR_CLOUD_REPO_URL="https://github.com/<owner>/<repo>.git" \
-pnpm --filter @rpgtracker/cursor-agents run pr-review:cloud
-```
-
-```bash
-CURSOR_CLOUD_REPO_URL="https://github.com/<owner>/<repo>.git" \
-pnpm --filter @rpgtracker/cursor-agents run security-triage:cloud
-```
-
-```bash
-CURSOR_CLOUD_REPO_URL="https://github.com/<owner>/<repo>.git" \
+# Optional gated remediation (Sonar-first; /cursor-fix in PR comments)
 pnpm --filter @rpgtracker/cursor-agents run fix-attempt:cloud
+
+# Maintenance queue artifact (for Automations or manual dispatch)
+pnpm --filter @rpgtracker/cursor-agents run maintenance-queue
 ```
 
-## Optional environment knobs
+## SDK vs Cursor Automations
 
-- `CURSOR_REVIEW_MODELS`: comma-separated model fallback list for PR review.
-- `CURSOR_TRIAGE_MODEL`: model ID for security triage.
-- `CURSOR_FIX_PLANNER_MODEL`: planning model for auto-fix orchestration.
-- `CURSOR_FIX_EXECUTION_MODEL`: lower-cost execution model for auto-fix implementation.
-- `CURSOR_FIX_MODEL`: legacy execution-model fallback.
-- `CURSOR_REQUIRE_TEST_CHANGES`: fail auto-fix runs when code changes lack unit-test file changes.
-- `CURSOR_REQUIRE_REVIEW_SCHEMA`: require structured PR review payload before auto-fix orchestration.
-- `CURSOR_CLOUD_SKIP_REVIEWER_REQUEST`: defaults to `true` unless explicitly set to `false`.
+| Use GitHub Actions + SDK when | Use Cursor Automations when |
+|-------------------------------|-----------------------------|
+| Renovate PR opened → `dep-assess` | Prefer cloud sandbox dispatch over GH runner capacity |
+| Daily digest / queue scoring | Weekly maintenance cron dispatching cloud agents |
+| `/cursor-fix` remediation with repo gates | Event triggers already configured in Cursor dashboard |
 
-## Auto-fix gate policy (recommended)
+Automations are **optional**; the repo ships working GH Action entry points by default.
 
-Use a dual-gate policy so automation only writes when both policy and per-PR intent are explicit:
+## SDK remediation gates
 
-1. Repo variable `CURSOR_AUTO_FIX_ENABLED=true`
-2. PR label `cursor:auto-fix` (override with `CURSOR_AUTO_FIX_LABEL`)
+1. `CURSOR_AUTO_FIX_ENABLED=true` (repo variable)
+2. PR label `cursor:auto-fix` (or `CURSOR_AUTO_FIX_LABEL`)
+3. Trigger: `/cursor-fix` comment or `workflow_dispatch`
 
-The `.github/workflows/cursor-fix-attempt.yml` workflow reacts to the Cursor PR review comment marker and then enforces the label gate before launching a cloud run with `autoCreatePR: true`.
+Sonar/check context is primary; Bugbot and `dep-assess` comments are **advisory**.
 
-## Agent-opened PR labeling
+## Related
 
-To ensure labels are present as soon as cloud-created PRs open, use `.github/workflows/cursor-agent-pr-labels.yml`.
-
-- Trigger: `pull_request_target` on `opened`/`reopened`
-- Scope: trusted agent PRs only (by login and/or branch prefix policy)
-- Behavior: applies `CURSOR_AGENT_PR_LABELS` immediately
-
-Recommended variables:
-
-- `CURSOR_AGENT_PR_LABELS` (default: `cursor:agent-generated`)
-- `CURSOR_AGENT_TRUSTED_LOGINS` (default: `cursor[bot]`)
-- `CURSOR_AGENT_BRANCH_PREFIXES` (default: `cursor/`)
-- `CURSOR_AGENT_PR_LABELING_ENABLED` (default enabled; set `false` to disable)
-- `CURSOR_AUTO_FIX_EXCLUDED_AUTHORS` (default: `cursor[bot]`)
-
-## Test and coverage policy
-
-- Auto-fix flow enforces unit-test file changes when code files are edited.
-- Sonar workflow enforces PR new-code coverage threshold via `SONAR_MIN_NEW_COVERAGE` (default 80).
-- Keep SonarCloud quality gate configured with "Coverage on New Code >= 80%" for aligned UI and pipeline behavior.
-
-## Review schema contract
-
-- PR review automation now emits a machine-readable payload between:
-  - `<!-- cursor-pr-review-schema:v1 -->`
-  - `<!-- /cursor-pr-review-schema -->`
-- Payload includes normalized `overall_risk`, severity-ranked findings, confidence, location, recommendation, and test plan fields.
-- Auto-fix orchestration parses this payload and prioritizes fixes from structured data rather than free-form text.
-
-## Safety notes
-
-- Keep cloud runs opt-in until behavior is stable.
-- Keep automated workflows recommendation-first (comment/summarize) before any write/remediation.
+- Agent PR labeling: `.github/workflows/cursor-agent-pr-labels.yml`
+- Operator checklist: `docs/guides/agentic-pipeline-operator-checklist.md`

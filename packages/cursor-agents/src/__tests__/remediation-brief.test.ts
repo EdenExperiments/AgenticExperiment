@@ -25,7 +25,7 @@ test("buildMergedRemediationBrief interleaves labels", () => {
     maxSonar: 3,
   });
 
-  assert.match(text, /\[AGENT\]/);
+  assert.match(text, /\[ADVISORY\]/);
   assert.match(text, /\[SONAR\]/);
   assert.match(text, /Leak/);
   assert.match(text, /SQL injection/);
@@ -38,6 +38,7 @@ test("buildMergedRemediationBrief handles empty inputs", () => {
     maxReview: 2,
     maxSonar: 2,
   });
-  assert.match(text, /none parsed/);
+  assert.match(text, /Top advisory findings/);
+  assert.match(text, /- none/);
   assert.match(text, /none returned/);
 });

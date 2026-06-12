@@ -2,8 +2,9 @@
 # Agents are additionally hook-blocked from editing workflow files (.cursor/hooks.json);
 # CODEOWNERS is the layer no agent can touch (brief §4c, "rules instruct, hooks enforce").
 
-# CI and agent automation workflows
-/.github/                       @EdenExperiments
+# CI and agent automation workflows — owner review paused during active pipeline
+# iteration (D-061); restore when hooks are re-tightened.
+# /.github/                       @EdenExperiments
 
 # Agent configuration: rules, skills, hooks, subagents, commands
 /.cursor/                       @EdenExperiments

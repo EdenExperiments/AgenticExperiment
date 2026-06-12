@@ -19,10 +19,8 @@ import {
 import { resolveFixPlannerPromptOptions, resolveRuntimeMode } from "./runtime-options.js";
 import { buildMergedRemediationBrief, type SonarIssueBriefInput } from "./remediation-brief.js";
 
-const REVIEW_MARKER = "<!-- cursor-pr-review -->";
-const REVIEW_SCHEMA_START = "<!-- cursor-pr-review-schema:v1 -->";
-const REVIEW_SCHEMA_END = "<!-- /cursor-pr-review-schema -->";
 const SECURITY_TRIAGE_MARKER = "<!-- cursor-security-triage -->";
+const DEP_ASSESSMENT_MARKER = "<!-- cursor-dep-assessment -->";
 const FIX_MARKER = "<!-- cursor-fix-attempt -->";
 
 interface SonarQualityGateResponse {
@@ -52,30 +50,6 @@ interface SonarIssuesResponse {
   }>;
 }
 
-type ReviewSeverity = "critical" | "high" | "medium" | "low";
-type ReviewConfidence = "high" | "medium" | "low";
-type ReviewRisk = ReviewSeverity | "none";
-
-interface ReviewFinding {
-  id: string;
-  severity: ReviewSeverity;
-  confidence: ReviewConfidence;
-  category: string;
-  title: string;
-  summary: string;
-  location: string;
-  recommendation: string;
-  test_plan: string;
-}
-
-interface ReviewSchemaV1 {
-  schema_version: "1.0";
-  overall_risk: ReviewRisk;
-  findings: ReviewFinding[];
-  missing_tests: string[];
-  next_actions: string[];
-}
-
 function toNumber(value: string | undefined, fallback: number): number {
   if (!value) {
     return fallback;
@@ -96,30 +70,6 @@ function parseCsv(value: string | undefined): string[] {
     .map((entry) => entry.trim())
     .filter(Boolean);
   return [...new Set(labels)];
-}
-
-function severityScore(value: ReviewSeverity): number {
-  switch (value) {
-    case "critical":
-      return 4;
-    case "high":
-      return 3;
-    case "medium":
-      return 2;
-    default:
-      return 1;
-  }
-}
-
-function confidenceScore(value: ReviewConfidence): number {
-  switch (value) {
-    case "high":
-      return 3;
-    case "medium":
-      return 2;
-    default:
-      return 1;
-  }
 }
 
 function buildPatchContext(files: PullRequestFile[]): string {
@@ -225,85 +175,6 @@ function extractPullRequestNumberFromUrl(url: string): number | null {
   }
   const parsed = Number(match[1]);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-}
-
-function parseReviewSchemaFromComment(commentBody: string): ReviewSchemaV1 | null {
-  const markerRegex = new RegExp(
-    `${REVIEW_SCHEMA_START.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\\`\\\`\\\`json\\s*([\\s\\S]*?)\\s*\\\`\\\`\\\`\\s*${REVIEW_SCHEMA_END.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`,
-    "i"
-  );
-  const match = commentBody.match(markerRegex);
-  if (!match?.[1]) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(match[1].trim()) as ReviewSchemaV1;
-    if (parsed.schema_version !== "1.0" || !Array.isArray(parsed.findings)) {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-function summarizeStructuredReviewPriorities(schema: ReviewSchemaV1): string {
-  const ordered = [...schema.findings].sort((a, b) => {
-    const severityDiff = severityScore(b.severity) - severityScore(a.severity);
-    if (severityDiff !== 0) return severityDiff;
-    return confidenceScore(b.confidence) - confidenceScore(a.confidence);
-  });
-
-  const findings = ordered
-    .slice(0, 5)
-    .map(
-      (finding) =>
-        `- ${finding.id} [${finding.severity.toUpperCase()}][confidence=${finding.confidence}] ${finding.title} | location=${finding.location} | recommendation=${finding.recommendation}`
-    )
-    .join("\n");
-  const missingTests =
-    schema.missing_tests.length > 0
-      ? schema.missing_tests.map((item) => `- ${item}`).join("\n")
-      : "- none";
-  const nextActions =
-    schema.next_actions.length > 0
-      ? schema.next_actions.map((item) => `- ${item}`).join("\n")
-      : "- none";
-
-  return [
-    `overall_risk=${schema.overall_risk}`,
-    "prioritized_findings:",
-    findings || "- none",
-    "missing_tests:",
-    missingTests,
-    "next_actions:",
-    nextActions,
-  ].join("\n");
-}
-
-function reviewFindingsForBrief(schema: ReviewSchemaV1 | null): Array<{
-  id: string;
-  severity: string;
-  confidence: string;
-  title: string;
-  location: string;
-}> {
-  if (!schema) {
-    return [];
-  }
-  const ordered = [...schema.findings].sort((a, b) => {
-    const severityDiff = severityScore(b.severity) - severityScore(a.severity);
-    if (severityDiff !== 0) return severityDiff;
-    return confidenceScore(b.confidence) - confidenceScore(a.confidence);
-  });
-  return ordered.map((finding) => ({
-    id: finding.id,
-    severity: finding.severity,
-    confidence: finding.confidence,
-    title: finding.title,
-    location: finding.location,
-  }));
 }
 
 function isTestFile(filePath: string): boolean {
@@ -487,6 +358,27 @@ async function findLatestMarkedComment(
   return latest.body;
 }
 
+/** Optional Bugbot or other bot review prose — advisory only; Sonar/checks drive merge gates. */
+async function findAdvisoryReviewContext(
+  github: GitHubClient,
+  prNumber: number
+): Promise<string> {
+  const comments = await github.listIssueComments(prNumber);
+  const reversed = [...comments].reverse();
+  for (const comment of reversed) {
+    const body = comment.body;
+    const login =
+      (comment as { user?: { login?: string } }).user?.login?.toLowerCase() ?? "";
+    const looksLikeBugbot =
+      /bugbot/i.test(body) ||
+      (login.includes("cursor") && /review|finding|severity|autofix/i.test(body));
+    if (looksLikeBugbot) {
+      return body;
+    }
+  }
+  return "No Bugbot or advisory bot review comment detected for this PR.";
+}
+
 function buildPlanningPrompt(input: {
   repository: string;
   prNumber: number;
@@ -494,9 +386,9 @@ function buildPlanningPrompt(input: {
   baseRef: string;
   headRef: string;
   patchContext: string;
-  reviewComment: string;
-  structuredReviewPriorities: string;
+  advisoryReviewComment: string;
   securityComment: string;
+  depAssessmentComment: string;
   sonarContext: string;
   mergedRemediationBrief: string;
   deterministicGatesContext: string;
@@ -511,19 +403,19 @@ Head branch: ${input.headRef}
 Changed files and patch excerpt:
 ${input.patchContext}
 
-Cursor PR review comment:
-${input.reviewComment}
-
-Structured review priorities (parsed schema):
-${input.structuredReviewPriorities}
+Advisory review context (Bugbot or bot review — non-binding):
+${input.advisoryReviewComment}
 
 Cursor security/dependency triage comment:
 ${input.securityComment}
 
+Renovate dependency assessment comment (highlight-only):
+${input.depAssessmentComment}
+
 SonarCloud context:
 ${input.sonarContext}
 
-Merged remediation signals (agent review ∩ Sonar sample):
+Merged remediation signals (Sonar-first; advisory overlap when present):
 ${input.mergedRemediationBrief}
 
 Deterministic gates / CI signal (includes scanner wait notes and GitHub check runs on HEAD):
@@ -537,8 +429,8 @@ Create a concise plan with these sections:
 5) Risks and rollback notes
 
 Planning constraints:
-- Prefer fixes backed by **both** failing/overridden deterministic gates (Sonar conditions, failing checks) **and** overlapping narrative signals above.
-- Treat Cursor PR review prose as non-binding; do not invent merge policy—anchor work in scanner/test failures when possible.
+- Prefer fixes backed by failing/overridden deterministic gates (Sonar conditions, failing checks).
+- Treat Bugbot and other bot review prose as advisory; do not invent merge policy.
 
 Do not write code in this response. Return markdown only.
 `.trim();
@@ -551,9 +443,9 @@ function buildExecutionPrompt(input: {
   baseRef: string;
   headRef: string;
   patchContext: string;
-  reviewComment: string;
-  structuredReviewPriorities: string;
+  advisoryReviewComment: string;
   securityComment: string;
+  depAssessmentComment: string;
   sonarContext: string;
   mergedRemediationBrief: string;
   deterministicGatesContext: string;
@@ -562,7 +454,7 @@ function buildExecutionPrompt(input: {
   orchestrationNotes: string;
 }): string {
   return `
-You are preparing an automated fix attempt for pull request #${input.prNumber} in ${input.repository}.
+You are preparing an SDK remediation run for pull request #${input.prNumber} in ${input.repository}.
 
 PR title: ${input.prTitle}
 Base branch: ${input.baseRef}
@@ -571,19 +463,19 @@ Head branch: ${input.headRef}
 Changed files and patch excerpt:
 ${input.patchContext}
 
-Cursor PR review comment:
-${input.reviewComment}
-
-Structured review priorities (parsed schema):
-${input.structuredReviewPriorities}
+Advisory review context (Bugbot or bot review — non-binding):
+${input.advisoryReviewComment}
 
 Cursor security/dependency triage comment:
 ${input.securityComment}
 
+Renovate dependency assessment comment (highlight-only):
+${input.depAssessmentComment}
+
 SonarCloud context:
 ${input.sonarContext}
 
-Merged remediation signals (agent review ∩ Sonar sample):
+Merged remediation signals (Sonar-first; advisory overlap when present):
 ${input.mergedRemediationBrief}
 
 Deterministic gates / CI signal (includes scanner wait notes and GitHub check runs on HEAD):
@@ -604,7 +496,7 @@ Task requirements:
 4) Preserve existing behavior except where directly fixing the reported issues.
 5) Run targeted validation commands relevant to edited files.
 6) If no safe fix is possible, explain why and avoid speculative refactors.
-7) Treat the automated PR review as non-binding guidance. Do not “fix the merge gate” by inventing policy — align changes with failing scanners/tests where relevant.
+7) Align changes with failing scanners/tests; Bugbot prose is advisory only.
 
 Output expectations:
 - Apply code/documentation changes in this repository.
@@ -636,7 +528,6 @@ async function main(): Promise<void> {
     process.env.CURSOR_AGENT_PR_LABELS ?? "cursor:agent-generated"
   );
   const requireTestChanges = process.env.CURSOR_REQUIRE_TEST_CHANGES !== "false";
-  const requireReviewSchema = process.env.CURSOR_REQUIRE_REVIEW_SCHEMA !== "false";
 
   const github = new GitHubClient({ token: githubToken, repository });
   const pullRequest = await github.getPullRequest(prNumber);
@@ -714,7 +605,7 @@ async function main(): Promise<void> {
     : "Scanner wait disabled (set CURSOR_AUTO_FIX_WAIT_SCANNERS=false).";
 
   const deterministicGatesContext = [
-    "Policy: Automated PR review comments are advisory (implementation quality and gaps vs intent). Merge readiness is determined by CI and configured scanners (for example SonarCloud quality gate and CodeQL / GitHub code scanning), not by the review narrative alone.",
+    "Policy: Bugbot and SDK advisory comments are non-binding. Merge readiness is determined by CI and configured scanners (SonarCloud quality gate, CodeQL / code scanning), not by review prose alone.",
     "",
     "### Scanner wait log",
     truncate(scannerWaitLog || "(empty)", 6000),
@@ -723,27 +614,21 @@ async function main(): Promise<void> {
     truncate(ciCheckSummary, 8000),
   ].join("\n");
 
-  const fullReviewComment =
-    (await findLatestMarkedComment(github, prNumber, REVIEW_MARKER, true)) ??
-    "Review context unavailable.";
-  const parsedReviewSchema = parseReviewSchemaFromComment(fullReviewComment);
-  if (requireReviewSchema && !parsedReviewSchema) {
-    throw new Error(
-      `Cursor PR review schema payload missing or invalid. Expected markers ${REVIEW_SCHEMA_START} ... ${REVIEW_SCHEMA_END}.`
-    );
-  }
-  const structuredReviewPriorities = parsedReviewSchema
-    ? summarizeStructuredReviewPriorities(parsedReviewSchema)
-    : "Structured review schema unavailable; falling back to unstructured review text.";
-  const reviewComment = truncate(fullReviewComment, 12000);
+  const advisoryReviewComment = truncate(
+    await findAdvisoryReviewContext(github, prNumber),
+    12000
+  );
   const securityComment =
     (await findLatestMarkedComment(github, prNumber, SECURITY_TRIAGE_MARKER)) ??
     "No security/dependency triage comment detected for this PR.";
+  const depAssessmentComment =
+    (await findLatestMarkedComment(github, prNumber, DEP_ASSESSMENT_MARKER)) ??
+    "No Renovate dependency assessment comment detected for this PR.";
   const sonarRemediation = await buildSonarRemediationContext(prNumber);
   const sonarContext = sonarRemediation.text;
   const mergedBriefLimit = toNumber(process.env.CURSOR_AUTO_FIX_MERGED_SIGNAL_LIMIT, 5);
   const mergedRemediationBrief = buildMergedRemediationBrief({
-    reviewFindings: reviewFindingsForBrief(parsedReviewSchema),
+    reviewFindings: [],
     sonarIssues: sonarRemediation.issues,
     maxReview: mergedBriefLimit,
     maxSonar: mergedBriefLimit,
@@ -758,9 +643,9 @@ async function main(): Promise<void> {
     baseRef: pullRequest.base.ref,
     headRef: headBranchMeta.branchShortName,
     patchContext,
-    reviewComment,
-    structuredReviewPriorities,
+    advisoryReviewComment,
     securityComment,
+    depAssessmentComment,
     sonarContext,
     mergedRemediationBrief,
     deterministicGatesContext,
@@ -821,9 +706,9 @@ async function main(): Promise<void> {
       baseRef: pullRequest.base.ref,
       headRef: headBranchMeta.branchShortName,
       patchContext,
-      reviewComment,
-      structuredReviewPriorities,
+      advisoryReviewComment,
       securityComment,
+      depAssessmentComment,
       sonarContext,
       mergedRemediationBrief,
       deterministicGatesContext,
