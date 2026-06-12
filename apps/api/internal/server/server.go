@@ -100,6 +100,9 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Put("/account/api-key", keyHandler.HandlePostAPIKey)
 		r.Delete("/account/api-key", keyHandler.HandleDeleteAPIKey)
 
+		aiEntitlementHandler := handlers.NewAIEntitlementHandler()
+		r.Get("/account/ai-entitlement", aiEntitlementHandler.HandleGetAIEntitlement)
+
 		r.Post("/auth/signout", authHandler.HandlePostSignout)
 
 		r.Post("/account/password", authHandler.HandlePostPasswordChange)
