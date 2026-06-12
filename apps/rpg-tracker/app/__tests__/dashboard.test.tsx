@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import DashboardPage from '../(app)/dashboard/page'
 
@@ -214,5 +214,58 @@ test('shows empty activity message when no events exist', async () => {
       screen.getByText('No activity yet. Log some XP to see your progress here.')
     ).toBeInTheDocument()
   })
+})
+
+async function expandQuickLogPanel() {
+  const expandBtn = await screen.findByRole('button', { name: /log xp — guitar/i })
+  fireEvent.click(expandBtn)
+  await waitFor(() => {
+    expect(screen.getByText('Guitar — Quick Log')).toBeInTheDocument()
+  })
+}
+
+async function submitQuickLogFromPanel() {
+  const panelHeading = screen.getByText('Guitar — Quick Log')
+  const panel = panelHeading.closest('.rounded-xl')
+  expect(panel).toBeTruthy()
+  fireEvent.click(within(panel!).getByRole('button', { name: 'Log XP' }))
+}
+
+test('shows TierTransitionModal after quick log when tier_crossed is true (D-022)', async () => {
+  mockLogXP.mockResolvedValueOnce({
+    skill: { ...makeMockSkills()[0], tier_name: 'Apprentice', tier_number: 2, current_level: 10 },
+    xp_added: 90,
+    level_before: 9,
+    level_after: 10,
+    tier_crossed: true,
+    tier_name: 'Apprentice',
+    tier_number: 2,
+    quick_log_chips: [10, 25, 50, 100],
+    gate_first_hit: null,
+  })
+
+  render(<DashboardPage />, { wrapper })
+  await expandQuickLogPanel()
+  await submitQuickLogFromPanel()
+
+  await waitFor(() => {
+    expect(screen.getByRole('heading', { name: /apprentice/i })).toBeInTheDocument()
+  })
+
+  fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+  await waitFor(() => {
+    expect(screen.queryByRole('heading', { name: /apprentice/i })).not.toBeInTheDocument()
+  })
+})
+
+test('does not show TierTransitionModal when tier_crossed is false (D-022)', async () => {
+  render(<DashboardPage />, { wrapper })
+  await expandQuickLogPanel()
+  await submitQuickLogFromPanel()
+
+  await waitFor(() => {
+    expect(mockLogXP).toHaveBeenCalled()
+  })
+  expect(screen.queryByRole('heading', { name: /you've reached/i })).not.toBeInTheDocument()
 })
 

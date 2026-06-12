@@ -178,6 +178,110 @@ func TestHandleGetSkills_ReturnsEmptyArray(t *testing.T) {
 	}
 }
 
+func TestHandlePostSkill_RejectsStartingLevelAbove99(t *testing.T) {
+	h := handlers.NewSkillHandlerWithStore(&stubSkillStore{
+		created: &skills.Skill{ID: uuid.New(), Name: "X", Unit: "session"},
+	})
+
+	form := url.Values{"name": {"X"}, "starting_level": {"100"}}
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/skills", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req = req.WithContext(userCtx(uuid.New()))
+
+	w := httptest.NewRecorder()
+	h.HandlePostSkill(w, req)
+
+	if w.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("expected 422, got %d: %s", w.Code, w.Body.String())
+	}
+	if !strings.Contains(w.Body.String(), "starting_level must be between 1 and 99") {
+		t.Errorf("response body should mention starting level range, got: %s", w.Body.String())
+	}
+}
+
+func TestHandlePostSkill_RejectsStartingLevelZero(t *testing.T) {
+	h := handlers.NewSkillHandlerWithStore(&stubSkillStore{
+		created: &skills.Skill{ID: uuid.New(), Name: "X", Unit: "session"},
+	})
+
+	form := url.Values{"name": {"X"}, "starting_level": {"0"}}
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/skills", strings.NewReader(form.Encode()))
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req = req.WithContext(userCtx(uuid.New()))
+
+	w := httptest.NewRecorder()
+	h.HandlePostSkill(w, req)
+
+	if w.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("expected 422, got %d: %s", w.Code, w.Body.String())
+	}
+}
+
+func TestHandleGetSkillDetail_EffectiveLevel_AllGatesCleared(t *testing.T) {
+	skillID := uuid.New()
+	store := &stubSkillStore{
+		detail: &skills.Skill{ID: skillID, CurrentLevel: 15},
+		gates: []skills.BlockerGate{
+			{GateLevel: 9, IsCleared: true},
+			{GateLevel: 19, IsCleared: true},
+		},
+	}
+	h := handlers.NewSkillHandlerWithStore(store)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/skills/"+skillID.String(), nil)
+	req = req.WithContext(userCtx(uuid.New()))
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add("id", skillID.String())
+	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+	w := httptest.NewRecorder()
+	h.HandleGetSkill(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("got %d want 200: %s", w.Code, w.Body.String())
+	}
+	var resp map[string]interface{}
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatal(err)
+	}
+	effectiveLevel := int(resp["effective_level"].(float64))
+	if effectiveLevel != 15 {
+		t.Errorf("effective_level: got %d want 15", effectiveLevel)
+	}
+}
+
+func TestHandleGetSkillDetail_EffectiveLevel_BelowGate(t *testing.T) {
+	skillID := uuid.New()
+	store := &stubSkillStore{
+		detail: &skills.Skill{ID: skillID, CurrentLevel: 5},
+		gates: []skills.BlockerGate{
+			{GateLevel: 9, IsCleared: false},
+		},
+	}
+	h := handlers.NewSkillHandlerWithStore(store)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/skills/"+skillID.String(), nil)
+	req = req.WithContext(userCtx(uuid.New()))
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add("id", skillID.String())
+	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+	w := httptest.NewRecorder()
+	h.HandleGetSkill(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("got %d want 200: %s", w.Code, w.Body.String())
+	}
+	var resp map[string]interface{}
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatal(err)
+	}
+	effectiveLevel := int(resp["effective_level"].(float64))
+	if effectiveLevel != 5 {
+		t.Errorf("effective_level: got %d want 5", effectiveLevel)
+	}
+}
+
 func TestHandleGetSkillDetail_ReturnsEffectiveLevel(t *testing.T) {
 	skillID := uuid.New()
 	store := &stubSkillStore{
