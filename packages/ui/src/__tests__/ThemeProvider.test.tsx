@@ -36,3 +36,37 @@ describe('ThemeProvider', () => {
     expect(document.documentElement.getAttribute('data-theme')).toBe('minimal')
   })
 })
+
+describe('ThemeProvider visual mode (AC-045-1)', () => {
+  beforeEach(() => {
+    document.documentElement.removeAttribute('data-mode')
+  })
+
+  it('applies the given mode as data-mode on <html>', () => {
+    render(
+      <ThemeProvider theme="minimal" mode="stylish">
+        <div>content</div>
+      </ThemeProvider>
+    )
+    expect(document.documentElement.getAttribute('data-mode')).toBe('stylish')
+  })
+
+  it('defaults data-mode to clean when mode prop is clean', () => {
+    render(
+      <ThemeProvider theme="minimal" mode="clean">
+        <div>content</div>
+      </ThemeProvider>
+    )
+    expect(document.documentElement.getAttribute('data-mode')).toBe('clean')
+  })
+
+  it('updates data-mode when mode prop changes', () => {
+    const { rerender } = render(
+      <ThemeProvider theme="minimal" mode="clean"><div /></ThemeProvider>
+    )
+    expect(document.documentElement.getAttribute('data-mode')).toBe('clean')
+
+    rerender(<ThemeProvider theme="minimal" mode="stylish"><div /></ThemeProvider>)
+    expect(document.documentElement.getAttribute('data-mode')).toBe('stylish')
+  })
+})

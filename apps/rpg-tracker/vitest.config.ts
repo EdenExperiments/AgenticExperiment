@@ -18,6 +18,7 @@ export default defineConfig({
       'next/navigation': path.resolve(__dirname, './__mocks__/next/navigation.ts'),
       'next/server': path.resolve(__dirname, './__mocks__/next/server.ts'),
       'next/link': path.resolve(__dirname, './__mocks__/next/link.tsx'),
+      'next/font/google': path.resolve(__dirname, './__mocks__/next/font/google.ts'),
     },
   },
 })
