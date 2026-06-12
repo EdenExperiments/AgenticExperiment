@@ -9,6 +9,7 @@ function setMotionScale(value: number) {
 afterEach(() => {
   document.documentElement.style.removeProperty('--motion-scale')
   document.documentElement.removeAttribute('data-theme')
+  document.documentElement.removeAttribute('data-mode')
 })
 
 test('returns prefersMotion: false and motionScale: 0 when --motion-scale is 0', () => {
@@ -44,6 +45,22 @@ test('updates when data-theme attribute changes', async () => {
   })
 
   // MutationObserver fires asynchronously
+  await vi.waitFor(() => {
+    expect(result.current.motionScale).toBe(1)
+    expect(result.current.prefersMotion).toBe(true)
+  })
+})
+
+test('updates when data-mode attribute changes (AC-045-6)', async () => {
+  setMotionScale(0.3)
+  const { result } = renderHook(() => useMotionPreference())
+  expect(result.current.motionScale).toBe(0.3)
+
+  act(() => {
+    document.documentElement.style.setProperty('--motion-scale', '1')
+    document.documentElement.setAttribute('data-mode', 'stylish')
+  })
+
   await vi.waitFor(() => {
     expect(result.current.motionScale).toBe(1)
     expect(result.current.prefersMotion).toBe(true)

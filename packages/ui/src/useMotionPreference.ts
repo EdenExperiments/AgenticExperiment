@@ -36,7 +36,7 @@ export function useMotionPreference(): MotionPreference {
     const observer = new MutationObserver(read)
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ['data-theme'],
+      attributeFilter: ['data-theme', 'data-mode'],
     })
     return () => observer.disconnect()
   }, [])
