@@ -5,11 +5,18 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import sys
 import tempfile
 from pathlib import Path
 
 from cursor_lab.bridge.cursor_agent_bridge import CursorAgentBridge
 from cursor_lab.discovery import discover_artifacts
+from cursor_lab.registry import (
+    RegistryError,
+    assert_artifact_registered,
+    assert_registry_non_empty,
+    load_registry,
+)
 
 
 def _lab_home() -> Path:
@@ -17,6 +24,21 @@ def _lab_home() -> Path:
     if raw:
         return Path(raw).resolve()
     return Path(__file__).resolve().parent.parent
+
+
+def cmd_evaluate(args: argparse.Namespace) -> int:
+    home = _lab_home()
+    try:
+        registry = load_registry(home)
+        assert_registry_non_empty(registry)
+        if args.artifact:
+            assert_artifact_registered(registry, args.artifact)
+    except RegistryError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+
+    print("registry gate passed; full evaluation orchestration is task-03")
+    return 0
 
 
 def cmd_list(_args: argparse.Namespace) -> int:
@@ -110,6 +132,18 @@ def main() -> None:
 
     p_list = sub.add_parser("list", help="List artifacts discovered under lab/.cursor/")
     p_list.set_defaults(func=cmd_list)
+
+    p_eval = sub.add_parser("evaluate", help="Run artifact evaluation (registry gate).")
+    p_eval.add_argument(
+        "--artifact",
+        help="Limit evaluation to a single artifact id (e.g. skill:skills/core/foo).",
+    )
+    p_eval.add_argument(
+        "--force",
+        action="store_true",
+        help="Ignore cached verdicts (no-op until cache lands in task-06).",
+    )
+    p_eval.set_defaults(func=cmd_evaluate)
 
     args = parser.parse_args()
     code = args.func(args)

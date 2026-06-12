@@ -1,2 +1,3 @@
 schema_version: "0.1"
-artifacts: []
+artifacts:
+  - skill:skills/core/safe-edit-and-verify
