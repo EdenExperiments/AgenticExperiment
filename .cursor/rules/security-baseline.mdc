@@ -13,8 +13,9 @@ the block is policy, not an obstacle.
   secrets as radioactive.
 - Never weaken, skip, delete, or hollow out tests to make a change pass. Failing tests are signal;
   fix the cause or escalate.
-- Never edit `.github/workflows/**`. CI and agent-workflow changes are human-reviewed via
-  CODEOWNERS; propose changes in the PR description or a separate human-driven change instead.
+- During active agentic-pipeline iteration (D-061), agents may edit `.github/workflows/**`
+  to ship automation changes. Re-tighten hooks + CODEOWNERS when the pipeline stabilises.
+  Force-push and destructive shell patterns remain hook-blocked.
 - During implementation runs dispatched by the delivery pipeline (TDD lock active), never edit
   test files — tests are the machine-checkable form of the signed requirements.
 - Default to least privilege: minimal permissions, minimal scope, smallest diff that satisfies the

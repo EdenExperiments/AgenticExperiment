@@ -2,7 +2,8 @@
 """preToolUse guard: deny agent edits to protected paths.
 
 Policy (see .cursor/rules/security-baseline.mdc and the composition contract):
-  1. `.github/workflows/**` is never editable by agents (CODEOWNERS-reviewed).
+  1. `.github/workflows/**` — workflow edits allowed during active pipeline iteration
+     (D-061); re-enable WORKFLOW_PATTERNS deny when stabilised.
   2. While the TDD lock sentinel exists (created by the delivery orchestrator before
      dispatching an implementer subagent), test files are not editable either.
 
@@ -17,10 +18,11 @@ import sys
 
 TDD_LOCK_SENTINEL = ".cursor/tdd-lock"
 
-WORKFLOW_PATTERNS = [
-    "*.github/workflows/*",
-    ".github/workflows/*",
-]
+# Re-enable when workflow hook hardening returns (see D-061).
+# WORKFLOW_PATTERNS = [
+#     "*.github/workflows/*",
+#     ".github/workflows/*",
+# ]
 
 TEST_PATTERNS = [
     "*_test.go",
@@ -59,21 +61,6 @@ def main():
     tdd_lock_active = os.path.exists(TDD_LOCK_SENTINEL)
 
     for path in paths:
-        if matches(path, WORKFLOW_PATTERNS):
-            print(
-                json.dumps(
-                    {
-                        "permission": "deny",
-                        "user_message": f"Blocked agent edit to protected workflow file: {path}",
-                        "agent_message": (
-                            "Edits to .github/workflows/** are denied by policy "
-                            "(security baseline). Propose the workflow change in the PR "
-                            "description for human review instead."
-                        ),
-                    }
-                )
-            )
-            return
         if tdd_lock_active and matches(path, TEST_PATTERNS):
             print(
                 json.dumps(

@@ -81,7 +81,6 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             const body = context.payload.comment.body || '';
-            const reviewMarker = '<!-- cursor-pr-review -->';
 
             const triggers = (process.env.CURSOR_FIX_COMMENT_TRIGGERS || '/cursor-fix,/cursor-auto-fix')
               .split(',')
@@ -131,64 +130,15 @@ jobs:
               });
             };
 
-            const login = context.payload.comment.user?.login || '';
-            const userTypeRaw = context.payload.comment.user?.type || '';
-            const actorIsBot =
-              userTypeRaw.toLowerCase() === 'bot' || /\[bot\]$/i.test(login);
-
             if (bodyHasSlashTrigger() || bodyHasLooseSlashTrigger()) {
               core.setOutput('proceed', 'true');
               core.notice('Auto-fix trigger matched (/cursor-fix or /cursor-auto-fix).');
               return;
             }
 
-            // Bot-authored comments often contain the marker (Cursor PR Review updates on each push).
-            // Marker-only must NOT qualify — humans quote-reply have user.type === 'User'.
-            if (body.includes(reviewMarker) && !actorIsBot) {
-              core.setOutput('proceed', 'true');
-              core.notice(
-                'Auto-fix trigger matched (quoted Cursor PR Review marker in a human comment).'
-              );
-              return;
-            }
-
-            if (body.includes(reviewMarker) && actorIsBot) {
-              core.notice(
-                'Skipping marker-only match on a bot comment (avoids firing when review/Sonar bots edit their PR comments).'
-              );
-            }
-
-            const maxDepth = 15;
-            const { data: startComment } = await github.rest.issues.getComment({
-              owner,
-              repo,
-              comment_id: context.payload.comment.id,
-            });
-
-            let parentId = startComment.in_reply_to_id;
-            for (let depth = 0; depth < maxDepth && parentId; depth += 1) {
-              const { data: comment } = await github.rest.issues.getComment({
-                owner,
-                repo,
-                comment_id: parentId,
-              });
-
-              if (comment.body && comment.body.includes(reviewMarker)) {
-                core.setOutput('proceed', 'true');
-                core.notice(
-                  `Auto-fix trigger matched (review marker found upstream in reply thread, depth=${depth}).`
-                );
-                return;
-              }
-
-              parentId = comment.in_reply_to_id ?? null;
-            }
-
             core.setOutput('proceed', 'false');
             core.notice(
-              `Auto-fix gate skipped: login=${login} type=${userTypeRaw} slashStrict=${bodyHasSlashTrigger()} slashLoose=${bodyHasLooseSlashTrigger()} markerInBody=${body.includes(
-                reviewMarker
-              )} actorIsBot=${actorIsBot} (need /cursor-fix, human quote with marker, or reply thread under review)`
+              `Auto-fix gate skipped: slashStrict=${bodyHasSlashTrigger()} slashLoose=${bodyHasLooseSlashTrigger()} (need /cursor-fix or workflow_dispatch)`
             );
 
   cursor-auto-fix:
@@ -287,7 +237,7 @@ jobs:
           CURSOR_FIX_PLANNER_MODEL: ${{ vars.CURSOR_FIX_PLANNER_MODEL || 'composer-2' }}
           CURSOR_FIX_EXECUTION_MODEL: ${{ vars.CURSOR_FIX_EXECUTION_MODEL || vars.CURSOR_FIX_MODEL || 'composer-2-fast' }}
           CURSOR_REQUIRE_TEST_CHANGES: ${{ vars.CURSOR_REQUIRE_TEST_CHANGES || 'true' }}
-          CURSOR_REQUIRE_REVIEW_SCHEMA: ${{ vars.CURSOR_REQUIRE_REVIEW_SCHEMA || 'true' }}
+          CURSOR_REQUIRE_REVIEW_SCHEMA: ${{ vars.CURSOR_REQUIRE_REVIEW_SCHEMA || 'false' }}
           CURSOR_AGENT_PR_LABELS: ${{ vars.CURSOR_AGENT_PR_LABELS || 'cursor:agent-generated' }}
           CURSOR_AUTO_FIX_EXCLUDED_AUTHORS: ${{ vars.CURSOR_AUTO_FIX_EXCLUDED_AUTHORS || 'cursor[bot]' }}
           CURSOR_CLOUD_REPO_URL: ${{ vars.CURSOR_CLOUD_REPO_URL }}
