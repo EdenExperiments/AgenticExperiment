@@ -310,3 +310,24 @@ export interface GoalForecast {
   recommend_review: boolean
   recommend_stretch: boolean
 }
+
+// NutriLog weight tracking
+
+export interface WeightLog {
+  id: string
+  weight_kg: number
+  note: string
+  measured_at: string
+  created_at: string
+}
+
+export interface WeightChartPoint {
+  date: string
+  weight_kg: number | null
+}
+
+export interface WeightChartResponse {
+  days: number
+  unit: 'kg'
+  data: WeightChartPoint[]
+}

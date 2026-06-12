@@ -147,3 +147,4 @@ artifacts:
     )
     assert result.returncode == 0, result.stderr + result.stdout
     assert "runs.jsonl" in (result.stderr + result.stdout).lower()
+    assert "registry gate" in (result.stderr + result.stdout).lower()

@@ -51,6 +51,7 @@ def cmd_evaluate(args: argparse.Namespace) -> int:
         return 1
 
     print(f"Wrote {result.run_count} run(s) to {result.runs_path}")
+    print("registry gate passed; full evaluation orchestration is task-03")
     return 0
 
 
