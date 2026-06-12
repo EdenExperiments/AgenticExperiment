@@ -1,18 +1,29 @@
 # Repo Skills
 
-This directory contains repository-managed Cursor skills used for personal testing and experimentation.
+Repository-managed Cursor agent skills. Discovery index: `skills.index.json`.
 
 ## Layout
 
-- `core/`: baseline workflow skills used in most tasks.
-- `orchestration/`: runtime and lane-selection skills (local vs cloud).
-- `quality/`: dependency, security, and quality-gate handling skills.
+| Domain | Path | Focus |
+|---|---|---|
+| `core/` | baseline workflow | intake, safe edits, debug loops |
+| `delivery/` | feature delivery | elicitation, decomposition, TDD dispatch |
+| `docs/` | documentation | requirements/tracker/decision sync |
+| `ops/` | operations | local dev, CI |
+| `orchestration/` | lane routing | pipeline, SDK remediation, maintenance, local/cloud |
+| `quality/` | quality gates | dependency/security triage, Bugbot advisory |
+| `release/` | shipping | branch finish, PR prep |
 
-Each skill lives in its own directory and must include `SKILL.md`.
+Each skill lives in `<domain>/<skill-name>/SKILL.md`.
 
-## Maintenance Rules
+## Maintenance rules
 
-1. Keep each skill focused on one repeatable workflow.
-2. Include clear `when_to_use`, inputs, outputs, and examples.
-3. Update `.cursor/skills/skills.index.json` whenever adding, renaming, or removing a skill.
-4. Retire low-signal skills quickly to prevent bloat.
+1. One skill = one repeatable workflow.
+2. Frontmatter `description` is the routing signal — be specific, include "Use when" phrasing.
+3. Required sections: **When to use**, **Inputs**, **Outputs**, **Examples**.
+4. Folder name must match frontmatter `name`.
+5. Update `skills.index.json` on every add/rename/remove.
+6. Wire new skills into `.cursor/flows/` when they participate in orchestration.
+7. Run `pnpm validate:skills` before commit.
+
+Guide: `docs/guides/cursor-skills-and-orchestration.md`.

@@ -10,6 +10,7 @@ Workflow and CI reference for this repository. Entry points and zone map: `AGENT
 - **Pillar B** — review loop: native Bugbot Autofix tuned via `BUGBOT.md`, propose mode first, severity status check as the merge gate (D-056, D-060). No custom SDK pipeline reviewer.
 - **Pillar C** — maintenance queue: Sonar issues + `tech-debt` GitHub Issues normalised into one prioritised queue; dispatch via GitHub Actions artifact and/or Cursor Automations with a concurrent bot-PR cap.
 - **Pillar D** — command-driven delivery: `/fix`, `/feature`, `/epic`, `/new-project` commands route to skill chains (`.cursor/skills/delivery/`), TDD with separated subagents (`.cursor/agents/`), draft PRs into the Pillar B convergence loop.
+- **Skills + flows + subagents (D-062)**: `.cursor/skills/` (agent skills, `skills.index.json`), `.cursor/flows/` (orchestration manifests), `.cursor/agents/` (subagents with "Use when…" routing). Guide: `docs/guides/cursor-skills-and-orchestration.md`.
 - **Layered agent config (§4c)**: base (root `AGENTS.md`, `security-baseline.mdc`, hooks) → stack (nested `AGENTS.md` per zone) → role (`.cursor/agents/*.md`). See `docs/guides/agent-composition-contract.md`.
 - Operator-side setup (Bugbot, Automations, branch protection, usage caps) is tracked in `docs/guides/agentic-pipeline-operator-checklist.md`.
 
@@ -50,7 +51,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 
 - Baseline build/test remains in `.github/workflows/ci.yml`.
 - Bugbot reviews PRs against the repo-level `BUGBOT.md` rules file; Autofix runs in propose mode with a 3-iteration cap (D-056). Enablement is dashboard-side — see `docs/guides/agentic-pipeline-operator-checklist.md`.
-- **Retired:** custom SDK pipeline reviewer (`cursor-pr-review.yml` / `pr-review.ts`) per D-060. Apply workflow stub via CODEOWNER merge — see `Documentation/delivery/D-060-pipeline-reviewer-retirement.md`.
+- **Retired:** custom SDK pipeline reviewer (`cursor-pr-review.yml` inert stub; `pr-review.ts` removed) per D-060.
 - Security and dependency triage automation lives in `.github/workflows/cursor-security-triage.yml` (includes Renovate `dep-assess` highlight comments).
 - SDK remediation automation lives in `.github/workflows/cursor-fix-attempt.yml` (`/cursor-fix` or `workflow_dispatch`; Sonar-first context; optional Bugbot prose advisory; dual gate per D-047).
 - Agent PR auto-labeling automation lives in `.github/workflows/cursor-agent-pr-labels.yml`.

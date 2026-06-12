@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-06-11 (docs slim-down — F-072; Agentic Pipeline F-063 to F-071)
+Last updated: 2026-06-12 (skills/flows expansion — F-074; Agentic Pipeline F-063 to F-071)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -86,8 +86,9 @@ Target design: `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md`. Mi
 | F-065 | Repo controls + cloud agent environment            | M0        | done        | `CODEOWNERS`, `AGENTS_ENABLED` kill-switch wiring in agent workflows, `.cursor/environment.json` + Dockerfile, skills consolidation into `.cursor/skills/`, composition-contract guide.            |
 | F-066 | Renovate baseline (Pillar A, M1)                   | M1        | done        | packageRules patch/minor vs major, `deps:safe`/`deps:breaking` labels, `minimumReleaseAge`, patch automerge behind CI+Sonar; Dependabot version updates retired (D-057).                          |
 | F-067 | Dependency assessment agent (Pillar A, M2)         | M2        | done        | `dep-assess` entry in `packages/cursor-agents`: classifies Renovate PRs; breaking bumps get release-note digest + affected call-site scan + structured impact comment. Highlight, never auto-fix. |
-| F-068 | Bugbot Autofix adoption (Pillar B, M3)             | M3        | in-progress | `BUGBOT.md` shipped; custom pipeline reviewer retired in repo (D-060). Remaining: dashboard Bugbot enablement + severity status check in branch protection + workflow YAML stub (CODEOWNER).            |
+| F-068 | Bugbot Autofix adoption (Pillar B, M3)             | M3        | in-progress | `BUGBOT.md` shipped; custom pipeline reviewer + workflow YAML retired (D-060). Remaining: dashboard Bugbot enablement + severity status check in branch protection.            |
 | F-073 | Pipeline reviewer retirement + lane clarification  | M3/Docs   | done        | D-060: removed `pr-review.ts`; refactored `fix-attempt`; archived stale skill/guide; handbook three-lane model (Bugbot / SDK / Automations). Delivery artifact: `Documentation/delivery/D-060-pipeline-reviewer-retirement.md`. |
+| F-074 | Skills, flows, and subagent orchestration expansion | M0/M5   | done        | D-062: `.cursor/flows/` manifests; 4 orchestration/quality skills; 3 subagents (`delivery-orchestrator`, `deps-highlight`, `maintenance-scout`); `validate:agents` + `validate:cursor`; guide `docs/guides/cursor-skills-and-orchestration.md`. |
 | F-069 | Unified maintenance queue (Pillar C, M4)           | M4        | in-progress | Queue normaliser + triage scoring + concurrent-PR cap in `packages/cursor-agents/src/maintenance-queue*`; Cursor Automations dispatch documented (dashboard setup is an operator action).          |
 | F-070 | Command-driven delivery (Pillar D, M5)             | M5        | done        | `.cursor/commands/` (`/fix`, `/feature`, `/epic`, `/new-project`) + `.cursor/skills/delivery/` chains (elicitation → decomposition → TDD dispatch); artifacts under `Documentation/delivery/`.    |
 | F-071 | Telemetry + outcome metrics (M6)                   | M6        | in-progress | Structured JSON run summaries from agent jobs + weekly metrics aggregation workflow; per-surface outcome metrics feed the future eval project via `apps/cursor-lab`.                              |
