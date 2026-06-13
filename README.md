@@ -55,6 +55,16 @@ cd ../.. && pnpm dev
 
 Each app runs on its own port. The Next.js apps proxy API requests to the Go server at `http://localhost:8080`.
 
+| App | Port | URL |
+|-----|------|-----|
+| LifeQuest (`rpg-tracker`) | 3000 | http://localhost:3000 |
+| NutriLog (scaffold) | 3002 | http://localhost:3002 |
+| MindTrack (scaffold) | 3003 | http://localhost:3003 |
+| Landing | 3004 | http://localhost:3004 |
+| Go API | 8080 | http://localhost:8080 |
+
+Landing **Sign In** links use `NEXT_PUBLIC_APP_URL` (default `http://localhost:3000`) — always LifeQuest, not whichever app wins port 3000 first.
+
 > **Database architecture:** Supabase handles authentication only (`auth.users`, JWT signing). All application data (`public.users`, `public.skills`, etc.) lives in the local Docker postgres container. The Supabase SQL Editor does not contain these tables. See `apps/api/README.md` for how to query local data.
 
 ## Tests

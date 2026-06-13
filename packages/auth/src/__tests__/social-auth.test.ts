@@ -48,7 +48,7 @@ describe('signInWithProvider', () => {
     expect(mockSignInWithOAuth).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
-          redirectTo: 'https://app.rpgtracker.com/dashboard',
+          redirectTo: 'https://app.rpgtracker.com/auth/callback?next=%2Fdashboard',
         }),
       })
     )
@@ -65,7 +65,7 @@ describe('signInWithProvider', () => {
     expect(mockSignInWithOAuth).toHaveBeenCalledWith(
       expect.objectContaining({
         options: expect.objectContaining({
-          redirectTo: 'http://localhost:3000/dashboard',
+          redirectTo: 'http://localhost:3000/auth/callback?next=%2Fdashboard',
         }),
       })
     )

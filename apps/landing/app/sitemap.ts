@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_LANDING_URL ?? 'http://localhost:3001'
+  const baseUrl = process.env.NEXT_PUBLIC_LANDING_URL ?? 'http://localhost:3004'
 
   return [
     {

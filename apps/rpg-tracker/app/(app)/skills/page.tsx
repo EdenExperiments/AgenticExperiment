@@ -133,12 +133,58 @@ export default function SkillsPage() {
     searchQuery.length > 0,
   ].filter(Boolean).length
 
-  // Filter-only count (excludes search, favourites, and sort) for mobile badge
+  // Filter-only count (excludes search, favourites, and sort) for mobile/tablet badge
   const filterOnlyCount = [
     tierFilter !== 'All',
     categoryFilter !== 'All',
     tagFilter !== 'All',
   ].filter(Boolean).length
+
+  const activeFilterChips = useMemo(() => {
+    const chips: { key: string; label: string; onRemove: () => void }[] = []
+
+    if (searchQuery) {
+      chips.push({
+        key: 'search',
+        label: `Search: “${searchQuery}”`,
+        onRemove: () => setSearchInput(''),
+      })
+    }
+    if (showFavourites) {
+      chips.push({
+        key: 'favourites',
+        label: 'Favourites',
+        onRemove: () => {
+          setShowFavourites(false)
+          setDimmedSkills(new Set())
+        },
+      })
+    }
+    if (tierFilter !== 'All') {
+      chips.push({
+        key: 'tier',
+        label: tierFilter,
+        onRemove: () => setTierFilter('All'),
+      })
+    }
+    if (categoryFilter !== 'All') {
+      const category = categories.find((c) => c.slug === categoryFilter)
+      chips.push({
+        key: 'category',
+        label: category ? `${category.emoji} ${category.name}` : categoryFilter,
+        onRemove: () => setCategoryFilter('All'),
+      })
+    }
+    if (tagFilter !== 'All') {
+      chips.push({
+        key: 'tag',
+        label: tagFilter,
+        onRemove: () => setTagFilter('All'),
+      })
+    }
+
+    return chips
+  }, [searchQuery, showFavourites, tierFilter, categoryFilter, tagFilter, categories])
 
   const clearFilters = () => {
     setTierFilter('All')
@@ -282,23 +328,66 @@ export default function SkillsPage() {
             >
               <span className="block -translate-y-1">{showFavourites ? '★' : '☆'}</span>
             </button>
-            {/* Mobile filter trigger */}
+            {/* Filter trigger — bottom sheet below lg; labeled on tablet */}
             <button
-              aria-label="Open filters"
+              type="button"
+              aria-label={
+                filterOnlyCount > 0
+                  ? `Filters, ${filterOnlyCount} active`
+                  : 'Open sort and filter options'
+              }
               onClick={() => setShowFilterSheet(true)}
-              className="chip flex items-center justify-center w-[44px] h-[44px] shrink-0 lg:hidden relative"
+              className="chip flex items-center justify-center shrink-0 min-h-[44px] min-w-[44px] lg:hidden gap-1.5 px-3 sm:px-4 relative"
             >
-              <span aria-hidden="true">&#x2699;</span>
+              <span className="sm:hidden text-lg leading-none" aria-hidden="true">
+                &#x2699;
+              </span>
+              <span className="hidden sm:inline text-sm font-medium">Filters</span>
               {filterOnlyCount > 0 && (
                 <span
-                  className="absolute -top-1 -right-1 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center"
+                  className="sm:static absolute -top-1 -right-1 sm:ml-0.5 min-w-[1.25rem] h-5 px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
                   style={{ background: 'var(--color-accent)', color: 'var(--color-bg)' }}
+                  aria-hidden="true"
                 >
                   {filterOnlyCount}
                 </span>
               )}
             </button>
           </div>
+
+          {/* Active filter chips — visible whenever filters apply, even with results */}
+          {activeFilterChips.length > 0 && (
+            <div
+              className="flex flex-wrap items-center gap-2 mb-3"
+              role="status"
+              aria-live="polite"
+              aria-label="Active filters"
+            >
+              <span className="text-xs shrink-0" style={{ color: 'var(--color-muted)' }}>
+                Showing {filteredAndSorted.length} of {skills.length}
+              </span>
+              {activeFilterChips.map((chip) => (
+                <button
+                  key={chip.key}
+                  type="button"
+                  onClick={chip.onRemove}
+                  className="chip chip-active inline-flex items-center gap-1.5 text-xs px-2.5 py-1 min-h-[32px]"
+                  aria-label={`Remove ${chip.label} filter`}
+                >
+                  <span>{chip.label}</span>
+                  <span aria-hidden="true">×</span>
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-xs font-medium underline-offset-2 hover:underline px-1 min-h-[32px]"
+                style={{ color: 'var(--color-accent)' }}
+              >
+                Clear all
+              </button>
+            </div>
+          )}
 
           {/* Desktop: inline filter dropdowns (lg+ to avoid sidebar squeeze) */}
           <div className="hidden lg:flex items-center gap-2 mb-4 flex-wrap py-1.5" role="toolbar" aria-label="Sort and filter">
@@ -360,12 +449,14 @@ export default function SkillsPage() {
               </select>
             )}
 
-            {activeFilterCount > 1 && (
+            {activeFilterCount > 0 && (
               <button
+                type="button"
                 onClick={clearFilters}
-                className="btn btn-danger px-3 py-1.5 text-xs shrink-0"
+                className="btn btn-ghost px-3 py-1.5 text-xs shrink-0"
+                style={{ color: 'var(--color-accent)' }}
               >
-                Clear filters
+                Clear all
               </button>
             )}
           </div>

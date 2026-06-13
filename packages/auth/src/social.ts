@@ -16,7 +16,10 @@ export async function signInWithProvider(
 ) {
   const supabase = createBrowserClient()
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-  const redirectTo = options?.redirectTo ?? `${baseUrl}/dashboard`
+  const next = options?.redirectTo ?? '/dashboard'
+  const redirectTo = next.startsWith('http')
+    ? next
+    : `${baseUrl}/auth/callback?next=${encodeURIComponent(next)}`
 
   return supabase.auth.signInWithOAuth({
     provider,

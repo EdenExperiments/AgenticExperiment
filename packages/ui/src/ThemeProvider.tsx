@@ -1,12 +1,15 @@
 'use client'
 
 import { useEffect, type ReactNode } from 'react'
+import {
+  type Theme,
+  type VisualMode,
+  VALID_THEMES,
+  VALID_MODES,
+} from './themeConstants'
 
-export type Theme = 'minimal' | 'retro' | 'modern'
-export type VisualMode = 'clean' | 'stylish'
-
-export const VALID_THEMES: Theme[] = ['minimal', 'retro', 'modern']
-export const VALID_MODES: VisualMode[] = ['clean', 'stylish']
+export type { Theme, VisualMode } from './themeConstants'
+export { VALID_THEMES, VALID_MODES } from './themeConstants'
 
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365
 

@@ -1,5 +1,6 @@
-export { ThemeProvider, setTheme, VALID_THEMES, setMode, VALID_MODES } from './ThemeProvider'
-export type { Theme, VisualMode } from './ThemeProvider'
+export { ThemeProvider, setTheme, setMode } from './ThemeProvider'
+export { VALID_THEMES, VALID_MODES } from './themeConstants'
+export type { Theme, VisualMode } from './themeConstants'
 export { ThemeSwitcher } from './ThemeSwitcher'
 export { ModeSwitcher } from './ModeSwitcher'
 export { XPProgressBar } from './XPProgressBar'

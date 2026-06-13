@@ -41,7 +41,7 @@ const fontClassNames = [
 ].join(' ')
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_LANDING_URL ?? 'http://localhost:3001'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_LANDING_URL ?? 'http://localhost:3004'),
   title: 'RpgTracker — Level Up Your Life',
   description:
     'A self-improvement platform that turns real-world effort into RPG progression. Track skills, earn XP, break through tier gates, and level up your life.',
