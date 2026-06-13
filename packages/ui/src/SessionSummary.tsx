@@ -33,11 +33,11 @@ export function SessionSummary({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6 overflow-y-auto"
+      className="session-page session-page--summary fixed inset-0 z-50 flex flex-col items-center justify-center p-6 overflow-y-auto"
       style={{ background: 'var(--color-bg)' }}
     >
       <div
-        className="w-full max-w-sm rounded-2xl p-8 space-y-6 border"
+        className="session-page__panel w-full max-w-sm rounded-2xl p-8 space-y-6 border"
         style={{
           background: 'var(--color-bg-elevated)',
           borderColor: 'var(--color-border-strong)',

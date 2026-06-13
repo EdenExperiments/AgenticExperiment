@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useDocumentTheme } from './useDocumentTheme'
 import { SessionTimerMinimal } from './SessionTimerMinimal'
 import { SessionTimerRetro } from './SessionTimerRetro'
 import { SessionTimerModern } from './SessionTimerModern'
@@ -23,26 +23,8 @@ interface SessionTimerProps {
   onResume: () => void
 }
 
-function getTheme(): string {
-  if (typeof document === 'undefined') return 'minimal'
-  return document.documentElement.getAttribute('data-theme') ?? 'minimal'
-}
-
 export function SessionTimer(props: SessionTimerProps) {
-  const [theme, setTheme] = useState('minimal')
-
-  useEffect(() => {
-    setTheme(getTheme())
-
-    const observer = new MutationObserver(() => {
-      setTheme(getTheme())
-    })
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-theme'],
-    })
-    return () => observer.disconnect()
-  }, [])
+  const { theme } = useDocumentTheme()
 
   const commonProps = {
     phase: props.phase,
@@ -63,7 +45,13 @@ export function SessionTimer(props: SessionTimerProps) {
   }
 
   if (theme === 'modern') {
-    return <SessionTimerModern {...commonProps} totalWorkSec={props.totalWorkSec} totalBreakSec={props.totalBreakSec} />
+    return (
+      <SessionTimerModern
+        {...commonProps}
+        totalWorkSec={props.totalWorkSec}
+        totalBreakSec={props.totalBreakSec}
+      />
+    )
   }
 
   return <SessionTimerMinimal {...commonProps} />

@@ -31,16 +31,38 @@
 
 ---
 
+## Visual Mode (Clean vs Stylish)
+
+Session visuals respect the global `data-mode` attribute (`clean` | `stylish`). **Clean** is the restrained baseline — functional, readable, low motion. **Stylish** adds additive atmosphere on top of the active theme without changing layout or Pomodoro logic.
+
+| Mode | Session character | Motion |
+|------|-------------------|--------|
+| **Clean** | Theme identity only; no decorative loops | Functional transitions; break phase dims via opacity |
+| **Stylish** | Immersive flair per theme (see below) | Gated by `--motion-scale` and `prefers-reduced-motion` |
+
+Class hooks: `.session-page`, `.session-page--work` / `--break`, `.session-page__timer`, `.session-page__timer-ring`, `.session-page__phase`, etc. Stylish treatments are scoped with `[data-theme][data-mode="stylish"]` in `packages/ui/tokens/pages.css`.
+
+---
+
 ## Theme Transformations
 
 ### Minimal
-**Meditation-app calm.** Clean countdown timer (large, bold Inter numbers). Muted background (soft white or very light gray). Breathing animation — subtle pulsing circle synced to timer. Pause/resume as clean outlined buttons. No decoration.
+**Meditation-app calm.** Clean countdown timer (large, bold Inter numbers). Muted background (soft white or very light gray). Pause/resume as clean outlined buttons.
+
+- **Clean:** Static focus circle; no breathing loop.
+- **Stylish:** Subtle pulsing circle synced to timer; soft card elevation on config/summary panels.
 
 ### Retro
-**Battle screen.** Pixel-art timer in Press Start 2P. "Grinding" visual effects — subtle XP counter ticking up in real-time. Background may have animated pixel textures. Chiptune-ready layout (space for audio controls). Gold/amber accents. Feels like a training montage screen in an RPG.
+**Battle screen.** Pixel-art timer in Press Start 2P. Gold/amber accents. Feels like a training montage screen in an RPG.
+
+- **Clean:** Timer, round counter, progress bar; no XP pulse or scanline overlays.
+- **Stylish:** XP counter pulse, chunky pixel progress, battle/rest phase labels with snappy transitions; optional scanline atmosphere on the session surface.
 
 ### Modern
-**Mission in progress.** Holographic timer ring with Rajdhani numbers. Pulsing ambient glow around the timer. Progress ring filling as session progresses. "OPERATION ACTIVE" HUD aesthetic. Cyan/magenta accents. Dark navy with atmospheric light bleeds. Feels like a mission control countdown.
+**Mission in progress.** Holographic timer ring with Rajdhani numbers. Progress ring filling as session progresses. "OPERATION ACTIVE" HUD aesthetic. Cyan/magenta accents. Dark navy with atmospheric light bleeds.
+
+- **Clean:** Progress ring and phase label; no ambient glow or shimmer.
+- **Stylish:** Pulsing ambient glow around the ring, holographic shimmer on the timer, lower-intensity break ("Standby") mode.
 
 ---
 
@@ -59,9 +81,9 @@ Overlay on the session route (not a new page). Shows:
 
 When intervals are enabled:
 - Work/break cycle displayed clearly
-- Visual distinction between work and break phases
+- Visual distinction between work and break phases (`.session-page--work` vs `.session-page--break`)
 - Cycle counter (e.g., "Round 2 of 4")
-- Break phase should feel like a genuine pause — reduced visual intensity
+- Break phase should feel like a genuine pause — reduced visual intensity in both modes; Stylish adds theme-specific rest treatments (dimmed ring, "Rest Phase" / "Standby" copy)
 
 ---
 

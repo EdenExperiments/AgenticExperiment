@@ -35,45 +35,42 @@ export function SessionTimerModern({
   const mins = Math.floor(displaySeconds / 60)
   const secs = displaySeconds % 60
   const isBreak = phase === 'break'
+  const phaseClass = isBreak ? 'session-page--break' : 'session-page--work'
 
-  // SVG progress ring
   const radius = 90
   const circumference = 2 * Math.PI * radius
   const phaseDuration = isBreak ? totalBreakSec : totalWorkSec
   const progress = isSimple
-    ? Math.min(elapsedWorkSeconds / 3600, 1) // Fill over 1 hour for simple mode
-    : phaseDuration > 0 ? 1 - remainingSeconds / phaseDuration : 0
+    ? Math.min(elapsedWorkSeconds / 3600, 1)
+    : phaseDuration > 0
+      ? 1 - remainingSeconds / phaseDuration
+      : 0
   const strokeDashoffset = circumference * (1 - progress)
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6"
+      className={`session-page ${phaseClass} fixed inset-0 z-50 flex flex-col items-center justify-center p-6${isPaused ? ' session-page--paused' : ''}`}
       style={{ background: 'var(--color-bg)' }}
     >
-      {/* Phase label */}
-      <p
-        className="text-xs md:text-sm tracking-[0.3em] uppercase mb-8"
-        style={{
-          fontFamily: 'var(--font-display)',
-          color: isBreak ? 'var(--color-muted)' : 'var(--color-accent)',
-        }}
-      >
+      <p className="session-page__phase text-xs md:text-sm tracking-[0.3em] uppercase mb-8">
         {isSimple ? 'Focus Mode' : isBreak ? 'Standby' : 'Operation Active'}
       </p>
 
-      {/* Progress ring with timer */}
-      <div className="relative w-56 h-56 md:w-72 md:h-72 lg:w-96 lg:h-96 mb-6">
-        <svg className="w-full h-full" viewBox="0 0 200 200">
-          {/* Background ring */}
+      <div className="session-page__timer-ring relative w-56 h-56 md:w-72 md:h-72 lg:w-96 lg:h-96 mb-6">
+        <svg className="w-full h-full" viewBox="0 0 200 200" aria-hidden="true">
           <circle
-            cx="100" cy="100" r={radius}
+            cx="100"
+            cy="100"
+            r={radius}
             fill="none"
             stroke="var(--color-surface)"
             strokeWidth="4"
           />
-          {/* Progress ring */}
           <circle
-            cx="100" cy="100" r={radius}
+            className="session-page__timer-ring-progress"
+            cx="100"
+            cy="100"
+            r={radius}
             fill="none"
             stroke="var(--color-accent)"
             strokeWidth="4"
@@ -81,72 +78,36 @@ export function SessionTimerModern({
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             transform="rotate(-90 100 100)"
-            style={{
-              transition: `stroke-dashoffset calc(1s * var(--motion-scale, 1)) linear`,
-              opacity: isBreak ? 0.3 : 1,
-              filter: isBreak ? 'none' : 'drop-shadow(0 0 8px var(--color-accent))',
-            }}
           />
         </svg>
 
-        {/* Timer text centered in ring */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span
-            className="text-4xl md:text-5xl lg:text-6xl font-bold tabular-nums"
-            style={{
-              fontFamily: 'var(--font-display)',
-              color: 'var(--color-text)',
-              opacity: isBreak ? 0.5 : 1,
-            }}
-          >
+          <span className="session-page__timer text-4xl md:text-5xl lg:text-6xl font-bold tabular-nums">
             {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
           </span>
           {!isSimple && (
-            <span className="text-[10px] md:text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>
+            <span className="session-page__round text-[10px] md:text-xs uppercase tracking-wider">
               Round {currentRound}/{totalRounds}
             </span>
           )}
         </div>
 
-        {/* Ambient glow */}
-        {!isBreak && !isPaused && (
-          <div
-            className="absolute inset-0 rounded-full pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle, color-mix(in srgb, var(--color-accent) 10%, transparent) 0%, transparent 70%)',
-              animation: `modern-glow calc(3s * var(--motion-scale, 1)) ease-in-out infinite`,
-            }}
-          />
-        )}
+        <div className="session-page__timer-glow absolute inset-0 rounded-full pointer-events-none" />
       </div>
 
-      {/* Skill name */}
-      <p className="text-sm md:text-base mb-8" style={{ color: 'var(--color-text-secondary)', opacity: isBreak ? 0.5 : 1 }}>
-        {skillName}
-      </p>
+      <p className="session-page__skill text-sm md:text-base mb-8">{skillName}</p>
 
-      {/* Controls */}
-      <div className="flex gap-3">
+      <div className="session-page__controls flex gap-3">
         <button
           onClick={isPaused ? onResume : onPause}
           className="btn btn-ghost px-6 py-3 min-h-[44px]"
         >
           {isPaused ? 'Resume' : 'Pause'}
         </button>
-        <button
-          onClick={onEndEarly}
-          className="btn btn-ghost px-6 py-3 min-h-[44px]"
-        >
+        <button onClick={onEndEarly} className="btn btn-ghost px-6 py-3 min-h-[44px]">
           End Session
         </button>
       </div>
-
-      <style>{`
-        @keyframes modern-glow {
-          0%, 100% { opacity: 0.3; transform: scale(0.95); }
-          50% { opacity: 0.7; transform: scale(1.05); }
-        }
-      `}</style>
     </div>
   )
 }
