@@ -1,3 +1,34 @@
 #!/usr/bin/env sh
 
-pnpm check:precommit
+# Git hooks on Windows (Git Bash) often get a minimal PATH without nvm/pnpm.
+if ! command -v pnpm >/dev/null 2>&1; then
+  for dir in \
+    "$NVM_SYMLINK" \
+    "$NVM_HOME" \
+    "$HOME/AppData/Local/nvm" \
+    "$HOME/.local/share/pnpm" \
+    "/c/nvm4w/nodejs" \
+    "/c/Program Files/nodejs" \
+    "/c/Program Files (x86)/nodejs"
+  do
+    if [ -n "$dir" ] && [ -d "$dir" ]; then
+      PATH="$dir:$PATH"
+    fi
+  done
+  export PATH
+fi
+
+if ! command -v pnpm >/dev/null 2>&1 && command -v corepack >/dev/null 2>&1; then
+  corepack enable >/dev/null 2>&1 || true
+fi
+
+cd "$(dirname "$0")/.." || exit 1
+
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm check:precommit
+elif command -v npm >/dev/null 2>&1; then
+  npm run check:precommit
+else
+  echo "husky - pnpm not found in PATH. Install pnpm (npm i -g pnpm) or enable corepack (corepack enable)."
+  exit 127
+fi
