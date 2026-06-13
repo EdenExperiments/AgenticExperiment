@@ -29,6 +29,13 @@ describe('pages.css session stylish treatments', () => {
     )
   })
 
+  it('defines retro stylish beat-em-up backdrop (img_23 vision)', () => {
+    expect(css).toMatch(/\[data-theme="retro"\]\[data-mode="stylish"\].*session-page__backdrop/s)
+    expect(css).toContain('session-retro-street-scroll')
+    expect(css).toContain('session-retro-hero-jab')
+    expect(css).toMatch(/\[data-mode="clean"\].*session-page__backdrop|\.session-page__backdrop[\s\S]*display:\s*none/s)
+  })
+
   it('respects prefers-reduced-motion for session animations', () => {
     expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\)[\s\S]*\.session-page__timer-ring/)
   })

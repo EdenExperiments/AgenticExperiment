@@ -4,7 +4,7 @@
 
 **Identity:** Dark backgrounds with warm amber/gold and deep purple. Pixel-art accents, scanline textures, narrative framing. This theme says "You are the hero of your own story."
 
-**Inspiration:** See `design-inspiration/img_15.png`, `img_16.png`, `img_6.png`–`img_9.png`, `img_20.png`, `img_22.png`, `img_23.png`.
+**Inspiration:** See `Documentation/design-inspiration/README.md`. Key images: `img_6.png`–`img_9.png`, `img_15.png`, `img_16.png`, `img_20.png`, `img_22.png` (clean/dialogue), **`img_23.png` (stylish session — Streets of Rage / dojo training loop)**.
 
 ---
 

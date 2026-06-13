@@ -47,6 +47,7 @@ describe('SessionTimer — mode-aware class hooks', () => {
       expect(container.querySelector('.session-page__xp')).toBeTruthy()
     })
     expect(container.querySelector('.session-page__progress-fill')).toBeTruthy()
+    expect(container.querySelector('.session-page__backdrop')).toBeTruthy()
   })
 
   it('renders modern variant with ring progress and glow hooks', async () => {

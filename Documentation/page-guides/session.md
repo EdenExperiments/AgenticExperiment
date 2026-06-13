@@ -40,7 +40,9 @@ Session visuals respect the global `data-mode` attribute (`clean` | `stylish`). 
 | **Clean** | Theme identity only; no decorative loops | Functional transitions; break phase dims via opacity |
 | **Stylish** | Immersive flair per theme (see below) | Gated by `--motion-scale` and `prefers-reduced-motion` |
 
-Class hooks: `.session-page`, `.session-page--work` / `--break`, `.session-page__timer`, `.session-page__timer-ring`, `.session-page__phase`, etc. Stylish treatments are scoped with `[data-theme][data-mode="stylish"]` in `packages/ui/tokens/pages.css`.
+Class hooks: `.session-page`, `.session-page--work` / `--break`, `.session-page__timer`, `.session-page__timer-ring`, `.session-page__phase`, `.session-page__backdrop` (Retro Stylish battle loop), etc. Stylish treatments are scoped with `[data-theme][data-mode="stylish"]` in `packages/ui/tokens/pages.css`.
+
+**Vision board:** `Documentation/design-inspiration/README.md` — especially `img_23.png` for Retro Stylish Pomodoro.
 
 ---
 
@@ -55,8 +57,8 @@ Class hooks: `.session-page`, `.session-page--work` / `--break`, `.session-page_
 ### Retro
 **Battle screen.** Pixel-art timer in Press Start 2P. Gold/amber accents. Feels like a training montage screen in an RPG.
 
-- **Clean:** Timer, round counter, progress bar; no XP pulse or scanline overlays.
-- **Stylish:** XP counter pulse, chunky pixel progress, battle/rest phase labels with snappy transitions; optional scanline atmosphere on the session surface.
+- **Clean:** Timer, round counter, progress bar; no XP pulse, scanline overlays, or battle backdrop.
+- **Stylish:** XP counter pulse, chunky pixel progress, battle/rest phase labels, scanline overlay, and a **looping beat-em-up backdrop** (dojo / Streets of Rage–style parallax + fighter silhouettes). Vision reference: `Documentation/design-inspiration/img_23.png`.
 
 ### Modern
 **Mission in progress.** Holographic timer ring with Rajdhani numbers. Progress ring filling as session progresses. "OPERATION ACTIVE" HUD aesthetic. Cyan/magenta accents. Dark navy with atmospheric light bleeds.
