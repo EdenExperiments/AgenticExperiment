@@ -89,3 +89,152 @@
     border-color: var(--color-border);
   }
 }
+
+
+/* ------------------------------------------------------------------ */
+/* Retro Stylish — page + nav atmosphere (F-046)                       */
+/* Desktop-focused; mobile largely matches Clean (R-046-4).            */
+/* No glassmorphism — warm scanlines, grid texture, game-menu framing. */
+/* ------------------------------------------------------------------ */
+
+[data-theme="retro"][data-mode="stylish"] body {
+/* Minimal Stylish — page + nav atmosphere (F-046)                     */
+/* Desktop-focused; mobile largely matches Clean (R-046-4).            */
+/* ------------------------------------------------------------------ */
+
+[data-theme="minimal"][data-mode="stylish"] body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+@media (min-width: 1024px) {
+  [data-theme="retro"][data-mode="stylish"] body {
+    background: linear-gradient(
+      180deg,
+      var(--color-bg) 0%,
+      color-mix(in srgb, var(--color-secondary) 8%, var(--color-bg)) 50%,
+      var(--color-bg) 100%
+  [data-theme="minimal"][data-mode="stylish"] body {
+    background: linear-gradient(
+      180deg,
+      var(--color-bg) 0%,
+      color-mix(in srgb, var(--color-surface) 35%, var(--color-bg)) 100%
+    );
+    min-height: 100dvh;
+  }
+
+  /* Subtle grid texture beneath scanlines */
+  [data-theme="retro"][data-mode="stylish"] body::before {
+  [data-theme="minimal"][data-mode="stylish"] .nav-panel {
+    background-color: var(--color-surface);
+    border-right: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  [data-theme="minimal"][data-mode="stylish"] .sidebar {
+/* Modern Stylish — command-centre atmosphere (F-046)                    */
+/* Desktop-focused; mobile largely matches Clean (R-046-4).            */
+/* Smooth gradients and glass only — no Retro textures.                */
+/* ------------------------------------------------------------------ */
+
+[data-theme="modern"][data-mode="stylish"] body {
+  background: linear-gradient(
+    135deg,
+    var(--color-bg) 0%,
+    #0d1526 50%,
+    #0a1020 100%
+  );
+  color: var(--color-text);
+  min-height: 100dvh;
+}
+
+@media (min-width: 1024px) {
+  [data-theme="modern"][data-mode="stylish"] body {
+    background: linear-gradient(
+      145deg,
+      var(--color-bg) 0%,
+      #0c1428 35%,
+      #0a1020 70%,
+      #080d18 100%
+    );
+  }
+
+  /* Atmospheric glow zones behind key content areas */
+  [data-theme="modern"][data-mode="stylish"] body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9998;
+    background-image:
+      linear-gradient(rgba(212, 168, 83, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(212, 168, 83, 0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* Stronger scanline overlay for Stylish */
+  [data-theme="retro"][data-mode="stylish"] body::after {
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.12) 2px,
+      rgba(0, 0, 0, 0.12) 4px
+    );
+  }
+
+  /* Game-menu nav panel framing */
+  [data-theme="retro"][data-mode="stylish"] .nav-panel {
+    background-color: var(--color-surface);
+    border-right: 2px solid var(--color-border);
+    box-shadow:
+      inset -1px 0 0 rgba(212, 168, 83, 0.12),
+      4px 0 12px rgba(0, 0, 0, 0.3);
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .sidebar {
+    z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 15% 20%, rgba(0, 212, 255, 0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 35% at 85% 75%, rgba(224, 64, 251, 0.04) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0, 212, 255, 0.02) 0%, transparent 60%);
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    [data-theme="modern"][data-mode="stylish"] .nav-panel {
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background-color: rgba(15, 23, 42, 0.55);
+      border-right: 1px solid rgba(0, 212, 255, 0.18);
+      box-shadow:
+        4px 0 24px rgba(0, 0, 0, 0.3),
+        inset -1px 0 0 rgba(0, 212, 255, 0.06);
+    }
+  }
+
+  @supports not (backdrop-filter: blur(1px)) {
+    [data-theme="modern"][data-mode="stylish"] .nav-panel {
+      background-color: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+      box-shadow: 4px 0 16px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .sidebar {
+    background-color: transparent;
+    border-right: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @media (min-width: 1024px) {
+    [data-theme="modern"][data-mode="stylish"] body::before {
+      animation: modern-ambient-drift calc(20s * var(--motion-scale)) ease-in-out infinite alternate;
+    }
+  }
+}
+
+@keyframes modern-ambient-drift {
+  from { opacity: 0.85; }
+  to   { opacity: 1; }
+}

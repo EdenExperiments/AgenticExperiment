@@ -52,6 +52,7 @@ export interface Account {
   timezone?: string
   primary_skill_id: string | null
   avatar_url: string | null
+  subscription_tier?: 'free' | 'pro'
 }
 
 export interface AccountStats {
@@ -68,7 +69,9 @@ export interface APIKeyStatus {
 
 export interface AIEntitlement {
   entitled: boolean
-  reason: 'api_key_set' | 'no_api_key' | 'unknown'
+  reason: 'ready' | 'subscription_required' | 'no_api_key' | 'unknown'
+  subscription_tier?: 'free' | 'pro'
+  has_api_key?: boolean
 }
 
 export interface APIError {
@@ -309,4 +312,25 @@ export interface GoalForecast {
   recommend_checkin: boolean
   recommend_review: boolean
   recommend_stretch: boolean
+}
+
+// NutriLog weight tracking
+
+export interface WeightLog {
+  id: string
+  weight_kg: number
+  note: string
+  measured_at: string
+  created_at: string
+}
+
+export interface WeightChartPoint {
+  date: string
+  weight_kg: number | null
+}
+
+export interface WeightChartResponse {
+  days: number
+  unit: 'kg'
+  data: WeightChartPoint[]
 }

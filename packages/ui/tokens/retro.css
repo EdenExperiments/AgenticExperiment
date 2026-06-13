@@ -52,3 +52,37 @@
     --motion-scale: 0;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Stylish mode — additive token overrides (F-046)                     */
+/* Clean mode rules above remain the baseline.                         */
+/* ------------------------------------------------------------------ */
+
+[data-theme="retro"][data-mode="stylish"] {
+  /* Crunchier motion budget — screen wipes, pixel dissolves */
+  --motion-scale: 0.85;
+
+  /* Warmer gold accent depth */
+  --color-accent-muted: rgba(212, 168, 83, 0.16);
+  --color-border-strong: #e8bb66;
+
+  /* Warm undertone shadows */
+  --shadow-sm: 0 1px 4px 0 rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(212, 168, 83, 0.06);
+  --shadow-md: 0 4px 10px -1px rgba(0, 0, 0, 0.55), 0 2px 4px -2px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(212, 168, 83, 0.08);
+  --shadow-lg: 0 12px 24px -4px rgba(0, 0, 0, 0.65), 0 4px 8px -4px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(212, 168, 83, 0.1);
+}
+
+@media (min-width: 1024px) {
+  [data-theme="retro"][data-mode="stylish"] {
+    /* Desktop: more immersive spacing */
+    --density-scale: 1.1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-theme="retro"][data-mode="stylish"] {
+    --motion-scale: 0;
+  }
+}

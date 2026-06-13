@@ -116,6 +116,14 @@ jobs:
           CURSOR_CLOUD_REPO_URL: ${{ vars.CURSOR_CLOUD_REPO_URL }}
         run: pnpm --filter @rpgtracker/cursor-agents run security-triage
 
+      - name: Upload run summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-summary-dependabot-triage-${{ github.run_id }}
+          path: cursor-agent-run-summaries/
+          if-no-files-found: ignore
+
   security-alert-triage:
     if: vars.AGENTS_ENABLED != 'false' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
@@ -153,3 +161,11 @@ jobs:
           CURSOR_RUNTIME: ${{ vars.CURSOR_RUNTIME || 'local' }}
           CURSOR_CLOUD_REPO_URL: ${{ vars.CURSOR_CLOUD_REPO_URL }}
         run: pnpm --filter @rpgtracker/cursor-agents run security-triage
+
+      - name: Upload run summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-summary-security-alert-triage-${{ github.run_id }}
+          path: cursor-agent-run-summaries/
+          if-no-files-found: ignore

@@ -5,3 +5,14 @@
 @import '@rpgtracker/ui/tokens/modern.css';
 @import '@rpgtracker/ui/tokens/components.css';
 @import '@rpgtracker/ui/tokens/pages.css';
+
+/* F-047: boost motion budget in Stylish landing without affecting Clean baseline */
+[data-mode="stylish"][data-theme="minimal"] {
+  --motion-scale: 0.45;
+}
+[data-mode="stylish"][data-theme="retro"] {
+  --motion-scale: 0.85;
+}
+[data-mode="stylish"][data-theme="modern"] {
+  --motion-scale: 1.1;
+}

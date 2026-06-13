@@ -49,10 +49,12 @@ jobs:
           CURSOR_METRICS_ISSUE_NUMBER: ${{ vars.CURSOR_METRICS_ISSUE_NUMBER }}
         run: pnpm --filter @rpgtracker/cursor-agents run weekly-metrics
 
-      - name: Upload run summaries
+      - name: Upload weekly metrics + run summaries
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: run-summary-weekly-metrics-${{ github.run_id }}
-          path: cursor-agent-run-summaries/
+          name: weekly-metrics-${{ github.run_id }}
+          path: |
+            weekly-metrics.json
+            cursor-agent-run-summaries/
           if-no-files-found: ignore
