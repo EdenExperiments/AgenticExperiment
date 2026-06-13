@@ -1,15 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createBrowserClient } from '@rpgtracker/auth/client'
+import { signUpWithPasswordAction } from '../actions'
 import SocialAuthButtons from '../components/SocialAuthButtons'
 import FreeTrial from '../components/FreeTrial'
 import FeaturePreview from '../components/FeaturePreview'
 
 export default function RegisterPage() {
-  const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -20,17 +18,12 @@ export default function RegisterPage() {
     setLoading(true)
     setError(null)
 
-    const supabase = createBrowserClient()
-    const { error } = await supabase.auth.signUp({ email, password })
+    const result = await signUpWithPasswordAction(email, password)
 
-    if (error) {
-      setError(error.message)
+    if (result?.error) {
+      setError(result.error)
       setLoading(false)
-      return
     }
-
-    router.push('/dashboard')
-    router.refresh()
   }
 
   return (

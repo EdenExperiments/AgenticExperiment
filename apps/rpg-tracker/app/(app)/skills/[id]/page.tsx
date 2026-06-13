@@ -8,6 +8,7 @@ import { getSkill, getAccount, logXP, deleteSkill, getActivity, getXPChart, upda
 import type { BlockerGate, ActivityEvent } from '@rpgtracker/api-client'
 import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal, XPBarChart, ConfirmModal, SkillEditModal } from '@rpgtracker/ui'
 import { XPGainAnimation } from '@/components/XPGainAnimation'
+import { TagSuggestInput } from '../components/TagSuggestInput'
 
 const TIER_HEX: Record<number, string> = {
   1: '#9ca3af', 2: '#3b82f6', 3: '#14b8a6', 4: '#22c55e', 5: '#84cc16',
@@ -132,13 +133,14 @@ export default function SkillDetailPage() {
     },
   })
 
-  function handleTagCommit() {
-    if (!tagInput.trim()) return
-    const name = tagInput.trim().toLowerCase()
+  function handleTagCommit(name?: string) {
+    const raw = (name ?? tagInput).trim()
+    if (!raw) return
+    const tagName = raw.toLowerCase()
     setTagBuffer((prev) => {
       const buf = prev ?? skill?.tags.map((t) => t.name) ?? []
-      if (buf.includes(name) || buf.length >= 5) return buf
-      return [...buf, name]
+      if (buf.includes(tagName) || buf.length >= 5) return buf
+      return [...buf, tagName]
     })
     setTagInput('')
   }
@@ -307,37 +309,18 @@ export default function SkillDetailPage() {
 
           {/* Tag editing controls */}
           {tagBuffer !== null ? (
-            <div className="space-y-2">
-              <div className="flex gap-2">
-                <input
-                  type="text"
+            <div className="space-y-2 relative z-20">
+              <div className="flex gap-2 items-start">
+                <TagSuggestInput
                   value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ',') {
-                      e.preventDefault()
-                      handleTagCommit()
-                    }
-                  }}
-                  onBlur={() => handleTagCommit()}
-                  placeholder={tagBuffer.length >= 5 ? 'Max 5 tags' : 'Add a tag...'}
+                  onChange={setTagInput}
+                  onCommit={handleTagCommit}
+                  suggestions={userTags
+                    .map((t) => t.name)
+                    .filter((name) => !tagBuffer.includes(name))}
                   disabled={tagBuffer.length >= 5}
-                  list="tag-suggestions"
-                  className="flex-1 rounded-lg px-3 py-2 text-sm border-none"
-                  style={{
-                    fontFamily: 'var(--font-body)',
-                    backgroundColor: 'var(--color-surface)',
-                    color: 'var(--color-text)',
-                    minHeight: 'var(--tap-target-min, 44px)',
-                  }}
+                  placeholder={tagBuffer.length >= 5 ? 'Max 5 tags' : 'Add a tag...'}
                 />
-                <datalist id="tag-suggestions">
-                  {userTags
-                    .filter((t) => !tagBuffer.includes(t.name))
-                    .map((t) => (
-                      <option key={t.id} value={t.name} />
-                    ))}
-                </datalist>
                 <button
                   onClick={() => tagMutation.mutate(tagBuffer)}
                   disabled={tagMutation.isPending}

@@ -23,8 +23,10 @@ function parseFrontmatter(content) {
     return null;
   }
   const fields = {};
-  for (const line of match[1].split("\n")) {
-    const kv = line.match(/^([a-zA-Z0-9_-]+):\s*(.*)$/);
+  for (const line of match[1].split(/\r?\n/)) {
+    const trimmed = line.trimEnd();
+    if (!trimmed) continue;
+    const kv = trimmed.match(/^([a-zA-Z0-9_-]+):\s*(.*)$/);
     if (kv) {
       fields[kv[1]] = kv[2].trim();
     }

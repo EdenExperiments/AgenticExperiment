@@ -46,12 +46,15 @@ export default function SocialAuthButtons({ onError }: Props) {
 
   async function handleClick(provider: 'google' | 'github' | 'apple') {
     setLoadingProvider(provider)
-    const { error } = await signInWithProvider(provider)
+    const { data, error } = await signInWithProvider(provider)
     if (error) {
       onError?.(error.message)
       setLoadingProvider(null)
+      return
     }
-    // On success, Supabase redirects — no need to clear loading
+    if (data.url) {
+      window.location.assign(data.url)
+    }
   }
 
   return (

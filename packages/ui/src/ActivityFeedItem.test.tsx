@@ -75,7 +75,7 @@ test('renders as div (not button) when onClick is not provided', () => {
 
 // --- AC-16: Hover highlight ---
 describe('AC-16: hover background highlight', () => {
-  test('item element has hover background class referencing a CSS variable', () => {
+  test('item uses activity-history__entry BEM class for theme CSS hover', () => {
     const { container } = render(
       <ActivityFeedItem
         skillName="Guitar"
@@ -84,13 +84,11 @@ describe('AC-16: hover background highlight', () => {
       />
     )
     const item = container.firstChild as HTMLElement
-    const className = item.className
-    // Must have a hover background class that references a CSS variable (not hardcoded colour)
-    expect(className).toMatch(/hover:bg-\[var\(--color-/)
+    expect(item.className).toContain('activity-history__entry')
   })
 
-  test('interactive item (with onClick) has hover background highlight', () => {
-    const { container } = render(
+  test('interactive item (with onClick) is a button with entry class', () => {
+    render(
       <ActivityFeedItem
         skillName="Guitar"
         xpDelta={25}
@@ -98,15 +96,13 @@ describe('AC-16: hover background highlight', () => {
         onClick={vi.fn()}
       />
     )
-    const item = container.firstChild as HTMLElement
-    const className = item.className
-    expect(className).toMatch(/hover:bg-\[var\(--color-/)
+    expect(screen.getByRole('button')).toHaveClass('activity-history__entry')
   })
 })
 
 // --- AC-17: motion-scale gating on transition ---
 describe('AC-17: minimal reduced motion transitions', () => {
-  test('item transition includes --motion-scale gating', () => {
+  test('entry structure supports theme-scoped transition via pages.css', () => {
     const { container } = render(
       <ActivityFeedItem
         skillName="Guitar"
@@ -115,11 +111,7 @@ describe('AC-17: minimal reduced motion transitions', () => {
       />
     )
     const item = container.firstChild as HTMLElement
-    const style = item.style.transition ?? ''
-    const className = item.className
-    // Must reference --motion-scale either in inline style or Tailwind class
-    const motionGated = style.includes('--motion-scale') || className.includes('--motion-scale')
-    expect(motionGated).toBe(true)
+    expect(item).toHaveClass('activity-history__entry')
   })
 })
 

@@ -75,6 +75,9 @@ test('page has a <main id="main-content"> landmark', () => {
 // ─── Test 4: Skip link (AC-5) ─────────────────────────────────────────────────
 
 test('layout has a skip link pointing to #main-content', async () => {
+  // RootLayout is async (reads cookies) — await it before rendering.
+  const ui = await RootLayout({ children: <div /> })
+  render(ui)
   // Skip link lives in layout.tsx, not page.tsx — test the layout component directly.
   const jsx = await RootLayout({ children: <div /> })
   render(jsx)

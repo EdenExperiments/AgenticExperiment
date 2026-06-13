@@ -28,7 +28,7 @@ Environment variables required (see `internal/config/config.go`):
 | `DATABASE_URL` | `postgresql://...` connection string |
 | `SUPABASE_URL` | Same project URL as `NEXT_PUBLIC_SUPABASE_URL` on frontends |
 | `SUPABASE_PUBLISHABLE_KEY` | Same publishable key as `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` |
-| `MASTER_KEY` | 32-byte hex key for AES-encrypted API keys |
+| `MASTER_KEY` | Exactly 32 raw characters (AES-256-GCM master key for encrypted API keys) |
 | `PORT` | HTTP port (default `8080`) |
 
 ## Running tests

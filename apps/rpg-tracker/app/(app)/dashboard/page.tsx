@@ -215,14 +215,15 @@ export default function DashboardPage() {
         <StatCard label="XP Today" value={todayXP.toLocaleString()} />
         <StatCard
           label="Highest Tier"
-          value={topSkill?.tier_name ?? 'None'}
-          icon={
+          value={
             topSkill ? (
               <TierBadge
                 tierName={topSkill.tier_name}
                 tierNumber={topSkill.tier_number}
               />
-            ) : undefined
+            ) : (
+              '—'
+            )
           }
         />
       </div>
@@ -291,13 +292,13 @@ export default function DashboardPage() {
         {/* Right column — Activity Feed */}
         <section
           data-testid="activity-feed"
-          className="rounded-xl p-4 self-start lg:sticky lg:top-8"
+          className="rounded-xl p-4 self-start lg:sticky lg:top-8 flex flex-col min-h-0 max-h-[min(70vh,28rem)]"
           style={{
             backgroundColor: 'var(--color-bg-elevated)',
             border: '1px solid var(--color-border)',
           }}
         >
-          <h2 className="heading text-lg font-semibold mb-3">
+          <h2 className="heading text-lg font-semibold mb-3 shrink-0">
             Recent Activity
           </h2>
           {activityLoading ? (
@@ -314,7 +315,7 @@ export default function DashboardPage() {
               No activity yet. Log some XP to see your progress here.
             </p>
           ) : (
-            <div className="space-y-1">
+            <div className="activity-history overflow-y-auto min-h-0 pr-1">
               {activity.map((event) => (
                 <ActivityFeedItem
                   key={event.id}
