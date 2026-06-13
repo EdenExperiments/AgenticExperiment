@@ -20,6 +20,13 @@ visual review instead of faux-TDD.
 - The task artifact (`task-NN.md`): acceptance criteria, target paths, named verification command
 - The subagent roster in `.cursor/agents/` (routing by the task's target paths)
 
+## Ceremony levels
+
+- `fix`: one task artifact, no elicitation; require reproduction and regression-test acceptance.
+- `feature`: signed requirements first, then one task artifact unless decomposition is needed.
+- `epic`: signed requirements plus `task-list.md`; dispatch each `task-NN.md`, parallelizing only
+  dependency-free tasks with non-overlapping target paths.
+
 ## Outputs
 
 - Failing-then-passing tests + implementation on a fresh branch
