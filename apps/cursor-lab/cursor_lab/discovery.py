@@ -69,7 +69,16 @@ def fixtures_root(lab_home: Path) -> Path:
 
 
 def fixture_dir_for(artifact_id: str) -> str:
-    return artifact_id
+    """Map logical artifact_id to a cross-platform fixtures subdirectory.
+
+    Artifact ids use ``kind:path`` (e.g. ``skill:skills/core/foo``). Colons are
+    invalid on Windows paths, so fixture trees live under ``kind/path`` instead.
+    """
+    if ":" not in artifact_id:
+        msg = f"invalid artifact_id (missing kind:path separator): {artifact_id}"
+        raise ValueError(msg)
+    kind, rel_path = artifact_id.split(":", 1)
+    return f"{kind}/{rel_path}"
 
 
 def discover_artifacts(lab_home: Path) -> list[ArtifactRef]:

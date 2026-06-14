@@ -5,7 +5,13 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from cursor_lab.discovery import discover_artifacts, discover_fixtures, fixtures_root, lab_cursor_root
+from cursor_lab.discovery import (
+    discover_artifacts,
+    discover_fixtures,
+    fixture_dir_for,
+    fixtures_root,
+    lab_cursor_root,
+)
 from cursor_lab.judge.judge import executor_model_id, judge_model_id
 from cursor_lab.judge.rubric import RUBRIC_DEFAULTS_VERSION
 
@@ -18,7 +24,7 @@ def _artifact_path(lab_home: Path, artifact_id: str) -> Path | None:
 
 
 def _fixture_tree_paths(lab_home: Path, artifact_id: str) -> list[Path]:
-    root = fixtures_root(lab_home) / artifact_id
+    root = fixtures_root(lab_home) / fixture_dir_for(artifact_id)
     if not root.is_dir():
         return []
     paths: list[Path] = []

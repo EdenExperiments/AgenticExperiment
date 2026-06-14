@@ -29,9 +29,9 @@ def test_discover_artifacts_includes_safe_edit_skill() -> None:
     assert "skill:skills/core/safe-edit-and-verify" in ids
 
 
-def test_fixture_dir_for_uses_artifact_id() -> None:
+def test_fixture_dir_for_encodes_kind_path_separator() -> None:
     artifact_id = "skill:skills/core/safe-edit-and-verify"
-    assert fixture_dir_for(artifact_id) == artifact_id
+    assert fixture_dir_for(artifact_id) == "skill/skills/core/safe-edit-and-verify"
 
 
 def test_fixtures_root_under_lab_home() -> None:

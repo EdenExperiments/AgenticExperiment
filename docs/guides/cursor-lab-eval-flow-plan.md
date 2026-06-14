@@ -133,10 +133,10 @@ Each artifact gets a stable `artifact_id` derived from path (e.g. `skill:core/sa
 
 ### 4.2 Fixture
 
-A test case for an artifact, stored under `fixtures/<artifact_id>/`:
+A test case for an artifact, stored under `fixtures/<kind>/<path>/` (filesystem-safe encoding of `artifact_id`):
 
 ```yaml
-# fixtures/skill:core.safe-edit-and-verify/manifest.yaml
+# fixtures/skill/core/safe-edit-and-verify/manifest.yaml
 artifact_id: skill:core/safe-edit-and-verify
 description: Validate that the skill produces a planned, verified edit on a small TS file.
 cases:

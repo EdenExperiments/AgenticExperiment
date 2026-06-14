@@ -36,7 +36,7 @@ artifacts:
         encoding="utf-8",
     )
 
-    fixture_root = home / "fixtures" / "skill:skills/core/demo-skill"
+    fixture_root = home / "fixtures" / "skill" / "skills" / "core" / "demo-skill"
     (fixture_root / "inputs").mkdir(parents=True)
     (fixture_root / "inputs" / "case-01.md").write_text("Rename foo to bar.\n", encoding="utf-8")
     (fixture_root / "seed" / "case-01").mkdir(parents=True)

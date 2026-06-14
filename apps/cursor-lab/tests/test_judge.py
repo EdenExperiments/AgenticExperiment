@@ -31,7 +31,7 @@ class _FakeRunRecord:
 
 
 def _fixture_manifest(tmp_path: Path) -> FixtureManifest:
-    root = tmp_path / "fixtures" / "skill:skills/core/demo"
+    root = tmp_path / "fixtures" / "skill" / "skills" / "core" / "demo"
     root.mkdir(parents=True)
     (root / "inputs").mkdir()
     (root / "inputs" / "case-01.md").write_text("Rename foo.\n", encoding="utf-8")
