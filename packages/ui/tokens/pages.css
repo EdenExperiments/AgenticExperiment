@@ -30,13 +30,15 @@
 /* Minimal — clean motivating challenge card */
 [data-theme="minimal"] .gate-section {
   border: 1px solid var(--color-border);
+  border-left: 3px solid var(--color-accent);
   border-radius: var(--radius-md);
   background-color: var(--color-surface);
-  padding: 1rem 1.25rem;
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--shadow-sm);
 }
 
 [data-theme="minimal"] .gate-section__title {
-  font-weight: 700;
+  font-weight: 800;
   color: var(--color-text);
 }
 
@@ -114,17 +116,6 @@
   box-shadow: 0 0 8px rgba(224, 64, 251, 0.4);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  [data-theme="modern"] .gate-section {
-    animation: gate-border-pulse 3s ease-in-out infinite;
-  }
-}
-
-@keyframes gate-border-pulse {
-  0%, 100% { border-color: var(--color-secondary); }
-  50%       { border-color: rgba(224, 64, 251, 0.5); }
-}
-
 
 /* ================================================================== */
 /* ACTIVITY HISTORY (.activity-history)                                */
@@ -144,8 +135,8 @@
   color: var(--color-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.5rem 0 0.25rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: 0.75rem 0 0.375rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
   margin-bottom: 0.25rem;
 }
 
@@ -232,15 +223,22 @@
 
 [data-theme="minimal"] .activity-history .activity-history__entry {
   width: 100%;
-  border-bottom: 1px solid var(--color-border);
-  border-radius: 0;
-  background: transparent;
-  padding: 0.5rem 0;
-  transition: background-color calc(var(--duration-fast, 150ms) * var(--motion-scale, 1));
+  border-bottom: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.125rem;
+  transition:
+    background-color calc(var(--duration-fast, 150ms) * var(--motion-scale, 1)),
+    box-shadow calc(var(--duration-fast, 150ms) * var(--motion-scale, 1));
+}
+
+[data-theme="minimal"] .activity-history .activity-history__entry:nth-child(even) {
+  background-color: color-mix(in srgb, var(--color-surface) 60%, var(--color-bg));
 }
 
 [data-theme="minimal"] .activity-history .activity-history__entry:hover {
-  background-color: var(--color-surface);
+  background-color: color-mix(in srgb, var(--color-accent-muted) 40%, var(--color-surface));
 }
 
 [data-theme="modern"] .activity-history__entry-icon {
@@ -312,26 +310,6 @@
   color: var(--color-muted);
   font-size: 0.6875rem;
   display: block;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  [data-theme="modern"] .activity-history__entry {
-    animation: entry-fade-in calc(300ms * var(--motion-scale)) ease-out both;
-  }
-
-  [data-theme="modern"] .activity-history__entry::before {
-    animation: node-pulse calc(2s * var(--motion-scale)) ease-in-out 1;
-  }
-}
-
-@keyframes entry-fade-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes node-pulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(0, 212, 255, 0.6); }
-  50%       { box-shadow: 0 0 16px rgba(0, 212, 255, 1); }
 }
 
 
@@ -597,6 +575,7 @@
   background-color: var(--color-accent-muted);
   color: var(--color-accent);
   font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--color-accent);
 }
 
 [data-theme="minimal"] .sidebar__item--active .sidebar__item-icon {
@@ -606,6 +585,7 @@
 [data-theme="minimal"] .bottom-tabs {
   background-color: var(--color-surface);
   border-top: 1px solid var(--color-border);
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
 }
 
 [data-theme="minimal"] .bottom-tabs__item--active {
@@ -853,6 +833,59 @@
   display: flex;
   align-items: center;
   min-height: 2rem;
+}
+
+
+/* ================================================================== */
+/* STAT CARD MINIMAL (.stat-card)                                       */
+/* dashboard.md — bold data-forward readouts                              */
+/* ================================================================== */
+
+@media (min-width: 1024px) {
+  [data-theme="minimal"] .stat-card {
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
+      box-shadow calc(var(--duration-fast) * var(--motion-scale)) ease;
+  }
+
+  @media (hover: hover) {
+    [data-theme="minimal"] .stat-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+  }
+
+  [data-theme="minimal"] .stat-card [data-testid="stat-value"] {
+    font-weight: 800;
+  }
+
+  [data-theme="minimal"] .max-w-2xl > .relative.rounded-xl {
+    box-shadow: var(--shadow-md);
+    transition:
+      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
+      box-shadow calc(var(--duration-normal) * var(--motion-scale)) ease;
+  }
+
+  @media (hover: hover) {
+    [data-theme="minimal"] .max-w-2xl > .relative.rounded-xl:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-1px);
+    }
+  }
+
+  [data-theme="minimal"] .skill-card {
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
+      box-shadow calc(var(--duration-fast) * var(--motion-scale)) ease;
+  }
+
+  @media (hover: hover) {
+    [data-theme="minimal"] .skill-card:hover {
+      box-shadow: var(--shadow-md);
+    }
+  }
 }
 
 
@@ -1898,10 +1931,35 @@
 }
 
 
+
+/* ================================================================== */
+/* MINIMAL STYLISH MODE — F-046 additive treatments (motion only)      */
+/* Scoped: [data-theme="minimal"][data-mode="stylish"]                */
+/* Classic carries static theme identity; Stylish adds big animations. */
+/* ================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  @media (min-width: 1024px) {
+    [data-theme="minimal"][data-mode="stylish"] .activity-history__entry {
+      animation: minimal-entry-fade-in calc(250ms * var(--motion-scale)) ease-out both;
+    }
+
+    [data-theme="minimal"][data-mode="stylish"] .activity-history__entry:nth-child(1) { animation-delay: calc(50ms * var(--motion-scale)); }
+    [data-theme="minimal"][data-mode="stylish"] .activity-history__entry:nth-child(2) { animation-delay: calc(100ms * var(--motion-scale)); }
+    [data-theme="minimal"][data-mode="stylish"] .activity-history__entry:nth-child(3) { animation-delay: calc(150ms * var(--motion-scale)); }
+  }
+}
+
+@keyframes minimal-entry-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
 /* ================================================================== */
 /* RETRO STYLISH MODE — F-046 additive treatments                      */
 /* Scoped: [data-theme="retro"][data-mode="stylish"]                  */
-/* Clean mode rules above remain unchanged. Desktop-first atmosphere. */
+/* Classic carries quest-log identity; Stylish adds motion + backdrop. */
 /* ================================================================== */
 
 /* --- Dashboard: quest-log stat cards + primary skill focus --- */
@@ -1910,78 +1968,6 @@
   [data-theme="retro"][data-mode="stylish"] .stat-card {
     position: relative;
     border-color: color-mix(in srgb, var(--color-accent) 35%, var(--color-border));
-/* MINIMAL STYLISH MODE — F-046 additive treatments                    */
-/* Scoped: [data-theme="minimal"][data-mode="stylish"]                */
-/* Clean mode rules above remain unchanged. Desktop-first atmosphere. */
-/* ================================================================== */
-
-/* --- Dashboard: stat cards + primary skill focus --- */
-
-@media (min-width: 1024px) {
-  [data-theme="minimal"][data-mode="stylish"] .stat-card {
-    box-shadow: var(--shadow-sm);
-    transition:
-      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
-      box-shadow calc(var(--duration-fast) * var(--motion-scale)) ease;
-  }
-
-  @media (hover: hover) {
-    [data-theme="minimal"][data-mode="stylish"] .stat-card:hover {
-      box-shadow: var(--shadow-md);
-      transform: translateY(-2px);
-    }
-  }
-
-  [data-theme="minimal"][data-mode="stylish"] .stat-card [data-testid="stat-value"] {
-    font-weight: 800;
-  }
-
-  /* Primary skill focus card (dashboard) */
-  [data-theme="minimal"][data-mode="stylish"] .max-w-2xl > .relative.rounded-xl {
-    box-shadow: var(--shadow-md);
-    transition:
-      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
-      box-shadow calc(var(--duration-normal) * var(--motion-scale)) ease;
-  }
-
-  @media (hover: hover) {
-    [data-theme="minimal"][data-mode="stylish"] .max-w-2xl > .relative.rounded-xl:hover {
-      box-shadow: var(--shadow-lg);
-      transform: translateY(-1px);
-    }
-  }
-}
-
-/* --- Skill cards --- */
-
-@media (min-width: 1024px) {
-  [data-theme="minimal"][data-mode="stylish"] .skill-card {
-    box-shadow: var(--shadow-sm);
-    transition:
-      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
-      box-shadow calc(var(--duration-fast) * var(--motion-scale)) ease;
-  }
-
-  @media (hover: hover) {
-    [data-theme="minimal"][data-mode="stylish"] .skill-card:hover {
-/* MODERN STYLISH MODE — F-046 additive treatments                   */
-/* Scoped: [data-theme="modern"][data-mode="stylish"]                 */
-/* Clean mode rules above remain unchanged. Desktop-first atmosphere. */
-/* ================================================================== */
-
-/* --- Dashboard: HUD stat readouts + active mission briefing --- */
-
-@media (min-width: 1024px) {
-  @supports (backdrop-filter: blur(1px)) {
-    [data-theme="modern"][data-mode="stylish"] .stat-card {
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      background-color: rgba(15, 23, 42, 0.55);
-      border-color: rgba(0, 212, 255, 0.2);
-    }
-  }
-
-  [data-theme="modern"][data-mode="stylish"] .stat-card {
     box-shadow: var(--shadow-sm);
     transition:
       transform calc(var(--duration-fast) * var(--motion-scale)) ease,
@@ -1989,7 +1975,6 @@
       border-color calc(var(--duration-fast) * var(--motion-scale)) ease;
   }
 
-  /* Pixel corner accents */
   [data-theme="retro"][data-mode="stylish"] .stat-card::before,
   [data-theme="retro"][data-mode="stylish"] .stat-card::after {
     content: '';
@@ -2026,7 +2011,6 @@
     text-shadow: 0 0 8px rgba(212, 168, 83, 0.35);
   }
 
-  /* Primary skill focus — quest-log / save-state framing */
   [data-theme="retro"][data-mode="stylish"] .max-w-2xl > .relative.rounded-xl {
     border: 2px solid color-mix(in srgb, var(--color-accent) 40%, var(--color-border));
     box-shadow:
@@ -2047,12 +2031,166 @@
   }
 }
 
-/* --- Skill cards — warm borders, pixel accents --- */
-
 @media (min-width: 1024px) {
   [data-theme="retro"][data-mode="stylish"] .skill-card {
     position: relative;
     border-color: color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
+      box-shadow calc(var(--duration-fast) * var(--motion-scale)) ease,
+      border-color calc(var(--duration-fast) * var(--motion-scale)) ease;
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .skill-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid var(--color-accent);
+    border-left: 2px solid var(--color-accent);
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  @media (hover: hover) {
+    [data-theme="retro"][data-mode="stylish"] .skill-card:hover {
+      border-color: var(--color-accent);
+      box-shadow: var(--shadow-md);
+    }
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-theme="retro"][data-mode="stylish"] .gate-section {
+    border-width: 2px;
+    border-color: var(--color-secondary);
+    box-shadow:
+      0 0 0 1px var(--color-secondary),
+      inset 0 0 0 1px rgba(107, 33, 168, 0.4),
+      0 4px 16px rgba(0, 0, 0, 0.5),
+      0 0 20px rgba(107, 33, 168, 0.15);
+    padding: 1.5rem 1.75rem;
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .gate-section__title {
+    text-shadow: 0 0 12px rgba(107, 33, 168, 0.6);
+    letter-spacing: 0.05em;
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .gate-section__progress-bar-fill {
+    box-shadow: 0 0 8px rgba(147, 51, 234, 0.5);
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-theme="retro"][data-mode="stylish"] .activity-history {
+    gap: 0.625rem;
+    padding: 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--color-border));
+    border-radius: var(--radius-md);
+    background-color: rgba(10, 10, 18, 0.5);
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .activity-history__date-header {
+    border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
+    padding-bottom: 0.375rem;
+    text-shadow: 0 0 6px rgba(212, 168, 83, 0.3);
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .activity-history__entry {
+    border-color: color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
+    background-color: rgba(26, 26, 46, 0.7);
+    box-shadow: inset 0 1px 0 rgba(212, 168, 83, 0.06);
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .activity-history__entry-icon {
+    text-shadow: 0 0 6px rgba(212, 168, 83, 0.5);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @media (min-width: 1024px) {
+    [data-theme="retro"][data-mode="stylish"] .activity-history__entry {
+      animation: retro-journal-reveal calc(300ms * var(--motion-scale)) steps(4) both;
+    }
+
+    [data-theme="retro"][data-mode="stylish"] .activity-history__entry:nth-child(1) { animation-delay: calc(60ms * var(--motion-scale)); }
+    [data-theme="retro"][data-mode="stylish"] .activity-history__entry:nth-child(2) { animation-delay: calc(120ms * var(--motion-scale)); }
+    [data-theme="retro"][data-mode="stylish"] .activity-history__entry:nth-child(3) { animation-delay: calc(180ms * var(--motion-scale)); }
+  }
+}
+
+@keyframes retro-journal-reveal {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@media (min-width: 1024px) {
+  [data-theme="retro"][data-mode="stylish"] .sidebar__item--active {
+    background-color: rgba(212, 168, 83, 0.15);
+    box-shadow:
+      inset 3px 0 0 var(--color-accent),
+      0 0 8px rgba(212, 168, 83, 0.1);
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .sidebar__item--active::after {
+    content: '▸';
+    position: absolute;
+    right: 0.75rem;
+    color: var(--color-accent);
+    font-size: 0.75rem;
+    text-shadow: 0 0 4px rgba(212, 168, 83, 0.5);
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .sidebar__item {
+    position: relative;
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .sidebar__item:hover {
+    background-color: rgba(212, 168, 83, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(212, 168, 83, 0.15);
+  }
+}
+
+[data-theme="retro"][data-mode="stylish"] .bottom-tabs {
+  border-top-color: color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+}
+
+@media (min-width: 1024px) {
+  [data-theme="retro"][data-mode="stylish"] .bottom-tabs {
+    box-shadow: none;
+  }
+}
+
+
+/* ================================================================== */
+/* MODERN STYLISH MODE — F-046 additive treatments                   */
+/* Scoped: [data-theme="modern"][data-mode="stylish"]                 */
+/* Classic carries HUD/glass identity; Stylish adds big animations.    */
+/* ================================================================== */
+
+@media (min-width: 1024px) {
+  @supports (backdrop-filter: blur(1px)) {
+    [data-theme="modern"][data-mode="stylish"] .stat-card {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background-color: rgba(15, 23, 42, 0.55);
+      border-color: rgba(0, 212, 255, 0.2);
+    }
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .stat-card {
+    transition:
+      transform calc(var(--duration-fast) * var(--motion-scale)) ease,
+      box-shadow calc(var(--duration-fast) * var(--motion-scale)) ease,
+      border-color calc(var(--duration-fast) * var(--motion-scale)) ease;
+  }
+
   [data-theme="modern"][data-mode="stylish"] .stat-card::after {
     content: '';
     position: absolute;
@@ -2087,7 +2225,6 @@
     color: var(--color-accent);
   }
 
-  /* Primary skill — active mission briefing card */
   [data-theme="modern"][data-mode="stylish"] .max-w-2xl > .relative.rounded-xl {
     border-color: rgba(0, 212, 255, 0.25);
     box-shadow:
@@ -2117,35 +2254,15 @@
   }
 }
 
-/* --- Skill cards — glass panels with subtle glow --- */
-
 @media (min-width: 1024px) {
   [data-theme="modern"][data-mode="stylish"] .skill-card {
     border-color: rgba(0, 212, 255, 0.18);
-    box-shadow: var(--shadow-sm);
     transition:
       transform calc(var(--duration-fast) * var(--motion-scale)) ease,
       box-shadow calc(var(--duration-fast) * var(--motion-scale)) ease,
       border-color calc(var(--duration-fast) * var(--motion-scale)) ease;
   }
 
-  [data-theme="retro"][data-mode="stylish"] .skill-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 8px;
-    height: 8px;
-    border-top: 2px solid var(--color-accent);
-    border-left: 2px solid var(--color-accent);
-    opacity: 0.6;
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  @media (hover: hover) {
-    [data-theme="retro"][data-mode="stylish"] .skill-card:hover {
-      border-color: var(--color-accent);
   @supports (backdrop-filter: blur(1px)) {
     [data-theme="modern"][data-mode="stylish"] .skill-card {
       backdrop-filter: blur(10px);
@@ -2162,96 +2279,8 @@
   }
 }
 
-/* --- Gate section — RPG challenge presentation --- */
-
-@media (min-width: 1024px) {
-  [data-theme="retro"][data-mode="stylish"] .gate-section {
-    border-width: 2px;
-    border-color: var(--color-secondary);
-    box-shadow:
-      0 0 0 1px var(--color-secondary),
-      inset 0 0 0 1px rgba(107, 33, 168, 0.4),
-      0 4px 16px rgba(0, 0, 0, 0.5),
-      0 0 20px rgba(107, 33, 168, 0.15);
-    padding: 1.5rem 1.75rem;
-  }
-
-  [data-theme="retro"][data-mode="stylish"] .gate-section__title {
-    text-shadow: 0 0 12px rgba(107, 33, 168, 0.6);
-    letter-spacing: 0.05em;
-  }
-
-  [data-theme="retro"][data-mode="stylish"] .gate-section__progress-bar-fill {
-    box-shadow: 0 0 8px rgba(147, 51, 234, 0.5);
-  }
-}
-
-/* --- Activity history — game journal styling --- */
-
-@media (min-width: 1024px) {
-  [data-theme="retro"][data-mode="stylish"] .activity-history {
-    gap: 0.625rem;
-    padding: 0.5rem;
-    border: 1px solid color-mix(in srgb, var(--color-accent) 20%, var(--color-border));
-    border-radius: var(--radius-md);
-    background-color: rgba(10, 10, 18, 0.5);
-  }
-
-  [data-theme="retro"][data-mode="stylish"] .activity-history__date-header {
-    border-bottom: 1px solid color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
-    padding-bottom: 0.375rem;
-    text-shadow: 0 0 6px rgba(212, 168, 83, 0.3);
-  }
-
-  [data-theme="retro"][data-mode="stylish"] .activity-history__entry {
-    border-color: color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
-    background-color: rgba(26, 26, 46, 0.7);
-    box-shadow: inset 0 1px 0 rgba(212, 168, 83, 0.06);
-  }
-
-  [data-theme="retro"][data-mode="stylish"] .activity-history__entry-icon {
-    text-shadow: 0 0 6px rgba(212, 168, 83, 0.5);
-/* --- Gate section — enhanced challenge card --- */
-
-@media (min-width: 1024px) {
-  [data-theme="minimal"][data-mode="stylish"] .gate-section {
-    border-left: 3px solid var(--color-accent);
-    box-shadow: var(--shadow-md);
-    padding: 1.25rem 1.5rem;
-  }
-
-  [data-theme="minimal"][data-mode="stylish"] .gate-section__title {
-    font-weight: 800;
-  }
-}
-
-/* --- Activity history — styled list --- */
-
-@media (min-width: 1024px) {
-  [data-theme="minimal"][data-mode="stylish"] .activity-history {
-    gap: 0.25rem;
-  }
-
-  [data-theme="minimal"][data-mode="stylish"] .activity-history__date-header {
-    padding: 0.75rem 0 0.375rem;
-    border-bottom-color: color-mix(in srgb, var(--color-accent) 25%, var(--color-border));
-  }
-
-  [data-theme="minimal"][data-mode="stylish"] .activity-history__entry {
-    padding: 0.5rem 0.75rem;
-    border-bottom: none;
-    border-radius: var(--radius-sm);
-    background-color: var(--color-surface);
-    margin-bottom: 0.125rem;
-  }
-
-  [data-theme="minimal"][data-mode="stylish"] .activity-history__entry:nth-child(even) {
-    background-color: color-mix(in srgb, var(--color-surface) 60%, var(--color-bg));
-/* --- Gate section — holographic security checkpoint --- */
-
 @media (min-width: 1024px) {
   [data-theme="modern"][data-mode="stylish"] .gate-section {
-    border-color: var(--color-secondary);
     box-shadow:
       var(--shadow-md),
       0 0 24px rgba(224, 64, 251, 0.12),
@@ -2296,18 +2325,25 @@
 
 @media (prefers-reduced-motion: no-preference) {
   @media (min-width: 1024px) {
+    [data-theme="modern"][data-mode="stylish"] .gate-section {
+      animation: gate-border-pulse calc(3s * var(--motion-scale)) ease-in-out infinite;
+    }
+
     [data-theme="modern"][data-mode="stylish"] .gate-section::after {
       animation: modern-gate-shimmer calc(4s * var(--motion-scale)) ease-in-out infinite;
     }
   }
 }
 
+@keyframes gate-border-pulse {
+  0%, 100% { border-color: var(--color-secondary); }
+  50%       { border-color: rgba(224, 64, 251, 0.5); }
+}
+
 @keyframes modern-gate-shimmer {
   0%, 100% { opacity: 0.4; transform: translateX(-10%); }
   50%       { opacity: 0.8; transform: translateX(10%); }
 }
-
-/* --- Activity history — scrolling data log --- */
 
 @media (min-width: 1024px) {
   [data-theme="modern"][data-mode="stylish"] .activity-history {
@@ -2357,52 +2393,6 @@
 
 @media (prefers-reduced-motion: no-preference) {
   @media (min-width: 1024px) {
-    [data-theme="retro"][data-mode="stylish"] .activity-history__entry {
-      animation: retro-journal-reveal calc(300ms * var(--motion-scale)) steps(4) both;
-    }
-
-    [data-theme="retro"][data-mode="stylish"] .activity-history__entry:nth-child(1) { animation-delay: calc(60ms * var(--motion-scale)); }
-    [data-theme="retro"][data-mode="stylish"] .activity-history__entry:nth-child(2) { animation-delay: calc(120ms * var(--motion-scale)); }
-    [data-theme="retro"][data-mode="stylish"] .activity-history__entry:nth-child(3) { animation-delay: calc(180ms * var(--motion-scale)); }
-  }
-}
-
-@keyframes retro-journal-reveal {
-    [data-theme="minimal"][data-mode="stylish"] .activity-history__entry {
-      animation: minimal-entry-fade-in calc(250ms * var(--motion-scale)) ease-out both;
-    }
-
-    [data-theme="minimal"][data-mode="stylish"] .activity-history__entry:nth-child(1) { animation-delay: calc(50ms * var(--motion-scale)); }
-    [data-theme="minimal"][data-mode="stylish"] .activity-history__entry:nth-child(2) { animation-delay: calc(100ms * var(--motion-scale)); }
-    [data-theme="minimal"][data-mode="stylish"] .activity-history__entry:nth-child(3) { animation-delay: calc(150ms * var(--motion-scale)); }
-  }
-}
-
-@keyframes minimal-entry-fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* --- Navigation — light sidebar / bottom-tab atmosphere --- */
-
-@media (min-width: 1024px) {
-  [data-theme="minimal"][data-mode="stylish"] .sidebar__item--active {
-    box-shadow: inset 3px 0 0 var(--color-accent);
-    background-color: var(--color-accent-muted);
-  }
-
-  [data-theme="minimal"][data-mode="stylish"] .sidebar__item:hover {
-    background-color: color-mix(in srgb, var(--color-accent-muted) 70%, transparent);
-  }
-}
-
-[data-theme="minimal"][data-mode="stylish"] .bottom-tabs {
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
-}
-
-@media (min-width: 1024px) {
-  [data-theme="minimal"][data-mode="stylish"] .bottom-tabs {
-    box-shadow: none;
     [data-theme="modern"][data-mode="stylish"] .activity-history__entry {
       animation: modern-log-fade-in calc(300ms * var(--motion-scale)) ease-out both;
     }
@@ -2422,44 +2412,10 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* --- Navigation — game-menu atmosphere --- */
-
-@media (min-width: 1024px) {
-  [data-theme="retro"][data-mode="stylish"] .sidebar__item--active {
-    background-color: rgba(212, 168, 83, 0.15);
-    box-shadow:
-      inset 3px 0 0 var(--color-accent),
-      0 0 8px rgba(212, 168, 83, 0.1);
-  }
-
-  [data-theme="retro"][data-mode="stylish"] .sidebar__item--active::after {
-    content: '▸';
-    position: absolute;
-    right: 0.75rem;
-    color: var(--color-accent);
-    font-size: 0.75rem;
-    text-shadow: 0 0 4px rgba(212, 168, 83, 0.5);
-  }
-
-  [data-theme="retro"][data-mode="stylish"] .sidebar__item {
-    position: relative;
-  }
-
-  [data-theme="retro"][data-mode="stylish"] .sidebar__item:hover {
-    background-color: rgba(212, 168, 83, 0.1);
-    box-shadow: inset 0 0 0 1px rgba(212, 168, 83, 0.15);
-  }
+@keyframes node-pulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 212, 255, 0.6); }
+  50%       { box-shadow: 0 0 16px rgba(0, 212, 255, 1); }
 }
-
-[data-theme="retro"][data-mode="stylish"] .bottom-tabs {
-  border-top-color: color-mix(in srgb, var(--color-accent) 30%, var(--color-border));
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
-}
-
-@media (min-width: 1024px) {
-  [data-theme="retro"][data-mode="stylish"] .bottom-tabs {
-    box-shadow: none;
-/* --- Navigation — glass HUD atmosphere --- */
 
 @media (min-width: 1024px) {
   [data-theme="modern"][data-mode="stylish"] .sidebar__item--active {
