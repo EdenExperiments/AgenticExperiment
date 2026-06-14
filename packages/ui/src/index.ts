@@ -1,6 +1,6 @@
 export { ThemeProvider, setTheme, setMode } from './ThemeProvider'
-export { VALID_THEMES, VALID_MODES } from './themeConstants'
-export type { Theme, VisualMode } from './themeConstants'
+export { VALID_THEMES, VALID_MODES, PRODUCT_THEMES, isResolvableTheme, isLifeQuestTheme } from './themeConstants'
+export type { Theme, VisualMode, LifeQuestTheme, ProductTheme } from './themeConstants'
 export { ThemeSwitcher } from './ThemeSwitcher'
 export { ModeSwitcher } from './ModeSwitcher'
 export { XPProgressBar } from './XPProgressBar'

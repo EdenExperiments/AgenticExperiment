@@ -1,26 +1,26 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { type Theme, VALID_THEMES, setTheme } from './ThemeProvider'
+import { type LifeQuestTheme, VALID_THEMES, isLifeQuestTheme, setTheme } from './ThemeProvider'
 
 interface ThemeSwitcherProps {
   className?: string
 }
 
-const THEME_LABELS: Record<Theme, string> = {
+const THEME_LABELS: Record<LifeQuestTheme, string> = {
   minimal: 'Minimal',
   retro: 'Retro',
   modern: 'Modern',
 }
 
 export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
-  const [activeTheme, setActiveTheme] = useState<Theme>('minimal')
+  const [activeTheme, setActiveTheme] = useState<LifeQuestTheme>('minimal')
 
   useEffect(() => {
     // Read the resolved theme from the html element
     function readTheme() {
-      const attr = document.documentElement.getAttribute('data-theme') as Theme | null
-      if (attr && VALID_THEMES.includes(attr)) {
+      const attr = document.documentElement.getAttribute('data-theme')
+      if (attr && isLifeQuestTheme(attr)) {
         setActiveTheme(attr)
       } else {
         setActiveTheme('minimal')
@@ -38,7 +38,7 @@ export function ThemeSwitcher({ className }: ThemeSwitcherProps) {
     return () => observer.disconnect()
   }, [])
 
-  function handleSelect(theme: Theme) {
+  function handleSelect(theme: LifeQuestTheme) {
     setTheme(theme)
     setActiveTheme(theme)
   }

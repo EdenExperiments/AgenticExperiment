@@ -3,13 +3,15 @@
 import { useEffect, type ReactNode } from 'react'
 import {
   type Theme,
+  type LifeQuestTheme,
   type VisualMode,
-  VALID_THEMES,
+  isLifeQuestTheme,
+  isResolvableTheme,
   VALID_MODES,
 } from './themeConstants'
 
-export type { Theme, VisualMode } from './themeConstants'
-export { VALID_THEMES, VALID_MODES } from './themeConstants'
+export type { Theme, VisualMode, LifeQuestTheme, ProductTheme } from './themeConstants'
+export { VALID_THEMES, VALID_MODES, PRODUCT_THEMES, isResolvableTheme, isLifeQuestTheme } from './themeConstants'
 
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365
 
@@ -21,7 +23,7 @@ interface ThemeProviderProps {
 
 export function ThemeProvider({ theme, mode = 'clean', children }: ThemeProviderProps) {
   useEffect(() => {
-    const resolved: Theme = VALID_THEMES.includes(theme) ? theme : 'minimal'
+    const resolved: Theme = isResolvableTheme(theme) ? theme : 'minimal'
     document.documentElement.setAttribute('data-theme', resolved)
     if (resolved !== theme) {
       document.cookie = `rpgt-theme=${resolved}; path=/; max-age=${ONE_YEAR_SECONDS}; SameSite=Lax`
@@ -39,8 +41,8 @@ export function ThemeProvider({ theme, mode = 'clean', children }: ThemeProvider
   return <>{children}</>
 }
 
-export function setTheme(theme: Theme): void {
-  if (!VALID_THEMES.includes(theme)) return
+export function setTheme(theme: LifeQuestTheme): void {
+  if (!isLifeQuestTheme(theme)) return
   document.documentElement.setAttribute('data-theme', theme)
   document.cookie = `rpgt-theme=${theme}; path=/; max-age=${ONE_YEAR_SECONDS}; SameSite=Lax`
 }

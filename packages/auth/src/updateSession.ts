@@ -5,6 +5,10 @@ import { getSupabaseUrl, getSupabasePublishableKey } from './env'
 type CookieToSet = Parameters<NonNullable<CookieMethodsServer['setAll']>>[0][number]
 type HeadersToSet = Parameters<NonNullable<CookieMethodsServer['setAll']>>[1]
 
+type SessionClaims = {
+  sub?: string
+} | null | undefined
+
 /**
  * Supabase session refresh — matches the official Next.js + @supabase/ssr proxy pattern.
  * Call getClaims() immediately after createServerClient; return the mutable response.
@@ -12,6 +16,7 @@ type HeadersToSet = Parameters<NonNullable<CookieMethodsServer['setAll']>>[1]
 export async function updateSession(request: NextRequest): Promise<{
   supabase: ReturnType<typeof createServerClient>
   response: NextResponse
+  claims: SessionClaims
 }> {
   let response = NextResponse.next({ request })
 

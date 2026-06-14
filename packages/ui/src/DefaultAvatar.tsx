@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { type Theme, VALID_THEMES } from './ThemeProvider'
+import { type Theme, VALID_THEMES, isLifeQuestTheme } from './ThemeProvider'
 
 interface DefaultAvatarProps {
   displayName: string | null
@@ -193,7 +193,7 @@ export function DefaultAvatar({ displayName, size, onClick, className = '' }: De
   useEffect(() => {
     function readTheme() {
       const attr = document.documentElement.getAttribute('data-theme') as Theme | null
-      setThemeState(attr && VALID_THEMES.includes(attr) ? attr : 'minimal')
+      setThemeState(attr && isLifeQuestTheme(attr) ? attr : 'minimal')
     }
     readTheme()
     const observer = new MutationObserver(readTheme)

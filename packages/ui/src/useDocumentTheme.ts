@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import type { Theme, VisualMode } from './themeConstants'
-import { VALID_MODES, VALID_THEMES } from './themeConstants'
+import { VALID_MODES, isResolvableTheme } from './themeConstants'
 
 export interface DocumentThemeState {
   theme: Theme
@@ -18,7 +18,7 @@ function readDocumentTheme(): DocumentThemeState {
   const modeAttr = document.documentElement.getAttribute('data-mode') as VisualMode | null
 
   return {
-    theme: themeAttr && VALID_THEMES.includes(themeAttr) ? themeAttr : 'minimal',
+    theme: themeAttr && isResolvableTheme(themeAttr) ? themeAttr : 'minimal',
     mode: modeAttr && VALID_MODES.includes(modeAttr) ? modeAttr : 'clean',
   }
 }

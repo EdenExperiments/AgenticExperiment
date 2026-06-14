@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { type Theme, VALID_THEMES } from './ThemeProvider'
+import { type Theme, isLifeQuestTheme } from './ThemeProvider'
 import { DefaultAvatar } from './DefaultAvatar'
 
 interface CategoryCount {
@@ -140,7 +140,7 @@ export function PlayerCard({
   useEffect(() => {
     function readTheme() {
       const attr = document.documentElement.getAttribute('data-theme') as Theme | null
-      setThemeState(attr && VALID_THEMES.includes(attr) ? attr : 'minimal')
+      setThemeState(attr && isLifeQuestTheme(attr) ? attr : 'minimal')
     }
     readTheme()
     const observer = new MutationObserver(readTheme)

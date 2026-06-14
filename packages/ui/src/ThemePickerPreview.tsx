@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { type Theme, VALID_THEMES, setTheme } from './ThemeProvider'
+import { type LifeQuestTheme, type Theme, VALID_THEMES, isLifeQuestTheme, setTheme } from './ThemeProvider'
 
 interface ThemeOption {
-  id: Theme
+  id: LifeQuestTheme
   name: string
   description: string
   /** CSS colour values representing this theme's palette — used as dot swatches */
@@ -46,12 +46,12 @@ interface ThemePickerPreviewProps {
  * - Clicking immediately switches theme via setTheme()
  */
 export function ThemePickerPreview({ className = '' }: ThemePickerPreviewProps) {
-  const [activeTheme, setActiveTheme] = useState<Theme>('minimal')
+  const [activeTheme, setActiveTheme] = useState<LifeQuestTheme>('minimal')
 
   useEffect(() => {
     function readTheme() {
-      const attr = document.documentElement.getAttribute('data-theme') as Theme | null
-      setActiveTheme(attr && VALID_THEMES.includes(attr) ? attr : 'minimal')
+      const attr = document.documentElement.getAttribute('data-theme')
+      setActiveTheme(attr && isLifeQuestTheme(attr) ? attr : 'minimal')
     }
     readTheme()
     const observer = new MutationObserver(readTheme)
@@ -59,13 +59,13 @@ export function ThemePickerPreview({ className = '' }: ThemePickerPreviewProps) 
     return () => observer.disconnect()
   }, [])
 
-  function handleSelect(theme: Theme) {
+  function handleSelect(theme: LifeQuestTheme) {
     setTheme(theme)
     setActiveTheme(theme)
   }
 
-  function handleKeyDown(e: React.KeyboardEvent, theme: Theme, index: number) {
-    let next: Theme | undefined
+  function handleKeyDown(e: React.KeyboardEvent, theme: LifeQuestTheme, index: number) {
+    let next: LifeQuestTheme | undefined
     if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
       e.preventDefault()
       next = VALID_THEMES[(index + 1) % VALID_THEMES.length]
