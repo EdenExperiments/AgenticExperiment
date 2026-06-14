@@ -35,112 +35,71 @@ export function SessionTimerRetro({
   const mins = Math.floor(displaySeconds / 60)
   const secs = displaySeconds % 60
   const isBreak = phase === 'break'
+  const phaseClass = isBreak ? 'session-page--break' : 'session-page--work'
 
   const currentXP = computeSessionXP(workMinutesFromSeconds(elapsedWorkSeconds), tierNumber)
+  const progressWidth = isSimple
+    ? `${Math.min(elapsedWorkSeconds / 3600, 1) * 100}%`
+    : `${Math.max(0, 100 - (remainingSeconds / (phase === 'work' ? 1500 : 300)) * 100)}%`
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6"
-      style={{ background: 'var(--color-bg)' }}
+      className={`session-page ${phaseClass} fixed inset-0 z-50 flex flex-col items-center justify-center p-6${isPaused ? ' session-page--paused' : ''}`}
     >
-      {/* Phase label */}
-      <p
-        className="text-[10px] md:text-xs tracking-[0.3em] uppercase mb-6"
-        style={{
-          fontFamily: 'var(--font-display)',
-          color: isBreak ? 'var(--color-muted)' : 'var(--color-accent)',
-        }}
-      >
-        {isSimple ? '— Grinding —' : isBreak ? '— Rest Phase —' : '— Battle Phase —'}
-      </p>
-
-      {/* Timer display */}
-      <div
-        className="text-4xl md:text-6xl lg:text-7xl tabular-nums mb-4"
-        style={{
-          fontFamily: 'var(--font-display)',
-          color: 'var(--color-accent)',
-          opacity: isBreak ? 0.5 : 1,
-          textShadow: isBreak ? 'none' : '0 0 20px var(--color-accent)',
-        }}
-      >
-        {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
-      </div>
-
-      {/* Round counter */}
-      {!isSimple && (
-        <p
-          className="text-[8px] md:text-[10px] tracking-[0.2em] uppercase mb-2"
-          style={{ fontFamily: 'var(--font-display)', color: 'var(--color-muted)' }}
-        >
-          Round {currentRound} / {totalRounds}
-        </p>
-      )}
-
-      {/* XP ticking counter */}
-      {!isBreak && (
-        <div
-          className="text-sm md:text-base tabular-nums mb-6"
-          style={{
-            fontFamily: 'var(--font-display)',
-            color: 'var(--color-accent)',
-            animation: isPaused ? 'none' : `retro-pulse calc(1s * var(--motion-scale, 1)) ease-in-out infinite`,
-          }}
-        >
-          {currentXP} XP
+      {/* Stylish-only beat-em-up backdrop (img_23 vision); hidden in Clean via CSS */}
+      <div className="session-page__backdrop" aria-hidden="true">
+        <div className="session-page__backdrop-parallax" />
+        <div className="session-page__backdrop-dojo" />
+        <div className="session-page__backdrop-fighters">
+          <div className="session-page__fighter session-page__fighter--hero" />
+          <div className="session-page__fighter session-page__fighter--dummy" />
         </div>
-      )}
+        <div className="session-page__backdrop-vignette" />
+      </div>
 
-      {/* Skill name */}
-      <p
-        className="text-xs md:text-sm mb-8"
-        style={{
-          fontFamily: 'var(--font-display)',
-          color: 'var(--color-text-secondary)',
-          opacity: isBreak ? 0.5 : 1,
-        }}
-      >
-        {skillName}
-      </p>
+      <div className="session-page__content relative z-10 flex flex-col items-center justify-center w-full">
+        <p className="session-page__phase text-[10px] md:text-xs tracking-[0.3em] uppercase mb-6">
+          {isSimple ? '— Grinding —' : isBreak ? '— Rest Phase —' : '— Battle Phase —'}
+        </p>
 
-      {/* Pixel progress bar */}
-      <div
-        className="w-48 md:w-64 lg:w-80 h-3 md:h-4 rounded mb-8"
-        style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
-      >
+        <div className="session-page__timer text-4xl md:text-6xl lg:text-7xl tabular-nums mb-4">
+          {String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}
+        </div>
+
+        {!isSimple && (
+          <p className="session-page__round text-[8px] md:text-[10px] tracking-[0.2em] uppercase mb-2">
+            Round {currentRound} / {totalRounds}
+          </p>
+        )}
+
+        {!isBreak && (
+          <div className="session-page__xp text-sm md:text-base tabular-nums mb-6">{currentXP} XP</div>
+        )}
+
+        <p className="session-page__skill text-xs md:text-sm mb-8">{skillName}</p>
+
         <div
-          className="h-full rounded transition-all"
-          style={{
-            background: 'var(--color-accent)',
-            width: isSimple
-              ? `${Math.min(elapsedWorkSeconds / 3600, 1) * 100}%`
-              : `${Math.max(0, 100 - (remainingSeconds / (phase === 'work' ? 1500 : 300)) * 100)}%`,
-          }}
-        />
-      </div>
-
-      {/* Controls */}
-      <div className="flex gap-3">
-        <button
-          onClick={isPaused ? onResume : onPause}
-          className="btn btn-ghost px-5 py-3 min-h-[44px]"
+          className="session-page__progress w-48 md:w-64 lg:w-80 h-3 md:h-4 rounded mb-8"
+          style={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)' }}
         >
-          {isPaused ? 'Resume' : 'Pause'}
-        </button>
-        <button
-          onClick={onEndEarly}
-          className="btn btn-ghost px-5 py-3 min-h-[44px]"
-        >
-          End Session
-        </button>
-      </div>
+          <div
+            className="session-page__progress-fill h-full rounded transition-all"
+            style={{ background: 'var(--color-accent)', width: progressWidth }}
+          />
+        </div>
 
-      <style>{`
-        @keyframes retro-pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.7; }
-        }
-      `}</style>
+        <div className="session-page__controls flex gap-3">
+          <button
+            onClick={isPaused ? onResume : onPause}
+            className="btn btn-ghost px-5 py-3 min-h-[44px]"
+          >
+            {isPaused ? 'Resume' : 'Pause'}
+          </button>
+          <button onClick={onEndEarly} className="btn btn-ghost px-5 py-3 min-h-[44px]">
+            End Session
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

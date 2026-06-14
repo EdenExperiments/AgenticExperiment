@@ -18,6 +18,18 @@ All theme differentiation follows this layering (D-035):
 
 **Rule:** Always try Layer 1 first. Only reach for Layer 2 if CSS properties alone can't express the difference. Layer 3 is a last resort for genuinely different component structures.
 
+### Visual mode (Clean vs Stylish)
+
+Orthogonal to theme: `data-mode="clean"` (user-facing **Classic/Clean**) vs `data-mode="stylish"`.
+
+| Layer | Clean | Stylish |
+|-------|-------|---------|
+| Tokens | Base theme `--motion-scale` | Additive overrides in `minimal.css` / `retro.css` / `modern.css` |
+| CSS | Theme-scoped rules only | `[data-theme="…"][data-mode="stylish"]` additive treatments |
+| Components | Stable class hooks (e.g. `.session-page__*`) | Same markup; flair via CSS, not duplicate variants |
+
+Stylish never changes behaviour or layout — only atmosphere, motion, and elevation. Session/Pomodoro flair lives in `pages.css` under `.session-page` hooks.
+
 ---
 
 ## Design Tokens (CSS Custom Properties)

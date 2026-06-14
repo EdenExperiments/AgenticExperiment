@@ -1029,84 +1029,369 @@
 
 /* ================================================================== */
 /* SESSION PAGE (.session-page)                                        */
-/* session.md — full-screen timer immersion                           */
+/* session.md — full-screen timer immersion; clean vs stylish (D-043) */
 /* ================================================================== */
 
-/* Minimal — meditation-app calm */
+/* --- Shared structure --- */
+
+.session-page__phase {
+  color: var(--color-muted);
+}
+
+.session-page__skill {
+  color: var(--color-text-secondary, var(--color-text));
+}
+
+.session-page__round {
+  color: var(--color-muted);
+}
+
+.session-page__panel {
+  background: var(--color-bg-elevated);
+  border-color: var(--color-border-strong);
+}
+
+.session-page__timer-glow {
+  display: none;
+}
+
+.session-page--break .session-page__skill,
+.session-page--break .session-page__timer {
+  opacity: 0.6;
+}
+
+.session-page--paused .session-page__timer-ring,
+.session-page--paused .session-page__timer-glow,
+.session-page--paused .session-page__xp {
+  animation-play-state: paused !important;
+}
+
+/* --- Minimal — meditation-app calm --- */
+
 [data-theme="minimal"] .session-page {
   background-color: var(--color-bg);
 }
 
 [data-theme="minimal"] .session-page__timer {
-  font-family: var(--font-display);
+  font-family: var(--font-body, var(--font-display));
   color: var(--color-text);
 }
 
 [data-theme="minimal"] .session-page__break-indicator {
-  color: var(--color-break);
+  color: var(--color-break, var(--color-accent));
   background-color: rgba(37, 99, 235, 0.08);
   border-radius: var(--radius-md);
   padding: 0.25rem 0.75rem;
 }
 
-/* Retro — battle screen training montage */
+/* --- Retro — battle screen --- */
+
 [data-theme="retro"] .session-page {
   background-color: var(--color-bg);
+}
+
+[data-theme="retro"] .session-page__phase {
+  font-family: var(--font-display);
+  color: var(--color-accent);
+}
+
+[data-theme="retro"] .session-page--break .session-page__phase {
+  color: var(--color-muted);
 }
 
 [data-theme="retro"] .session-page__timer {
   font-family: var(--font-display);
   color: var(--color-accent);
-  text-shadow: 0 0 12px rgba(212, 168, 83, 0.4);
+}
+
+[data-theme="retro"] .session-page--work .session-page__timer {
+  text-shadow: 0 0 12px rgba(212, 168, 83, 0.35);
+}
+
+[data-theme="retro"] .session-page__round,
+[data-theme="retro"] .session-page__xp {
+  font-family: var(--font-display);
+  color: var(--color-accent);
+}
+
+[data-theme="retro"] .session-page__skill {
+  font-family: var(--font-display);
 }
 
 [data-theme="retro"] .session-page__break-indicator {
-  color: var(--color-break);
+  color: var(--color-break, var(--color-muted));
   background-color: rgba(59, 130, 246, 0.1);
   border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: var(--radius-md);
   padding: 0.25rem 0.75rem;
 }
 
-/* Modern — mission in progress holographic ring */
+/* --- Modern — mission HUD --- */
+
 [data-theme="modern"] .session-page {
-  background: linear-gradient(
-    135deg,
-    var(--color-bg) 0%,
-    #0d1526 50%,
-    #0a1020 100%
-  );
+  background: linear-gradient(135deg, var(--color-bg) 0%, #0d1526 50%, #0a1020 100%);
+}
+
+[data-theme="modern"] .session-page__phase {
+  font-family: var(--font-display);
+  color: var(--color-accent);
+}
+
+[data-theme="modern"] .session-page--break .session-page__phase {
+  color: var(--color-muted);
 }
 
 [data-theme="modern"] .session-page__timer {
   font-family: var(--font-display);
-  color: var(--color-accent);
-  text-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+  color: var(--color-text);
 }
 
-[data-theme="modern"] .session-page__timer-ring {
-  stroke: var(--color-accent);
-  filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.5));
+[data-theme="modern"] .session-page__timer-ring-progress {
+  transition: stroke-dashoffset calc(1s * var(--motion-scale, 1)) linear;
+}
+
+[data-theme="modern"] .session-page--work .session-page__timer-ring-progress {
+  filter: drop-shadow(0 0 6px rgba(0, 212, 255, 0.45));
+}
+
+[data-theme="modern"] .session-page--break .session-page__timer-ring-progress {
+  opacity: 0.35;
+  filter: none;
 }
 
 [data-theme="modern"] .session-page__break-indicator {
-  color: var(--color-break);
+  color: var(--color-break, var(--color-muted));
   background-color: rgba(129, 140, 248, 0.1);
   border: 1px solid rgba(129, 140, 248, 0.3);
   border-radius: var(--radius-md);
   padding: 0.25rem 0.75rem;
-  text-shadow: 0 0 8px rgba(129, 140, 248, 0.4);
 }
 
+/* ================================================================== */
+/* SESSION — STYLISH MODE (additive per theme)                         */
+/* ================================================================== */
+
 @media (prefers-reduced-motion: no-preference) {
-  [data-theme="modern"] .session-page__timer-glow {
+  [data-theme="minimal"][data-mode="stylish"] .session-page--work:not(.session-page--paused) .session-page__timer-ring {
+    animation: session-minimal-breathe calc(4s * var(--motion-scale)) ease-in-out infinite;
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .session-page--work:not(.session-page--paused) .session-page__xp {
+    animation: session-retro-xp-pulse calc(1s * var(--motion-scale)) ease-in-out infinite;
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .session-page--work:not(.session-page--paused) .session-page__timer-glow {
+    display: block;
+    background: radial-gradient(
+      circle,
+      color-mix(in srgb, var(--color-accent) 12%, transparent) 0%,
+      transparent 70%
+    );
     animation: timer-ambient-pulse calc(3s * var(--motion-scale)) ease-in-out infinite;
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .session-page--work .session-page__timer {
+    text-shadow: 0 0 20px rgba(0, 212, 255, 0.35);
+  }
+
+  [data-theme="modern"][data-mode="stylish"] .session-page--work .session-page__timer-ring-progress {
+    filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.55));
   }
 }
 
+[data-theme="minimal"][data-mode="stylish"] .session-page__panel {
+  box-shadow: var(--shadow-md);
+  transition:
+    box-shadow calc(var(--duration-fast) * var(--motion-scale)) ease,
+    transform calc(var(--duration-fast) * var(--motion-scale)) ease;
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page {
+  position: relative;
+  overflow: hidden;
+  background-color: #0a0806;
+}
+
+/* Beat-em-up session backdrop (vision: design-inspiration/img_23.png) */
+.session-page__backdrop {
+  display: none;
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page__backdrop {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page__backdrop-parallax {
+  position: absolute;
+  inset: -10% -20%;
+  background:
+    linear-gradient(180deg, #12081a 0%, #1f1410 35%, #0d0a08 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 56px,
+      rgba(212, 168, 83, 0.04) 56px,
+      rgba(212, 168, 83, 0.04) 60px
+    );
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page__backdrop-dojo {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.55) 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(74, 55, 40, 0.15) 0,
+      rgba(74, 55, 40, 0.15) 8px,
+      transparent 8px,
+      transparent 16px
+    );
+  opacity: 0.9;
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page__backdrop-fighters {
+  position: absolute;
+  inset: 0;
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page__fighter {
+  position: absolute;
+  bottom: 22%;
+  width: 20px;
+  height: 36px;
+  background: #3d2817;
+  border: 2px solid #1a1008;
+  image-rendering: pixelated;
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page__fighter--hero {
+  left: 20%;
+  box-shadow:
+    6px -28px 0 0 #d4a853,
+    -6px 10px 0 0 #2a1a0f,
+    14px 10px 0 0 #2a1a0f;
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page__fighter--dummy {
+  right: 22%;
+  width: 28px;
+  height: 48px;
+  background: #4a3728;
+  border-color: #2a1a0f;
+  box-shadow:
+    inset -4px 0 0 rgba(0, 0, 0, 0.3),
+    0 8px 0 #2a1a0f;
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page__backdrop-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 35%, rgba(0, 0, 0, 0.72) 100%);
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page__content {
+  position: relative;
+  z-index: 2;
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page--break .session-page__backdrop-fighters,
+[data-theme="retro"][data-mode="stylish"] .session-page--paused .session-page__backdrop-fighters {
+  opacity: 0.35;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-theme="retro"][data-mode="stylish"] .session-page--work:not(.session-page--paused) .session-page__backdrop-parallax {
+    animation: session-retro-street-scroll calc(28s * var(--motion-scale)) linear infinite;
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .session-page--work:not(.session-page--paused) .session-page__fighter--hero {
+    animation: session-retro-hero-jab calc(0.9s * var(--motion-scale)) steps(4) infinite;
+  }
+
+  [data-theme="retro"][data-mode="stylish"] .session-page--work:not(.session-page--paused) .session-page__fighter--dummy {
+    animation: session-retro-dummy-shake calc(0.9s * var(--motion-scale)) steps(3) infinite;
+  }
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+  opacity: 0.5;
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page--work .session-page__timer {
+  text-shadow: 0 0 20px rgba(212, 168, 83, 0.55);
+}
+
+[data-theme="retro"][data-mode="stylish"] .session-page__progress-fill {
+  box-shadow: 0 0 8px rgba(212, 168, 83, 0.35);
+}
+
+[data-theme="modern"][data-mode="stylish"] .session-page__panel {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(15, 23, 42, 0.72);
+  border-color: rgba(0, 212, 255, 0.2);
+  box-shadow: var(--shadow-md);
+}
+
+@keyframes session-minimal-breathe {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+@keyframes session-retro-xp-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.65; }
+}
+
+@keyframes session-retro-street-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-120px); }
+}
+
+@keyframes session-retro-hero-jab {
+  0%, 35% { transform: translateX(0); }
+  45% { transform: translateX(14px) scaleX(1.08); }
+  55%, 100% { transform: translateX(0); }
+}
+
+@keyframes session-retro-dummy-shake {
+  0%, 40% { transform: translateX(0); }
+  50% { transform: translateX(3px); }
+  60% { transform: translateX(-2px); }
+  70%, 100% { transform: translateX(0); }
+}
+
 @keyframes timer-ambient-pulse {
-  0%, 100% { opacity: 0.4; }
-  50%       { opacity: 0.7; }
+  0%, 100% { opacity: 0.35; transform: scale(0.96); }
+  50% { opacity: 0.75; transform: scale(1.04); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-page__timer-ring,
+  .session-page__timer-glow,
+  .session-page__xp,
+  .session-page__backdrop-parallax,
+  .session-page__fighter {
+    animation: none !important;
+  }
 }
 
 

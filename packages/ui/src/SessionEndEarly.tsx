@@ -20,11 +20,11 @@ export function SessionEndEarly({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col items-center justify-center p-6"
+      className="session-page session-page--end-early fixed inset-0 z-50 flex flex-col items-center justify-center p-6"
       style={{ background: 'var(--color-bg)' }}
     >
       <div
-        className="w-full max-w-xs rounded-2xl p-6 space-y-4 border"
+        className="session-page__panel w-full max-w-xs rounded-2xl p-6 space-y-4 border"
         style={{
           background: 'var(--color-bg-elevated)',
           borderColor: 'var(--color-border-strong)',

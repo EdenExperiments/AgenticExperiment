@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-06-12 (Wave 2 delivery: F-045–F-047, paywall F-049, NutriLog F-013, cursor-lab F-061 Phases B–D)
+Last updated: 2026-06-13 (Session Pomodoro clean/stylish differentiation; Wave 2 delivery: F-045–F-047, paywall F-049, NutriLog F-013, cursor-lab F-061 Phases B–D)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -32,7 +32,7 @@ Release 1–2 + Phase 7 + 9A. Detail in git history and archived `docs/archive/r
 | F-041 | Landing page overhaul | Auth restyle; registration callouts |
 | F-044 | Clean UI cleanup | Phase 9A polish |
 | F-045 | Clean/Stylish mode infrastructure | `data-mode` cookie + switcher; SSR hydration (D-043) |
-| F-046 | Per-theme Stylish treatments | Minimal, Retro, Modern additive CSS layers |
+| F-046 | Per-theme Stylish treatments | Minimal, Retro, Modern additive CSS layers; session/Pomodoro stylish flair + Retro beat-em-up backdrop (`img_23`) |
 | F-047 | Cinematic landing (Stylish) | Landing atmosphere gated on `data-mode="stylish"` |
 | F-075 | AI goal planning + paywall UX | `POST /goals/plan`, wizard, `GET /account/ai-entitlement`, PaywallCTA gating |
 | F-013 | NutriLog weight logging MVP | API + typed client + NutriLog dashboard (chart, log, delete) |
