@@ -11,7 +11,8 @@
     "lint": "turbo lint",
     "validate:skills": "node scripts/validate-skills.mjs",
     "validate:agents": "node scripts/validate-agents.mjs",
-    "validate:cursor": "pnpm validate:skills && pnpm validate:agents",
+    "validate:flows": "node scripts/validate-flows.mjs",
+    "validate:cursor": "pnpm validate:skills && pnpm validate:agents && pnpm validate:flows",
     "format": "turbo format",
     "check:precommit": "pnpm validate:cursor && pnpm lint && turbo test --concurrency=1 && pnpm test:go",
     "prepare": "husky"

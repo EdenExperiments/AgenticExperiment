@@ -18,6 +18,7 @@ skills via `SKILL.md` frontmatter (`description`, optional `paths`) and subagent
 
 | Flow | Entry | Pillar |
 |---|---|---|
+| [delivery-epic.md](./delivery-epic.md) | `/epic` | D |
 | [delivery-feature.md](./delivery-feature.md) | `/feature` | D |
 | [delivery-fix.md](./delivery-fix.md) | `/fix` | D |
 | [pillar-a-deps-highlight.md](./pillar-a-deps-highlight.md) | Renovate PR open | A |

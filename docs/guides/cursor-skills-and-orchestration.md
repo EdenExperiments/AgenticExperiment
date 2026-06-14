@@ -119,7 +119,8 @@ detail in `Documentation/delivery/` artifacts.
 ```bash
 pnpm validate:skills   # index ↔ files, frontmatter, required sections
 pnpm validate:agents   # agent frontmatter + "Use when" routing
-pnpm validate:cursor   # both
+pnpm validate:flows    # command flows + referenced skills/subagents
+pnpm validate:cursor   # all of the above
 ```
 
 `check:precommit` runs `validate:cursor`.

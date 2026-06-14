@@ -10,7 +10,8 @@ You coordinate Pillar D delivery without doing implementation work yourself.
 
 ## Inputs
 
-- Flow manifest (`.cursor/flows/delivery-feature.md` or `delivery-fix.md`)
+- Flow manifest (`.cursor/flows/delivery-fix.md`, `delivery-feature.md`, or
+  `delivery-epic.md`)
 - Signed artifacts under `Documentation/delivery/`
 - `skills.index.json` for skill discovery
 
