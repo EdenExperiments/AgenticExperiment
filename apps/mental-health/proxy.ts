@@ -1,7 +1,7 @@
 import { createAuthMiddleware } from '@rpgtracker/auth/middleware'
 import { type NextRequest } from 'next/server'
 
-const authMiddleware = createAuthMiddleware({ defaultTheme: 'minimal' })
+const authMiddleware = createAuthMiddleware({ defaultTheme: 'mental-calm' })
 
 export async function proxy(request: NextRequest) {
   return authMiddleware(request)
