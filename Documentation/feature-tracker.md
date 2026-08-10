@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-06-13 (Session Pomodoro clean/stylish differentiation; Wave 2 delivery: F-045–F-047, paywall F-049, NutriLog F-013, cursor-lab F-061 Phases B–D)
+Last updated: 2026-08-10 (Epic draft: NX + agentic-harness + meal notes + Project Manager — F-076–F-081; awaiting sign-off)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -126,11 +126,28 @@ Target design: `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md`. Mi
 
 | ID    | Feature                        | Notes                 |
 | ----- | ------------------------------ | --------------------- |
-| F-014 | Calorie and macro logging      | Food data source TBD. |
+| F-014 | Calorie and macro logging      | Food data source TBD. Deferred behind meal notes (F-079) if epic sign-off confirms notes-first. |
 | F-015 | Barcode scanning               | Mobile camera flow.   |
 | F-016 | Saved meals and templates      | QoL feature.          |
-| F-017 | AI recipe suggestions          | Claude integration.   |
+| F-017 | AI recipe suggestions          | Claude integration. Superseded in sequencing by F-080 shopping/recs layer. |
 | F-018 | Goal setting and weekly rate   | —                     |
+
+
+---
+
+## Proposed — Platform Expansion Epic (2026-08-10)
+
+Delivery artifact: `Documentation/delivery/2026-08-10-epic-platform-expansion/requirements.md` (awaiting human sign-off).
+
+
+| ID    | Feature                                         | Area          | Status               | Notes |
+| ----- | ----------------------------------------------- | ------------- | -------------------- | ----- |
+| F-076 | NX monorepo migration (Turbo → NX task graph)   | Platform/Ops  | needs-clarification  | Repo is already Turborepo+pnpm; epic is tooling cutover, not greenfield monorepo. |
+| F-077 | Integrate `agentic-harness` for task completion | Ops/CI        | needs-clarification  | Completion harness beside `cursor-lab`; not “superpowers”. Source URL required (Q3). |
+| F-078 | LifeQuest skill-tracking improvement slice      | LifeQuest     | needs-clarification  | Default candidate F-009b unless sign-off picks another. |
+| F-079 | NutriLog meal note-keeper MVP                   | NutriLog      | ready-for-planning   | Free-text meal notes + slot + time; calories deferred. |
+| F-080 | Recipes + shopping list + shared-ingredient recs| NutriLog      | deferred             | After F-079; GraphDB vs Postgres+index TBD (Q8). |
+| F-081 | Project Manager (high-level projects)           | Suite         | needs-clarification  | New app vs LifeQuest section (Q10). |
 
 
 ### Cross-App & Platform

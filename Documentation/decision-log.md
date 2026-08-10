@@ -1,6 +1,6 @@
 # Decision Log
 
-Last updated: 2026-06-12 (D-062 added: skills/flows/subagent orchestration expansion)
+Last updated: 2026-08-10 (Open questions for platform expansion epic F-076–F-081; proposed D-063 pending sign-off)
 
 ## How To Read This Log
 
@@ -156,4 +156,19 @@ Last updated: 2026-06-12 (D-062 added: skills/flows/subagent orchestration expan
 
 ## Open Questions
 
-None. All open questions from the initial pass have been resolved as confirmed decisions (D-010, D-011, D-012) or implementation assumptions (A-001, now superseded by D-015). D-013 is resolved by D-014. D-017 through D-022 were added during UX refinement. D-033 and D-034 were added during progression/logging refinement. D-035-D-037 and D-041-D-043 were added during design-direction consolidation. D-044 through D-053 capture Cursor-first operations, quality onboarding baseline, docs cull decisions, dual-gated auto-fix policy, model-routed remediation with coverage enforcement, structured reviewer schema contract, auto-fix trigger/scanner coordination, branch-ref startup handling, Renovate action pinning, and compatibility-gated dependency refresh policy. D-054 adds the model-slug fallback policy for agent scripts. D-055 through D-059 adopt the Agentic Pipeline Brief v2 and lean documentation contract. Open questions carried from the brief (§8): Pillar C ticket source (GitHub Issues only vs Jira/ADO), metrics home (job summaries + issue vs static dashboard), and budget modelling for usage-based Bugbot + Automations runs.
+Prior pipeline open questions (still open from Brief §8): Pillar C ticket source (GitHub Issues only vs Jira/ADO), metrics home (job summaries + issue vs static dashboard), and budget modelling for usage-based Bugbot + Automations runs.
+
+### Platform expansion epic (2026-08-10) — awaiting sign-off
+
+Source: `Documentation/delivery/2026-08-10-epic-platform-expansion/requirements.md`.
+
+| ID | Question | Default if unanswered | Blocks |
+| -- | -------- | --------------------- | ------ |
+| OQ-076 | Replace Turborepo entirely with NX vs incremental cutover? | Incremental; NX primary then remove Turbo | F-076 / proposed D-063 |
+| OQ-077 | Exact `agentic-harness` repo URL / access? Sit beside vs wrap `cursor-lab`? | Block harness import until URL; sit beside cursor-lab | F-077 |
+| OQ-078 | First LifeQuest improvement after R1–2? | F-009b blocker completion UI | F-078 |
+| OQ-079 | Confirm NutriLog next UX is meal notes (not calorie-first F-014)? Meal slots enum vs tags? | Notes-first; fixed meal-slot enum | F-079 (+ PRD vision update if confirmed) |
+| OQ-080 | Recipe recs: GraphDB vs Postgres+index? Scrape allowlist? | Postgres+index; allowlist + paste | F-080 |
+| OQ-081 | Project Manager as new Next app vs LifeQuest section? | New `apps/project-manager` + hub link | F-081 |
+
+Proposed binding decision **D-063** (NX as primary monorepo task runner) is **not** recorded as confirmed until epic sign-off.
