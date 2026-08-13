@@ -13,6 +13,7 @@ Repository-managed Cursor agent skills. Discovery index: `skills.index.json`.
 | `orchestration/` | lane routing | pipeline, SDK remediation, maintenance, local/cloud |
 | `quality/` | quality gates | dependency/security triage, Bugbot advisory |
 | `release/` | shipping | branch finish, PR prep |
+| `verify-*/` (skill root) | verification | drive real apps for UX proof |
 
 Each skill lives in `<domain>/<skill-name>/SKILL.md`.
 

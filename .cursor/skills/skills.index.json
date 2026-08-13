@@ -1,7 +1,13 @@
 {
   "version": 1,
-  "lastUpdated": "2026-06-12",
+  "lastUpdated": "2026-08-13",
   "skills": [
+    {
+      "name": "verify-lifequest",
+      "path": ".cursor/skills/verify-lifequest/SKILL.md",
+      "domain": "verify",
+      "when_to_use": "When driving LifeQuest (apps/rpg-tracker) in a real browser to prove mapped UX with screenshots/ARIA evidence."
+    },
     {
       "name": "requirements-elicitation",
       "path": ".cursor/skills/delivery/requirements-elicitation/SKILL.md",
