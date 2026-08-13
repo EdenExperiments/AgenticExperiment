@@ -1,3 +1,12 @@
+# Cursor Skills, Subagents, and Flows (Archived)
+
+> **ARCHIVED** — superseded by D-063. Repo-managed skills, commands, agents, and flows were
+> removed. Development uses pstack (`/poteto-mode`) and cursor-team-kit plugins. Per-role models
+> live in `.cursor/rules/pstack-models.mdc`. See `docs/CURSOR-AGENT-HANDBOOK.md` and
+> `docs/guides/agent-composition-contract.md`.
+
+---
+
 # Cursor Skills, Subagents, and Flows
 
 How this repo structures agent orchestration on top of Cursor's 2026 agent-skills and subagent

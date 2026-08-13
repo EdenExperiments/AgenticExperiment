@@ -1,7 +1,8 @@
 # Go API Stack Guide (Layer 2)
 
 Applies to all work under `apps/api/`. Inherits the base layer (root `AGENTS.md`,
-`.cursor/rules/security-baseline.mdc`, hooks). Role mechanics live in `.cursor/agents/*-go.md`.
+`.cursor/rules/security-baseline.mdc`, hooks). Development uses pstack `/poteto-mode`; there is
+no repo-managed Go test-writer/implementer agent (D-063).
 
 ## Toolchain
 

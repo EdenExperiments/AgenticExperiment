@@ -9,9 +9,9 @@ Workflow and CI reference for this repository. Entry points and zone map: `AGENT
 - **Pillar A** — dependency hygiene: Renovate baseline + assessment agent (`deps:safe` automerge behind CI+Sonar, `deps:breaking` research comments via SDK highlight-only).
 - **Pillar B** — review loop: native Bugbot Autofix tuned via `BUGBOT.md`, propose mode first, severity status check as the merge gate (D-056, D-060). No custom SDK pipeline reviewer.
 - **Pillar C** — maintenance queue: Sonar issues + `tech-debt` GitHub Issues normalised into one prioritised queue; dispatch via GitHub Actions artifact and/or Cursor Automations with a concurrent bot-PR cap.
-- **Pillar D** — command-driven delivery: `/fix`, `/feature`, `/epic`, `/new-project` commands route to skill chains (`.cursor/skills/delivery/`), TDD with separated subagents (`.cursor/agents/`), draft PRs into the Pillar B convergence loop.
-- **Skills + flows + subagents (D-062)**: `.cursor/skills/` (agent skills, `skills.index.json`), `.cursor/flows/` (orchestration manifests), `.cursor/agents/` (subagents with "Use when…" routing). Guide: `docs/guides/cursor-skills-and-orchestration.md`.
-- **Layered agent config (§4c)**: base (root `AGENTS.md`, `security-baseline.mdc`, hooks) → stack (nested `AGENTS.md` per zone) → role (`.cursor/agents/*.md`). See `docs/guides/agent-composition-contract.md`.
+- **Pillar D** — **retired for IDE delivery (D-063).** Command pack (`/fix`, `/feature`, `/epic`, `/new-project`), repo skills, TDD subagents, and flows were removed. Development uses pstack (`/poteto-mode`) and cursor-team-kit. Historical artifacts remain under `Documentation/delivery/`.
+- **Skills (D-063):** pstack and cursor-team-kit plugins. Per-role models: `.cursor/rules/pstack-models.mdc`. The D-062 pack layout (`.cursor/skills/`, `.cursor/flows/`, `.cursor/agents/`) is superseded; the old guide is in `docs/archive/cursor-skills-and-orchestration.md`.
+- **Layered agent config (§4c):** base (root `AGENTS.md`, alwaysApply rules including `pstack-models.mdc`, hooks) → stack (nested `AGENTS.md` per zone) → role (pstack `poteto-agent` / Comment Sicko + Cursor built-ins). See `docs/guides/agent-composition-contract.md`.
 - Operator-side setup (Bugbot, Automations, branch protection, usage caps) is tracked in `docs/guides/agentic-pipeline-operator-checklist.md`.
 
 ### Three automation lanes (D-060)
@@ -23,6 +23,10 @@ Workflow and CI reference for this repository. Entry points and zone map: `AGENT
 | **Cursor Automations** | Optional cloud dispatch | Weekly maintenance cron, Renovate events when preferred over GH Actions |
 
 SDK PR comments are **advisory warnings** unless running an explicitly gated remediation workflow. Merge gates remain CI + Sonar + Bugbot severity check.
+
+## Development Path (D-063)
+
+Use `/poteto-mode` (pstack) for feature work, fixes, and refactors. cursor-team-kit covers deslop, review-and-ship, loop-on-ci, and related PR hygiene. Do not recreate repo-managed slash commands that compete with those plugins.
 
 ## Development Paths (D-036)
 
@@ -143,11 +147,10 @@ Pure visual composition work is validated by visual review and design-guide comp
 - Use CI/CD SDK agents for event-driven triage, highlight comments, and optional remediation.
 - Use Cursor Automations when cloud dispatch is preferable to GH Actions for maintenance or dependency events.
 
-## Skill Directory Conventions
+## Plugin Skills
 
-- Place repo-managed skills under `.cursor/skills/<domain>/<skill-name>/SKILL.md`.
-- Keep the index synchronized in `.cursor/skills/skills.index.json`.
-- Run `pnpm validate:skills` before commit or PR to enforce index/file consistency.
+- Development procedure lives in the **pstack** and **cursor-team-kit** plugins, not in `.cursor/skills/`.
+- Per-role model mapping is `.cursor/rules/pstack-models.mdc`.
 - Keep implementation runbooks in `docs/guides/`.
 
 ## Deprecation Note

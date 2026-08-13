@@ -1,6 +1,6 @@
 # Agent Composition Contract
 
-How agent configuration composes in this repo (brief §4c, decided in D-055/D-058). Every agent
+How agent configuration composes in this repo (brief §4c, D-055/D-058, updated D-063). Every agent
 run — IDE, cloud, CI, Automations — resolves three layers, in order. Lower layers never override
 higher-layer security constraints.
 
@@ -10,7 +10,7 @@ higher-layer security constraints.
 flowchart TD
     base[Layer1_Base: root AGENTS.md + alwaysApply rules + hooks]
     stack[Layer2_Stack: nested AGENTS.md by location]
-    role[Layer3_Role: .cursor/agents subagent definition]
+    role[Layer3_Role: pstack and cursor-team-kit plugin agents]
     base --> stack --> role
 ```
 
@@ -19,8 +19,8 @@ flowchart TD
 | Artifact | Purpose |
 |---|---|
 | `AGENTS.md` (root) | Repo map, working rules, doc-update obligations |
-| `.cursor/rules/*.mdc` with `alwaysApply: true` | Security baseline, repo context, workflow rules |
-| `.cursor/hooks.json` + `.cursor/hooks/` | Enforcement: deny test-file edits while `.cursor/tdd-lock` exists, deny force-push and destructive shell patterns. Workflow-path denies temporarily relaxed during pipeline iteration (D-061). |
+| `.cursor/rules/*.mdc` with `alwaysApply: true` | Security baseline, repo context, workflow rules, pstack model mapping |
+| `.cursor/hooks.json` + `.cursor/hooks/` | Enforcement: deny force-push and destructive shell patterns. Workflow-path denies temporarily relaxed during pipeline iteration (D-061). TDD lock retired (D-063). |
 | `.github/CODEOWNERS` + branch protection | The layer no agent can touch |
 
 Operating principle: **rules instruct, hooks enforce.** Anything security-critical has a hook; the
@@ -35,36 +35,29 @@ rule exists so agents understand why and do not waste iterations fighting it.
 | `packages/AGENTS.md` | Shared TS packages | `pnpm --filter <pkg> test` |
 | `apps/cursor-lab/AGENTS.md` | Python tooling | `cursor-lab doctor`, pytest |
 
-This layer is the pattern library: agents pick these up based on where they work; orchestrators
-never inject stack context manually. On-demand knowledge lives in `.cursor/skills/` (`skills.index.json` is the discovery index).
-Orchestration manifests live in `.cursor/flows/` (entry → skill chain → subagents — see
-`docs/guides/cursor-skills-and-orchestration.md`).
+This layer is the pattern library: agents pick these up based on where they work. On-demand
+procedure for development lives in the **pstack** and **cursor-team-kit** plugins, not in a
+repo-managed skill index (D-063).
 
-### Layer 3 — Role (`.cursor/agents/`)
+### Layer 3 — Role (plugin agents)
 
-| Definition | Paths / mode |
+| Definition | Use when |
 |---|---|
-| `test-writer-go.md` / `implementer-go.md` | `apps/api/**` |
-| `test-writer-ts.md` / `implementer-ts.md` | `apps/rpg-tracker/**`, `apps/nutri-log/**`, `apps/mental-health/**`, `packages/**` |
-| `verifier.md` | Any stack (read-only + run the artifact's named verification command) |
-| `delivery-orchestrator.md` | Pillar D multi-task flows (thin parent) |
-| `deps-highlight.md` | Renovate `deps:breaking` (read-only highlight comments) |
-| `maintenance-scout.md` | Pillar C queue scoring (read-only) |
+| `poteto-agent` (pstack) | Multi-step development via `/poteto-mode` |
+| Comment Sicko (pstack) | Comment cleanup, usually via `/no-comments` |
+| Built-in `explore` / `bash` / `browser` | Noisy reads, shell isolation, UI checks |
 
-Routing is mechanical: the decomposition stage tags each task with target paths; each variant's
-`description` frontmatter states "Use when…" so delegation never dithers. Built-in `explore` /
-`bash` subagents handle noisy reads; repo agents handle stack procedure.
+Per-role model choices are in `.cursor/rules/pstack-models.mdc`. Do not recreate repo-managed
+`.cursor/agents/` or `.cursor/commands/` that compete with these plugins.
 
 **Anti-explosion rule:** a role earns a stack variant only when its mechanics differ (toolchain,
-runner, build commands). Pure knowledge differences belong in Layer 2 skills. Ceiling for v1: 3
-core roles × 2 stacks (D-058) plus orchestration scouts; Python tooling is Layer-2-only.
+runner, build commands). Pure knowledge differences belong in Layer 2 stack guides. Python tooling
+is Layer-2-only.
 
 ## Conflict Resolution
 
 1. Hooks and branch protection always win — they are not advisory.
 2. `alwaysApply` rules beat stack and role guidance.
 3. Stack guidance beats role guidance on stack mechanics; role guidance beats stack guidance on
-   role procedure (e.g. the test-writer's "never write implementation" beats any stack workflow
-   step that says "implement").
-4. The task artifact's acceptance criteria and named verification command are authoritative over
-   all prose.
+   role procedure.
+4. Named verification commands in stack `AGENTS.md` files are authoritative for that zone.

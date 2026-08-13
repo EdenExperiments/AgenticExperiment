@@ -34,9 +34,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Validate skill index and skill files
-        run: pnpm validate:skills
-
       - name: Validate required onboarding files
         run: |
           test -f renovate.json
@@ -84,7 +81,6 @@ jobs:
           fi
           cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
           ## Quality Onboarding Smoke Checklist
-          - [x] Skill index validated
           - [x] Renovate and SonarCloud config files present
           PLACEHOLDER_RENOVATE_LINE
           - [x] Required secrets/vars detected
