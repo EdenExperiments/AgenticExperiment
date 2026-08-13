@@ -1,15 +1,17 @@
 # Cloud agent environment (brief §4a: "environment as a first-class deliverable").
 # Gives Cursor cloud agents the full toolchain to build, test, and verify end-to-end:
 # Node 22 + pnpm (Next.js apps, packages, cursor-agents), Go 1.25 (apps/api),
-# Python 3 (apps/cursor-lab), ripgrep for SDK search.
+# Python 3 (apps/cursor-lab), ripgrep for SDK search, and a local PostgreSQL
+# (application data for apps/api; started per-boot by .cursor/start.sh).
 
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates curl git ripgrep jq unzip xz-utils \
+    ca-certificates curl git ripgrep jq unzip xz-utils sudo \
     python3 python3-pip python3-venv \
+    postgresql postgresql-contrib postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Node.js 22 + pnpm (pinned to the repo's packageManager version)
