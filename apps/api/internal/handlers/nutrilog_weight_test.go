@@ -131,7 +131,9 @@ func TestHandlePostWeightLog_OK(t *testing.T) {
 	h := handlers.NewNutrilogWeightHandlerWithStore(stub)
 	router := makeNutrilogWeightRouter(h)
 
-	measuredAt := time.Now().UTC().Truncate(time.Second).Add(-time.Hour).Format(time.RFC3339)
+	// Use a recent timestamp relative to now so the handler's 30-day recency
+	// window does not reject an otherwise-valid log as the calendar advances.
+	measuredAt := time.Now().UTC().AddDate(0, 0, -1).Format(time.RFC3339)
 	body := `{"weight_kg":72.5,"note":"morning weigh-in","measured_at":"` + measuredAt + `"}`
 	req := httptest.NewRequest(http.MethodPost, "/nutrilog/weight-logs", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")

@@ -4,5 +4,7 @@
     "dockerfile": "Dockerfile"
   },
   "install": "pnpm install --frozen-lockfile && cd apps/api && go mod download",
-  "terminals": []
+  "start": "bash .cursor/start.sh",
+  "terminals": [],
+  "ports": [3000, 3002, 3003, 3004, 8080, 5432]
 }
