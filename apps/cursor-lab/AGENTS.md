@@ -5,7 +5,7 @@ for Python (D-058): tooling volume is low, so knowledge lives here.
 
 ## Purpose
 
-Cursor Lab is the local eval harness for `.cursor/` rules/skills/hooks (F-061): artifact discovery,
+Cursor Lab is the local eval harness for `.cursor/` rules and hooks (F-061): artifact discovery,
 an `@cursor/sdk` Node bridge, and (planned) judge + promotion gates. It is also where the agentic
 pipeline's golden-PR set and per-surface outcome metrics will accumulate as seed data for the
 future eval project (brief §7).

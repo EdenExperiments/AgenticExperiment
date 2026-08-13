@@ -9,6 +9,6 @@ alwaysApply: true
 
 **Zones:** `apps/api/` (Go) · `apps/rpg-tracker/`, `apps/nutri-log/`, `apps/mental-health/` (frontends) · `packages/*` (shared — coordinate cross-cutting changes).
 
-**Skills:** `.cursor/skills/<domain>/<skill>/SKILL.md` · index `.cursor/skills/skills.index.json` · validate with `pnpm validate:skills`.
+**Skills:** pstack (`/poteto-mode`, `poteto-agent`) and cursor-team-kit plugins. Per-role models: `.cursor/rules/pstack-models.mdc` (D-063).
 
 **Guides:** operational runbooks in `docs/guides/`.

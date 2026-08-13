@@ -20,7 +20,7 @@ Top-level index for agents and contributors. Entry-point routing also lives in `
 | Shared auth | `packages/auth/` | Supabase SSR/browser auth helpers |
 | Shared API client | `packages/api-client/` | Typed API integration layer |
 | Agent automation | `.github/workflows/`, `packages/cursor-agents/` | CI/CD agent workflows and SDK automation |
-| Cursor Lab | `apps/cursor-lab/` | Local eval harness for `.cursor/` rules/skills |
+| Cursor Lab | `apps/cursor-lab/` | Local eval harness for `.cursor/` rules and hooks |
 
 ## Canonical Context Directory
 
@@ -30,21 +30,23 @@ Top-level index for agents and contributors. Entry-point routing also lives in `
 | Platform / schema | `Documentation/architecture.md` |
 | Binding decisions | `Documentation/decision-log.md` |
 | Feature status | `Documentation/feature-tracker.md` |
-| Delivery artifacts | `Documentation/delivery/` |
+| Delivery artifacts | `Documentation/delivery/` (historical; Pillar D commands retired, D-063) |
 | Agentic pipeline target | `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md` |
 | Visual implementation | `Documentation/style-guide/`, `Documentation/page-guides/` |
 | Workflow / CI | `docs/CURSOR-AGENT-HANDBOOK.md` |
 
-## Agent Config Layering (Brief §4c)
+## Agent Config Layering (Brief §4c, D-063)
 
 See `docs/guides/agent-composition-contract.md`:
 
-1. **Base** — this file + `.cursor/rules/` + `.cursor/hooks.json`
+1. **Base** — this file + `.cursor/rules/` (including `pstack-models.mdc`) + `.cursor/hooks.json`
 2. **Stack** — nested `AGENTS.md` per zone (`apps/api/`, `apps/rpg-tracker/`, `packages/`, `apps/cursor-lab/`)
-3. **Role** — `.cursor/agents/` (test-writer/implementer per stack, shared verifier)
+3. **Role** — pstack plugin agents (`poteto-agent`, Comment Sicko) plus Cursor built-ins (`explore`, `bash`, `browser`)
+
+Development uses `/poteto-mode` and cursor-team-kit. Repo-managed skills, commands, agents, and flows were removed.
 
 ## Documentation Contract (D-059)
 
 - **Always:** tracker row when status changes; decision-log entry when a binding decision is made.
-- **Delivery:** signed requirements in `Documentation/delivery/` — PRD updates only for scope/vision changes.
+- **Delivery:** signed requirements in `Documentation/delivery/` — PRD updates only for scope/vision changes. New work does not start `/fix`/`/feature` pack commands (retired D-063).
 - Historical planning docs: `docs/archive/` (not canonical).
