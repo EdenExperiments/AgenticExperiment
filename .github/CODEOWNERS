@@ -6,7 +6,7 @@
 # iteration (D-061); restore when hooks are re-tightened.
 # /.github/                       @EdenExperiments
 
-# Agent configuration: rules, skills, hooks, subagents, commands
+# Agent configuration: rules and hooks
 /.cursor/                       @EdenExperiments
 
 # Bugbot review standards

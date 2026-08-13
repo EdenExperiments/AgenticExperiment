@@ -76,7 +76,6 @@ pnpm install
 # JS workspace build and test checks (matches CI)
 pnpm build
 pnpm test
-pnpm validate:skills
 
 # Go API
 cd apps/api && go test ./...
@@ -126,6 +125,7 @@ Theme tokens live in `packages/ui/tokens/` and all components are expected to be
 
 This project uses Cursor-first agentic workflows for feature development, review, and CI/CD automation.
 
+- Development: pstack (`/poteto-mode`) and cursor-team-kit plugins; models in `.cursor/rules/pstack-models.mdc`
 - Repository context directory: `AGENTS.md`
 - Canonical documentation map: `Documentation/README.md`
 - Operating workflow (IDE, cloud agent chat, CI/CD SDK agents): `docs/CURSOR-AGENT-HANDBOOK.md`

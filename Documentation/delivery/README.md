@@ -1,8 +1,8 @@
 # Delivery Artifacts
 
-Stage artifacts from the command-driven delivery pipeline (Pillar D, M5). Every stage of
-`/fix`, `/feature`, `/epic`, and `/new-project` ends by writing an artifact here; the next stage
-consumes the artifact, not the chat. Repo files are durable memory; chat context is disposable.
+Historical stage artifacts from the retired command-driven delivery pipeline (Pillar D, M5;
+superseded by D-063). Folders here remain as an evidence trail. New development uses pstack
+(`/poteto-mode`) and cursor-team-kit, not `/fix`, `/feature`, `/epic`, or `/new-project`.
 
 ## Layout
 
@@ -19,7 +19,5 @@ Documentation/delivery/
 
 - Artifacts are append-only history: do not rewrite a signed requirements artifact — supersede it
   with a new signed revision.
-- Task artifacts must be self-contained (acceptance criteria, target paths, named verification
-  command, out-of-scope notes).
 - Folders for merged work stay in place as the evidence trail; they feed the golden-PR set and
   outcome metrics (brief §7) via `apps/cursor-lab`.

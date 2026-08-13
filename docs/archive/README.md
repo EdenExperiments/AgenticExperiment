@@ -13,3 +13,4 @@ via git history; kept here so agents do not load stale sequencing as current tru
 | `skills/review-driven-fix-routing.md` | Bugbot Pillar B + SDK remediation in `docs/CURSOR-AGENT-HANDBOOK.md` |
 | `agent-orchestration-local-cloud.md` | `docs/guides/agent-orchestration-local-cloud.md` |
 | `custom-sdk-pipeline-reviewer-retirement.md` | D-060 retirement note + `Documentation/delivery/D-060-pipeline-reviewer-retirement.md` |
+| `cursor-skills-and-orchestration.md` | D-063: pstack + cursor-team-kit; `docs/guides/agent-composition-contract.md` |

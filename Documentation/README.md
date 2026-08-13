@@ -11,7 +11,7 @@ Canonical map for product, platform, and agent workflow docs. Entry points: `AGE
 | `decision-log.md` | Binding decisions and open questions (digest + full detail) |
 | `feature-tracker.md` | Feature status, active work, deferred backlog |
 | `agentic-pipeline/Agentic-Pipeline-Brief-v2.md` | Target agentic-operations architecture (D-055–D-058) |
-| `delivery/` | Signed delivery artifacts (`/fix`, `/feature`, `/epic`, `/new-project`) |
+| `delivery/` | Historical signed delivery artifacts (Pillar D commands retired, D-063) |
 | `style-guide/` | Shared + per-theme design rules |
 | `page-guides/` | Page-specific implementation briefs |
 | `ux-spec.md` | Historical UX narrative — binding UX decisions are in `decision-log.md` (D-017–D-034) |
@@ -23,7 +23,7 @@ Canonical map for product, platform, and agent workflow docs. Entry points: `AGE
 |------|---------|
 | `docs/CURSOR-AGENT-HANDBOOK.md` | Workflow, CI/CD agent model, runtime variables |
 | `docs/setup.md` | Local Supabase trigger setup |
-| `docs/guides/` | Runbooks (composition contract, skills/orchestration, operator checklist, onboarding, cursor-lab) |
+| `docs/guides/` | Runbooks (composition contract, operator checklist, onboarding, cursor-lab) |
 
 ## Documentation Contract (D-059)
 
