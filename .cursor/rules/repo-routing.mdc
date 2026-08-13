@@ -9,6 +9,6 @@ alwaysApply: true
 
 **Zones:** `apps/api/` (Go) · `apps/rpg-tracker/`, `apps/nutri-log/`, `apps/mental-health/` (frontends) · `packages/*` (shared — coordinate cross-cutting changes).
 
-**Skills:** pstack (`/poteto-mode`, `poteto-agent`) and cursor-team-kit plugins. Per-role models: `.cursor/rules/pstack-models.mdc` (D-063).
+**Skills:** pstack (`/poteto-mode`, `poteto-agent`) and cursor-team-kit plugins. Per-role models: `.cursor/rules/pstack-models.mdc` (D-063). LifeQuest browser verification: `.cursor/skills/verify-lifequest/`.
 
 **Guides:** operational runbooks in `docs/guides/`.

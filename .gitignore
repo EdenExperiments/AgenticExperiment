@@ -53,3 +53,8 @@ static/css/app.css
 
 # TDD lock sentinel (created by delivery orchestrator during implementation runs)
 .cursor/tdd-lock
+
+# LifeQuest verification run state + proof screenshots (skill keeps .gitkeep)
+.cursor/skills/verify-lifequest/.run/
+.cursor/skills/verify-lifequest/artifacts/**
+!.cursor/skills/verify-lifequest/artifacts/.gitkeep

@@ -113,7 +113,7 @@ func weightLogDeleteRequest(logID, userID uuid.UUID) *http.Request {
 }
 
 func sampleWeightLog() *weightLogEntry {
-	measured := time.Date(2026, 6, 12, 8, 0, 0, 0, time.UTC)
+	measured := time.Now().UTC().Truncate(time.Second).Add(-time.Hour)
 	return &weightLogEntry{
 		ID:         testWeightLogID(),
 		UserID:     testNutrilogUserID(),

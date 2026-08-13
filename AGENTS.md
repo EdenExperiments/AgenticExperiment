@@ -43,7 +43,7 @@ See `docs/guides/agent-composition-contract.md`:
 2. **Stack** — nested `AGENTS.md` per zone (`apps/api/`, `apps/rpg-tracker/`, `packages/`, `apps/cursor-lab/`)
 3. **Role** — pstack plugin agents (`poteto-agent`, Comment Sicko) plus Cursor built-ins (`explore`, `bash`, `browser`)
 
-Development uses `/poteto-mode` and cursor-team-kit. Repo-managed skills, commands, agents, and flows were removed.
+Development uses `/poteto-mode` and cursor-team-kit. Repo-managed skills, commands, agents, and flows were removed, except the LifeQuest verification skill at `.cursor/skills/verify-lifequest/`.
 
 ## Documentation Contract (D-059)
 
