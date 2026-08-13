@@ -4,5 +4,13 @@
     "dockerfile": "Dockerfile"
   },
   "install": "pnpm install --frozen-lockfile && cd apps/api && go mod download",
-  "terminals": []
+  "terminals": [],
+  "ports": [
+    { "name": "LifeQuest", "port": 3000 },
+    { "name": "NutriLog", "port": 3002 },
+    { "name": "MindTrack", "port": 3003 },
+    { "name": "Landing", "port": 3004 },
+    { "name": "Go API", "port": 8080 },
+    { "name": "Postgres", "port": 5432 }
+  ]
 }
