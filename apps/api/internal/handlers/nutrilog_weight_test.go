@@ -113,7 +113,7 @@ func weightLogDeleteRequest(logID, userID uuid.UUID) *http.Request {
 }
 
 func sampleWeightLog() *weightLogEntry {
-	measured := time.Date(2026, 6, 12, 8, 0, 0, 0, time.UTC)
+	measured := time.Now().UTC().Truncate(time.Second).Add(-24 * time.Hour)
 	return &weightLogEntry{
 		ID:         testWeightLogID(),
 		UserID:     testNutrilogUserID(),
@@ -131,7 +131,8 @@ func TestHandlePostWeightLog_OK(t *testing.T) {
 	h := handlers.NewNutrilogWeightHandlerWithStore(stub)
 	router := makeNutrilogWeightRouter(h)
 
-	body := `{"weight_kg":72.5,"note":"morning weigh-in","measured_at":"2026-06-12T08:00:00Z"}`
+	measuredAt := time.Now().UTC().Truncate(time.Second).Add(-24 * time.Hour).Format(time.RFC3339)
+	body := `{"weight_kg":72.5,"note":"morning weigh-in","measured_at":"` + measuredAt + `"}`
 	req := httptest.NewRequest(http.MethodPost, "/nutrilog/weight-logs", bytes.NewBufferString(body))
 	req.Header.Set("Content-Type", "application/json")
 	req = withNutrilogUser(req, testNutrilogUserID())
