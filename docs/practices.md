@@ -27,7 +27,7 @@ LifeQuest skins: `data-theme` Minimal / Retro / Modern; optional `data-mode` cle
 3. Before you delete a brief (or merge the PR), copy any *lasting* rule into `docs/` (usually two sentences).
 4. `/poteto-mode` for implementation. Nested `AGENTS.md` for stack commands.
 
-New suite products on web are a route group with nested chrome plus a Go package and table prefix, not a new Next origin and not a LifeQuest tab. Apple is separate apps later. See `docs/architecture.md`.
+New suite products on web are a route group with nested chrome plus a Go package and table prefix, not a new Next origin and not a LifeQuest tab. Apple is separate apps later. Read the catalog in `docs/architecture.md` before spawning an app.
 
 ## Health copy
 

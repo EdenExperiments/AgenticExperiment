@@ -1,8 +1,10 @@
 # MindTrack
 
-Scaffold only (`apps/mental-health`, `mental-calm` theme). **No feature code until the questions below are answered in a human session** and a two-sentence outcome is written here.
+MindTrack is a blocked product. Scaffold `apps/mental-health` only, tables `mh_*`, web `/mind`, theme `mental-calm`, Apple binary later.
 
-When it ships on web it is `/mind` with MindTrack chrome, not a LifeQuest tab and not a second Next origin. Tables `mh_*`. Apple would be its own app. See `docs/architecture.md`.
+No feature code until the questions below are answered in a human session and a two-sentence outcome is written here. Not therapy. No mood XP in v1. UK crisis resources. First slice after answers is `mh_mood_logs` plus journal, disclaimer, and no chatbot. Do not reuse `xp_events` or the Therapy preset.
+
+When it ships on web it is `/mind` with MindTrack chrome, not a LifeQuest tab and not a second Next origin. Meditation that outgrows the LifeQuest preset becomes `/mind/meditate` on `mh_*`, not `apps/meditation`. See `docs/architecture.md`.
 
 ## Stance
 
