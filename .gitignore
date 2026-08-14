@@ -48,10 +48,16 @@ static/css/app.css
 # SuperPower Skill brainstorming
 .superpowers/
 
-# Turbo (local cache and task logs)
+# Ephemeral agent briefs (README is tracked)
+docs/briefs/*
+!docs/briefs/README.md
+!docs/briefs/.gitignore
+
+# Local task caches
+.nx/
 .turbo/
 
-# TDD lock sentinel (created by delivery orchestrator during implementation runs)
+# Retired TDD lock sentinel
 .cursor/tdd-lock
 
 # LifeQuest verification run state + proof screenshots (skill keeps .gitkeep)

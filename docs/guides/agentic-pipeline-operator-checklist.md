@@ -1,8 +1,6 @@
 # Agentic Pipeline — Operator Checklist (Dashboard-Side Setup)
 
-The repo-side configuration for the agentic pipeline (brief: `Documentation/agentic-pipeline/`)
-lives in code and is covered by CI. The items below CANNOT be expressed as repo code — they are
-GitHub/Cursor dashboard settings an operator must apply. Track completion here.
+The repo-side configuration for CI agent jobs lives in code and is covered by CI. The items below CANNOT be expressed as repo code — they are GitHub/Cursor dashboard settings an operator must apply. Track completion here.
 
 ## M0 — Foundation controls
 

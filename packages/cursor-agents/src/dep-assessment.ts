@@ -51,7 +51,7 @@ async function collectRepoFiles(repoRoot: string): Promise<Map<string, string>> 
       if (files.size >= MAX_SCAN_FILES) return;
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
-        if (["node_modules", ".next", "dist", "coverage", ".turbo"].includes(entry.name)) {
+        if (["node_modules", ".next", "dist", "coverage", ".nx", ".git"].includes(entry.name)) {
           continue;
         }
         await walk(full);

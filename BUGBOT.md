@@ -6,10 +6,9 @@ the "no open medium+ findings" required status check.
 
 ## Repo context
 
-Monorepo: Go API (`apps/api`, chi + pgx), Next.js 15 / React 19 frontends (`apps/rpg-tracker`,
-`apps/nutri-log`, `apps/mental-health`), shared TS packages (`packages/*`), Python eval tooling
-(`apps/cursor-lab`). Canonical constraints live in `Documentation/architecture.md` and
-`Documentation/decision-log.md`.
+Monorepo: Go API (`apps/api`, chi + pgx), Next.js 16 / React 19 frontends (`apps/rpg-tracker`,
+`apps/nutri-log`, `apps/mental-health`), shared TS packages (`packages/*`). Constraints:
+`docs/architecture.md` and `docs/practices.md`. Tests are the behaviour spec.
 
 ## Severity calibration
 
@@ -39,12 +38,11 @@ Flag as MEDIUM (blocking via the severity status check):
 Flag as LOW (advisory, do not block):
 
 - Style and naming inconsistencies the linters don't catch.
-- Missing doc updates (`Documentation/feature-tracker.md` / `decision-log.md`) for scope or
-  decision changes — mention, don't block.
+- Missing `docs/` updates when a lasting platform rule changed — mention, don't block.
 
 ## Do not flag
 
-- Generated files, lockfiles, and `Documentation/agentic-pipeline/*.svg` diagrams.
+- Generated files and lockfiles.
 - Test-only "insecure" fixtures clearly marked as canary/example material
   (`packages/cursor-agents/src/canary-insecure-example.ts`).
 - Theme CSS differences between Clean/Stylish modes — these are intentional (D-043).

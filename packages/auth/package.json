@@ -2,6 +2,9 @@
   "name": "@rpgtracker/auth",
   "version": "0.0.1",
   "private": true,
+  "nx": {
+    "tags": ["type:lib"]
+  },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {

@@ -5,10 +5,10 @@ alwaysApply: true
 
 # Repo Routing
 
-**Entry points:** `AGENTS.md` (zone map) · `Documentation/README.md` (canonical docs) · `docs/CURSOR-AGENT-HANDBOOK.md` (workflow/CI).
+**Entry points:** `AGENTS.md` · `docs/README.md` · `docs/CURSOR-AGENT-HANDBOOK.md` (CI/ops only).
 
-**Zones:** `apps/api/` (Go) · `apps/rpg-tracker/`, `apps/nutri-log/`, `apps/mental-health/` (frontends) · `packages/*` (shared — coordinate cross-cutting changes).
+**Zones:** `apps/api/` (Go) · `apps/rpg-tracker/` (web shell) · `apps/nutri-log/`, `apps/mental-health/` (today's extra origins) · `packages/*` (shared). Target shape: `docs/architecture.md`.
 
-**Skills:** pstack (`/poteto-mode`, `poteto-agent`) and cursor-team-kit plugins. Per-role models: `.cursor/rules/pstack-models.mdc` (D-063). LifeQuest browser verification: `.cursor/skills/verify-lifequest/`.
+**Skills:** pstack (`/poteto-mode`) and cursor-team-kit. Models: `.cursor/rules/pstack-models.mdc`. LifeQuest browser: `.cursor/skills/verify-lifequest/`.
 
-**Guides:** operational runbooks in `docs/guides/`.
+**Durable docs:** `docs/`. **Ephemeral plans:** `docs/briefs/`. Do not write `Documentation/delivery/`.

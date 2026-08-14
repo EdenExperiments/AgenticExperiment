@@ -2,21 +2,20 @@
   "name": "rpgtracker-platform",
   "private": true,
   "scripts": {
-    "build": "turbo build",
-    "dev": "turbo dev",
-    "test": "turbo test",
-    "test:ci": "turbo test --concurrency=1",
-    "test:coverage": "turbo run test:coverage --concurrency=1",
-    "test:go": "cd apps/api && go test ./...",
-    "lint": "turbo lint",
-    "format": "turbo format",
-    "check:precommit": "pnpm lint && turbo test --concurrency=1 && pnpm test:go",
+    "build": "nx run-many -t build --exclude=api",
+    "dev": "nx run-many -t dev --projects=tag:type:app --parallel=8",
+    "test": "nx run-many -t test --exclude=api",
+    "test:ci": "nx run-many -t test --parallel=1 --exclude=api",
+    "test:coverage": "nx run-many -t test:coverage --parallel=1 --exclude=api",
+    "test:go": "nx test api",
+    "lint": "nx run-many -t lint --exclude=api",
+    "check:precommit": "pnpm lint && nx run-many -t test --parallel=1 --exclude=api",
     "prepare": "husky"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^2.1.9",
     "husky": "^9.1.7",
-    "turbo": "^2.9.12"
+    "nx": "^21.6.4"
   },
   "engines": {
     "node": ">=20.20.2",

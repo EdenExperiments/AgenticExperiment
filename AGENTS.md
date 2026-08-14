@@ -1,52 +1,32 @@
 # Agent And Repo Directory
 
-Top-level index for agents and contributors. Entry-point routing also lives in `.cursor/rules/repo-routing.mdc`.
+Entry-point routing also lives in `.cursor/rules/repo-routing.mdc`.
 
-## Start Here
+## Start here
 
-- Repository setup and run commands: `README.md`
-- Canonical documentation map: `Documentation/README.md`
-- Cursor-first operating model and delivery workflow: `docs/CURSOR-AGENT-HANDBOOK.md`
+- Run the repo: `README.md`
+- Product and platform: `docs/README.md`
+- CI / Bugbot / SDK jobs: `docs/CURSOR-AGENT-HANDBOOK.md`
 
-## Repository Zones
+## Zones
 
-| Zone | Paths | Primary focus |
-|------|-------|---------------|
-| Go API | `apps/api/` | API handlers, auth middleware, repositories, migrations |
-| LifeQuest frontend | `apps/rpg-tracker/` | Next.js App Router UX and data flows |
-| NutriLog frontend | `apps/nutri-log/` | NutriLog product surface |
-| Mental Health frontend | `apps/mental-health/` | MindTrack product surface |
-| Shared UI | `packages/ui/` | Design tokens, components, theme behavior |
-| Shared auth | `packages/auth/` | Supabase SSR/browser auth helpers |
-| Shared API client | `packages/api-client/` | Typed API integration layer |
-| Agent automation | `.github/workflows/`, `packages/cursor-agents/` | CI/CD agent workflows and SDK automation |
-| Cursor Lab | `apps/cursor-lab/` | Local eval harness for `.cursor/` rules and hooks |
+| Zone | Paths |
+|------|-------|
+| Go API | `apps/api/` |
+| LifeQuest (web shell; other products fold in here) | `apps/rpg-tracker/` |
+| NutriLog (today's origin; target is a route group) | `apps/nutri-log/` |
+| MindTrack (scaffold origin) | `apps/mental-health/` |
+| Shared UI / auth / API client | `packages/ui`, `packages/auth`, `packages/api-client` |
+| Agent CI scripts | `packages/cursor-agents/` |
 
-## Canonical Context Directory
+## Docs
 
-| Concern | Path |
-|---------|------|
-| Product scope | `Documentation/product-requirements.md` |
-| Platform / schema | `Documentation/architecture.md` |
-| Binding decisions | `Documentation/decision-log.md` |
-| Feature status | `Documentation/feature-tracker.md` |
-| Delivery artifacts | `Documentation/delivery/` (historical; Pillar D commands retired, D-063) |
-| Agentic pipeline target | `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md` |
-| Visual implementation | `Documentation/style-guide/`, `Documentation/page-guides/` |
-| Workflow / CI | `docs/CURSOR-AGENT-HANDBOOK.md` |
+`docs/` is the only durable product/platform writing. Tests are the spec. Ephemeral plans go in `docs/briefs/` and are deleted after promote. See `docs/practices.md`.
 
-## Agent Config Layering (Brief §4c, D-063)
+## Agent config
 
-See `docs/guides/agent-composition-contract.md`:
+1. Base — this file, `.cursor/rules/`, `.cursor/hooks.json`
+2. Stack — nested `AGENTS.md` (`apps/api/`, `apps/rpg-tracker/`, `packages/`)
+3. Role — pstack (`/poteto-mode`) and cursor-team-kit
 
-1. **Base** — this file + `.cursor/rules/` (including `pstack-models.mdc`) + `.cursor/hooks.json`
-2. **Stack** — nested `AGENTS.md` per zone (`apps/api/`, `apps/rpg-tracker/`, `packages/`, `apps/cursor-lab/`)
-3. **Role** — pstack plugin agents (`poteto-agent`, Comment Sicko) plus Cursor built-ins (`explore`, `bash`, `browser`)
-
-Development uses `/poteto-mode` and cursor-team-kit. Repo-managed skills, commands, agents, and flows were removed, except the LifeQuest verification skill at `.cursor/skills/verify-lifequest/`.
-
-## Documentation Contract (D-059)
-
-- **Always:** tracker row when status changes; decision-log entry when a binding decision is made.
-- **Delivery:** signed requirements in `Documentation/delivery/` — PRD updates only for scope/vision changes. New work does not start `/fix`/`/feature` pack commands (retired D-063).
-- Historical planning docs: `docs/archive/` (not canonical).
+LifeQuest browser checks: `.cursor/skills/verify-lifequest/`.
