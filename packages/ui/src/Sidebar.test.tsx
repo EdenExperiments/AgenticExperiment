@@ -24,6 +24,16 @@ test('marks current section as active', () => {
   expect(screen.getByRole('link', { name: 'Skills' })).toHaveAttribute('aria-current', 'page')
 })
 
+test('longest matchPrefix wins when two items nest', () => {
+  const items: NavItem[] = [
+    { label: 'Weight', href: '/nutri', icon: '⚖️', matchPrefix: '/nutri' },
+    { label: 'Goals', href: '/nutri/goals', icon: '🎯', matchPrefix: '/nutri/goals' },
+  ]
+  render(<Sidebar title="NutriLog" currentPath="/nutri/goals" items={items} />)
+  expect(screen.getByRole('link', { name: 'Goals' })).toHaveAttribute('aria-current', 'page')
+  expect(screen.getByRole('link', { name: 'Weight' })).not.toHaveAttribute('aria-current')
+})
+
 test('renders coming-soon item when href is null', () => {
   render(
     <Sidebar

@@ -13,8 +13,8 @@ test('NutriLog layout sets data-theme nutri-saas and owns chrome', () => {
   )
   expect(container.querySelector('[data-theme="nutri-saas"]')).not.toBeNull()
   expect(screen.getAllByRole('link', { name: /weight/i }).length).toBeGreaterThan(0)
+  expect(screen.getAllByRole('link', { name: /goals/i }).length).toBeGreaterThan(0)
   expect(screen.queryByRole('link', { name: /skills/i })).not.toBeInTheDocument()
-  expect(screen.queryByRole('link', { name: /goals/i })).not.toBeInTheDocument()
 })
 
 test('shell tokens import nutri-saas and proxy stays on LifeQuest minimal', () => {

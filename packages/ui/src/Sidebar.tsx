@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { DefaultAvatar } from './DefaultAvatar'
-import type { NavItem } from './nav'
+import { isNavItemActive, type NavItem } from './nav'
 
 export type { NavItem }
 
@@ -49,7 +49,7 @@ export function Sidebar({ title, items, currentPath, displayName, avatarUrl }: S
             )
           }
 
-          const active = currentPath.startsWith(matchPrefix)
+          const active = isNavItemActive({ label, href, matchPrefix, icon }, currentPath, items)
           return (
             <Link
               key={href}

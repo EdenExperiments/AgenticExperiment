@@ -1,4 +1,4 @@
-import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast, WeightLog, WeightChartResponse, WorkoutSession, WorkoutExercise, WorkoutSet, WorkoutVolumeChartResponse } from './types'
+import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast, WeightLog, WeightChartResponse, WorkoutSession, WorkoutExercise, WorkoutSet, WorkoutVolumeChartResponse, NutriGoals } from './types'
 
 export class ApiRequestError extends Error {
   status: number
@@ -431,4 +431,21 @@ export function addWorkoutSet(
 export function getWorkoutVolumeChart(days?: number): Promise<WorkoutVolumeChartResponse> {
   const qs = days ? `?days=${days}` : ''
   return request<WorkoutVolumeChartResponse>(`/api/v1/workout/volume-chart${qs}`)
+}
+
+export function getNutriGoals(): Promise<NutriGoals> {
+  return request<NutriGoals>('/api/v1/nutrilog/goals')
+}
+
+export function upsertNutriGoals(data: {
+  calorie_goal: number
+  protein_g?: number
+  carbs_g?: number
+  fat_g?: number
+  target_weight_kg?: number
+}): Promise<NutriGoals> {
+  return request<NutriGoals>('/api/v1/nutrilog/goals', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
 }

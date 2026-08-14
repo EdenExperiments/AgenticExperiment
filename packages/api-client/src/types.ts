@@ -371,3 +371,13 @@ export interface WorkoutVolumeChartResponse {
   days: number
   data: WorkoutVolumePoint[]
 }
+
+export interface NutriGoals {
+  user_id: string
+  calorie_goal: number
+  protein_g: number | null
+  carbs_g: number | null
+  fat_g: number | null
+  target_weight_kg: number | null
+  updated_at: string
+}

@@ -4,7 +4,7 @@ Shared Go service (`chi`, `pgx`). Web reaches it through the LifeQuest BFF. Nati
 
 ## Rough layout
 
-`internal/handlers` is today's LifeQuest HTTP dump. Leave it until a file is touched. New domains are `internal/<name>/` with persistence and HTTP together, mounted at `/api/v1/<name>`. NutriLog persistence is already `internal/nutrilog`. Move its HTTP there when that file is next edited.
+`internal/handlers` is today's LifeQuest HTTP dump. Leave it until a file is touched. New domains are `internal/<name>/` with persistence and HTTP together, mounted at `/api/v1/<name>`. NutriLog HTTP and persistence live in `internal/nutrilog` (`Routes()`).
 
 Auth is Supabase JWTs via `internal/auth` (`NewJWTMiddleware`). App data is local Postgres. Do not add a second session cookie path.
 

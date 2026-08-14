@@ -1,7 +1,6 @@
-package handlers
+package nutrilog
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"log"
@@ -14,8 +13,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/meden/rpgtracker/internal/api"
 	"github.com/meden/rpgtracker/internal/auth"
-	"github.com/meden/rpgtracker/internal/database"
-	"github.com/meden/rpgtracker/internal/nutrilog"
 )
 
 const (
@@ -25,45 +22,29 @@ const (
 	maxWeightChartDays        = 365
 )
 
-// NutrilogWeightStore is the persistence interface for weight log handlers.
-type NutrilogWeightStore interface {
-	CreateWeightLog(ctx context.Context, userID uuid.UUID, weightKg float64, note string, measuredAt time.Time) (*nutrilog.WeightLog, error)
-	ListWeightLogs(ctx context.Context, userID uuid.UUID, limit int) ([]nutrilog.WeightLog, error)
-	GetWeightLogsInRange(ctx context.Context, userID uuid.UUID, days int) ([]nutrilog.WeightLog, error)
-	DeleteWeightLog(ctx context.Context, userID, logID uuid.UUID) error
+type Handler struct {
+	weights WeightStore
+	goals   GoalStore
 }
 
-type dbNutrilogWeightStore struct{}
-
-func (s *dbNutrilogWeightStore) CreateWeightLog(ctx context.Context, userID uuid.UUID, weightKg float64, note string, measuredAt time.Time) (*nutrilog.WeightLog, error) {
-	return nutrilog.CreateWeightLog(ctx, database.MustQuerier(ctx), userID, weightKg, note, measuredAt)
+func NewHandler(weights WeightStore, goals GoalStore) *Handler {
+	return &Handler{weights: weights, goals: goals}
 }
 
-func (s *dbNutrilogWeightStore) ListWeightLogs(ctx context.Context, userID uuid.UUID, limit int) ([]nutrilog.WeightLog, error) {
-	return nutrilog.ListWeightLogs(ctx, database.MustQuerier(ctx), userID, limit)
+func Routes() chi.Router {
+	r := chi.NewRouter()
+	h := NewHandler(&dbWeights{}, &dbGoals{})
+	h.mount(r)
+	return r
 }
 
-func (s *dbNutrilogWeightStore) GetWeightLogsInRange(ctx context.Context, userID uuid.UUID, days int) ([]nutrilog.WeightLog, error) {
-	return nutrilog.GetWeightLogsInRange(ctx, database.MustQuerier(ctx), userID, days)
-}
-
-func (s *dbNutrilogWeightStore) DeleteWeightLog(ctx context.Context, userID, logID uuid.UUID) error {
-	return nutrilog.DeleteWeightLog(ctx, database.MustQuerier(ctx), userID, logID)
-}
-
-// NutrilogWeightHandler handles NutriLog weight log HTTP endpoints.
-type NutrilogWeightHandler struct {
-	store NutrilogWeightStore
-}
-
-// NewNutrilogWeightHandler constructs a NutrilogWeightHandler backed by the database.
-func NewNutrilogWeightHandler() *NutrilogWeightHandler {
-	return &NutrilogWeightHandler{store: &dbNutrilogWeightStore{}}
-}
-
-// NewNutrilogWeightHandlerWithStore constructs a NutrilogWeightHandler with an injected store (for tests).
-func NewNutrilogWeightHandlerWithStore(store any) *NutrilogWeightHandler {
-	return &NutrilogWeightHandler{store: adaptWeightStore(store)}
+func (h *Handler) mount(r chi.Router) {
+	r.Post("/weight-logs", h.HandlePostWeightLog)
+	r.Get("/weight-logs", h.HandleGetWeightLogs)
+	r.Get("/weight-chart", h.HandleGetWeightChart)
+	r.Delete("/weight-logs/{id}", h.HandleDeleteWeightLog)
+	r.Put("/goals", h.HandlePutGoals)
+	r.Get("/goals", h.HandleGetGoals)
 }
 
 type postWeightLogRequest struct {
@@ -72,8 +53,7 @@ type postWeightLogRequest struct {
 	MeasuredAt *time.Time `json:"measured_at"`
 }
 
-// HandlePostWeightLog handles POST /api/v1/nutrilog/weight-logs.
-func (h *NutrilogWeightHandler) HandlePostWeightLog(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandlePostWeightLog(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
 		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
@@ -96,13 +76,13 @@ func (h *NutrilogWeightHandler) HandlePostWeightLog(w http.ResponseWriter, r *ht
 		measuredAt = body.MeasuredAt.UTC()
 	}
 
-	cutoff := time.Now().UTC().Add(-nutrilog.MaxMeasuredAtAge)
+	cutoff := time.Now().UTC().Add(-MaxMeasuredAtAge)
 	if measuredAt.Before(cutoff) {
 		api.RespondError(w, http.StatusUnprocessableEntity, "measured_at cannot be older than 30 days")
 		return
 	}
 
-	logEntry, err := h.store.CreateWeightLog(r.Context(), userID, body.WeightKg, body.Note, measuredAt)
+	logEntry, err := h.weights.CreateWeightLog(r.Context(), userID, body.WeightKg, body.Note, measuredAt)
 	if err != nil {
 		log.Printf("ERROR: CreateWeightLog user=%s: %v", userID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to create weight log")
@@ -112,8 +92,7 @@ func (h *NutrilogWeightHandler) HandlePostWeightLog(w http.ResponseWriter, r *ht
 	api.RespondJSON(w, http.StatusCreated, logEntry)
 }
 
-// HandleGetWeightLogs handles GET /api/v1/nutrilog/weight-logs.
-func (h *NutrilogWeightHandler) HandleGetWeightLogs(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleGetWeightLogs(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
 		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
@@ -130,14 +109,14 @@ func (h *NutrilogWeightHandler) HandleGetWeightLogs(w http.ResponseWriter, r *ht
 		limit = maxWeightLogListLimit
 	}
 
-	logs, err := h.store.ListWeightLogs(r.Context(), userID, limit)
+	logs, err := h.weights.ListWeightLogs(r.Context(), userID, limit)
 	if err != nil {
 		log.Printf("ERROR: ListWeightLogs user=%s: %v", userID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to list weight logs")
 		return
 	}
 	if logs == nil {
-		logs = []nutrilog.WeightLog{}
+		logs = []WeightLog{}
 	}
 
 	sort.Slice(logs, func(i, j int) bool {
@@ -152,8 +131,7 @@ type weightChartEntry struct {
 	WeightKg *float64 `json:"weight_kg"`
 }
 
-// HandleGetWeightChart handles GET /api/v1/nutrilog/weight-chart.
-func (h *NutrilogWeightHandler) HandleGetWeightChart(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleGetWeightChart(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
 		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
@@ -170,7 +148,7 @@ func (h *NutrilogWeightHandler) HandleGetWeightChart(w http.ResponseWriter, r *h
 		days = maxWeightChartDays
 	}
 
-	dbLogs, err := h.store.GetWeightLogsInRange(r.Context(), userID, days)
+	dbLogs, err := h.weights.GetWeightLogsInRange(r.Context(), userID, days)
 	if err != nil {
 		log.Printf("ERROR: GetWeightLogsInRange user=%s: %v", userID, err)
 		api.RespondError(w, http.StatusInternalServerError, "failed to fetch weight chart")
@@ -203,8 +181,7 @@ func (h *NutrilogWeightHandler) HandleGetWeightChart(w http.ResponseWriter, r *h
 	})
 }
 
-// HandleDeleteWeightLog handles DELETE /api/v1/nutrilog/weight-logs/{id}.
-func (h *NutrilogWeightHandler) HandleDeleteWeightLog(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) HandleDeleteWeightLog(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
 		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
@@ -217,8 +194,8 @@ func (h *NutrilogWeightHandler) HandleDeleteWeightLog(w http.ResponseWriter, r *
 		return
 	}
 
-	if err := h.store.DeleteWeightLog(r.Context(), userID, logID); err != nil {
-		if isNutrilogNotFound(err) {
+	if err := h.weights.DeleteWeightLog(r.Context(), userID, logID); err != nil {
+		if errors.Is(err, ErrNotFound) || err.Error() == ErrNotFound.Error() {
 			api.RespondError(w, http.StatusNotFound, "weight log not found")
 			return
 		}
@@ -230,7 +207,75 @@ func (h *NutrilogWeightHandler) HandleDeleteWeightLog(w http.ResponseWriter, r *
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func isNutrilogNotFound(err error) bool {
-	return errors.Is(err, nutrilog.ErrNotFound) ||
-		(err != nil && err.Error() == nutrilog.ErrNotFound.Error())
+type putGoalsRequest struct {
+	CalorieGoal    int      `json:"calorie_goal"`
+	ProteinG       *int     `json:"protein_g"`
+	CarbsG         *int     `json:"carbs_g"`
+	FatG           *int     `json:"fat_g"`
+	TargetWeightKg *float64 `json:"target_weight_kg"`
+}
+
+func (h *Handler) HandlePutGoals(w http.ResponseWriter, r *http.Request) {
+	userID, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	var body putGoalsRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		api.RespondError(w, http.StatusBadRequest, "invalid JSON body")
+		return
+	}
+	if body.CalorieGoal <= 0 {
+		api.RespondError(w, http.StatusUnprocessableEntity, "calorie_goal must be positive")
+		return
+	}
+	if body.ProteinG != nil && *body.ProteinG < 0 {
+		api.RespondError(w, http.StatusUnprocessableEntity, "protein_g must be >= 0")
+		return
+	}
+	if body.CarbsG != nil && *body.CarbsG < 0 {
+		api.RespondError(w, http.StatusUnprocessableEntity, "carbs_g must be >= 0")
+		return
+	}
+	if body.FatG != nil && *body.FatG < 0 {
+		api.RespondError(w, http.StatusUnprocessableEntity, "fat_g must be >= 0")
+		return
+	}
+	if body.TargetWeightKg != nil && *body.TargetWeightKg <= 0 {
+		api.RespondError(w, http.StatusUnprocessableEntity, "target_weight_kg must be positive")
+		return
+	}
+	saved, err := h.goals.UpsertGoals(r.Context(), userID, Goals{
+		CalorieGoal:    body.CalorieGoal,
+		ProteinG:       body.ProteinG,
+		CarbsG:         body.CarbsG,
+		FatG:           body.FatG,
+		TargetWeightKg: body.TargetWeightKg,
+	})
+	if err != nil {
+		log.Printf("ERROR: UpsertGoals user=%s: %v", userID, err)
+		api.RespondError(w, http.StatusInternalServerError, "failed to save goals")
+		return
+	}
+	api.RespondJSON(w, http.StatusOK, saved)
+}
+
+func (h *Handler) HandleGetGoals(w http.ResponseWriter, r *http.Request) {
+	userID, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
+		return
+	}
+	g, err := h.goals.GetGoals(r.Context(), userID)
+	if err != nil {
+		if errors.Is(err, ErrNotFound) {
+			api.RespondError(w, http.StatusNotFound, "goals not found")
+			return
+		}
+		log.Printf("ERROR: GetGoals user=%s: %v", userID, err)
+		api.RespondError(w, http.StatusInternalServerError, "failed to load goals")
+		return
+	}
+	api.RespondJSON(w, http.StatusOK, g)
 }

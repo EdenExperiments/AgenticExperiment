@@ -1,4 +1,4 @@
-package handlers_test
+package nutrilog
 
 import (
 	"bytes"
@@ -13,27 +13,24 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/meden/rpgtracker/internal/auth"
-	"github.com/meden/rpgtracker/internal/handlers"
 )
 
-// errWeightLogNotFound mirrors nutrilog.ErrNotFound for stub injection in delete tests.
-var errWeightLogNotFound = errors.New("not found")
+type stubGoalStore struct{}
 
-// weightLogEntry mirrors the weight log JSON contract from task-01.
-type weightLogEntry struct {
-	ID         uuid.UUID `json:"id"`
-	UserID     uuid.UUID `json:"user_id,omitempty"`
-	WeightKg   float64   `json:"weight_kg"`
-	Note       string    `json:"note"`
-	MeasuredAt time.Time `json:"measured_at"`
-	CreatedAt  time.Time `json:"created_at"`
+func (stubGoalStore) UpsertGoals(_ context.Context, _ uuid.UUID, g Goals) (*Goals, error) {
+	return &g, nil
 }
+func (stubGoalStore) GetGoals(_ context.Context, _ uuid.UUID) (*Goals, error) {
+	return nil, ErrNotFound
+}
+
+var errWeightLogNotFound = errors.New("not found")
 
 // ─── Stub store ───────────────────────────────────────────────────────────────
 
-type stubNutrilogWeightStore struct {
-	logs      []weightLogEntry
-	created   *weightLogEntry
+type stubWeightStore struct {
+	logs      []WeightLog
+	created   *WeightLog
 	err       error
 	lastLimit int
 
@@ -42,7 +39,7 @@ type stubNutrilogWeightStore struct {
 	lastMeasuredAt time.Time
 }
 
-func (s *stubNutrilogWeightStore) CreateWeightLog(_ context.Context, _ uuid.UUID, weightKg float64, note string, measuredAt time.Time) (*weightLogEntry, error) {
+func (s *stubWeightStore) CreateWeightLog(_ context.Context, _ uuid.UUID, weightKg float64, note string, measuredAt time.Time) (*WeightLog, error) {
 	s.lastWeightKg = weightKg
 	s.lastNote = note
 	s.lastMeasuredAt = measuredAt
@@ -52,7 +49,7 @@ func (s *stubNutrilogWeightStore) CreateWeightLog(_ context.Context, _ uuid.UUID
 	if s.created != nil {
 		return s.created, nil
 	}
-	return &weightLogEntry{
+	return &WeightLog{
 		ID:         uuid.New(),
 		WeightKg:   weightKg,
 		Note:       note,
@@ -61,7 +58,7 @@ func (s *stubNutrilogWeightStore) CreateWeightLog(_ context.Context, _ uuid.UUID
 	}, nil
 }
 
-func (s *stubNutrilogWeightStore) ListWeightLogs(_ context.Context, _ uuid.UUID, limit int) ([]weightLogEntry, error) {
+func (s *stubWeightStore) ListWeightLogs(_ context.Context, _ uuid.UUID, limit int) ([]WeightLog, error) {
 	s.lastLimit = limit
 	if s.err != nil {
 		return nil, s.err
@@ -73,14 +70,14 @@ func (s *stubNutrilogWeightStore) ListWeightLogs(_ context.Context, _ uuid.UUID,
 	return logs, nil
 }
 
-func (s *stubNutrilogWeightStore) GetWeightLogsInRange(_ context.Context, _ uuid.UUID, _ int) ([]weightLogEntry, error) {
+func (s *stubWeightStore) GetWeightLogsInRange(_ context.Context, _ uuid.UUID, _ int) ([]WeightLog, error) {
 	if s.err != nil {
 		return nil, s.err
 	}
 	return s.logs, nil
 }
 
-func (s *stubNutrilogWeightStore) DeleteWeightLog(_ context.Context, _, _ uuid.UUID) error {
+func (s *stubWeightStore) DeleteWeightLog(_ context.Context, _, _ uuid.UUID) error {
 	return s.err
 }
 
@@ -90,7 +87,7 @@ func testNutrilogUserID() uuid.UUID  { return uuid.MustParse("11111111-0000-0000
 func testNutrilogUserID2() uuid.UUID { return uuid.MustParse("cccccccc-0000-0000-0000-000000000003") }
 func testWeightLogID() uuid.UUID     { return uuid.MustParse("aaaaaaaa-0000-0000-0000-000000000001") }
 
-func makeNutrilogWeightRouter(h *handlers.NutrilogWeightHandler) http.Handler {
+func makeNutrilogWeightRouter(h *Handler) http.Handler {
 	r := chi.NewRouter()
 	r.Post("/nutrilog/weight-logs", h.HandlePostWeightLog)
 	r.Get("/nutrilog/weight-logs", h.HandleGetWeightLogs)
@@ -112,9 +109,9 @@ func weightLogDeleteRequest(logID, userID uuid.UUID) *http.Request {
 	return req
 }
 
-func sampleWeightLog() *weightLogEntry {
+func sampleWeightLog() *WeightLog {
 	measured := time.Now().UTC().Truncate(time.Second).Add(-time.Hour)
-	return &weightLogEntry{
+	return &WeightLog{
 		ID:         testWeightLogID(),
 		UserID:     testNutrilogUserID(),
 		WeightKg:   72.5,
@@ -127,8 +124,8 @@ func sampleWeightLog() *weightLogEntry {
 // ─── AC-2: POST /nutrilog/weight-logs ───────────────────────────────────────
 
 func TestHandlePostWeightLog_OK(t *testing.T) {
-	stub := &stubNutrilogWeightStore{created: sampleWeightLog()}
-	h := handlers.NewNutrilogWeightHandlerWithStore(stub)
+	stub := &stubWeightStore{created: sampleWeightLog()}
+	h := NewHandler(stub, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	// Use a recent timestamp relative to now so the handler's 30-day recency
@@ -146,7 +143,7 @@ func TestHandlePostWeightLog_OK(t *testing.T) {
 		t.Fatalf("expected 201, got %d: %s", w.Code, w.Body.String())
 	}
 
-	var resp weightLogEntry
+	var resp WeightLog
 	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
@@ -165,7 +162,7 @@ func TestHandlePostWeightLog_OK(t *testing.T) {
 }
 
 func TestHandlePostWeightLog_Unauthorized(t *testing.T) {
-	h := handlers.NewNutrilogWeightHandlerWithStore(&stubNutrilogWeightStore{})
+	h := NewHandler(&stubWeightStore{}, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	body := `{"weight_kg":72.5}`
@@ -181,7 +178,7 @@ func TestHandlePostWeightLog_Unauthorized(t *testing.T) {
 }
 
 func TestHandlePostWeightLog_RejectsNonPositiveWeight(t *testing.T) {
-	h := handlers.NewNutrilogWeightHandlerWithStore(&stubNutrilogWeightStore{})
+	h := NewHandler(&stubWeightStore{}, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	body := `{"weight_kg":0}`
@@ -198,7 +195,7 @@ func TestHandlePostWeightLog_RejectsNonPositiveWeight(t *testing.T) {
 }
 
 func TestHandlePostWeightLog_RejectsMeasuredAtOlderThan30Days(t *testing.T) {
-	h := handlers.NewNutrilogWeightHandlerWithStore(&stubNutrilogWeightStore{})
+	h := NewHandler(&stubWeightStore{}, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	old := time.Now().UTC().AddDate(0, 0, -31).Format(time.RFC3339)
@@ -220,11 +217,11 @@ func TestHandlePostWeightLog_RejectsMeasuredAtOlderThan30Days(t *testing.T) {
 func TestHandleGetWeightLogs_ReturnsNewestMeasuredAtFirst(t *testing.T) {
 	older := time.Date(2026, 6, 10, 8, 0, 0, 0, time.UTC)
 	newer := time.Date(2026, 6, 12, 8, 0, 0, 0, time.UTC)
-	stub := &stubNutrilogWeightStore{logs: []weightLogEntry{
+	stub := &stubWeightStore{logs: []WeightLog{
 		{ID: uuid.New(), WeightKg: 71.0, MeasuredAt: older, CreatedAt: older},
 		{ID: uuid.New(), WeightKg: 72.5, MeasuredAt: newer, CreatedAt: newer},
 	}}
-	h := handlers.NewNutrilogWeightHandlerWithStore(stub)
+	h := NewHandler(stub, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	req := httptest.NewRequest(http.MethodGet, "/nutrilog/weight-logs", nil)
@@ -237,7 +234,7 @@ func TestHandleGetWeightLogs_ReturnsNewestMeasuredAtFirst(t *testing.T) {
 		t.Fatalf("expected 200, got %d: %s", w.Code, w.Body.String())
 	}
 
-	var resp []weightLogEntry
+	var resp []WeightLog
 	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
@@ -253,7 +250,7 @@ func TestHandleGetWeightLogs_ReturnsNewestMeasuredAtFirst(t *testing.T) {
 }
 
 func TestHandleGetWeightLogs_Unauthorized(t *testing.T) {
-	h := handlers.NewNutrilogWeightHandlerWithStore(&stubNutrilogWeightStore{})
+	h := NewHandler(&stubWeightStore{}, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	req := httptest.NewRequest(http.MethodGet, "/nutrilog/weight-logs", nil)
@@ -266,8 +263,8 @@ func TestHandleGetWeightLogs_Unauthorized(t *testing.T) {
 }
 
 func TestHandleGetWeightLogs_DefaultLimit50(t *testing.T) {
-	stub := &stubNutrilogWeightStore{}
-	h := handlers.NewNutrilogWeightHandlerWithStore(stub)
+	stub := &stubWeightStore{}
+	h := NewHandler(stub, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	req := httptest.NewRequest(http.MethodGet, "/nutrilog/weight-logs", nil)
@@ -284,8 +281,8 @@ func TestHandleGetWeightLogs_DefaultLimit50(t *testing.T) {
 }
 
 func TestHandleGetWeightLogs_CapsLimitAt200(t *testing.T) {
-	stub := &stubNutrilogWeightStore{}
-	h := handlers.NewNutrilogWeightHandlerWithStore(stub)
+	stub := &stubWeightStore{}
+	h := NewHandler(stub, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	req := httptest.NewRequest(http.MethodGet, "/nutrilog/weight-logs?limit=500", nil)
@@ -305,11 +302,11 @@ func TestHandleGetWeightLogs_CapsLimitAt200(t *testing.T) {
 
 func TestHandleGetWeightChart_Returns30DaysAscending(t *testing.T) {
 	today := time.Now().UTC().Truncate(24 * time.Hour)
-	stub := &stubNutrilogWeightStore{logs: []weightLogEntry{
+	stub := &stubWeightStore{logs: []WeightLog{
 		{ID: uuid.New(), WeightKg: 70.0, MeasuredAt: today.AddDate(0, 0, -2), CreatedAt: today},
 		{ID: uuid.New(), WeightKg: 72.5, MeasuredAt: today, CreatedAt: today},
 	}}
-	h := handlers.NewNutrilogWeightHandlerWithStore(stub)
+	h := NewHandler(stub, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	req := httptest.NewRequest(http.MethodGet, "/nutrilog/weight-chart?days=30", nil)
@@ -359,10 +356,10 @@ func TestHandleGetWeightChart_Returns30DaysAscending(t *testing.T) {
 
 func TestHandleGetWeightChart_NullFillForMissingDays(t *testing.T) {
 	today := time.Now().UTC().Truncate(24 * time.Hour)
-	stub := &stubNutrilogWeightStore{logs: []weightLogEntry{
+	stub := &stubWeightStore{logs: []WeightLog{
 		{ID: uuid.New(), WeightKg: 72.5, MeasuredAt: today.AddDate(0, 0, -10), CreatedAt: today},
 	}}
-	h := handlers.NewNutrilogWeightHandlerWithStore(stub)
+	h := NewHandler(stub, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	req := httptest.NewRequest(http.MethodGet, "/nutrilog/weight-chart?days=30", nil)
@@ -399,12 +396,12 @@ func TestHandleGetWeightChart_NullFillForMissingDays(t *testing.T) {
 }
 
 func TestHandleGetWeightChart_UsesLatestLogOnSameDay(t *testing.T) {
-	day := time.Now().UTC().Truncate(24 * time.Hour).AddDate(0, 0, -1)
-	stub := &stubNutrilogWeightStore{logs: []weightLogEntry{
+	day := time.Now().UTC().Truncate(24*time.Hour).AddDate(0, 0, -1)
+	stub := &stubWeightStore{logs: []WeightLog{
 		{ID: uuid.New(), WeightKg: 71.0, MeasuredAt: day.Add(8 * time.Hour), CreatedAt: day},
 		{ID: uuid.New(), WeightKg: 72.5, MeasuredAt: day.Add(18 * time.Hour), CreatedAt: day},
 	}}
-	h := handlers.NewNutrilogWeightHandlerWithStore(stub)
+	h := NewHandler(stub, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	req := httptest.NewRequest(http.MethodGet, "/nutrilog/weight-chart?days=7", nil)
@@ -441,8 +438,8 @@ func TestHandleGetWeightChart_UsesLatestLogOnSameDay(t *testing.T) {
 }
 
 func TestHandleGetWeightChart_CapsDaysAt365(t *testing.T) {
-	stub := &stubNutrilogWeightStore{}
-	h := handlers.NewNutrilogWeightHandlerWithStore(stub)
+	stub := &stubWeightStore{}
+	h := NewHandler(stub, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	req := httptest.NewRequest(http.MethodGet, "/nutrilog/weight-chart?days=999", nil)
@@ -471,8 +468,8 @@ func TestHandleGetWeightChart_CapsDaysAt365(t *testing.T) {
 // ─── AC-5: DELETE /nutrilog/weight-logs/{id} ────────────────────────────────
 
 func TestHandleDeleteWeightLog_OK(t *testing.T) {
-	stub := &stubNutrilogWeightStore{}
-	h := handlers.NewNutrilogWeightHandlerWithStore(stub)
+	stub := &stubWeightStore{}
+	h := NewHandler(stub, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	req := weightLogDeleteRequest(testWeightLogID(), testNutrilogUserID())
@@ -485,8 +482,8 @@ func TestHandleDeleteWeightLog_OK(t *testing.T) {
 }
 
 func TestHandleDeleteWeightLog_NotFoundForOtherUser(t *testing.T) {
-	stub := &stubNutrilogWeightStore{err: errWeightLogNotFound}
-	h := handlers.NewNutrilogWeightHandlerWithStore(stub)
+	stub := &stubWeightStore{err: errWeightLogNotFound}
+	h := NewHandler(stub, stubGoalStore{})
 	router := makeNutrilogWeightRouter(h)
 
 	req := weightLogDeleteRequest(testWeightLogID(), testNutrilogUserID2())

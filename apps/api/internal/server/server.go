@@ -15,6 +15,7 @@ import (
 	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/entitlements"
 	"github.com/meden/rpgtracker/internal/handlers"
+	"github.com/meden/rpgtracker/internal/nutrilog"
 	"github.com/meden/rpgtracker/internal/users"
 	"github.com/meden/rpgtracker/internal/workout"
 )
@@ -128,11 +129,7 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 			Post("/goals/plan", goalPlanHandler.HandlePostGoalPlan)
 		r.Get("/goals/{id}/forecast", goalHandler.HandleGetGoalForecast)
 
-		nutrilogWeightHandler := handlers.NewNutrilogWeightHandler()
-		r.Post("/nutrilog/weight-logs", nutrilogWeightHandler.HandlePostWeightLog)
-		r.Get("/nutrilog/weight-logs", nutrilogWeightHandler.HandleGetWeightLogs)
-		r.Get("/nutrilog/weight-chart", nutrilogWeightHandler.HandleGetWeightChart)
-		r.Delete("/nutrilog/weight-logs/{id}", nutrilogWeightHandler.HandleDeleteWeightLog)
+		r.Mount("/nutrilog", nutrilog.Routes())
 
 		r.Mount("/workout", workout.Routes())
 	})

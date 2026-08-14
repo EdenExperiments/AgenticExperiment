@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import type { NavItem } from './nav'
+import { isNavItemActive, type NavItem } from './nav'
 
 export type { NavItem }
 
@@ -19,7 +19,7 @@ export function BottomTabBar({ currentPath, items }: BottomTabBarProps) {
     >
       <div className="flex items-stretch h-16">
         {items.map((tab) => {
-          const isActive = currentPath.startsWith(tab.matchPrefix)
+          const isActive = isNavItemActive(tab, currentPath, items)
 
           if (tab.href === null) {
             return (

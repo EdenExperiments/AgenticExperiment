@@ -5,6 +5,7 @@ import { BottomTabBar, Sidebar, type NavItem } from '@rpgtracker/ui'
 
 const NUTRI_NAV: NavItem[] = [
   { label: 'Weight', href: '/nutri', icon: '⚖️', matchPrefix: '/nutri' },
+  { label: 'Goals', href: '/nutri/goals', icon: '🎯', matchPrefix: '/nutri/goals' },
   { label: 'Account', href: '/account', icon: '👤', matchPrefix: '/account' },
 ]
 

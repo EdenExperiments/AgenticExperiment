@@ -12,7 +12,7 @@ Set calorie/macro/weight goals → search or custom food (Open Food Facts, degra
 
 ## Truth in code
 
-- Weight API/UI: `apps/api/internal/nutrilog`, target page `apps/rpg-tracker/app/(app)/nutri`. Origin `apps/nutri-log` is leftover until origins collapse.
+- Weight and calorie goals HTTP live in `apps/api/internal/nutrilog` `Routes()`, mounted at `/api/v1/nutrilog`. UI is `apps/rpg-tracker/app/(app)/nutri` and `/nutri/goals`. Origin `apps/nutri-log` is leftover until origins collapse.
 - Theme: nested layout sets `data-theme="nutri-saas"`. Do not write it into `rpgt-theme`.
 - BFF join is `/api/` plus the client path, same as LifeQuest. A `v1/v1` join is a bug.
 
