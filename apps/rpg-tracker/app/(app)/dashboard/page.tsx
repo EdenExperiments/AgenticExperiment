@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { listSkills, getAccount, getActivity, logXP, setPrimarySkill } from '@rpgtracker/api-client'
+import { listSkills, getAccount, getActivity, logXP, setPrimarySkill, getCurrentFast, listWeightLogs, listPantry, getCurrentWorkout, listWorkoutHistory, listMoodLogs } from '@rpgtracker/api-client'
 import type { SkillDetail, ActivityEvent } from '@rpgtracker/api-client'
 import {
   SkillCard,
@@ -18,6 +18,14 @@ import {
   HubPlaceholderCard,
 } from '@rpgtracker/ui'
 import { XPGainAnimation } from '@/components/XPGainAnimation'
+import {
+  hubFastValue,
+  hubLastWorkoutValue,
+  hubMoodValue,
+  hubPantryValue,
+  hubWeightValue,
+  hubWorkoutValue,
+} from '@/lib/suiteStatus'
 
 /** Compute the count of active (uncleared) gates at or below each skill's current level */
 function countActiveGates(skills: SkillDetail[]): number {
@@ -66,6 +74,31 @@ export default function DashboardPage() {
   const { data: activity = [], isLoading: activityLoading } = useQuery({
     queryKey: ['activity'],
     queryFn: () => getActivity(10),
+  })
+
+  const { data: currentFast = null } = useQuery({
+    queryKey: ['fast-current'],
+    queryFn: getCurrentFast,
+  })
+  const { data: weightLogs = [] } = useQuery({
+    queryKey: ['weight-logs-hub'],
+    queryFn: () => listWeightLogs({ limit: 1 }),
+  })
+  const { data: pantry = [] } = useQuery({
+    queryKey: ['pantry'],
+    queryFn: listPantry,
+  })
+  const { data: currentWorkout = null } = useQuery({
+    queryKey: ['workout-current'],
+    queryFn: getCurrentWorkout,
+  })
+  const { data: workoutHistory = [] } = useQuery({
+    queryKey: ['workout-history'],
+    queryFn: listWorkoutHistory,
+  })
+  const { data: moodLogs = [] } = useQuery({
+    queryKey: ['mood-logs'],
+    queryFn: listMoodLogs,
   })
 
   const [quickLogExpanded, setQuickLogExpanded] = useState(false)
@@ -331,7 +364,6 @@ export default function DashboardPage() {
         </section>
       </div>
 
-      {/* Hub Stat Placeholders — P4-6 */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <HubPlaceholderCard
           appName="NutriLog"
@@ -339,9 +371,9 @@ export default function DashboardPage() {
           icon="🥗"
           href="/nutri"
           metrics={[
-            { label: 'Weight', value: 'Open' },
-            { label: 'Fast', value: 'Open' },
-            { label: 'Cook', value: 'Open' },
+            { label: 'Fast', value: hubFastValue(currentFast) },
+            { label: 'Weight', value: hubWeightValue(weightLogs) },
+            { label: 'Pantry', value: hubPantryValue(pantry.length) },
           ]}
         />
         <HubPlaceholderCard
@@ -350,8 +382,8 @@ export default function DashboardPage() {
           icon="💪"
           href="/workout"
           metrics={[
-            { label: 'Session', value: 'Open' },
-            { label: 'History', value: 'Open' },
+            { label: 'Session', value: hubWorkoutValue(currentWorkout) },
+            { label: 'Last', value: hubLastWorkoutValue(workoutHistory) },
             { label: 'XP', value: 'Off' },
           ]}
         />
@@ -361,8 +393,8 @@ export default function DashboardPage() {
           icon="🫧"
           href="/mind"
           metrics={[
-            { label: 'Mood', value: 'Open' },
-            { label: 'Journal', value: 'Open' },
+            { label: 'Mood', value: hubMoodValue(moodLogs) },
+            { label: 'Journal', value: 'Private' },
             { label: 'XP', value: 'Off' },
           ]}
         />

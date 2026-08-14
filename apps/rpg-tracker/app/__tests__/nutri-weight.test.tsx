@@ -12,12 +12,18 @@ const mockListWeightLogs = vi.fn()
 const mockGetWeightChart = vi.fn()
 const mockCreateWeightLog = vi.fn()
 const mockDeleteWeightLog = vi.fn()
+const mockGetCurrentFast = vi.fn()
+const mockListPantry = vi.fn()
+const mockListDiary = vi.fn()
 
 vi.mock('@rpgtracker/api-client', () => ({
   listWeightLogs: (...args: unknown[]) => mockListWeightLogs(...args),
   getWeightChart: (...args: unknown[]) => mockGetWeightChart(...args),
   createWeightLog: (...args: unknown[]) => mockCreateWeightLog(...args),
   deleteWeightLog: (...args: unknown[]) => mockDeleteWeightLog(...args),
+  getCurrentFast: (...args: unknown[]) => mockGetCurrentFast(...args),
+  listPantry: (...args: unknown[]) => mockListPantry(...args),
+  listDiary: (...args: unknown[]) => mockListDiary(...args),
 }))
 
 const existingLog = {
@@ -49,6 +55,9 @@ beforeEach(() => {
   vi.clearAllMocks()
   mockListWeightLogs.mockResolvedValue([existingLog])
   mockGetWeightChart.mockResolvedValue(chartResponse)
+  mockGetCurrentFast.mockResolvedValue(null)
+  mockListPantry.mockResolvedValue([])
+  mockListDiary.mockResolvedValue([])
   mockCreateWeightLog.mockResolvedValue({
     id: 'wl-2',
     weight_kg: 71.0,
@@ -64,6 +73,23 @@ describe('NutriLog today', () => {
     render(<NutriTodayPage />, { wrapper })
     expect(await screen.findByRole('heading', { name: /today/i })).toBeInTheDocument()
     expect(await screen.findByTestId('weight-log-row')).toHaveTextContent('72.5 kg')
+  })
+
+  it('shows live fast and pantry receipts', async () => {
+    mockGetCurrentFast.mockResolvedValue({
+      id: 'f1',
+      started_at: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
+      target_hours: 16,
+      created_at: new Date().toISOString(),
+    })
+    mockListPantry.mockResolvedValue([{ id: 'p1', name: 'Eggs', amount_text: '6', created_at: '' }])
+    mockListDiary.mockResolvedValue([
+      { id: 'd1', eaten_at: '', source: 'cook', title: 'Omelette', servings: 1, created_at: '' },
+    ])
+    render(<NutriTodayPage />, { wrapper })
+    expect(await screen.findByText('1h 30m')).toBeInTheDocument()
+    expect(screen.getByText('1 item')).toBeInTheDocument()
+    expect(screen.getByText('Omelette')).toBeInTheDocument()
   })
 })
 

@@ -4,7 +4,7 @@ NutriLog is a product on `nl_*` and `internal/nutrilog` at grandfathered `/api/v
 
 First loops are weight (`nl_weight_logs`), one open fast (`nl_fasts`), pantry (`nl_pantry_items`), manual recipes (`nl_recipes`), and cook-to-diary (`nl_diary_entries`). Calorie and weight goals stay `nl_*`, not `public.goals`. Empty pantry must not call Claude. Do not scrape recipe sites. Do not reuse `training_sessions`, `skill_presets`, or `xp_events`.
 
-Weight, fasting, and cook live in `apps/rpg-tracker/app/(app)/nutri`. The NutriLog origin at `:3002` is leftover and is not required for these loops. LifeQuest BFF forwards a single `/api/v1` prefix.
+Weight, fasting, and cook live in `apps/rpg-tracker/app/(app)/nutri`. `/nutri` is a today board (open fast, pantry count, last meal, weight). The NutriLog origin at `:3002` is leftover and is not required for these loops. LifeQuest BFF forwards a single `/api/v1` prefix.
 
 ## NutriLog features
 

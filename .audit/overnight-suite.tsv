@@ -4,4 +4,6 @@ ts	phase	decision	why	evidence	result
 2026-08-14T23:21:00Z	mindtrack	generally well adults, 18+, mood+journal+grounding, no AI, mental-calm only	user asked for a great MindTrack state; defaults are narrower so morning can widen	docs/apps/mindtrack.md blocked questions	reversible overnight defaults
 2026-08-14T23:22:00Z	unit1	product chrome via nav props, ProductShell, gate JSON+ACL, NutriLog weight in /nutri	unblocks every later loop; existing UI lied about gates	gate.go GetGate/ClearGate, lib/nav.ts, nutri layout	commit chrome/gates/weight
 2026-08-14T23:30:00Z	unit-kitchen	ship fasting pantry cook workout mindtrack atmospheres and owner docs	morning predicate is closed loops plus docs plus mockup prompts	go test ./... ui/api-client/rpg-tracker vitest	keep
+2026-08-15T00:10:00Z	pickup	CI green on PR 117; first loops shipped; hub still said Open	great-state gap was fake hub metrics, Nutri today without receipts, horror radii leaking into product themes	gh pr checks 117, HubPlaceholderCard Open, nutri/page.tsx links only, product CSS missing --radius-md	polish receipts, pin product radii, stronger atmospheres
+
 

@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { getCurrentWorkout, startWorkout } from '@rpgtracker/api-client'
+import { getCurrentWorkout, listWorkoutHistory, startWorkout } from '@rpgtracker/api-client'
+import { hubLastWorkoutValue } from '@/lib/suiteStatus'
 
 export default function WorkoutTodayPage() {
   const router = useRouter()
@@ -14,6 +15,11 @@ export default function WorkoutTodayPage() {
     queryKey: ['workout-current'],
     queryFn: getCurrentWorkout,
   })
+  const { data: history = [] } = useQuery({
+    queryKey: ['workout-history'],
+    queryFn: listWorkoutHistory,
+  })
+  const lastFinished = history[0]
   const start = useMutation({
     mutationFn: () => startWorkout(title || undefined),
     onSuccess: (session) => {
@@ -68,6 +74,19 @@ export default function WorkoutTodayPage() {
             Start session
           </button>
         </form>
+      )}
+
+      {lastFinished && (
+        <section className="rounded-2xl p-6 space-y-2" style={{ backgroundColor: 'var(--color-bg-elevated)', border: '1px solid var(--color-border)' }}>
+          <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--color-muted)' }}>Last finished</p>
+          <p className="text-lg font-semibold" style={{ color: 'var(--color-text)' }}>{hubLastWorkoutValue(history)}</p>
+          <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
+            {lastFinished.set_count} sets · {lastFinished.volume_kg} kg loaded
+          </p>
+          <Link href="/workout/history" className="btn btn-secondary inline-block px-4 py-2 min-h-[44px]">
+            History
+          </Link>
+        </section>
       )}
     </div>
   )

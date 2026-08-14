@@ -78,6 +78,18 @@ test('fasting page can start a fast', async () => {
   await waitFor(() => expect(mockStartFast).toHaveBeenCalled())
 })
 
+test('open fast shows progress toward the target', async () => {
+  mockGetCurrentFast.mockResolvedValue({
+    id: 'f1',
+    started_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+    target_hours: 16,
+    created_at: new Date().toISOString(),
+  })
+  render(<NutriFastPage />, { wrapper })
+  const bar = await screen.findByRole('progressbar', { name: /fast progress toward target/i })
+  expect(bar).toHaveAttribute('aria-valuenow', '50')
+})
+
 test('cook page lists pantry empty state', async () => {
   render(<NutriCookPage />, { wrapper })
   expect(await screen.findByText(/pantry is empty/i)).toBeInTheDocument()

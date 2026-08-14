@@ -3,16 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { closeFast, getCurrentFast, listFasts, startFast } from '@rpgtracker/api-client'
+import { fastProgress, formatElapsed } from '@/lib/suiteStatus'
 
 const TARGETS = [12, 14, 16, 18, 20, 24, 36]
-
-function formatElapsed(startedAt: string) {
-  const ms = Date.now() - new Date(startedAt).getTime()
-  const totalMin = Math.max(0, Math.floor(ms / 60000))
-  const hours = Math.floor(totalMin / 60)
-  const mins = totalMin % 60
-  return `${hours}h ${mins}m`
-}
 
 export default function NutriFastPage() {
   const qc = useQueryClient()
@@ -37,6 +30,12 @@ export default function NutriFastPage() {
     if (!current?.started_at) return null
     void now
     return formatElapsed(current.started_at)
+  }, [current, now])
+
+  const progressPct = useMemo(() => {
+    if (!current?.started_at) return 0
+    void now
+    return Math.round(fastProgress({ startedAt: current.started_at, targetHours: current.target_hours }) * 100)
   }, [current, now])
 
   const startMutation = useMutation({
@@ -77,6 +76,23 @@ export default function NutriFastPage() {
             <p className="text-sm" style={{ color: 'var(--color-muted)' }}>
               Target {current.target_hours} hours. Started {new Date(current.started_at).toLocaleString()}.
             </p>
+            <div
+              role="progressbar"
+              aria-label="Fast progress toward target"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={progressPct}
+              className="h-2 rounded-full overflow-hidden"
+              style={{ backgroundColor: 'var(--color-surface)' }}
+            >
+              <div
+                className="h-full"
+                style={{
+                  width: `${progressPct}%`,
+                  backgroundColor: 'var(--color-accent)',
+                }}
+              />
+            </div>
             <div className="flex flex-wrap gap-3">
               <button
                 type="button"

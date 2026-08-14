@@ -1,13 +1,45 @@
 /* LifeQuest atmosphere overlays. Remint tokens only. Do not add page selectors. */
-[data-theme="minimal"][data-atmosphere="cinematic"],
-[data-theme="retro"][data-atmosphere="cinematic"],
-[data-theme="modern"][data-atmosphere="cinematic"] {
+[data-theme="minimal"][data-atmosphere="cinematic"] {
+  --color-bg: #16120c;
+  --color-surface: #1f1a12;
+  --color-bg-elevated: #2a2216;
+  --color-text: #f4ead8;
+  --color-muted: #a89878;
+  --color-text-secondary: #d4c4a8;
   --color-accent: #d4a017;
   --color-accent-hover: #e0b03a;
-  --color-accent-muted: rgba(212, 160, 23, 0.12);
+  --color-accent-muted: rgba(212, 160, 23, 0.14);
+  --color-border: #3a3224;
   --color-border-strong: rgba(212, 160, 23, 0.45);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 24px rgba(212, 160, 23, 0.08);
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 40px rgba(212, 160, 23, 0.1);
+  --motion-scale: 0.85;
+}
+
+[data-theme="retro"][data-atmosphere="cinematic"] {
+  --color-bg: #07060a;
+  --color-surface: #14101c;
+  --color-bg-elevated: #1c1626;
+  --color-accent: #e0b03a;
+  --color-accent-hover: #f0c45a;
+  --color-accent-muted: rgba(224, 176, 58, 0.14);
+  --color-border-strong: rgba(224, 176, 58, 0.5);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 28px rgba(224, 176, 58, 0.1);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 40px rgba(224, 176, 58, 0.12);
+  --motion-scale: 0.85;
+}
+
+[data-theme="modern"][data-atmosphere="cinematic"] {
+  --color-bg: #070910;
+  --color-surface: rgba(12, 18, 32, 0.92);
+  --color-bg-elevated: #10182a;
+  --color-accent: #e0b03a;
+  --color-accent-hover: #f0c45a;
+  --color-accent-muted: rgba(224, 176, 58, 0.12);
+  --color-border: rgba(224, 176, 58, 0.2);
+  --color-border-strong: rgba(224, 176, 58, 0.45);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 24px rgba(224, 176, 58, 0.08);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5), 0 0 40px rgba(224, 176, 58, 0.1);
   --motion-scale: 0.85;
 }
 
@@ -44,12 +76,17 @@
   --motion-scale: 0.55;
 }
 
-[data-theme="minimal"][data-atmosphere="kawaii"],
-[data-theme="retro"][data-atmosphere="kawaii"],
-[data-theme="modern"][data-atmosphere="kawaii"] {
+[data-theme="minimal"][data-atmosphere="kawaii"] {
+  --color-bg: #fff7fb;
+  --color-surface: #ffffff;
+  --color-bg-elevated: #ffe4f3;
+  --color-text: #3f2a35;
+  --color-muted: #a37f90;
+  --color-text-secondary: #6b4a58;
   --color-accent: #f472b6;
   --color-accent-hover: #fb8aca;
   --color-accent-muted: rgba(244, 114, 182, 0.14);
+  --color-border: #f5d0e4;
   --color-border-strong: rgba(244, 114, 182, 0.4);
   --radius-sm: 0.5rem;
   --radius-md: 1rem;
@@ -58,12 +95,42 @@
   --motion-scale: 1.05;
 }
 
-[data-theme="minimal"][data-atmosphere="kawaii"] {
-  --color-bg: #fff7fb;
-  --color-surface: #ffffff;
-  --color-bg-elevated: #ffe4f3;
-  --color-text: #3f2a35;
-  --color-muted: #a37f90;
+[data-theme="retro"][data-atmosphere="kawaii"] {
+  --color-bg: #1a1016;
+  --color-surface: #2a1822;
+  --color-bg-elevated: #321e28;
+  --color-text: #fde8f2;
+  --color-muted: #c49aaf;
+  --color-text-secondary: #e8c4d4;
+  --color-accent: #f472b6;
+  --color-accent-hover: #fb8aca;
+  --color-accent-muted: rgba(244, 114, 182, 0.16);
+  --color-border: #4a2838;
+  --color-border-strong: rgba(244, 114, 182, 0.45);
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --shadow-md: 0 6px 16px rgba(244, 114, 182, 0.16);
+  --motion-scale: 1.05;
+}
+
+[data-theme="modern"][data-atmosphere="kawaii"] {
+  --color-bg: #120e18;
+  --color-surface: rgba(36, 22, 40, 0.9);
+  --color-bg-elevated: #241628;
+  --color-text: #fde8f2;
+  --color-muted: #c49ab8;
+  --color-text-secondary: #e8c4dc;
+  --color-accent: #f472b6;
+  --color-accent-hover: #fb8aca;
+  --color-accent-muted: rgba(244, 114, 182, 0.14);
+  --color-border: rgba(244, 114, 182, 0.22);
+  --color-border-strong: rgba(244, 114, 182, 0.45);
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --shadow-md: 0 6px 16px rgba(244, 114, 182, 0.14);
+  --motion-scale: 1.05;
 }
 
 @media (prefers-reduced-motion: reduce) {

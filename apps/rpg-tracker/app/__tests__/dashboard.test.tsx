@@ -92,6 +92,12 @@ const mockGetActivity = vi.fn()
 const mockLogXP = vi.fn()
 const mockGetAccount = vi.fn()
 const mockSetPrimarySkill = vi.fn()
+const mockGetCurrentFast = vi.fn()
+const mockListWeightLogs = vi.fn()
+const mockListPantry = vi.fn()
+const mockGetCurrentWorkout = vi.fn()
+const mockListWorkoutHistory = vi.fn()
+const mockListMoodLogs = vi.fn()
 
 vi.mock('@rpgtracker/api-client', () => ({
   listSkills: (...args: unknown[]) => mockListSkills(...args),
@@ -99,6 +105,12 @@ vi.mock('@rpgtracker/api-client', () => ({
   logXP: (...args: unknown[]) => mockLogXP(...args),
   getAccount: (...args: unknown[]) => mockGetAccount(...args),
   setPrimarySkill: (...args: unknown[]) => mockSetPrimarySkill(...args),
+  getCurrentFast: (...args: unknown[]) => mockGetCurrentFast(...args),
+  listWeightLogs: (...args: unknown[]) => mockListWeightLogs(...args),
+  listPantry: (...args: unknown[]) => mockListPantry(...args),
+  getCurrentWorkout: (...args: unknown[]) => mockGetCurrentWorkout(...args),
+  listWorkoutHistory: (...args: unknown[]) => mockListWorkoutHistory(...args),
+  listMoodLogs: (...args: unknown[]) => mockListMoodLogs(...args),
 }))
 
 function wrapper({ children }: { children: React.ReactNode }) {
@@ -116,6 +128,12 @@ beforeEach(() => {
   mockListSkills.mockResolvedValue(makeMockSkills())
   mockGetActivity.mockResolvedValue(makeMockActivity())
   mockGetAccount.mockResolvedValue({ id: 'user-1', email: 'test@example.com', display_name: null, primary_skill_id: null })
+  mockGetCurrentFast.mockResolvedValue(null)
+  mockListWeightLogs.mockResolvedValue([])
+  mockListPantry.mockResolvedValue([])
+  mockGetCurrentWorkout.mockResolvedValue(null)
+  mockListWorkoutHistory.mockResolvedValue([])
+  mockListMoodLogs.mockResolvedValue([])
   mockLogXP.mockResolvedValue({
     skill: makeMockSkills()[0],
     xp_added: 25,
@@ -267,5 +285,37 @@ test('does not show TierTransitionModal when tier_crossed is false (D-022)', asy
     expect(mockLogXP).toHaveBeenCalled()
   })
   expect(screen.queryByRole('heading', { name: /you've reached/i })).not.toBeInTheDocument()
+})
+
+test('hub doors show receipts instead of Open placeholders', async () => {
+  mockGetCurrentFast.mockResolvedValue({
+    id: 'f1',
+    started_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    target_hours: 16,
+    created_at: new Date().toISOString(),
+  })
+  mockListWeightLogs.mockResolvedValue([
+    { id: 'w1', weight_kg: 72.5, note: '', measured_at: '2026-08-14T08:00:00Z', created_at: '2026-08-14T08:00:00Z' },
+  ])
+  mockListPantry.mockResolvedValue([{ id: 'p1', name: 'Eggs', amount_text: '6', created_at: '' }])
+  mockGetCurrentWorkout.mockResolvedValue(null)
+  mockListWorkoutHistory.mockResolvedValue([])
+  mockListMoodLogs.mockResolvedValue([
+    { id: 'm1', logged_at: '2026-08-14T08:00:00Z', valence: 4, energy: 2, note: '', created_at: '' },
+  ])
+
+  render(<DashboardPage />, { wrapper })
+  const nutri = await screen.findByRole('link', { name: /open nutrilog/i })
+  await waitFor(() => {
+    expect(nutri).toHaveTextContent('2h')
+    expect(nutri).toHaveTextContent('72.5 kg')
+    expect(nutri).toHaveTextContent('1 item')
+  })
+  const workout = screen.getByRole('link', { name: /open workout/i })
+  expect(workout).toHaveTextContent('None')
+  expect(workout).toHaveTextContent('Off')
+  const mind = screen.getByRole('link', { name: /open mindtrack/i })
+  expect(mind).toHaveTextContent('4')
+  expect(mind).toHaveTextContent('Private')
 })
 

@@ -34,4 +34,11 @@
   --color-xp-bg: rgba(124, 111, 100, 0.08);
 
   --motion-scale: 0.4;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --shadow-sm: 0 1px 2px 0 rgba(45, 41, 38, 0.04);
+  --shadow-md: 0 4px 10px rgba(45, 41, 38, 0.06);
+  --shadow-lg: 0 10px 20px rgba(45, 41, 38, 0.08);
 }
