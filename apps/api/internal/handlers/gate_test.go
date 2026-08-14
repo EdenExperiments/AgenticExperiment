@@ -23,6 +23,7 @@ type stubGateStore struct {
 	submission     *skills.GateSubmission
 	gateCleared    bool
 	err            error
+	clearErr       error
 	cooldownActive bool
 	// Tracks whether a gate_submissions row was inserted.
 	rowInserted bool
@@ -60,6 +61,9 @@ func (s *stubGateStore) InsertSubmission(
 }
 
 func (s *stubGateStore) ClearGate(_ context.Context, _ uuid.UUID) error {
+	if s.clearErr != nil {
+		return s.clearErr
+	}
 	s.gateCleared = true
 	return nil
 }
@@ -256,6 +260,69 @@ func TestGateSubmitAIFailure(t *testing.T) {
 	// No gate_submissions row should be inserted on AI failure.
 	if stub.rowInserted {
 		t.Error("gate_submissions row must NOT be inserted when Claude API fails")
+	}
+}
+
+func TestGateSubmitAlreadyCleared(t *testing.T) {
+	gateID := uuid.New()
+	stub := &stubGateStore{gateCleared: true}
+	h := handlers.NewGateHandlerWithStore(stub, nil)
+
+	form := map[string]string{
+		"path":             "self_report",
+		"evidence_what":    minEvidenceWhat(),
+		"evidence_how":     minEvidenceHow(),
+		"evidence_feeling": minEvidenceFeeling(),
+	}
+	req := gateRequest(gateID, form)
+	w := httptest.NewRecorder()
+	h.HandlePostGateSubmit(w, req)
+
+	if w.Code != http.StatusConflict {
+		t.Fatalf("expected 409 for cleared gate, got %d: %s", w.Code, w.Body.String())
+	}
+	if stub.rowInserted {
+		t.Error("gate_submissions row must NOT be inserted for an already-cleared gate")
+	}
+}
+
+func TestGateSubmitAIClearFailure(t *testing.T) {
+	gateID := uuid.New()
+	submissionID := uuid.New()
+	stub := &stubGateStore{
+		submission: &skills.GateSubmission{
+			ID:            submissionID,
+			Verdict:       "[REDACTED]",
+			AttemptNumber: 1,
+		},
+		clearErr: errors.New("db down"),
+	}
+	h := handlers.NewGateHandlerWithKeyStore(
+		stub,
+		&stubRawClaude{response: "ok"},
+		&stubKeyStore{key: "sk-ant-test"},
+	)
+
+	form := map[string]string{
+		"path":             "ai",
+		"evidence_what":    minEvidenceWhat(),
+		"evidence_how":     minEvidenceHow(),
+		"evidence_feeling": minEvidenceFeeling(),
+	}
+	req := gateRequest(gateID, form)
+	w := httptest.NewRecorder()
+	h.HandlePostGateSubmit(w, req)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500 when ClearGate fails, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var resp map[string]interface{}
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if cleared, _ := resp["gate_cleared"].(bool); cleared {
+		t.Error("gate_cleared must not be true when ClearGate fails")
 	}
 }
 

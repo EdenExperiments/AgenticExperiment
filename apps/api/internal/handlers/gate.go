@@ -43,6 +43,10 @@ func NewGateHandlerWithStore(s GateStore, claude RawClaudeCaller) *GateHandler {
 	return &GateHandler{store: s, claude: claude}
 }
 
+func NewGateHandlerWithKeyStore(s GateStore, claude RawClaudeCaller, ks KeyStore) *GateHandler {
+	return &GateHandler{store: s, claude: claude, keyStore: ks}
+}
+
 func NewGateHandler(masterKey []byte) *GateHandler {
 	return &GateHandler{
 		store:    &dbGateStore{},
@@ -79,6 +83,10 @@ func (h *GateHandler) HandlePostGateSubmit(w http.ResponseWriter, r *http.Reques
 	}
 	if gate == nil {
 		api.RespondError(w, http.StatusNotFound, "gate not found")
+		return
+	}
+	if gate.IsCleared {
+		api.RespondError(w, http.StatusConflict, "gate already cleared")
 		return
 	}
 
@@ -225,7 +233,9 @@ func (h *GateHandler) handleAISubmission(
 	}
 
 	if err := h.store.ClearGate(r.Context(), gateID); err != nil {
-		log.Printf("WARN: ClearGate gate=%s: %v", gateID, err)
+		log.Printf("ERROR: ClearGate gate=%s: %v", gateID, err)
+		api.RespondError(w, http.StatusInternalServerError, "failed to clear gate")
+		return
 	}
 
 	api.RespondJSON(w, http.StatusOK, map[string]interface{}{
@@ -327,13 +337,16 @@ func (s *dbGateStore) InsertSubmission(ctx context.Context, req skills.CreateGat
 }
 
 func (s *dbGateStore) ClearGate(ctx context.Context, gateID uuid.UUID) error {
-	_, err := database.MustQuerier(ctx).Exec(ctx, `
+	tag, err := database.MustQuerier(ctx).Exec(ctx, `
 		UPDATE public.blocker_gates
 		SET is_cleared = TRUE, cleared_at = now()
 		WHERE id = $1 AND is_cleared = FALSE
 	`, gateID)
 	if err != nil {
 		return fmt.Errorf("gate: clear: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("gate: clear: not updated")
 	}
 	return nil
 }
