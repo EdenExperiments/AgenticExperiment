@@ -18,4 +18,4 @@ Set calorie/macro/weight goals → search or custom food (Open Food Facts, degra
 
 ## Constraints
 
-Per-user food cache (no global OFF table in v1). kg storage. No scraping recipe websites. Fasting / plate photos / restaurant lookup are later; do not invent them in a diary PR.
+Per-user food cache (no global OFF table in v1). kg storage. Diary rows snapshot macros at log time. No scraping recipe websites. Fasting / plate photos / restaurant lookup are later; do not invent them in a diary PR.

@@ -381,3 +381,38 @@ export interface NutriGoals {
   target_weight_kg: number | null
   updated_at: string
 }
+
+export interface NutriFood {
+  id?: string
+  off_id?: string | null
+  name: string
+  calories: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+  serving_label: string
+}
+
+export interface NutriDiaryEntry {
+  id: string
+  eaten_at: string
+  serving_qty: number
+  name: string
+  calories: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+}
+
+export interface NutriRemaining {
+  date: string
+  calorie_goal: number
+  calories_eaten: number
+  calories_remaining: number
+  protein_g: number | null
+  protein_eaten: number
+  carbs_g: number | null
+  carbs_eaten: number
+  fat_g: number | null
+  fat_eaten: number
+}

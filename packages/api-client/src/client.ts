@@ -1,4 +1,4 @@
-import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast, WeightLog, WeightChartResponse, WorkoutSession, WorkoutExercise, WorkoutSet, WorkoutVolumeChartResponse, NutriGoals } from './types'
+import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast, WeightLog, WeightChartResponse, WorkoutSession, WorkoutExercise, WorkoutSet, WorkoutVolumeChartResponse, NutriGoals, NutriFood, NutriDiaryEntry, NutriRemaining } from './types'
 
 export class ApiRequestError extends Error {
   status: number
@@ -448,4 +448,53 @@ export function upsertNutriGoals(data: {
     method: 'PUT',
     body: JSON.stringify(data),
   })
+}
+
+export function searchNutriFoods(q: string): Promise<{ source: 'off' | 'cache'; foods: NutriFood[] }> {
+  return request(`/api/v1/nutrilog/foods/search?q=${encodeURIComponent(q)}`)
+}
+
+export function createNutriFood(data: {
+  name: string
+  calories: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+  serving_label?: string
+}): Promise<NutriFood> {
+  return request<NutriFood>('/api/v1/nutrilog/foods', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function logNutriDiary(data: {
+  name: string
+  calories: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+  serving_qty: number
+  eaten_at?: string
+  off_id?: string
+  serving_label?: string
+}): Promise<NutriDiaryEntry> {
+  return request<NutriDiaryEntry>('/api/v1/nutrilog/diary', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function listNutriDiary(date?: string): Promise<NutriDiaryEntry[]> {
+  const qs = date ? `?date=${date}` : ''
+  return request<NutriDiaryEntry[]>(`/api/v1/nutrilog/diary${qs}`)
+}
+
+export function deleteNutriDiary(id: string): Promise<void> {
+  return request<void>(`/api/v1/nutrilog/diary/${id}`, { method: 'DELETE' })
+}
+
+export function getNutriRemaining(date?: string): Promise<NutriRemaining> {
+  const qs = date ? `?date=${date}` : ''
+  return request<NutriRemaining>(`/api/v1/nutrilog/remaining${qs}`)
 }
