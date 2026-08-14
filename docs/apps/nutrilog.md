@@ -1,10 +1,12 @@
 # NutriLog
 
-Nutrition product. Weight logging is shipped (`nl_weight_logs`). Next: goals, food diary, pantry, recipes here, not in LifeQuest.
+NutriLog is a product on `nl_*` and `internal/nutrilog` at grandfathered `/api/v1/nutrilog`. Web is `/nutri` with NutriLog chrome and `nutri-saas` imported by the shell, not written into `rpgt-theme`. Apple binary later.
 
-Web today is `apps/nutri-log`. Target is `/nutri` in the LifeQuest shell with NutriLog chrome, not a LifeQuest tab. Apple is a separate app later, stack TBC. See `docs/architecture.md`.
+Weight, goals, and diary are in the shell. Calorie and weight goals stay `nl_*`, not `public.goals`. Do not scrape recipe sites. Do not reuse `training_sessions`, `skill_presets`, or `xp_events`. Origin `apps/nutri-log` is leftover until origins collapse. See `docs/architecture.md`.
 
-Calorie and weight goals are `nl_*` routes. Do not reuse LifeQuest `public.goals`.
+## NutriLog features
+
+Fasting, plate-photo confirm, restaurant lookup, and household pantry are NutriLog features on `nl_*`, not products, with NutriLog chrome and no Apple binaries of their own. Do not invent them inside a diary PR, and do not give them their own prefixes or Next apps.
 
 ## Rough loop
 

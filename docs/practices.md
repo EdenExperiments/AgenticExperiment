@@ -28,7 +28,7 @@ LifeQuest skins: `data-theme` Minimal / Retro / Modern; optional `data-mode` cle
 4. `/poteto-mode` for implementation. Nested `AGENTS.md` for stack commands.
 5. When a product or AI-shape choice is unclear, do not pick silently. Fan out two or three options (`arena`, `how` critics, or `interrogate`) and have judges score them against `docs/product.md`: help the person, schema-held data, no training or chat-memory store, BYOK, draft not clinician, settings over one true path.
 
-New suite products on web are a route group with nested chrome plus a Go package and table prefix, not a new Next origin and not a LifeQuest tab. Apple is separate apps later. See `docs/architecture.md`.
+New suite products on web are a route group with nested chrome plus a Go package and table prefix, not a new Next origin and not a LifeQuest tab. Apple is separate apps later. Read the catalog in `docs/architecture.md` before spawning an app.
 
 ## Health copy
 

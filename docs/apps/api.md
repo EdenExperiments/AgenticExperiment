@@ -2,11 +2,13 @@
 
 Shared Go service (`chi`, `pgx`). Web reaches it through the LifeQuest BFF. Native Apple clients (planned) call it with a Bearer JWT. See `docs/architecture.md`.
 
+Shared suite is `/account`, `/account/api-key`, and `GET /api/v1/account/ai-entitlement`. One `subscription_tier` (`free` or `pro`). Stripe is not wired. One Claude key per user, encrypted in Go. Native shared endpoints wait on mockups. Apple apps call the same `/api/v1/...` paths.
+
 ## Rough layout
 
 `internal/handlers` is today's LifeQuest HTTP dump. Leave it until a file is touched. New domains are `internal/<name>/` with persistence and HTTP together, mounted at `/api/v1/<name>`. NutriLog HTTP and persistence live in `internal/nutrilog` (`Routes()`).
 
-Auth is Supabase JWTs via `internal/auth` (`NewJWTMiddleware`). App data is local Postgres. Do not add a second session cookie path.
+Auth is Supabase JWTs via `internal/auth` (`NewJWTMiddleware`). App data is local Postgres. The cookie session path (`NewSessionMiddleware`, Go login/register) is deleted. Password change that is already mounted can stay until the Next app owns it.
 
 ## Run / test
 

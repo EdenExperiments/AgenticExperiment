@@ -1,8 +1,8 @@
 # MindTrack
 
-Human answers are written below. **No `mh_*` migrations or `/mind` feature UI in the current suite PR.** First code PR: `mh_mood_logs` + journal + disclaimer footer, **no** chatbot. Grounding timer is a v1 job and may be that PR or the next.
+Human answers are written below. **No `mh_*` migrations or `/mind` feature UI in the current suite PR.** First code PR: `mh_mood_logs` + journal + disclaimer footer, **no** chatbot. Grounding timer is a v1 job and may be that PR or the next. Do not reuse `xp_events` or the Therapy preset.
 
-When it ships on web it is `/mind` with MindTrack chrome, not a LifeQuest tab and not a second Next origin. Tables `mh_*`. API `/api/v1/mindtrack`. Apple would be its own app. See `docs/architecture.md`.
+When it ships on web it is `/mind` with MindTrack chrome, not a LifeQuest tab and not a second Next origin. Tables `mh_*`. API `/api/v1/mindtrack`. Apple would be its own app. Meditation that outgrows the LifeQuest preset becomes `/mind/meditate` on `mh_*`, not `apps/meditation`. See `docs/architecture.md`.
 
 ## Stance
 
