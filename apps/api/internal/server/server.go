@@ -73,7 +73,7 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		xpChartHandler := handlers.NewXPChartHandler()
 		r.Get("/skills/{id}/xp-chart", xpChartHandler.HandleGetXPChart)
 
-		gateHandler := handlers.NewGateHandler()
+		gateHandler := handlers.NewGateHandler([]byte(cfg.MasterKey))
 		r.Post("/blocker-gates/{id}/submit", gateHandler.HandlePostGateSubmit)
 
 		activityHandler := handlers.NewActivityHandler()

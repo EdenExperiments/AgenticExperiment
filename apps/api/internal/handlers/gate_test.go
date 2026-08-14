@@ -20,9 +20,9 @@ import (
 
 // stubGateStore implements handlers.GateStore for tests.
 type stubGateStore struct {
-	submission    *skills.GateSubmission
-	gateCleared   bool
-	err           error
+	submission     *skills.GateSubmission
+	gateCleared    bool
+	err            error
 	cooldownActive bool
 	// Tracks whether a gate_submissions row was inserted.
 	rowInserted bool
@@ -74,13 +74,14 @@ func (s *stubRawClaude) CallRaw(_ context.Context, _, _, _ string) (string, erro
 	return s.response, s.err
 }
 
-func gateRequest(gateID uuid.UUID, values url.Values) *http.Request {
+func gateRequest(gateID uuid.UUID, body map[string]string) *http.Request {
+	raw, _ := json.Marshal(body)
 	req := httptest.NewRequest(
 		http.MethodPost,
 		"/api/v1/blocker-gates/"+gateID.String()+"/submit",
-		strings.NewReader(values.Encode()),
+		strings.NewReader(string(raw)),
 	)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/json")
 	req = req.WithContext(auth.WithUserID(req.Context(), uuid.New()))
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("id", gateID.String())
@@ -116,12 +117,11 @@ func TestGateSubmitValidation(t *testing.T) {
 	}
 	h := handlers.NewGateHandlerWithStore(stub, nil)
 
-	form := url.Values{
-		"path":              {"self_report"},
-		"evidence_what":     {"too short"}, // < 50 chars — must fail
-		"evidence_how":      {minEvidenceHow()},
-		"evidence_feeling":  {minEvidenceFeeling()},
-		"self_confirm":      {"true"},
+	form := map[string]string{
+		"path":             "self_report",
+		"evidence_what":    "too short",
+		"evidence_how":     minEvidenceHow(),
+		"evidence_feeling": minEvidenceFeeling(),
 	}
 	req := gateRequest(gateID, form)
 	w := httptest.NewRecorder()
@@ -155,12 +155,11 @@ func TestGateSubmitCooldown(t *testing.T) {
 	}
 	h := handlers.NewGateHandlerWithStore(stub, nil)
 
-	form := url.Values{
-		"path":             {"self_report"},
-		"evidence_what":    {minEvidenceWhat()},
-		"evidence_how":     {minEvidenceHow()},
-		"evidence_feeling": {minEvidenceFeeling()},
-		"self_confirm":     {"true"},
+	form := map[string]string{
+		"path":             "self_report",
+		"evidence_what":    minEvidenceWhat(),
+		"evidence_how":     minEvidenceHow(),
+		"evidence_feeling": minEvidenceFeeling(),
 	}
 	req := gateRequest(gateID, form)
 	w := httptest.NewRecorder()
@@ -186,12 +185,11 @@ func TestGateSubmitSelfReport(t *testing.T) {
 	}
 	h := handlers.NewGateHandlerWithStore(stub, nil)
 
-	form := url.Values{
-		"path":             {"self_report"},
-		"evidence_what":    {minEvidenceWhat()},
-		"evidence_how":     {minEvidenceHow()},
-		"evidence_feeling": {minEvidenceFeeling()},
-		"self_confirm":     {"true"},
+	form := map[string]string{
+		"path":             "self_report",
+		"evidence_what":    minEvidenceWhat(),
+		"evidence_how":     minEvidenceHow(),
+		"evidence_feeling": minEvidenceFeeling(),
 	}
 	req := gateRequest(gateID, form)
 	w := httptest.NewRecorder()
@@ -241,11 +239,11 @@ func TestGateSubmitAIFailure(t *testing.T) {
 	failingClaude := &stubRawClaude{err: errors.New("claude api unavailable")}
 	h := handlers.NewGateHandlerWithStore(stub, failingClaude)
 
-	form := url.Values{
-		"path":             {"ai"},
-		"evidence_what":    {minEvidenceWhat()},
-		"evidence_how":     {minEvidenceHow()},
-		"evidence_feeling": {minEvidenceFeeling()},
+	form := map[string]string{
+		"path":             "ai",
+		"evidence_what":    minEvidenceWhat(),
+		"evidence_how":     minEvidenceHow(),
+		"evidence_feeling": minEvidenceFeeling(),
 	}
 	req := gateRequest(gateID, form)
 	w := httptest.NewRecorder()

@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
-import { getSkill, getAccount, logXP, deleteSkill, getActivity, getXPChart, updateSkill, toggleFavourite, setPrimarySkill, setSkillTags, listTags } from '@rpgtracker/api-client'
+import { getSkill, getAccount, logXP, deleteSkill, getActivity, getXPChart, updateSkill, toggleFavourite, setPrimarySkill, setSkillTags, listTags, submitGate, getAIEntitlement, ApiRequestError } from '@rpgtracker/api-client'
 import type { BlockerGate, ActivityEvent } from '@rpgtracker/api-client'
-import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal, XPBarChart, ConfirmModal, SkillEditModal } from '@rpgtracker/ui'
+import { XPProgressBar, TierBadge, BlockerGateSection, QuickLogSheet, TierTransitionModal, XPBarChart, ConfirmModal, SkillEditModal, GateSubmissionForm } from '@rpgtracker/ui'
 import { XPGainAnimation } from '@/components/XPGainAnimation'
 import { TagSuggestInput } from '../components/TagSuggestInput'
 
@@ -73,6 +73,7 @@ export default function SkillDetailPage() {
 
   const { data: userTags = [] } = useQuery({ queryKey: ['tags'], queryFn: listTags })
   const { data: account } = useQuery({ queryKey: ['account'], queryFn: getAccount })
+  const { data: entitlement } = useQuery({ queryKey: ['ai-entitlement'], queryFn: getAIEntitlement })
   const isPinned = account?.primary_skill_id === id
 
   const pinMutation = useMutation({
@@ -91,6 +92,9 @@ export default function SkillDetailPage() {
   const [gateFirstHit, setGateFirstHit] = useState<BlockerGate | null>(null)
   const [xpGain, setXpGain] = useState<{ amount: number; key: number }>({ amount: 0, key: 0 })
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [gateFormOpen, setGateFormOpen] = useState(false)
+  const [gatePath, setGatePath] = useState<'ai' | 'self_report'>('self_report')
+  const [gateError, setGateError] = useState<string | null>(null)
 
   const logMutation = useMutation({
     mutationFn: ({ xpDelta, logNote }: { xpDelta: number; logNote: string; timeSpentMinutes?: number }) =>
@@ -109,6 +113,34 @@ export default function SkillDetailPage() {
   const deleteMutation = useMutation({
     mutationFn: () => deleteSkill(id),
     onSuccess: () => router.push('/skills'),
+  })
+
+  const gateMutation = useMutation({
+    mutationFn: (data: {
+      gateId: string
+      path: 'ai' | 'self_report'
+      evidenceWhat: string
+      evidenceHow: string
+      evidenceFeeling: string
+    }) =>
+      submitGate(data.gateId, {
+        path: data.path,
+        evidence_what: data.evidenceWhat,
+        evidence_how: data.evidenceHow,
+        evidence_feeling: data.evidenceFeeling,
+      }),
+    onSuccess: () => {
+      setGateError(null)
+      setGateFormOpen(false)
+      qc.invalidateQueries({ queryKey: ['skill', id] })
+    },
+    onError: (err: Error) => {
+      if (err instanceof ApiRequestError && err.status === 502) {
+        setGateError('ai_unavailable')
+        return
+      }
+      setGateError(err.message)
+    },
   })
 
   const favouriteMutation = useMutation({
@@ -368,7 +400,25 @@ export default function SkillDetailPage() {
             firstNotifiedAt={activeGate.first_notified_at}
             isCleared={activeGate.is_cleared}
             activeGateSubmission={skill.active_gate_submission ?? null}
+            onSubmitForAssessment={() => {
+              setGateError(null)
+              setGateFormOpen(true)
+            }}
           />
+          {gateFormOpen && (
+            <div className="mt-4">
+              <GateSubmissionForm
+                gateId={activeGate.id}
+                path={gatePath}
+                onPathChange={setGatePath}
+                onSubmit={(data) => gateMutation.mutate({ ...data, gateId: activeGate.id })}
+                isLoading={gateMutation.isPending}
+                hasApiKey={Boolean(entitlement?.has_api_key)}
+                submissionError={gateError}
+                previousSubmission={skill.active_gate_submission ?? null}
+              />
+            </div>
+          )}
           </div>
         ) : (
           <div className="card p-5 space-y-2">

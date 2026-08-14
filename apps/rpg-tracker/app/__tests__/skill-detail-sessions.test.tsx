@@ -9,6 +9,8 @@ vi.mock('@rpgtracker/api-client', () => ({
   getSkill: (...args: unknown[]) => mockGetSkill(...args),
   getActivity: (...args: unknown[]) => mockGetActivity(...args),
   getAccount: vi.fn().mockResolvedValue({ primary_skill_id: null }),
+  getAIEntitlement: vi.fn().mockResolvedValue({ entitled: false, has_api_key: false }),
+  submitGate: vi.fn(),
   listTags: vi.fn().mockResolvedValue([]),
   logXP: vi.fn(),
   deleteSkill: vi.fn(),
