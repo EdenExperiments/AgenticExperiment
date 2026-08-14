@@ -1,7 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { type LifeQuestTheme, type Theme, VALID_THEMES, isLifeQuestTheme, setTheme } from './ThemeProvider'
+import {
+  type LifeQuestTheme,
+  type Atmosphere,
+  VALID_THEMES,
+  isLifeQuestTheme,
+  isAtmosphere,
+  setTheme,
+  setAtmosphere,
+} from './ThemeProvider'
 
 interface ThemeOption {
   id: LifeQuestTheme
@@ -32,6 +40,13 @@ const THEME_OPTIONS: ThemeOption[] = [
   },
 ]
 
+const ATMOSPHERE_OPTIONS: { id: Atmosphere; name: string; description: string }[] = [
+  { id: 'none', name: 'None', description: 'Skin colours only.' },
+  { id: 'cinematic', name: 'Cinematic', description: 'Gold light, slow shadow, title-card gravity.' },
+  { id: 'horror', name: 'Horror', description: 'Crushed blacks and crimson. LifeQuest only.' },
+  { id: 'kawaii', name: 'Kawaii', description: 'Softer radius and candy accent. Data stays serious.' },
+]
+
 interface ThemePickerPreviewProps {
   className?: string
 }
@@ -47,15 +62,21 @@ interface ThemePickerPreviewProps {
  */
 export function ThemePickerPreview({ className = '' }: ThemePickerPreviewProps) {
   const [activeTheme, setActiveTheme] = useState<LifeQuestTheme>('minimal')
+  const [activeAtmosphere, setActiveAtmosphere] = useState<Atmosphere>('none')
 
   useEffect(() => {
     function readTheme() {
       const attr = document.documentElement.getAttribute('data-theme')
       setActiveTheme(attr && isLifeQuestTheme(attr) ? attr : 'minimal')
+      const atmosphere = document.documentElement.getAttribute('data-atmosphere')
+      setActiveAtmosphere(atmosphere && isAtmosphere(atmosphere) ? atmosphere : 'none')
     }
     readTheme()
     const observer = new MutationObserver(readTheme)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme', 'data-atmosphere'],
+    })
     return () => observer.disconnect()
   }, [])
 
@@ -234,6 +255,48 @@ export function ThemePickerPreview({ className = '' }: ThemePickerPreviewProps) 
             </div>
           )
         })}
+      </div>
+      <div className="mt-6 space-y-2">
+        <p className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>
+          Atmosphere
+        </p>
+        <p className="text-xs" style={{ color: 'var(--color-muted)' }}>
+          Dresses LifeQuest only. NutriLog, Workout, and MindTrack keep their own identity.
+        </p>
+        <div
+          role="radiogroup"
+          aria-label="Choose atmosphere"
+          className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+        >
+          {ATMOSPHERE_OPTIONS.map((option) => {
+            const isActive = option.id === activeAtmosphere
+            return (
+              <button
+                key={option.id}
+                type="button"
+                role="radio"
+                aria-checked={isActive}
+                onClick={() => {
+                  setAtmosphere(option.id)
+                  setActiveAtmosphere(option.id)
+                }}
+                className="rounded-xl px-3 py-3 text-left min-h-[44px]"
+                style={{
+                  border: isActive
+                    ? '2px solid var(--color-accent)'
+                    : '2px solid var(--color-border)',
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-text)',
+                }}
+              >
+                <span className="block text-sm font-semibold">{option.name}</span>
+                <span className="block text-xs mt-1" style={{ color: 'var(--color-muted)' }}>
+                  {option.description}
+                </span>
+              </button>
+            )
+          })}
+        </div>
       </div>
     </>
   )

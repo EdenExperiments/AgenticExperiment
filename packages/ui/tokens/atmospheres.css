@@ -1,0 +1,73 @@
+/* LifeQuest atmosphere overlays. Remint tokens only. Do not add page selectors. */
+[data-theme="minimal"][data-atmosphere="cinematic"],
+[data-theme="retro"][data-atmosphere="cinematic"],
+[data-theme="modern"][data-atmosphere="cinematic"] {
+  --color-accent: #d4a017;
+  --color-accent-hover: #e0b03a;
+  --color-accent-muted: rgba(212, 160, 23, 0.12);
+  --color-border-strong: rgba(212, 160, 23, 0.45);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 24px rgba(212, 160, 23, 0.08);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 40px rgba(212, 160, 23, 0.1);
+  --motion-scale: 0.85;
+}
+
+[data-theme="minimal"][data-atmosphere="horror"] {
+  --color-bg: #12090b;
+  --color-surface: #1c1014;
+  --color-bg-elevated: #241418;
+  --color-text: #f3e6e8;
+  --color-muted: #9a7a80;
+  --color-text-secondary: #c9a8ae;
+  --color-accent: #9b1c31;
+  --color-accent-hover: #b4233a;
+  --color-accent-muted: rgba(155, 28, 49, 0.16);
+  --color-border: #3a1c24;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.4rem;
+  --motion-scale: 0.55;
+}
+
+[data-theme="retro"][data-atmosphere="horror"],
+[data-theme="modern"][data-atmosphere="horror"] {
+  --color-bg: #0a0506;
+  --color-surface: #160a0d;
+  --color-bg-elevated: #1e0e12;
+  --color-text: #f4e8ea;
+  --color-muted: #8a6a70;
+  --color-text-secondary: #c4a0a6;
+  --color-accent: #c41e3a;
+  --color-accent-hover: #e02a48;
+  --color-accent-muted: rgba(196, 30, 58, 0.16);
+  --color-border: #3a141c;
+  --radius-md: 0.2rem;
+  --radius-lg: 0.35rem;
+  --motion-scale: 0.55;
+}
+
+[data-theme="minimal"][data-atmosphere="kawaii"],
+[data-theme="retro"][data-atmosphere="kawaii"],
+[data-theme="modern"][data-atmosphere="kawaii"] {
+  --color-accent: #f472b6;
+  --color-accent-hover: #fb8aca;
+  --color-accent-muted: rgba(244, 114, 182, 0.14);
+  --color-border-strong: rgba(244, 114, 182, 0.4);
+  --radius-sm: 0.5rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+  --shadow-md: 0 6px 16px rgba(244, 114, 182, 0.12);
+  --motion-scale: 1.05;
+}
+
+[data-theme="minimal"][data-atmosphere="kawaii"] {
+  --color-bg: #fff7fb;
+  --color-surface: #ffffff;
+  --color-bg-elevated: #ffe4f3;
+  --color-text: #3f2a35;
+  --color-muted: #a37f90;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-atmosphere] {
+    --motion-scale: 0;
+  }
+}

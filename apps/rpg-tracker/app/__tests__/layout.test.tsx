@@ -32,4 +32,13 @@ describe('RootLayout visual mode SSR (AC-045-1, AC-045-4)', () => {
 
     expect(document.documentElement.getAttribute('data-mode')).toBe('stylish')
   })
+
+  it('reads rpgt-atmosphere cookie into html data-atmosphere attribute', async () => {
+    mockCookieStore({ 'rpgt-theme': 'minimal', 'rpgt-atmosphere': 'horror' })
+
+    const jsx = await RootLayout({ children: <div>child</div> })
+    render(jsx)
+
+    expect(document.documentElement.getAttribute('data-atmosphere')).toBe('horror')
+  })
 })

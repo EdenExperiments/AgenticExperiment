@@ -69,4 +69,13 @@ describe('ThemeProvider visual mode (AC-045-1)', () => {
     rerender(<ThemeProvider theme="minimal" mode="stylish"><div /></ThemeProvider>)
     expect(document.documentElement.getAttribute('data-mode')).toBe('stylish')
   })
+
+  it('applies atmosphere on html', () => {
+    render(
+      <ThemeProvider theme="modern" atmosphere="horror">
+        <div>content</div>
+      </ThemeProvider>
+    )
+    expect(document.documentElement.getAttribute('data-atmosphere')).toBe('horror')
+  })
 })

@@ -1,0 +1,36 @@
+/* Workout product identity. Dark iron, tabular numbers, no LifeQuest skin. */
+[data-theme="workout-forge"] {
+  --color-bg: #121417;
+  --color-bg-surface: #1b1f24;
+  --color-bg-elevated: #22272d;
+  --color-bg-overlay: rgba(18, 20, 23, 0.95);
+
+  --color-text-primary: #f4f1ea;
+  --color-text-secondary: #c4bdb0;
+  --color-text-muted: #8b8378;
+  --color-text-inverse: #121417;
+  --color-text: #f4f1ea;
+  --color-muted: #8b8378;
+  --color-surface: #1b1f24;
+
+  --color-accent: #e8a54b;
+  --color-accent-hover: #f0b562;
+  --color-accent-muted: rgba(232, 165, 75, 0.12);
+
+  --color-border: #343a42;
+  --color-border-strong: #4a525c;
+
+  --color-success: #7dba7a;
+  --color-warning: #e8a54b;
+  --color-error: #d66a6a;
+  --color-info: #7aa0c4;
+
+  --font-display: var(--font-rajdhani), system-ui, sans-serif;
+  --font-body: var(--font-space-grotesk), system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --color-xp-fill: #e8a54b;
+  --color-xp-bg: rgba(232, 165, 75, 0.1);
+
+  --motion-scale: 0.8;
+}

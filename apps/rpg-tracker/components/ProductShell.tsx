@@ -26,6 +26,7 @@ export function ProductShell({
   return (
     <div
       data-theme={theme}
+      data-atmosphere="none"
       className="min-h-screen"
       style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}
     >

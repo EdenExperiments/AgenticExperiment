@@ -15,6 +15,7 @@ describe('useDocumentTheme', () => {
     const { result } = renderHook(() => useDocumentTheme())
     expect(result.current.theme).toBe('retro')
     expect(result.current.mode).toBe('stylish')
+    expect(result.current.atmosphere).toBe('none')
   })
 
   it('defaults to minimal/clean when attributes are missing or invalid', () => {
@@ -24,6 +25,7 @@ describe('useDocumentTheme', () => {
     const { result } = renderHook(() => useDocumentTheme())
     expect(result.current.theme).toBe('minimal')
     expect(result.current.mode).toBe('clean')
+    expect(result.current.atmosphere).toBe('none')
   })
 
   it('updates when data-mode changes', async () => {

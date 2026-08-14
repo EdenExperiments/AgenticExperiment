@@ -1,6 +1,14 @@
-export { ThemeProvider, setTheme, setMode } from './ThemeProvider'
-export { VALID_THEMES, VALID_MODES, PRODUCT_THEMES, isResolvableTheme, isLifeQuestTheme } from './themeConstants'
-export type { Theme, VisualMode, LifeQuestTheme, ProductTheme } from './themeConstants'
+export { ThemeProvider, setTheme, setMode, setAtmosphere } from './ThemeProvider'
+export {
+  VALID_THEMES,
+  VALID_MODES,
+  VALID_ATMOSPHERES,
+  PRODUCT_THEMES,
+  isResolvableTheme,
+  isLifeQuestTheme,
+  isAtmosphere,
+} from './themeConstants'
+export type { Theme, VisualMode, LifeQuestTheme, ProductTheme, Atmosphere } from './themeConstants'
 export { ThemeSwitcher } from './ThemeSwitcher'
 export { ModeSwitcher } from './ModeSwitcher'
 export { XPProgressBar } from './XPProgressBar'

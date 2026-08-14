@@ -5,23 +5,39 @@ import {
   type Theme,
   type LifeQuestTheme,
   type VisualMode,
+  type Atmosphere,
   isLifeQuestTheme,
   isResolvableTheme,
+  isAtmosphere,
   VALID_MODES,
 } from './themeConstants'
 
-export type { Theme, VisualMode, LifeQuestTheme, ProductTheme } from './themeConstants'
-export { VALID_THEMES, VALID_MODES, PRODUCT_THEMES, isResolvableTheme, isLifeQuestTheme } from './themeConstants'
+export type { Theme, VisualMode, LifeQuestTheme, ProductTheme, Atmosphere } from './themeConstants'
+export {
+  VALID_THEMES,
+  VALID_MODES,
+  VALID_ATMOSPHERES,
+  PRODUCT_THEMES,
+  isResolvableTheme,
+  isLifeQuestTheme,
+  isAtmosphere,
+} from './themeConstants'
 
 const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365
 
 interface ThemeProviderProps {
   theme: Theme
   mode?: VisualMode
+  atmosphere?: Atmosphere
   children: ReactNode
 }
 
-export function ThemeProvider({ theme, mode = 'clean', children }: ThemeProviderProps) {
+export function ThemeProvider({
+  theme,
+  mode = 'clean',
+  atmosphere = 'none',
+  children,
+}: ThemeProviderProps) {
   useEffect(() => {
     const resolved: Theme = isResolvableTheme(theme) ? theme : 'minimal'
     document.documentElement.setAttribute('data-theme', resolved)
@@ -38,6 +54,14 @@ export function ThemeProvider({ theme, mode = 'clean', children }: ThemeProvider
     }
   }, [mode])
 
+  useEffect(() => {
+    const resolved: Atmosphere = isAtmosphere(atmosphere) ? atmosphere : 'none'
+    document.documentElement.setAttribute('data-atmosphere', resolved)
+    if (resolved !== atmosphere) {
+      document.cookie = `rpgt-atmosphere=${resolved}; path=/; max-age=${ONE_YEAR_SECONDS}; SameSite=Lax`
+    }
+  }, [atmosphere])
+
   return <>{children}</>
 }
 
@@ -51,4 +75,10 @@ export function setMode(mode: VisualMode): void {
   if (!VALID_MODES.includes(mode)) return
   document.documentElement.setAttribute('data-mode', mode)
   document.cookie = `rpgt-mode=${mode}; path=/; max-age=${ONE_YEAR_SECONDS}; SameSite=Lax`
+}
+
+export function setAtmosphere(atmosphere: Atmosphere): void {
+  if (!isAtmosphere(atmosphere)) return
+  document.documentElement.setAttribute('data-atmosphere', atmosphere)
+  document.cookie = `rpgt-atmosphere=${atmosphere}; path=/; max-age=${ONE_YEAR_SECONDS}; SameSite=Lax`
 }

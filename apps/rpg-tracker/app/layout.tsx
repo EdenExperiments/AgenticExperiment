@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import { Inter, Press_Start_2P, Space_Grotesk, Rajdhani } from 'next/font/google'
 import { ThemeProvider } from '@rpgtracker/ui'
 import { cookies } from 'next/headers'
-import type { Theme, VisualMode } from '@rpgtracker/ui'
-import { VALID_MODES } from '@rpgtracker/ui'
+import type { Theme, VisualMode, Atmosphere } from '@rpgtracker/ui'
+import { VALID_MODES, isAtmosphere } from '@rpgtracker/ui'
 import { Providers } from './providers'
 import '../tokens.css'
 
@@ -52,11 +52,20 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const theme = (cookieStore.get('rpgt-theme')?.value ?? 'minimal') as Theme
   const rawMode = cookieStore.get('rpgt-mode')?.value ?? 'clean'
   const mode: VisualMode = VALID_MODES.includes(rawMode as VisualMode) ? (rawMode as VisualMode) : 'clean'
+  const rawAtmosphere = cookieStore.get('rpgt-atmosphere')?.value ?? 'none'
+  const atmosphere: Atmosphere = isAtmosphere(rawAtmosphere) ? rawAtmosphere : 'none'
 
   return (
-    <html lang="en" data-theme={theme} data-mode={mode} className={fontClassNames} suppressHydrationWarning>
+    <html
+      lang="en"
+      data-theme={theme}
+      data-mode={mode}
+      data-atmosphere={atmosphere}
+      className={fontClassNames}
+      suppressHydrationWarning
+    >
       <body>
-        <ThemeProvider theme={theme} mode={mode}>
+        <ThemeProvider theme={theme} mode={mode} atmosphere={atmosphere}>
           <Providers>
             {children}
           </Providers>
