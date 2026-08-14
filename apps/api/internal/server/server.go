@@ -16,6 +16,7 @@ import (
 	"github.com/meden/rpgtracker/internal/entitlements"
 	"github.com/meden/rpgtracker/internal/handlers"
 	"github.com/meden/rpgtracker/internal/users"
+	"github.com/meden/rpgtracker/internal/workout"
 )
 
 // Server wraps the standard http.Server and holds application dependencies.
@@ -132,6 +133,8 @@ func NewServer(cfg *config.Config, sessionMiddleware func(http.Handler) http.Han
 		r.Get("/nutrilog/weight-logs", nutrilogWeightHandler.HandleGetWeightLogs)
 		r.Get("/nutrilog/weight-chart", nutrilogWeightHandler.HandleGetWeightChart)
 		r.Delete("/nutrilog/weight-logs/{id}", nutrilogWeightHandler.HandleDeleteWeightLog)
+
+		r.Mount("/workout", workout.Routes())
 	})
 
 	httpServer := &http.Server{

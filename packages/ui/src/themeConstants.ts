@@ -2,13 +2,13 @@
 export type LifeQuestTheme = 'minimal' | 'retro' | 'modern'
 
 /** Product-specific scaffold themes (NutriLog, MindTrack) */
-export type ProductTheme = 'nutri-saas' | 'mental-calm'
+export type ProductTheme = 'nutri-saas' | 'mental-calm' | 'workout-strength'
 
 export type Theme = LifeQuestTheme | ProductTheme
 export type VisualMode = 'clean' | 'stylish'
 
 export const VALID_THEMES: LifeQuestTheme[] = ['minimal', 'retro', 'modern']
-export const PRODUCT_THEMES: ProductTheme[] = ['nutri-saas', 'mental-calm']
+export const PRODUCT_THEMES: ProductTheme[] = ['nutri-saas', 'mental-calm', 'workout-strength']
 export const VALID_MODES: VisualMode[] = ['clean', 'stylish']
 
 export function isLifeQuestTheme(theme: string | null | undefined): theme is LifeQuestTheme {

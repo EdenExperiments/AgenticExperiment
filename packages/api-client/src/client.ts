@@ -1,4 +1,4 @@
-import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast, WeightLog, WeightChartResponse } from './types'
+import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast, WeightLog, WeightChartResponse, WorkoutSession, WorkoutExercise, WorkoutSet, WorkoutVolumeChartResponse } from './types'
 
 export class ApiRequestError extends Error {
   status: number
@@ -385,4 +385,50 @@ export function getWeightChart(days?: number): Promise<WeightChartResponse> {
 
 export function deleteWeightLog(id: string): Promise<void> {
   return request<void>(`/api/v1/nutrilog/weight-logs/${id}`, { method: 'DELETE' })
+}
+
+export function startWorkoutSession(): Promise<WorkoutSession> {
+  return request<WorkoutSession>('/api/v1/workout/sessions', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  })
+}
+
+export function listWorkoutSessions(params?: { limit?: number }): Promise<WorkoutSession[]> {
+  const qs = params?.limit ? `?limit=${params.limit}` : ''
+  return request<WorkoutSession[]>(`/api/v1/workout/sessions${qs}`)
+}
+
+export function getWorkoutSession(id: string): Promise<WorkoutSession> {
+  return request<WorkoutSession>(`/api/v1/workout/sessions/${id}`)
+}
+
+export function abandonWorkoutSession(id: string): Promise<WorkoutSession> {
+  return request<WorkoutSession>(`/api/v1/workout/sessions/${id}/abandon`, { method: 'POST' })
+}
+
+export function finishWorkoutSession(id: string): Promise<WorkoutSession> {
+  return request<WorkoutSession>(`/api/v1/workout/sessions/${id}/finish`, { method: 'POST' })
+}
+
+export function addWorkoutExercise(sessionId: string, name: string): Promise<WorkoutExercise> {
+  return request<WorkoutExercise>(`/api/v1/workout/sessions/${sessionId}/exercises`, {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  })
+}
+
+export function addWorkoutSet(
+  exerciseId: string,
+  data: { reps: number; load_kg?: number; rpe?: number },
+): Promise<WorkoutSet> {
+  return request<WorkoutSet>(`/api/v1/workout/exercises/${exerciseId}/sets`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function getWorkoutVolumeChart(days?: number): Promise<WorkoutVolumeChartResponse> {
+  const qs = days ? `?days=${days}` : ''
+  return request<WorkoutVolumeChartResponse>(`/api/v1/workout/volume-chart${qs}`)
 }

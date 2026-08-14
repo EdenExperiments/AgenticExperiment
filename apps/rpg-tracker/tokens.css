@@ -3,6 +3,7 @@
 @import '@rpgtracker/ui/tokens/retro.css';
 @import '@rpgtracker/ui/tokens/modern.css';
 @import '@rpgtracker/ui/tokens/nutri-saas.css';
+@import '@rpgtracker/ui/tokens/workout-strength.css';
 @import "tailwindcss";
 @import '@rpgtracker/ui/tokens/components.css';
 @import '@rpgtracker/ui/tokens/pages.css';

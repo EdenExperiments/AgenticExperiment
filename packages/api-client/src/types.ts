@@ -334,3 +334,40 @@ export interface WeightChartResponse {
   unit: 'kg'
   data: WeightChartPoint[]
 }
+
+export interface WorkoutSet {
+  id: string
+  exercise_id: string
+  reps: number
+  load_kg: number | null
+  rpe: number | null
+  position: number
+}
+
+export interface WorkoutExercise {
+  id: string
+  session_id: string
+  name: string
+  position: number
+  sets: WorkoutSet[]
+}
+
+export interface WorkoutSession {
+  id: string
+  started_at: string
+  ended_at: string | null
+  status: 'in_progress' | 'completed' | 'abandoned'
+  volume_kg: number
+  exercises?: WorkoutExercise[]
+  created_at: string
+}
+
+export interface WorkoutVolumePoint {
+  date: string
+  volume_kg: number | null
+}
+
+export interface WorkoutVolumeChartResponse {
+  days: number
+  data: WorkoutVolumePoint[]
+}

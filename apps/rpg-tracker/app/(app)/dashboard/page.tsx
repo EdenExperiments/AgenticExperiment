@@ -348,6 +348,7 @@ export default function DashboardPage() {
           appName="Workout"
           tagline="Resistance sessions and volume"
           icon="🏋️"
+          href="/workout"
           metrics={[
             { label: 'Volume', value: '—' },
             { label: 'Sessions', value: '—' },
