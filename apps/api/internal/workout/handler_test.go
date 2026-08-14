@@ -219,6 +219,25 @@ func TestVolumeChartHasDailyPoints(t *testing.T) {
 	}
 }
 
+func TestVolumeChartCapsDays(t *testing.T) {
+	user := uuid.New()
+	rt := testRouter(NewHandler(NewMemStore()))
+	w := doJSON(t, rt, user, http.MethodGet, "/volume-chart?days=99999", nil)
+	if w.Code != http.StatusOK {
+		t.Fatalf("chart %d: %s", w.Code, w.Body.String())
+	}
+	var payload struct {
+		Days int           `json:"days"`
+		Data []VolumePoint `json:"data"`
+	}
+	if err := json.NewDecoder(w.Body).Decode(&payload); err != nil {
+		t.Fatal(err)
+	}
+	if payload.Days != maxChartDays || len(payload.Data) != maxChartDays {
+		t.Fatalf("days=%d len=%d want %d", payload.Days, len(payload.Data), maxChartDays)
+	}
+}
+
 func TestUnauthorized(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPost, "/sessions", nil)
 	w := httptest.NewRecorder()

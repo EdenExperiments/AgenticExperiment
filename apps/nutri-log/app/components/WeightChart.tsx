@@ -6,8 +6,13 @@ interface WeightChartProps {
   data: WeightChartPoint[]
 }
 
-function formatLabel(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+function formatChartDate(dateStr: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr)
+  if (!match) return dateStr
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 export function WeightChart({ data }: WeightChartProps) {
@@ -76,7 +81,7 @@ export function WeightChart({ data }: WeightChartProps) {
           {data.map((point, i) => {
             if (point.weight_kg === null) return null
             const y = 100 - ((point.weight_kg - minWeight) / range) * 100
-            const label = `${formatLabel(point.date)} — ${point.weight_kg} kg`
+            const label = `${formatChartDate(point.date)} — ${point.weight_kg} kg`
             return (
               <circle
                 key={point.date}
@@ -111,7 +116,7 @@ export function WeightChart({ data }: WeightChartProps) {
                 whiteSpace: 'nowrap',
               }}
             >
-              {formatLabel(point.date)}
+              {formatChartDate(point.date)}
             </span>
           )
         })}

@@ -24,6 +24,20 @@ const (
 	maxWeightChartDays        = 365
 )
 
+func parseBoundedDays(raw string, fallback, max int) int {
+	if raw == "" {
+		return fallback
+	}
+	n, err := strconv.Atoi(raw)
+	if err != nil || n < 1 {
+		return fallback
+	}
+	if n > max {
+		return max
+	}
+	return n
+}
+
 type Handler struct {
 	weights WeightStore
 	goals   GoalStore
@@ -155,15 +169,7 @@ func (h *Handler) HandleGetWeightChart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	days := defaultWeightChartDays
-	if daysStr := r.URL.Query().Get("days"); daysStr != "" {
-		if n, err := strconv.Atoi(daysStr); err == nil && n > 0 {
-			days = n
-		}
-	}
-	if days > maxWeightChartDays {
-		days = maxWeightChartDays
-	}
+	days := parseBoundedDays(r.URL.Query().Get("days"), defaultWeightChartDays, maxWeightChartDays)
 
 	dbLogs, err := h.weights.GetWeightLogsInRange(r.Context(), userID, days)
 	if err != nil {

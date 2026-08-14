@@ -21,6 +21,20 @@ const (
 	maxChartDays     = 365
 )
 
+func parseBoundedDays(raw string, fallback, max int) int {
+	if raw == "" {
+		return fallback
+	}
+	n, err := strconv.Atoi(raw)
+	if err != nil || n < 1 {
+		return fallback
+	}
+	if n > max {
+		return max
+	}
+	return n
+}
+
 type Handler struct {
 	store Store
 }
@@ -188,15 +202,7 @@ func (h *Handler) VolumeChart(w http.ResponseWriter, r *http.Request) {
 		api.RespondError(w, http.StatusUnauthorized, "unauthorized")
 		return
 	}
-	days := defaultChartDays
-	if raw := r.URL.Query().Get("days"); raw != "" {
-		if n, err := strconv.Atoi(raw); err == nil && n > 0 {
-			days = n
-		}
-	}
-	if days > maxChartDays {
-		days = maxChartDays
-	}
+	days := parseBoundedDays(r.URL.Query().Get("days"), defaultChartDays, maxChartDays)
 	today := time.Now().UTC().Truncate(24 * time.Hour)
 	since := today.AddDate(0, 0, -(days - 1))
 	sessions, err := h.store.SessionsInRange(r.Context(), userID, since)
