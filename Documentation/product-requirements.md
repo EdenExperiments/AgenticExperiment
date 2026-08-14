@@ -1,32 +1,34 @@
 # Product Requirements
 
-Last updated: 2026-08-14 (suite completion program: sufficient LifeQuest loop, NutriLog nutrition + pantry recipes, proposed workout app)
+Last updated: 2026-08-14 (horizon vision: one cheap suite, BYOK/metered AI, proof-not-brag skills, nutrition, workout, MindTrack; D-069–D-075)
 
 ## Product Vision
 
-"Levelling up as a person" — genuine self-improvement without toxic hustle culture. The platform helps users develop skills they wish they had, look after themselves, and track meaningful progress across all domains of their life. The gamification makes progress visible and rewarding without being prescriptive about how users should live.
+"Levelling up as a person" — genuine self-improvement without toxic hustle culture. The platform is a **suite of focused apps under one account and one inexpensive subscription**, with AI as an optional coach (BYOK and/or a small included quota — not unlimited tokens hiding inside £4.99).
 
-The RPG Tracker acts as a **central hub** for a suite of apps. Each app in the suite contributes to unified character progression — nutrition, mental health, skills, focus time — all rolling up to a single picture of personal growth.
+Each app covers a practice people already buy separately (skill practice, nutrition, training, mental wellbeing, later sleep/recovery). Together they should feel like a self-improvement operating system: log with low friction, get pace-aware guidance, show **proof of milestones** rather than empty levels, and stay honest that the app is not a clinician, dietitian, or PT.
 
-Long-term, each skill will be backed by **curated guidance**: expert-informed learning paths, book and resource recommendations, and location-aware suggestions (nearby classes, centres, facilities). The tracker helps users not just track progress, but actually *do the thing*.
+The RPG Tracker (LifeQuest) is the **hub**. Other apps keep their own data. Cross-app XP is opt-in and later (F-020). Social, when it exists, is proud-share of evidence, not a default leaderboard.
+
+Canonical horizon (not Wave 1 dispatch): `Documentation/delivery/2026-08-14-program-suite-completion/05-suite-horizon-vision.md`.
 
 ## Product Summary
 
 Build a platform of connected apps under a shared Go API, auth layer, and UI component library:
 
-- `LifeQuest` (`apps/rpg-tracker`): the hub — a gamified skill progression system based on real-world activity — **Release 1 complete with additional Release 2 features shipped**. The remaining “sufficient” loop is blocker completion, detailed logs, reward moments, and coaching (D-064).
-- `NutriLog` (`apps/nutri-log`): calorie, macro, and weight tracking with pantry-first AI recipes (food waste). Weight logging (F-013) is shipped; diary, goals, and recipes are the next NutriLog wave.
-- `MindTrack` (`apps/mental-health`): a mental wellness and mood tracking app — scaffolded, pending feature work. Progress feeds into hub character progression.
-- `Workout` (`apps/workout`, proposed): strength session logging as a fourth suite app (`wo_` schema). Not committed until D-067 is signed to build; default is defer.
+- `LifeQuest` (`apps/rpg-tracker`): hub — skills, practice timers, gates with **evidence**, optional XP/levels as a private gimmick, AI coach cadence. Wave 1 closes the gate/coaching hole (D-064). Horizon: five focus vibes, proud-share social, public proof profile.
+- `NutriLog` (`apps/nutri-log`): weight (shipped), calorie/macro diary, pantry-first recipes (food waste). Horizon: fasting timer, confirm-only plate photos, restaurant lookup, licensed recipe library (no scraping).
+- `Workout` (`apps/workout`, proposed): log strength/yoga/cardio/mobility; basic static guides; AI plan **drafts** with PT disclaimer. GPS and watches need a native/PWA wave.
+- `MindTrack` (`apps/mental-health`): scaffold only until the analyst session (`06-mindtrack-analyst-session.md`) is signed (D-074). Supportive tool, not therapy.
 
-The product should feel like a self-improvement operating system rather than a generic task tracker.
+Commercial destination (D-070): ~£4.99/month for the software suite; AI via stored user key and/or metered quota.
 
 ## Current Delivery State
 
 - Canonical implementation status is maintained in `Documentation/feature-tracker.md`.
 - Release 1 core features (F-001 through F-009 visibility) are complete. Blocker *completion* (F-009b) is the remaining core-loop hole.
 - Multiple Release 2 features are shipped (including F-023, F-024, F-075). NutriLog weight logging (F-013) is shipped.
-- Next product wave (planning): `Documentation/delivery/2026-08-14-program-suite-completion/`.
+- Next product wave (planning): `Documentation/delivery/2026-08-14-program-suite-completion/` (Wave 1 dispatch + horizon vision + MindTrack session brief).
 
 ## Planning Baseline For Release 1 (Historical)
 
@@ -44,7 +46,9 @@ The planning baseline for release 1 is a `LifeQuest`-first MVP built on a shared
 - Make progress tracking feel motivating rather than administrative.
 - Preserve low-friction logging for daily use on desktop and mobile.
 - Use AI for contextual guidance rather than novelty output.
-- Allow user health and skill data to reinforce each other across the two app areas.
+- Allow user health and skill data to reinforce each other across app areas (later, opt-in).
+- Prefer proof of milestones over unverifiable level claims.
+- Health, training, and mental-health surfaces must push users toward qualified humans when the problem is bigger than an app.
 
 ## Platform And Technical Direction
 
@@ -55,7 +59,7 @@ The planning baseline for release 1 is a `LifeQuest`-first MVP built on a shared
 - BFF pattern: Next.js Route Handler proxy forwards authenticated requests to Go API
 - Database: Split model - local/application PostgreSQL for domain data plus Supabase Auth for identity and JWT infrastructure
 - Authentication: Supabase Auth (email/password for release 1)
-- AI provider: Claude API with user-supplied API key stored server-side (AES-256-GCM, D-015)
+- AI provider: Claude API with user-supplied API key stored server-side (AES-256-GCM, D-015). Suite software may later sit on ~£4.99/month; unlimited platform-paid tokens are not that price (D-070).
 - Testing: Vitest + React Testing Library (frontend), Go standard `testing` package (backend)
 - Delivery target: web app; PWA deferred (F-021)
 - Theme system: three switchable UI themes (Minimal, Retro, Modern) — see Three-Theme System section below
@@ -63,10 +67,10 @@ The planning baseline for release 1 is a `LifeQuest`-first MVP built on a shared
 ## Product Principles
 
 - Logging must stay low-friction.
-- Gamification must reflect real achievement, not cosmetic points only.
+- Gamification must reflect real achievement, not cosmetic points only. Public claims need evidence (D-071).
 - Existing competence should be recognized during onboarding.
-- AI output must be grounded in user context such as recent logs, current level, blockers, goals, and remaining calories.
-- Punishment mechanics should be optional, not default.
+- AI output must be grounded in user context such as recent logs, current level, blockers, goals, pantry, and remaining calories.
+- Punishment mechanics should be optional, not default. Rest can be progress (D-075).
 
 ## Experience 1: LifeQuest
 
@@ -157,7 +161,11 @@ The planning baseline for release 1 is a `LifeQuest`-first MVP built on a shared
 
 ## Experience 4: Workout (proposed)
 
-Proposed only (D-067). If signed to build: a standalone `apps/workout` app whose first slice is logging a strength session (exercises, sets, reps, optional load/RPE) with history and a volume chart. No hub XP in that slice. Do not model workouts as a LifeQuest skill.
+Proposed only (D-067). First slice if signed: strength session logging. Horizon (not that slice): yoga/cardio/mobility types, static guide library, AI plan drafts that always tell the user to confirm with a PT, GPS runs and watch calories on a native/PWA wave.
+
+## Experience 5: MindTrack (blocked on analyst session)
+
+Scaffold only. Do not specify features here until `Documentation/delivery/2026-08-14-program-suite-completion/06-mindtrack-analyst-session.md` is completed and signed (D-074).
 
 ## Hub Architecture
 
@@ -252,9 +260,11 @@ The following are confirmed **not** in release 1:
 ### Deferred Workstreams
 
 - NutriLog remaining features: suite-completion program (diary, goals, recipes). Architecture must keep the `nl_` namespace and add pantry/recipe tables in that namespace.
-- Workout: proposed `wo_` app; do not scaffold until D-067 says build.
-- Cross-app layer: deferred until NutriLog’s food diary is stable.
-- LifeQuest depth/immersion (meta-skills, trees, narrative, audio): still deferred (D-064). The sufficient loop (F-009b, F-007, F-010, F-012) is no longer deferred.
+- Workout: proposed `wo_` app; do not scaffold until D-067 says build. Horizon modalities/GPS/watches are not that first slice.
+- MindTrack: blocked on analyst session (D-074).
+- Cross-app layer: deferred until NutriLog’s food diary is stable. Mood must not award XP in MindTrack v1.
+- LifeQuest depth/immersion (meta-skills, trees, narrative): still deferred (D-064). Five vibes + proud-share social are **horizon**, not Wave 1.
+- Horizon extras (sleep, household pantry, intel, location): see `05-suite-horizon-vision.md`. Not scheduled.
 
 ### Release 2+ Roadmap (planned features, not yet scoped)
 
@@ -264,7 +274,7 @@ These features represent the long-term product vision. Suite-completion items (s
 | Category               | Features                                                         | Notes                                                                         |
 | ---------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | **Progression Depth**  | Skill trees, mastery sub-skills, visual progression paths        | Shows skill relationships and specialisation                                  |
-| **Social**             | Activity stream, party system, global tier leaderboard           | Community and accountability features                                         |
+| **Social**             | Opt-in milestone cards, accountability pair; no default level leaderboard | D-072 horizon; D-008 still blocks Wave 1                  |
 | **Knowledge**          | Intel / knowledge base, curated learning resources per skill     | Expert-informed guidance, book recommendations                                |
 | **Character**          | Character avatar / visual identity, narrative layer              | Visual representation of progress; RPG story framing (especially retro theme) |
 | **Guidance**           | Location-aware suggestions (nearby classes, centres, facilities) | E.g. "snow sports" → nearest snow centre                                      |

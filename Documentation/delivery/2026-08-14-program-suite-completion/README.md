@@ -5,9 +5,11 @@
 **Audience:** Cloud / IDE agents running a few-hour session against one workstream slice  
 **Related decisions:** D-064 through D-068 (proposed in this folder; recorded in `Documentation/decision-log.md`)
 
-This folder is the dispatch pack for the next product wave: close LifeQuest’s core loop, build NutriLog past weight-only, add pantry-first AI recipes (food waste), and optionally stand up a workout app.
+This folder is the dispatch pack for the next **executable** product wave (Wave 1): close LifeQuest’s core loop, build NutriLog past weight-only, add pantry-first AI recipes (food waste), and optionally stand up a workout app.
 
-Do not start implementation until `requirements.md` is signed. After sign-off, pick **one session** from a workstream file, paste the session prompt, and stop when that session’s verification command is green.
+The **overall suite vision** (cheap subscription, BYOK AI, proof-not-brag, fasting/photos/GPS/watches, MindTrack, extras) lives in `05-suite-horizon-vision.md`. That file is not a build ticket. MindTrack needs `06-mindtrack-analyst-session.md` before any code.
+
+Do not start Wave 1 implementation until `requirements.md` is signed. After sign-off, pick **one session** from a workstream file (`01`–`04` only), paste the session prompt, and stop when that session’s verification command is green.
 
 ---
 
@@ -23,6 +25,8 @@ Do not start implementation until `requirements.md` is signed. After sign-off, p
 | `02-nutrilog-nutrition.md` | Nutrition diary + goals | NL-01 | LifeQuest not required; F-013 already shipped |
 | `03-recipes-food-waste.md` | Pantry + AI recipes from on-hand ingredients | RP-01 | NL-03/NL-04 (food diary) |
 | `04-workout-proposed.md` | Workout app (optional fourth suite app) | WO-01 | Human confirmation of D-067; NutriLog food diary preferred first |
+| `05-suite-horizon-vision.md` | Overall suite north star | — | Not dispatchable |
+| `06-mindtrack-analyst-session.md` | MindTrack requirements workshop | — | Human session; no code |
 
 4. Zone `AGENTS.md` for the stack you will touch (`apps/api/`, `apps/rpg-tracker/`, `packages/`).
 5. Binding constraints in `Documentation/decision-log.md` and `Documentation/feature-tracker.md` Key Constraints.
@@ -32,7 +36,7 @@ Do not start implementation until `requirements.md` is signed. After sign-off, p
 ## Dispatch rules for a few-hour agent
 
 1. **One session, one PR.** Do not chain LQ-01 into LQ-02 in the same run unless the session card explicitly says “vertical slice allowed”.
-2. **Do not invent product.** Open questions use the **Default if unanswered** column in `requirements.md`. Do not reopen D-014, D-015, D-019/D-034, D-035, D-037, or D-003.
+2. **Do not invent product.** Open questions use the **Default if unanswered** column in `requirements.md`. Do not reopen D-014, D-015, D-019/D-034, D-035, D-037, or D-003. Do not implement horizon items from `05-suite-horizon-vision.md` in a Wave 1 session (D-069).
 3. **Logic before pixels.** API + tests first; typed client second; UI last. Visual work needs a page guide (`Documentation/page-guides/`) before implementation (D-036).
 4. **No hub XP.** F-020 stays deferred. NutriLog, recipes, and workout store their own data only.
 5. **No secrets in logs.** Claude keys stay server-side (D-015). Recipe and coaching prompts must not log user food text into CI artifacts.

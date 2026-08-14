@@ -11,7 +11,7 @@ Canonical map for product, platform, and agent workflow docs. Entry points: `AGE
 | `decision-log.md` | Binding decisions and open questions (digest + full detail) |
 | `feature-tracker.md` | Feature status, active work, deferred backlog |
 | `agentic-pipeline/Agentic-Pipeline-Brief-v2.md` | Target agentic-operations architecture (D-055–D-058) |
-| `delivery/` | Signed and planning delivery artifacts. Active program: `delivery/2026-08-14-program-suite-completion/` (LifeQuest sufficient, NutriLog, recipes, proposed workout). Historical Pillar D packs remain. |
+| `delivery/` | Signed and planning delivery artifacts. Active: `delivery/2026-08-14-program-suite-completion/` (Wave 1 dispatch + horizon vision + MindTrack session brief). Historical Pillar D packs remain. |
 | `style-guide/` | Shared + per-theme design rules |
 | `page-guides/` | Page-specific implementation briefs |
 | `ux-spec.md` | Historical UX narrative — binding UX decisions are in `decision-log.md` (D-017–D-034) |

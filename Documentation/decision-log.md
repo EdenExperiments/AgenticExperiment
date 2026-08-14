@@ -1,6 +1,6 @@
 # Decision Log
 
-Last updated: 2026-08-14 (D-064–D-068 proposed: LifeQuest sufficient set, OFF food provider, recipes-in-NutriLog, proposed workout app, NutriLog IA)
+Last updated: 2026-08-14 (D-064–D-075: Wave 1 suite completion + horizon vision, commercial hybrid, proof-not-brag, no recipe scraping, MindTrack session gate)
 
 ## How To Read This Log
 
@@ -30,6 +30,7 @@ Last updated: 2026-08-14 (D-064–D-068 proposed: LifeQuest sufficient set, OFF 
 | D-062 | Skills, flows, and subagent orchestration standard. Agent skills under `.cursor/skills/<domain>/<name>/SKILL.md` with `skills.index.json`; orchestration manifests under `.cursor/flows/`; subagents under `.cursor/agents/` with "Use when…" `description` routing. Added pipeline/sdk-remediation/maintenance/bugbot-advisory skills and delivery-orchestrator/deps-highlight/maintenance-scout agents. `pnpm validate:agents` + `validate:cursor` in precommit. Guide: `docs/guides/cursor-skills-and-orchestration.md`. **Superseded for development routing by D-063.** |
 | D-063 | Repo-managed skills, commands, agents, and flows (including CI/ops pack) retired. IDE development uses pstack (`/poteto-mode`) and cursor-team-kit. Per-role models in `.cursor/rules/pstack-models.mdc` (Grok 4.6 workhorse, Opus 5 judgment, Sol on review panels). TDD lock and `validate:skills`/`validate:agents`/`validate:flows` removed. GitHub Actions and `packages/cursor-agents/` remain. |
 | D-064 to D-068 | Suite completion program (awaiting sign-off): LifeQuest sufficient loop, Open Food Facts, recipes inside NutriLog, proposed workout app, NutriLog nav IA. |
+| D-069 to D-075 | Horizon vision captured without changing Wave 1 dispatch: commercial hybrid, proof-not-brag, proud-share social, no recipe scraping, MindTrack session gate, rest-as-progress. |
 
 
 ### Suite Completion (D-064 to D-068)
@@ -42,6 +43,20 @@ Last updated: 2026-08-14 (D-064–D-068 proposed: LifeQuest sufficient set, OFF 
 | D-066 | Recipes and pantry live in NutriLog; AI must ground in on-hand ingredients.      | Not a fourth Next.js app. Food-waste is the primary constraint. |
 | D-067 | Workout is a proposed `apps/workout` / `wo_` app; default is defer.              | Strength session logging would be the first slice.         |
 | D-068 | NutriLog nav: Diary, Weight, Goals, then Pantry and Recipes.                     | Hub `/nutri` placeholder is not on the critical path.      |
+
+
+### Horizon vision (D-069 to D-075)
+
+
+| ID    | One-line Summary                                                                 | Notes                                                      |
+| ----- | -------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| D-069 | Horizon vision does not change Wave 1 agent sessions.                            | `05-suite-horizon-vision.md` is north star, not a ticket.  |
+| D-070 | Suite software ~£4.99/month; AI is BYOK and/or metered quota.                    | Unlimited platform Claude is not a £4.99 feature.          |
+| D-071 | Public skill claims need proof; XP/level is private-first.                       | Gates + evidence over “I’m level 80.”                      |
+| D-072 | Social is opt-in proud-share / accountability, not a default leaderboard.        | D-008 still blocks Wave 1.                                 |
+| D-073 | Recipe corpus is licensed, CC, partner, or user-imported — not scraped sites.    | Legal and ToS.                                             |
+| D-074 | MindTrack code waits on a signed analyst-session requirements artifact.          | `06-mindtrack-analyst-session.md`.                         |
+| D-075 | Rest (and low mood) must not be punished by streaks/XP/public status.            | Anti-hustle; especially MindTrack.                         |
 
 
 ### UX, Theme, And Workflow Index (D-017+)
@@ -147,9 +162,9 @@ Last updated: 2026-08-14 (D-064–D-068 proposed: LifeQuest sufficient set, OFF 
 | 2026-08-13 | D-063 | **pstack + cursor-team-kit replace the repo-managed agent pack.** Deleted `.cursor/commands/`, `.cursor/skills/` (including CI/ops), `.cursor/agents/`, and `.cursor/flows/`. Development path is `/poteto-mode` plus cursor-team-kit. Always-applied `.cursor/rules/pstack-models.mdc` maps roles: Grok 4.6 (`cursor-grok-4.6-high-fast`) for code/workhorse and swarm; Opus 5 (`claude-opus-5-thinking-high`) for judgment/prose; review panels are Sol xhigh + Grok 4.6 + Grok 4.6 + Opus 5. Grok 4.5 and Composer are not role defaults (ad-hoc small tasks only). TDD lock (`.cursor/tdd-lock`) and `validate:skills`/`validate:agents`/`validate:flows`/`validate:cursor` removed. GitHub Actions and `packages/cursor-agents/` kept. Guide archived to `docs/archive/cursor-skills-and-orchestration.md`. Supersedes D-062 for development routing; does not retire Pillars A–C CI scripts. | Plugin skills were fighting the pack's `/feature`/`/fix` TDD subagents. A clean plugin-first slate lets pstack and cursor-team-kit own development without duplicate routing. |
 
 
-### D) Suite Completion Program (D-064 to D-068)
+### D) Suite Completion And Horizon (D-064 to D-075)
 
-Awaiting human sign-off in `Documentation/delivery/2026-08-14-program-suite-completion/requirements.md`. Defaults below are what agents must use after sign-off if a question is unanswered.
+Awaiting human sign-off in `Documentation/delivery/2026-08-14-program-suite-completion/requirements.md` for Wave 1 (D-064–D-068). D-069–D-075 are the north-star constraints for later waves; they do not start implementation.
 
 
 | Date       | ID    | Decision | Reason |
@@ -159,6 +174,13 @@ Awaiting human sign-off in `Documentation/delivery/2026-08-14-program-suite-comp
 | 2026-08-14 | D-066 | **Recipe experience lives in `apps/nutri-log`.** Pantry (`nl_pantry_items`) plus AI suggestions grounded in on-hand ingredients (preferring soon-to-expire items) plus remaining calories/macros. Do not add `apps/recipes`. Ungrounded model output is dropped. Empty pantry does not call Claude. AI entitlement matches F-075 (pro + stored user key). | Recipes without pantry/diary data cannot reduce waste. A fourth Next.js app would duplicate auth/BFF/theme for a feature that must write `nl_food_logs`. |
 | 2026-08-14 | D-067 | **Workout is a proposed fourth suite app** (`apps/workout`, schema prefix `wo_`, product theme `workout-forge`). First slice is strength session logging (exercises, sets, reps, optional load/RPE, history, volume chart). Default: **do not scaffold** until sign-off says build now. Do not model workouts as a LifeQuest skill. F-020 still deferred. | Matches D-037 hub boundaries (new domain, new prefix) but avoids another empty suite app before NutriLog’s food loop exists. |
 | 2026-08-14 | D-068 | **NutriLog information architecture:** Diary, Weight, Goals as first-class nav; Pantry and Recipes after those sessions. LifeQuest hub `/nutri` remains a placeholder until a later hub-link slice. NutriLog keeps `nutri-saas` theme (not LifeQuest’s three themes) in this program. | Weight-only dashboard cannot host diary/recipes. Hub replacement is not required to make NutriLog usable at its own URL. |
+| 2026-08-14 | D-069 | **Horizon vs Wave 1.** The overall suite vision (`05-suite-horizon-vision.md`) is binding as north star. Wave 1 dispatch files (`01`–`04`, `task-list.md`) stay the only implementation tickets until a later program is signed. Agents must not pull horizon features into LQ/NL/RP/WO sessions. | Ambition is welcome; mixing GPS watches into gate-API PRs is how the suite stays half-built. |
+| 2026-08-14 | D-070 | **Commercial hybrid.** Destination price for software-suite access is on the order of £4.99/month (or annual equivalent). AI features use the existing user-supplied Claude key (D-003/D-015) and/or a small included quota. Unlimited platform-billed tokens are not part of that price. Wave 1 keeps F-075 entitlement; do not implement a new billing provider in Wave 1. | Token cost would consume a £4.99 plan. BYOK is already built. The cheap price is for replacing several apps, not for free vision-model inference. |
+| 2026-08-14 | D-071 | **Proof over brag.** XP and level may remain a private differentiating presentation. Shareable or social claims of competence must attach evidence (cleared gate, check-in, completed session). Empty time-with-screen-off should not look like mastery. Anti-cheat will never be perfect; the product still refuses to treat a raw level as a credential. | Matches the original gate design and the founder’s “don’t let people say they’re a pro without proof.” |
+| 2026-08-14 | D-072 | **Social is proud-share.** Horizon social is opt-in milestone cards and optional accountability pairs. Default global level leaderboards are rejected. D-008 still keeps social out of Wave 1. | Pride without turning the hub into a ranking game. |
+| 2026-08-14 | D-073 | **No scraping third-party recipe sites** for a stock library. Use licensed/CC datasets, partner APIs, or user-imported URLs the user has the right to use. | Scraping is a legal/ToS trap and a bad agent default. |
+| 2026-08-14 | D-074 | **MindTrack is gated on an analyst session.** No `mh_` implementation until a signed MindTrack requirements artifact exists. Session brief: `06-mindtrack-analyst-session.md`. The app is not therapy, not a diagnosis engine, not a crisis service. | Mental health is where “smash 100k lines” does harm. |
+| 2026-08-14 | D-075 | **Rest is not failure.** Streaks, XP, and public status must not punish rest days or low-mood logs. Especially binding for MindTrack; also informs coaching copy in LifeQuest and training load in Workout. | Aligns with anti-hustle vision; prevents Duolingo-guilt mechanics. |
 
 
 ## Implementation Assumptions
@@ -185,6 +207,8 @@ Awaiting human sign-off in `Documentation/delivery/2026-08-14-program-suite-comp
 
 ## Open Questions
 
-Program `2026-08-14-program-suite-completion` carries Q1–Q10 (defaults in `Documentation/delivery/2026-08-14-program-suite-completion/requirements.md`). They collapse to: confirm D-064 includes F-012 in the first wave; recipes inside NutriLog; workout deferred vs build now; kg storage; Mifflin–St Jeor with override; barcode after diary; recipe AI uses F-075 entitlement; gate reject is a real outcome; optional pantry expiry; workout first slice is strength.
+Wave 1 Q1–Q10: `Documentation/delivery/2026-08-14-program-suite-completion/requirements.md`.
+
+Horizon (not blocking Wave 1): run MindTrack analyst session (`06-mindtrack-analyst-session.md`); confirm £4.99 vs annual; BYOK-only vs included AI quota size; five-vibe licensing path (owned bundle vs Spotify); native wrapper timing for GPS/watches.
 
 Older brief §8 operator questions (Pillar C ticket source, metrics home, Bugbot/Automations budget) remain open and are unrelated to this product program.

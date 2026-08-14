@@ -25,7 +25,7 @@ Give long-running agents a complete, case-level spec for four product surfaces:
 - Social (F-026), intel/knowledge base (F-027), location-aware (F-030).
 - LifeQuest immersion: ambient audio, narrative copy, story layer (F-042, F-043, F-031).
 - LifeQuest depth: meta-skills, skill trees, mastery sub-skills, character visual identity beyond F-036 (F-011, F-025, F-029, F-028).
-- Replacing user-supplied Claude keys with a platform-billed model (D-003, D-015 stand).
+- Replacing user-supplied Claude keys with unlimited platform-billed tokens at £4.99 (D-070: BYOK and/or metered quota only).
 - A standalone `apps/recipes` deployable.
 
 ---

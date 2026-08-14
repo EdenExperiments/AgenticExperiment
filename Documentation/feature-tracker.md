@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-08-14 (suite completion program: LifeQuest sufficient + NutriLog nutrition + pantry recipes + proposed workout; D-064–D-068)
+Last updated: 2026-08-14 (suite completion Wave 1 + horizon vision D-069–D-075)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -111,6 +111,33 @@ Dispatch pack: `Documentation/delivery/2026-08-14-program-suite-completion/`. Im
 | F-017 | AI recipes from on-hand ingredients | NutriLog | ready-for-planning | Expanded: ground in pantry, prefer expiring items, remaining calories. Not a separate app (D-066). RP-03. |
 | F-077 | Save recipe + cook to diary | NutriLog | ready-for-planning | Optional pantry decrement. RP-04. |
 | F-078 | Workout app session logging | Workout | needs-clarification | Proposed fourth suite app (`apps/workout`, `wo_`). Build only if D-067 signed “build now”. Default: defer. |
+
+
+## Horizon (not Wave 1 — do not dispatch from these rows)
+
+North star: `Documentation/delivery/2026-08-14-program-suite-completion/05-suite-horizon-vision.md`. Status stays `deferred` / `needs-clarification` until a later program is signed.
+
+
+| ID    | Feature | Area | Status | Notes |
+| ----- | ------- | ---- | ------ | ----- |
+| F-079 | Suite subscription ~£4.99 + BYOK/metered AI | Platform | needs-clarification | D-070. Do not build a second billing system in Wave 1. |
+| F-080 | Proof profile (milestones, not raw levels) | LifeQuest | deferred | D-071. Depends on F-009b. |
+| F-081 | Proud-share social / accountability pair | LifeQuest | deferred | D-072. D-008 still blocks Wave 1. No default XP leaderboard. |
+| F-082 | Five focus vibes in Pomodoro | LifeQuest | deferred | Licensed bundle or user Spotify — not YouTube scrape. Revisits F-042. |
+| F-083 | Fasting timer | NutriLog | deferred | Medical disclaimer; after diary. |
+| F-084 | Plate-photo estimate (confirm to log) | NutriLog | deferred | Vision cost; never auto-log. |
+| F-085 | Restaurant / chain item lookup | NutriLog | deferred | OFF + caches; user confirm. |
+| F-086 | Licensed recipe library | NutriLog | deferred | D-073 forbids scraping third-party recipe sites. |
+| F-087 | Workout modalities (yoga/cardio/mobility) | Workout | deferred | After F-078 strength slice. |
+| F-088 | Wearable calorie/HR import | Workout | deferred | Needs native/PWA; not browser Wave 1. |
+| F-089 | GPS run distance | Workout | deferred | Same native/PWA constraint. |
+| F-090 | Static training guide library | Workout | deferred | PPL, splits, stretches; cite sources. |
+| F-091 | AI training plan **draft** + PT disclaimer | Workout | deferred | Never “this is for you” as a guarantee. |
+| F-092 | MindTrack analyst session | MindTrack | needs-clarification | D-074. Brief: `06-mindtrack-analyst-session.md`. No code until signed. |
+| F-093 | Sleep / recovery app or module | Horizon | deferred | Extra suite idea. |
+| F-094 | Household pantry sharing | NutriLog | deferred | Extra; permissions. |
+| F-095 | Rest-as-progress (no punish for rest/low mood) | Platform | deferred | D-075. |
+| F-096 | Weekly OS review across apps | Cross-app | deferred | Extends F-019 once pillars have data. |
 
 
 ---
