@@ -17,7 +17,7 @@ A product earns a prefix only if all three are true. Own recurring loop with its
 | Item | Result |
 |------|--------|
 | Workout | Product. Web `/workout`. Tables `wo_*`. Package `internal/workout`. Theme of its own. Not a LifeQuest skill. |
-| MindTrack | Product when `docs/apps/mindtrack.md` is answered. Web `/mind`. Tables `mh_*`. Theme `mental-calm`. No XP in v1. |
+| MindTrack | Product when `docs/apps/mindtrack.md` is answered. Web `/mind`. API `/api/v1/mindtrack`. Tables `mh_*`. Theme `mental-calm`. No XP in v1. |
 | NutriLog | Product. Web `/nutri`. API `/api/v1/nutrilog` (grandfathered name). Tables `nl_*`. |
 | Sleep, meditation, fasting, pantry, plate photo | Not products yet. Sleep and meditation stay LifeQuest presets until they pass the test. Fasting and pantry are NutriLog features on `nl_*`. Do not reserve `sl_` or scaffold `apps/meditation`. |
 

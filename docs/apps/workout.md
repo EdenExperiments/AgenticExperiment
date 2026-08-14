@@ -8,6 +8,8 @@ Web lives as `apps/rpg-tracker/app/(app)/workout` plus `apps/api/internal/workou
 
 Start session → add exercises → log sets (reps, optional load_kg, optional RPE) → finish → history + volume chart.
 
+Volume is a query of `SUM(reps * load_kg)` for sets that have load, not a cached column. The chart is daily totals. RPE is an optional integer 1–10. JSON on `/api/v1/workout`.
+
 Later: yoga/cardio/mobility types, static guides, AI **draft** plans that always say confirm with a PT. GPS and watches need native/PWA — not the first web slice.
 
 No `xp_events` writes until a later hub integration.

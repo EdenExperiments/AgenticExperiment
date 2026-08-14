@@ -12,8 +12,9 @@ Set calorie/macro/weight goals → search or custom food (Open Food Facts, degra
 
 ## Truth in code
 
-- Weight API/UI: `apps/api/internal/nutrilog`, `apps/nutri-log/app/(app)/dashboard`
-- Theme: `nutri-saas`, not LifeQuest’s three themes.
+- Weight API/UI: `apps/api/internal/nutrilog`, target page `apps/rpg-tracker/app/(app)/nutri`. Origin `apps/nutri-log` is leftover until origins collapse.
+- Theme: nested layout sets `data-theme="nutri-saas"`. Do not write it into `rpgt-theme`.
+- BFF join is `/api/` plus the client path, same as LifeQuest. A `v1/v1` join is a bug.
 
 ## Constraints
 

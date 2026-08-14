@@ -12,7 +12,7 @@ Create skill → optional AI calibration → log time (quick) or words → XP/le
 
 - XP curve: `apps/api/internal/xpcurve`
 - Atomic log: `apps/api/internal/skills` + handler tests
-- Gates: `apps/api/internal/handlers/gate.go` — store `GetGate` / cooldown are still stubs; `GateSubmissionForm` exists in `packages/ui` but skill detail does not wire submit. Client `submitGate` JSON vs handler form-urlencoded is mismatched.
+- Gates: `apps/api/internal/handlers/gate.go`. Submit is JSON (`POST /blocker-gates/{id}/submit`), matching `submitGate` in the api-client. Store `GetGate` / cooldown were stubs; wire or hide, never leave a dead button.
 - Quick log: `packages/ui` QuickLog* — time chips, not XP chips.
 
 ## Constraints
