@@ -337,6 +337,7 @@ export default function DashboardPage() {
           appName="NutriLog"
           tagline="Nutrition tracking, gamified"
           icon="🥗"
+          href="/nutri"
           metrics={[
             { label: 'Calories', value: '—' },
             { label: 'Streak', value: '—' },

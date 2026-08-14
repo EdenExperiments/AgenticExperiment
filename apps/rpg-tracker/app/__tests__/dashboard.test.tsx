@@ -269,15 +269,15 @@ test('does not show TierTransitionModal when tier_crossed is false (D-022)', asy
   expect(screen.queryByRole('heading', { name: /you've reached/i })).not.toBeInTheDocument()
 })
 
-test('hub cards list NutriLog, Workout, and MindTrack as placeholders', async () => {
+test('hub cards enter NutriLog and leave Workout and MindTrack as placeholders', async () => {
   render(<DashboardPage />, { wrapper })
   await waitFor(() => {
     expect(screen.getByRole('heading', { name: 'NutriLog' })).toBeInTheDocument()
   })
+  expect(screen.getByRole('link', { name: /nutrilog/i })).toHaveAttribute('href', '/nutri')
   expect(screen.getByRole('heading', { name: 'Workout' })).toBeInTheDocument()
   expect(screen.getByRole('heading', { name: 'MindTrack' })).toBeInTheDocument()
-  expect(screen.queryByRole('link', { name: /nutrilog/i })).not.toBeInTheDocument()
   expect(screen.queryByRole('link', { name: /workout/i })).not.toBeInTheDocument()
-  expect(screen.getAllByText('Coming Soon').length).toBe(3)
+  expect(screen.getAllByText('Coming Soon').length).toBe(2)
 })
 
