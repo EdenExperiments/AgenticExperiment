@@ -44,6 +44,25 @@ beforeEach(() => {
   })
 })
 
+test('logs a set on the last exercise without clicking a row', async () => {
+  mockGet.mockResolvedValue({
+    id: 's1',
+    status: 'in_progress',
+    volume_kg: 0,
+    started_at: '2026-08-14T00:00:00Z',
+    ended_at: null,
+    created_at: '2026-08-14T00:00:00Z',
+    exercises: [{ id: 'ex1', session_id: 's1', name: 'Squat', position: 0, sets: [] }],
+  })
+  mockAddSet.mockResolvedValue({ id: 'st1', reps: 5, load_kg: null, rpe: null, position: 0 })
+  render(<WorkoutSessionPage />, { wrapper })
+  await screen.findByRole('heading', { name: 'Log set' })
+  fireEvent.click(screen.getByRole('button', { name: 'Save set' }))
+  await waitFor(() => {
+    expect(mockAddSet).toHaveBeenCalledWith('ex1', { reps: 5 })
+  })
+})
+
 test('adds a named exercise to the open session', async () => {
   mockAddEx.mockResolvedValue({ id: 'ex1', session_id: 's1', name: 'Squat', position: 0, sets: [] })
   render(<WorkoutSessionPage />, { wrapper })

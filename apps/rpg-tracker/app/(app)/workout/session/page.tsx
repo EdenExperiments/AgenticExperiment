@@ -53,7 +53,7 @@ function WorkoutSessionInner() {
   })
 
   const addSet = useMutation({
-    mutationFn: () => {
+    mutationFn: (exerciseId: string) => {
       const parsedReps = parseInt(reps, 10)
       if (!Number.isInteger(parsedReps) || parsedReps <= 0) {
         throw new Error('Reps must be a positive integer')
@@ -71,8 +71,8 @@ function WorkoutSessionInner() {
         }
         data.rpe = parsedRpe
       }
-      if (!activeExerciseId) throw new Error('Pick an exercise')
-      return addWorkoutSet(activeExerciseId, data)
+      if (!exerciseId) throw new Error('Pick an exercise')
+      return addWorkoutSet(exerciseId, data)
     },
     onSuccess: () => {
       setFormError(null)
@@ -173,7 +173,7 @@ function WorkoutSessionInner() {
             onSubmit={(e) => {
               e.preventDefault()
               setActiveExerciseId(currentEx)
-              addSet.mutate()
+              addSet.mutate(currentEx)
             }}
             className="grid gap-3 sm:grid-cols-3"
           >
