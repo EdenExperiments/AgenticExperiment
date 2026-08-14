@@ -4,11 +4,16 @@ import { usePathname } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { getAccount } from '@rpgtracker/api-client'
 import { BottomTabBar, Sidebar } from '@rpgtracker/ui'
+import { isProductRoute, LIFEQUEST_NAV } from '@/lib/nav'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const hideNav = pathname.startsWith('/skills/new') // hide nav during multi-step flow
+  const hideNav = pathname.startsWith('/skills/new')
   const { data: account } = useQuery({ queryKey: ['account'], queryFn: getAccount })
+
+  if (isProductRoute(pathname)) {
+    return <>{children}</>
+  }
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--color-bg)', color: 'var(--color-text)' }}>
@@ -16,6 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="nav-panel hidden md:block fixed top-0 left-0 h-screen w-64 z-30">
           <Sidebar
             currentPath={pathname}
+            items={LIFEQUEST_NAV}
             displayName={account?.display_name}
             avatarUrl={account?.avatar_url}
           />
@@ -26,7 +32,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
-      {!hideNav && <BottomTabBar currentPath={pathname} />}
+      {!hideNav && <BottomTabBar currentPath={pathname} items={LIFEQUEST_NAV} />}
     </div>
   )
 }

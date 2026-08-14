@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -20,17 +21,20 @@ import (
 
 // stubGateStore implements handlers.GateStore for tests.
 type stubGateStore struct {
-	submission    *skills.GateSubmission
-	gateCleared   bool
-	err           error
+	submission     *skills.GateSubmission
+	gateCleared    bool
+	err            error
 	cooldownActive bool
-	// Tracks whether a gate_submissions row was inserted.
-	rowInserted bool
+	missing        bool
+	rowInserted    bool
 }
 
 func (s *stubGateStore) GetGate(_ context.Context, _, _ uuid.UUID) (*skills.BlockerGate, error) {
 	if s.err != nil {
 		return nil, s.err
+	}
+	if s.missing {
+		return nil, nil
 	}
 	notifiedAt := time.Now().Add(-24 * time.Hour)
 	return &skills.BlockerGate{
@@ -59,7 +63,7 @@ func (s *stubGateStore) InsertSubmission(
 	return s.submission, nil
 }
 
-func (s *stubGateStore) ClearGate(_ context.Context, _ uuid.UUID) error {
+func (s *stubGateStore) ClearGate(_ context.Context, _, _ uuid.UUID) error {
 	s.gateCleared = true
 	return nil
 }
@@ -258,6 +262,63 @@ func TestGateSubmitAIFailure(t *testing.T) {
 	// No gate_submissions row should be inserted on AI failure.
 	if stub.rowInserted {
 		t.Error("gate_submissions row must NOT be inserted when Claude API fails")
+	}
+}
+
+func TestGateSubmitJSONSelfReport(t *testing.T) {
+	gateID := uuid.New()
+	stub := &stubGateStore{
+		submission: &skills.GateSubmission{
+			ID:            uuid.New(),
+			Verdict:       "self_reported",
+			AttemptNumber: 1,
+		},
+	}
+	h := handlers.NewGateHandlerWithStore(stub, nil)
+
+	body := fmt.Sprintf(
+		`{"path":"self_report","evidence_what":%q,"evidence_how":%q,"evidence_feeling":%q}`,
+		minEvidenceWhat(), minEvidenceHow(), minEvidenceFeeling(),
+	)
+	req := httptest.NewRequest(
+		http.MethodPost,
+		"/api/v1/blocker-gates/"+gateID.String()+"/submit",
+		strings.NewReader(body),
+	)
+	req.Header.Set("Content-Type", "application/json")
+	req = req.WithContext(auth.WithUserID(req.Context(), uuid.New()))
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add("id", gateID.String())
+	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
+
+	w := httptest.NewRecorder()
+	h.HandlePostGateSubmit(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200 for JSON self-report, got %d: %s", w.Code, w.Body.String())
+	}
+	if !stub.gateCleared {
+		t.Error("JSON self-report must clear the gate")
+	}
+}
+
+func TestGateSubmitNotFound(t *testing.T) {
+	gateID := uuid.New()
+	stub := &stubGateStore{missing: true}
+	h := handlers.NewGateHandlerWithStore(stub, nil)
+
+	form := url.Values{
+		"path":             {"self_report"},
+		"evidence_what":    {minEvidenceWhat()},
+		"evidence_how":     {minEvidenceHow()},
+		"evidence_feeling": {minEvidenceFeeling()},
+	}
+	req := gateRequest(gateID, form)
+	w := httptest.NewRecorder()
+	h.HandlePostGateSubmit(w, req)
+
+	if w.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d: %s", w.Code, w.Body.String())
 	}
 }
 

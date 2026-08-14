@@ -1,24 +1,28 @@
 'use client'
 
-export default function NutriPage() {
+import Link from 'next/link'
+import { WeightLogPanel } from './components/WeightLogPanel'
+
+export default function NutriTodayPage() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] p-8">
-      {/* Minimal theme content */}
-      <div className="nutri-placeholder w-full max-w-md space-y-3">
-        <h1
-          className="nutri-placeholder__title text-2xl font-bold"
-          style={{
-            fontFamily: 'var(--font-display, var(--font-body, Inter, system-ui, sans-serif))',
-          }}
-        >
-          Coming Soon — NutriLog
+    <div className="p-4 md:p-8 space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--color-text)' }}>
+          Today
         </h1>
-        <p className="nutri-placeholder__description text-sm leading-relaxed">
-          Nutrition tracking is coming in a future update. Track macros, calories,
-          and weight trends — built on the same progression philosophy as LifeQuest.
-          LifeQuest is fully available now.
+        <p className="mt-1 text-sm" style={{ color: 'var(--color-muted)' }}>
+          Weight, fasting, and cooking live here. Rest days still count as showing up.
         </p>
       </div>
+      <div className="flex flex-wrap gap-3">
+        <Link href="/nutri/fast" className="btn btn-secondary px-4 py-2 min-h-[44px]">
+          Fasting
+        </Link>
+        <Link href="/nutri/cook" className="btn btn-secondary px-4 py-2 min-h-[44px]">
+          Cook from pantry
+        </Link>
+      </div>
+      <WeightLogPanel />
     </div>
   )
 }

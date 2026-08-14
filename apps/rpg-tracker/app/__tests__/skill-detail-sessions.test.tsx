@@ -18,6 +18,8 @@ vi.mock('@rpgtracker/api-client', () => ({
   updateSkill: vi.fn(),
   setPrimarySkill: vi.fn(),
   setSkillTags: vi.fn(),
+  submitGate: vi.fn(),
+  getAPIKeyStatus: vi.fn().mockResolvedValue({ has_key: false }),
 }))
 
 vi.mock('next/navigation', () => ({

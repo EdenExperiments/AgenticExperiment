@@ -20,6 +20,8 @@ vi.mock('@rpgtracker/api-client', () => ({
   updateSkill: vi.fn(),
   setPrimarySkill: vi.fn(),
   setSkillTags: vi.fn(),
+  submitGate: vi.fn(),
+  getAPIKeyStatus: vi.fn().mockResolvedValue({ has_key: false }),
 }))
 
 vi.mock('next/navigation', () => ({
@@ -133,4 +135,13 @@ test('shows XPProgressBar when no active gate (D-021)', async () => {
   await screen.findByText('Running')
   expect(screen.getByRole('progressbar')).toBeInTheDocument()
   expect(screen.queryByText(/gate locked/i)).not.toBeInTheDocument()
+})
+
+test('opens gate evidence form when Submit for Assessment is clicked', async () => {
+  mockGetSkill.mockResolvedValue(makeSkillWithActiveGate())
+  render(<SkillDetailPage />, { wrapper })
+  const btn = await screen.findByTestId('submit-gate-btn')
+  btn.click()
+  expect(await screen.findByLabelText(/what did you accomplish/i)).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: /submit self-report/i })).toBeInTheDocument()
 })

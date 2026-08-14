@@ -1,6 +1,6 @@
 /* packages/ui/tokens/mental-calm.css */
-/* Soft neutrals, muted palette, low contrast — provisional scaffold */
-:root[data-theme="mental-calm"] {
+/* Soft neutrals, muted palette, low contrast */
+[data-theme="mental-calm"] {
   --color-bg: #faf9f7;
   --color-bg-surface: #ffffff;
   --color-bg-elevated: #f5f3ef;
@@ -10,6 +10,9 @@
   --color-text-secondary: #6b6560;
   --color-text-muted: #a09890;
   --color-text-inverse: #faf9f7;
+  --color-text: #2d2926;
+  --color-muted: #a09890;
+  --color-surface: #ffffff;
 
   --color-accent: #7c6f64;
   --color-accent-hover: #6b5e54;
@@ -27,8 +30,8 @@
   --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  --color-xp-fill: linear-gradient(90deg, #6b7e74, #7c9186);
+  --color-xp-fill: #7c9186;
   --color-xp-bg: rgba(124, 111, 100, 0.08);
 
-  --motion-scale: 1;
+  --motion-scale: 0.4;
 }

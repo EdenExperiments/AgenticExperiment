@@ -180,16 +180,41 @@ export function getXPChart(skillId: string, days?: number): Promise<XPChartRespo
 }
 
 // Gate submissions
-export function submitGate(gateId: string, body: {
+export interface GateSubmitResult {
+  submission: GateSubmission
+  gate_cleared: boolean
+}
+
+type GateSubmitWire = {
+  submission: {
+    id?: string
+    verdict: GateSubmission['verdict']
+    ai_feedback?: string
+    next_retry_at?: string | null
+    attempt_number: number
+  }
+  gate_cleared: boolean
+}
+
+export async function submitGate(gateId: string, body: {
   path: 'ai' | 'self_report'
   evidence_what?: string
   evidence_how?: string
   evidence_feeling?: string
-}): Promise<GateSubmission> {
-  return request<GateSubmission>(`/api/v1/blocker-gates/${gateId}/submit`, {
+}): Promise<GateSubmitResult> {
+  const data = await request<GateSubmitWire>(`/api/v1/blocker-gates/${gateId}/submit`, {
     method: 'POST',
     body: JSON.stringify(body),
   })
+  return {
+    gate_cleared: data.gate_cleared,
+    submission: {
+      verdict: data.submission.verdict,
+      aiFeedback: data.submission.ai_feedback ?? null,
+      nextRetryAt: data.submission.next_retry_at ?? null,
+      attemptNumber: data.submission.attempt_number,
+    },
+  }
 }
 
 // Account update

@@ -332,25 +332,38 @@ export default function DashboardPage() {
       </div>
 
       {/* Hub Stat Placeholders — P4-6 */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <HubPlaceholderCard
           appName="NutriLog"
-          tagline="Nutrition tracking, gamified"
+          tagline="Eat from what you have"
           icon="🥗"
+          href="/nutri"
           metrics={[
-            { label: 'Calories', value: '—' },
-            { label: 'Streak', value: '—' },
-            { label: 'Score', value: '—' },
+            { label: 'Weight', value: 'Open' },
+            { label: 'Fast', value: 'Open' },
+            { label: 'Cook', value: 'Open' },
+          ]}
+        />
+        <HubPlaceholderCard
+          appName="Workout"
+          tagline="Sets, load, and RPE"
+          icon="💪"
+          href="/workout"
+          metrics={[
+            { label: 'Session', value: 'Open' },
+            { label: 'History', value: 'Open' },
+            { label: 'XP', value: 'Off' },
           ]}
         />
         <HubPlaceholderCard
           appName="MindTrack"
-          tagline="Mental health check-ins"
-          icon="🧠"
+          tagline="Private check-ins"
+          icon="🫧"
+          href="/mind"
           metrics={[
-            { label: 'Mood', value: '—' },
-            { label: 'Streak', value: '—' },
-            { label: 'Entries', value: '—' },
+            { label: 'Mood', value: 'Open' },
+            { label: 'Journal', value: 'Open' },
+            { label: 'XP', value: 'Off' },
           ]}
         />
       </div>

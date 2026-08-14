@@ -2,6 +2,8 @@
 @import '@rpgtracker/ui/tokens/minimal.css';
 @import '@rpgtracker/ui/tokens/retro.css';
 @import '@rpgtracker/ui/tokens/modern.css';
+@import '@rpgtracker/ui/tokens/nutri-saas.css';
+@import '@rpgtracker/ui/tokens/mental-calm.css';
 @import "tailwindcss";
 @import '@rpgtracker/ui/tokens/components.css';
 @import '@rpgtracker/ui/tokens/pages.css';
