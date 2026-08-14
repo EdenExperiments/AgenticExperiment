@@ -1,6 +1,6 @@
 # Feature Tracker
 
-Last updated: 2026-08-13 (D-063: pstack + cursor-team-kit replace repo-managed skills/commands/agents/flows)
+Last updated: 2026-08-14 (suite completion program: LifeQuest sufficient + NutriLog nutrition + pantry recipes + proposed workout; D-064–D-068)
 
 Status values: `done` · `in-progress` · `ready-for-build` · `ready-for-planning` · `needs-clarification` · `deferred`
 
@@ -93,6 +93,28 @@ Target design: `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md`. Mi
 
 ---
 
+## Next program — Suite completion (planning)
+
+Dispatch pack: `Documentation/delivery/2026-08-14-program-suite-completion/`. Implementation waits on sign-off in that folder’s `requirements.md`. Decisions D-064–D-068.
+
+| ID | Feature | Area | Status | Notes |
+| --- | --- | --- | --- | --- |
+| F-009b | Blocker completion UI + real gate API | LifeQuest | ready-for-planning | API stubbed (`GetGate`/`GetActiveCooldown` nil); `GateSubmissionForm` not mounted; JSON vs form mismatch. Sessions LQ-01, LQ-02. |
+| F-007 | Detailed natural-language logs | LifeQuest | ready-for-planning | `log_note` exists; no parse-and-confirm path. LQ-03. |
+| F-010 | Reward moments on gate clear | LifeQuest | ready-for-planning | Tier modal exists (D-022); no gate-clear ceremony. LQ-04. |
+| F-012 | AI coaching from log history | LifeQuest | ready-for-planning | After F-007. LQ-05. Entitlement = F-075. |
+| F-018 | NutriLog goals (calorie, macros, weight rate) | NutriLog | ready-for-planning | NL-01, NL-02. Weight logging (F-013) already shipped. |
+| F-014 | Calorie and macro logging | NutriLog | ready-for-planning | Provider locked to Open Food Facts (D-065). NL-03, NL-04. |
+| F-016 | Saved meals and templates | NutriLog | ready-for-planning | After diary. NL-05. |
+| F-015 | Barcode scanning | NutriLog | ready-for-planning | After diary; not on recipe critical path. NL-06. |
+| F-076 | Pantry / on-hand ingredients | NutriLog | ready-for-planning | Food-waste foundation. After F-014. RP-01, RP-02. |
+| F-017 | AI recipes from on-hand ingredients | NutriLog | ready-for-planning | Expanded: ground in pantry, prefer expiring items, remaining calories. Not a separate app (D-066). RP-03. |
+| F-077 | Save recipe + cook to diary | NutriLog | ready-for-planning | Optional pantry decrement. RP-04. |
+| F-078 | Workout app session logging | Workout | needs-clarification | Proposed fourth suite app (`apps/workout`, `wo_`). Build only if D-067 signed “build now”. Default: defer. |
+
+
+---
+
 ## Remaining — Phase 8: Immersion
 
 
@@ -112,11 +134,7 @@ Target design: `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md`. Mi
 
 | ID     | Feature                            | Dependencies         | Notes                                                                    |
 | ------ | ---------------------------------- | -------------------- | ------------------------------------------------------------------------ |
-| F-007  | Detailed natural-language logs     | Claude integration   | `log_note` column exists — no schema change needed.                      |
-| F-009b | Blocker completion UI flow         | F-009                | Schema hooks exist (`is_cleared`, `cleared_at`). No code in release 1.   |
-| F-010  | Reward moments and titles          | F-009b               | Post-release polish.                                                     |
-| F-011  | Meta-skills and dependencies       | —                    | Post-MVP. Revisit after core loop is in production.                      |
-| F-012  | AI coaching feedback               | Log history + Claude | Requires meaningful log history.                                         |
+| F-011  | Meta-skills and dependencies       | —                    | Still deferred (D-064). Not in the sufficient skill-tracker set.         |
 | F-025  | Skill trees                        | F-011                | Visual progression paths. Tree vs graph vs linear TBD.                   |
 | F-028  | Character avatar / visual identity | Tier + theme system  | Pixel art (Retro), sleek (Modern). Separate from account avatar (F-036). |
 | F-029  | Mastery system (sub-skills)        | F-011                | Deep-dive skill breakdown.                                               |
@@ -124,14 +142,7 @@ Target design: `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md`. Mi
 
 ### NutriLog (schema namespace `nl_`; F-013 shipped — see compact index)
 
-
-| ID    | Feature                        | Notes                 |
-| ----- | ------------------------------ | --------------------- |
-| F-014 | Calorie and macro logging      | Food data source TBD. |
-| F-015 | Barcode scanning               | Mobile camera flow.   |
-| F-016 | Saved meals and templates      | QoL feature.          |
-| F-017 | AI recipe suggestions          | Claude integration.   |
-| F-018 | Goal setting and weekly rate   | —                     |
+F-014, F-015, F-016, F-017, F-018, F-076, F-077 moved to **Next program — Suite completion** above. Still deferred from that program: progress photos, streaks, TDEE as a medical claim, Nutritionix, standalone `apps/recipes`.
 
 
 ### Cross-App & Platform
@@ -140,7 +151,7 @@ Target design: `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md`. Mi
 | ID    | Feature                            | Notes                                                                                                                                                                                                                   |
 | ----- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | F-019 | Weekly AI review                   | After both LifeQuest and NutriLog stable.                                                                                                                                                                               |
-| F-020 | Cross-app XP integration           | Which health events award XP TBD.                                                                                                                                                                                       |
+| F-020 | Cross-app XP integration           | Still deferred until NutriLog diary is stable. Workout (F-078) also must not write `xp_events` in its first slice.                                                                                                       |
 | F-021 | PWA install and push notifications | Mobile usability shipped; PWA deferred.                                                                                                                                                                                 |
 | F-022 | Data export                        | After schema stabilises.                                                                                                                                                                                                |
 | F-026 | Social features                    | Activity stream, party, leaderboard. D-008 defers from release 1.                                                                                                                                                       |

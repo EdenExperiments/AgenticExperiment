@@ -30,10 +30,11 @@ Top-level index for agents and contributors. Entry-point routing also lives in `
 | Platform / schema | `Documentation/architecture.md` |
 | Binding decisions | `Documentation/decision-log.md` |
 | Feature status | `Documentation/feature-tracker.md` |
-| Delivery artifacts | `Documentation/delivery/` (historical; Pillar D commands retired, D-063) |
+| Delivery artifacts | `Documentation/delivery/` — active: `2026-08-14-program-suite-completion/`; historical Pillar D packs remain |
 | Agentic pipeline target | `Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md` |
 | Visual implementation | `Documentation/style-guide/`, `Documentation/page-guides/` |
 | Workflow / CI | `docs/CURSOR-AGENT-HANDBOOK.md` |
+| Suite completion (next product wave) | `Documentation/delivery/2026-08-14-program-suite-completion/` |
 
 ## Agent Config Layering (Brief §4c, D-063)
 

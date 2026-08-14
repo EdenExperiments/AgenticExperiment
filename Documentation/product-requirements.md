@@ -1,6 +1,6 @@
 # Product Requirements
 
-Last updated: 2026-05-06 (aligned shipped/deferred framing with feature tracker and decision log)
+Last updated: 2026-08-14 (suite completion program: sufficient LifeQuest loop, NutriLog nutrition + pantry recipes, proposed workout app)
 
 ## Product Vision
 
@@ -14,17 +14,19 @@ Long-term, each skill will be backed by **curated guidance**: expert-informed le
 
 Build a platform of connected apps under a shared Go API, auth layer, and UI component library:
 
-- `LifeQuest` (`apps/rpg-tracker`): the hub — a gamified skill progression system based on real-world activity — **Release 1 complete with additional Release 2 features shipped**
-- `NutriLog` (`apps/nutri-log`): a calorie, macro, and weight tracking system with AI assistance — scaffolded, pending feature work. Progress feeds into hub character progression.
+- `LifeQuest` (`apps/rpg-tracker`): the hub — a gamified skill progression system based on real-world activity — **Release 1 complete with additional Release 2 features shipped**. The remaining “sufficient” loop is blocker completion, detailed logs, reward moments, and coaching (D-064).
+- `NutriLog` (`apps/nutri-log`): calorie, macro, and weight tracking with pantry-first AI recipes (food waste). Weight logging (F-013) is shipped; diary, goals, and recipes are the next NutriLog wave.
 - `MindTrack` (`apps/mental-health`): a mental wellness and mood tracking app — scaffolded, pending feature work. Progress feeds into hub character progression.
+- `Workout` (`apps/workout`, proposed): strength session logging as a fourth suite app (`wo_` schema). Not committed until D-067 is signed to build; default is defer.
 
 The product should feel like a self-improvement operating system rather than a generic task tracker.
 
 ## Current Delivery State
 
 - Canonical implementation status is maintained in `Documentation/feature-tracker.md`.
-- Release 1 core features (F-001 through F-009) are complete.
-- Multiple Release 2 features are shipped (including F-023 and F-024), with additional roadmap items still deferred.
+- Release 1 core features (F-001 through F-009 visibility) are complete. Blocker *completion* (F-009b) is the remaining core-loop hole.
+- Multiple Release 2 features are shipped (including F-023, F-024, F-075). NutriLog weight logging (F-013) is shipped.
+- Next product wave (planning): `Documentation/delivery/2026-08-14-program-suite-completion/`.
 
 ## Planning Baseline For Release 1 (Historical)
 
@@ -32,7 +34,7 @@ The planning baseline for release 1 is a `LifeQuest`-first MVP built on a shared
 
 - Release 1 includes the shared app shell, auth, secure user AI key handling, skill creation, AI-assisted calibration (optional, not mandatory), quick logging, XP and level display, and blocker gate visibility with locked progression state.
 - Release 1 does **not** include the blocker completion UI flow (evidence submission, confirmation, unlock animation). Gate visibility and locked progression are sufficient for release 1 validation.
-- `NutriLog` remains part of the product vision, but its feature delivery is deferred until after the LifeQuest MVP foundation is stable.
+- `NutriLog` remains part of the product vision. Weight logging has shipped; remaining NutriLog delivery is the suite-completion program, not the original “defer entirely” reading of D-004.
 - Release 1 uses one unified application shell with multiple product areas rather than two fully separate apps.
 - Release 1 must support core mobile use well, but full desktop-mobile feature parity is not required for every advanced feature on day one.
 - Social or sharing features are out of scope for release 1.
@@ -132,9 +134,30 @@ The planning baseline for release 1 is a `LifeQuest`-first MVP built on a shared
 
 ### NutriLog Release Position
 
-- NutriLog is a planned post-release-1 workstream.
-- Architecture and schema planning should leave space for NutriLog to avoid obvious rework.
-- NutriLog should not expand the first implementation scope before the LifeQuest MVP is build-ready.
+- F-013 (weight logging) has shipped as the first vertical slice.
+- Remaining NutriLog work (goals, diary, templates, barcode, pantry, recipes) is specified in `Documentation/delivery/2026-08-14-program-suite-completion/`.
+- Recipes are a NutriLog area, not a separate deployable (D-066). AI suggestions must prefer ingredients the user already has in order to reduce food waste.
+- Cross-app XP (F-020) stays deferred until the food diary is stable.
+
+## Experience 3: Recipes (inside NutriLog)
+
+### Core Loop
+
+1. User adds on-hand ingredients to a pantry (catalog foods or free text; optional expiry).
+2. User asks for recipes. Claude is called only when the pantry (or extras) is non-empty and the user is AI-entitled.
+3. Suggestions must use on-hand items; ungrounded recipes are dropped. Soon-to-expire items are preferred.
+4. User saves a recipe and can log it as a diary meal (optional pantry decrement).
+
+### Functional Requirements
+
+- Pantry CRUD scoped to the authenticated user.
+- Suggestions constrained by pantry + remaining calories/macros from the diary/goals.
+- Save and cook-to-diary without a second Claude call.
+- Empty pantry must not call Claude.
+
+## Experience 4: Workout (proposed)
+
+Proposed only (D-067). If signed to build: a standalone `apps/workout` app whose first slice is logging a strength session (exercises, sets, reps, optional load/RPE) with history and a volume chart. No hub XP in that slice. Do not model workouts as a LifeQuest skill.
 
 ## Hub Architecture
 
@@ -142,6 +165,7 @@ The RPG Tracker (LifeQuest) is the central hub for the suite. Other apps feed pr
 
 - NutriLog — nutrition logging counts as progress toward health-related skills and character development
 - MindTrack — mental health and wellbeing progress feeds into the system
+- Workout (proposed) — training sessions feed the same hub when F-020 is designed
 - Future apps — any app added to the suite integrates the same way, contributing to overall character progression
 
 Everything rolls up to the hub: skills, level, progress across all domains of self-improvement.
@@ -218,7 +242,7 @@ The following are confirmed **not** in release 1:
 - Titles and reward moments (F-010)
 - AI coaching feedback (F-012)
 - XP decay
-- Any NutriLog features (F-013 through F-018)
+- Any remaining NutriLog features beyond F-013 (now planned in the suite-completion program, not in release 1)
 - Cross-app XP integration (F-020)
 - Weekly AI review (F-019)
 - PWA install and push notifications (F-021)
@@ -227,13 +251,14 @@ The following are confirmed **not** in release 1:
 
 ### Deferred Workstreams
 
-- NutriLog (all features): planned post-release-1 workstream. Architecture and schema planning should reserve space for NutriLog without building it.
-- Cross-app layer: deferred until both LifeQuest and NutriLog core loops are stable.
-- LifeQuest depth features (meta-skills, decay, coaching, detailed logs, reward moments, blocker completion flow): deferred until after the base release-1 loop is in production.
+- NutriLog remaining features: suite-completion program (diary, goals, recipes). Architecture must keep the `nl_` namespace and add pantry/recipe tables in that namespace.
+- Workout: proposed `wo_` app; do not scaffold until D-067 says build.
+- Cross-app layer: deferred until NutriLog’s food diary is stable.
+- LifeQuest depth/immersion (meta-skills, trees, narrative, audio): still deferred (D-064). The sufficient loop (F-009b, F-007, F-010, F-012) is no longer deferred.
 
 ### Release 2+ Roadmap (planned features, not yet scoped)
 
-These features represent the long-term product vision and remain unscheduled for implementation. Shipped items are tracked in `Documentation/feature-tracker.md`.
+These features represent the long-term product vision. Suite-completion items (sufficient LifeQuest loop, NutriLog diary/recipes, proposed workout) are scoped in `Documentation/delivery/2026-08-14-program-suite-completion/` rather than left unscheduled.
 
 
 | Category               | Features                                                         | Notes                                                                         |
@@ -243,8 +268,10 @@ These features represent the long-term product vision and remain unscheduled for
 | **Knowledge**          | Intel / knowledge base, curated learning resources per skill     | Expert-informed guidance, book recommendations                                |
 | **Character**          | Character avatar / visual identity, narrative layer              | Visual representation of progress; RPG story framing (especially retro theme) |
 | **Guidance**           | Location-aware suggestions (nearby classes, centres, facilities) | E.g. "snow sports" → nearest snow centre                                      |
-| **Hub Integration**    | NutriLog → hub XP, MindTrack → hub XP, cross-app progression     | All suite apps feed unified character progression                             |
-| **Blocker Completion** | Evidence submission, AI assessment, unlock ceremony              | Full gate completion flow (F-009b)                                            |
+| **Hub Integration**    | NutriLog → hub XP, MindTrack → hub XP, Workout → hub XP, cross-app progression | Still F-020; not in the suite-completion first slices     |
+| **Recipes / waste**    | Pantry-grounded AI recipes inside NutriLog                                   | D-066; delivery pack workstream 3                         |
+| **Workout (proposed)** | Strength session logging in `apps/workout`                                   | D-067; default defer                                      |
+| **Blocker Completion** | Evidence submission, AI assessment, unlock ceremony              | Now scoped in suite-completion (F-009b / D-064), not unscheduled |
 
 
 ## Assumptions

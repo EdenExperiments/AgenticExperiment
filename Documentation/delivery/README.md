@@ -4,6 +4,9 @@ Historical stage artifacts from the retired command-driven delivery pipeline (Pi
 superseded by D-063). Folders here remain as an evidence trail. New development uses pstack
 (`/poteto-mode`) and cursor-team-kit, not `/fix`, `/feature`, `/epic`, or `/new-project`.
 
+**Active program (awaiting sign-off):** `2026-08-14-program-suite-completion/` — agent dispatch
+index for LifeQuest sufficient loop, NutriLog nutrition, pantry-first recipes, and proposed workout.
+
 ## Layout
 
 ```

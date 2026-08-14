@@ -1,6 +1,6 @@
 Well# Architecture — Domain Model, Schema Design, and Integration Contracts
 
-Last updated: 2026-03-16 (user direction: 10-tier structure with gates at every 10 levels (9–99); tier names Novice→Apprentice→Adept→Journeyman→Practitioner→Expert→Veteran→Elite→Master→Grandmaster→Legend; multipliers updated; QuickLogChips function added; prior fix: RLS clarification; prior: architecture-agent initial pass)
+Last updated: 2026-08-14 (NutriLog entity design + pantry/recipes + `wo_` reservation; D-065–D-067)
 
 ---
 
@@ -449,34 +449,49 @@ This function is the single source of truth for level computation. It lives in a
 
 ---
 
-## 3. NutriLog Domain Boundary (Placeholder)
+## 3. NutriLog Domain (`nl_`)
 
-NutriLog is deferred until after the LifeQuest core loop is in production (D-004). The following defines the boundary to prevent schema churn when NutriLog is added.
+Weight logging (`nl_weight_logs`) shipped in F-013. Remaining entities are designed here for the suite-completion program (`Documentation/delivery/2026-08-14-program-suite-completion/`). D-004’s “do not build NutriLog in release 1” still holds historically; it no longer means “leave this section as names only.”
 
-### Schema namespace reservation
+### Schema namespace
 
-All NutriLog tables will be prefixed `nl_` to keep them clearly separated from LifeQuest tables (`skills`, `xp_events`, `blocker_gates`) and platform tables (`users`, `user_ai_keys`).
+All NutriLog tables are prefixed `nl_`. They do not FK to LifeQuest tables. All rows `user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE`. RLS owner policies match `nl_weight_logs`. Cross-app XP (F-020) stays a separate layer.
 
-### Anticipated top-level NutriLog entities (names only — not designed here)
+### Entities
 
-- `nl_food_logs` — daily calorie and macro log entries
-- `nl_weight_logs` — weight measurement records
-- `nl_goals` — calorie, macro, and weight targets
-- `nl_foods` — custom food registry (user-created and cached from external provider)
-- `nl_meal_templates` — saved meal compositions
+| Table | Role | Status |
+|-------|------|--------|
+| `nl_weight_logs` | Weight measurements (kg) | Shipped |
+| `nl_goals` | One row per user: calorie target, optional macros, target weight, weekly rate | Planned NL-01 |
+| `nl_foods` | Per-user catalog: `source` `open_food_facts` \| `user_defined`; kcal + macros per serving | Planned NL-03 |
+| `nl_food_logs` | Diary lines with **snapshot** macros (edits to `nl_foods` do not rewrite history) | Planned NL-03 |
+| `nl_meal_templates` + items | Saved meal compositions | Planned NL-05 |
+| `nl_pantry_items` | On-hand ingredients (`food_id` nullable; free-text `name` required; optional `expires_on`) | Planned RP-01 |
+| `nl_recipes` + `nl_recipe_ingredients` | Saved AI or user recipes; cook writes `nl_food_logs` | Planned RP-04 |
 
-### Foreign key anchoring
+v1 caches OFF results **per user** (`nl_foods.user_id` always set). Do not introduce a shared global OFF cache in this program.
 
-All NutriLog tables will anchor to `public.users(id)` using the same `user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE` pattern. No LifeQuest table references a NutriLog table or vice versa in the base schema. Cross-app mechanics (F-020) will be implemented as a separate integration layer when that work begins.
+### Food data provider (D-065)
 
-### Food data provider boundary
+Open Food Facts is the first provider. The application:
 
-The food data provider (Open Food Facts or equivalent) is an external service. The application:
-- **Owns:** the `nl_foods` table (local cache of food data, user-created entries, nutritional overrides)
-- **Does not own:** the external food database, barcode-to-nutrition mapping, or search index
-- **Integration contract:** the application calls the external provider API at search/barcode-scan time, caches results into `nl_foods` with a `source` field (`'open_food_facts'` | `'user_defined'`), and uses only the local cache thereafter. If the external provider is unavailable, the user can still access previously cached foods and user-defined entries.
+- **Owns:** `nl_foods` (cache + user-defined).
+- **Does not own:** OFF search index or barcode database.
+- **Contract:** query at search/barcode time (5s timeout); upsert cache; if OFF is down, search returns cache/custom only (`provider: degraded`). Logging never requires a live OFF call.
 
-This boundary is documented here to avoid designing NutriLog now while ensuring the schema leaves the correct anchoring in place.
+### Recipes (D-066)
+
+Recipes are NutriLog routes, not `apps/recipes`. Suggest-time Claude calls must be grounded: drop recipes that use fewer than two on-hand ingredient names. Empty pantry → 422, no Claude call. Remaining calories come from `nl_goals` minus that date’s `nl_food_logs` totals.
+
+### 3.1 Workout domain reservation (`wo_`) — proposed (D-067)
+
+Do not create tables or `apps/workout` unless D-067 is signed to build. Reserved names:
+
+- `wo_exercises` — per-user exercise catalog
+- `wo_sessions` — `in_progress` \| `completed`
+- `wo_sets` — reps, optional `load_kg`, optional RPE
+
+Same FK/RLS pattern as `nl_`. No FKs to `nl_*` or LifeQuest. No `xp_events` writes in the first slice.
 
 ---
 
@@ -628,18 +643,17 @@ This trigger fires after every `INSERT` on `auth.users` and inserts the correspo
 - Cache Claude responses in a way that associates them with the user's plaintext key.
 - Use the key for any purpose other than the user's own AI-assisted features.
 
-### 4.4 Food Data Provider (NutriLog — boundary only)
+### 4.4 Food Data Provider (NutriLog — D-065)
 
-This integration is not built in release 1. The boundary is defined here to prevent schema assumptions that would cause churn.
-
-**Expected external provider:** Open Food Facts (free, open-licensed food database with barcode support). Alternative: Nutritionix API (paid, more comprehensive).
+**Provider:** Open Food Facts. Nutritionix is out of the suite-completion program.
 
 **Contract boundary:**
+
 - Application queries provider at: food search by name, barcode lookup.
-- Provider returns: nutritional data per 100g or per serving.
-- Application caches result into `nl_foods` with `source = 'open_food_facts'`.
-- Application never re-fetches the same barcode from the provider if a local cache entry exists.
-- If the provider is unavailable, the food log flow must still work using cached/user-defined entries.
+- Provider returns: nutritional data per 100g or per serving; map into `nl_foods` serving fields in the Go client.
+- Application caches result into `nl_foods` with `source = 'open_food_facts'` and the requesting `user_id`.
+- If a cache row exists for that user + barcode/`off_id`, prefer cache; re-fetch is allowed when the client asks for refresh (not required in v1).
+- If the provider is unavailable, search degrades; food log and custom food flows must still work.
 
 ---
 
@@ -787,3 +801,7 @@ The ux-agent is unblocked and should now deliver:
 5. **Blocker gate visibility screen** — define the information hierarchy: gate level, blocker description, locked progression indicator, accrued-but-locked XP indicator. The schema confirms `title`, `description`, and `is_cleared` are the available fields.
 
 The ux-agent does not need to design the blocker completion flow (F-009b is deferred) or any NutriLog screens.
+
+### 2026-08-14 addendum
+
+NutriLog entity detail, pantry/recipes, and `wo_` reservation are specified in §3 and in `Documentation/delivery/2026-08-14-program-suite-completion/`. F-009b is no longer “schema only” — the Go store is stubbed and must be finished (D-064). Historical “what the ux-agent should do next” above is complete for release 1; new UI work uses page guides listed in that delivery pack.

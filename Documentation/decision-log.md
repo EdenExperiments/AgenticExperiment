@@ -1,6 +1,6 @@
 # Decision Log
 
-Last updated: 2026-08-13 (D-063 added: pstack + cursor-team-kit replace repo-managed agent pack)
+Last updated: 2026-08-14 (D-064–D-068 proposed: LifeQuest sufficient set, OFF food provider, recipes-in-NutriLog, proposed workout app, NutriLog IA)
 
 ## How To Read This Log
 
@@ -29,6 +29,19 @@ Last updated: 2026-08-13 (D-063 added: pstack + cursor-team-kit replace repo-man
 | D-061 | Workflow hook + CODEOWNERS relaxation during active pipeline iteration. Agents may edit `.github/workflows/**` while stabilising automation; workflow shell-write hook and `/.github/` CODEOWNERS line commented out. TDD test-lock and destructive-shell guards remain. Re-tighten when pipeline work settles. |
 | D-062 | Skills, flows, and subagent orchestration standard. Agent skills under `.cursor/skills/<domain>/<name>/SKILL.md` with `skills.index.json`; orchestration manifests under `.cursor/flows/`; subagents under `.cursor/agents/` with "Use when…" `description` routing. Added pipeline/sdk-remediation/maintenance/bugbot-advisory skills and delivery-orchestrator/deps-highlight/maintenance-scout agents. `pnpm validate:agents` + `validate:cursor` in precommit. Guide: `docs/guides/cursor-skills-and-orchestration.md`. **Superseded for development routing by D-063.** |
 | D-063 | Repo-managed skills, commands, agents, and flows (including CI/ops pack) retired. IDE development uses pstack (`/poteto-mode`) and cursor-team-kit. Per-role models in `.cursor/rules/pstack-models.mdc` (Grok 4.6 workhorse, Opus 5 judgment, Sol on review panels). TDD lock and `validate:skills`/`validate:agents`/`validate:flows` removed. GitHub Actions and `packages/cursor-agents/` remain. |
+| D-064 to D-068 | Suite completion program (awaiting sign-off): LifeQuest sufficient loop, Open Food Facts, recipes inside NutriLog, proposed workout app, NutriLog nav IA. |
+
+
+### Suite Completion (D-064 to D-068)
+
+
+| ID    | One-line Summary                                                                 | Notes                                                      |
+| ----- | -------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| D-064 | LifeQuest “sufficient” = gate completion + NL logs + reward moment + coaching.   | Trees/meta-skills/immersion stay deferred.                 |
+| D-065 | Open Food Facts is the first NutriLog food provider.                             | User-defined foods work when OFF is down.                  |
+| D-066 | Recipes and pantry live in NutriLog; AI must ground in on-hand ingredients.      | Not a fourth Next.js app. Food-waste is the primary constraint. |
+| D-067 | Workout is a proposed `apps/workout` / `wo_` app; default is defer.              | Strength session logging would be the first slice.         |
+| D-068 | NutriLog nav: Diary, Weight, Goals, then Pantry and Recipes.                     | Hub `/nutri` placeholder is not on the critical path.      |
 
 
 ### UX, Theme, And Workflow Index (D-017+)
@@ -134,6 +147,20 @@ Last updated: 2026-08-13 (D-063 added: pstack + cursor-team-kit replace repo-man
 | 2026-08-13 | D-063 | **pstack + cursor-team-kit replace the repo-managed agent pack.** Deleted `.cursor/commands/`, `.cursor/skills/` (including CI/ops), `.cursor/agents/`, and `.cursor/flows/`. Development path is `/poteto-mode` plus cursor-team-kit. Always-applied `.cursor/rules/pstack-models.mdc` maps roles: Grok 4.6 (`cursor-grok-4.6-high-fast`) for code/workhorse and swarm; Opus 5 (`claude-opus-5-thinking-high`) for judgment/prose; review panels are Sol xhigh + Grok 4.6 + Grok 4.6 + Opus 5. Grok 4.5 and Composer are not role defaults (ad-hoc small tasks only). TDD lock (`.cursor/tdd-lock`) and `validate:skills`/`validate:agents`/`validate:flows`/`validate:cursor` removed. GitHub Actions and `packages/cursor-agents/` kept. Guide archived to `docs/archive/cursor-skills-and-orchestration.md`. Supersedes D-062 for development routing; does not retire Pillars A–C CI scripts. | Plugin skills were fighting the pack's `/feature`/`/fix` TDD subagents. A clean plugin-first slate lets pstack and cursor-team-kit own development without duplicate routing. |
 
 
+### D) Suite Completion Program (D-064 to D-068)
+
+Awaiting human sign-off in `Documentation/delivery/2026-08-14-program-suite-completion/requirements.md`. Defaults below are what agents must use after sign-off if a question is unanswered.
+
+
+| Date       | ID    | Decision | Reason |
+| ---------- | ----- | -------- | ------ |
+| 2026-08-14 | D-064 | **LifeQuest sufficient set.** The skill tracker is “complete enough” when F-009b (blocker completion, including un-stubbed Go store and wired UI), F-007 (natural-language log parse + confirm), F-010 (gate-clear ceremony), and F-012 (on-demand coaching from recent logs) are done. Meta-skills, skill trees, mastery sub-skills, character visual identity beyond F-036, and immersion (F-031, F-042, F-043) remain deferred. Reopens D-010 for F-009b only. | The shipped loop shows gates but cannot clear them; coaching and detailed logs are in the PRD core loop and still missing. Depth/immersion is a different program. |
+| 2026-08-14 | D-065 | **Open Food Facts is the first food data provider** for NutriLog search and barcode. The app owns `nl_foods` (per-user cache + user-defined). If OFF is unavailable, search degrades to cache/custom; logging must still work. Nutritionix is out of this program. | Architecture §4.4 already named OFF as the expected free, barcode-capable source. Paying a second provider before diary exists is out of scope. |
+| 2026-08-14 | D-066 | **Recipe experience lives in `apps/nutri-log`.** Pantry (`nl_pantry_items`) plus AI suggestions grounded in on-hand ingredients (preferring soon-to-expire items) plus remaining calories/macros. Do not add `apps/recipes`. Ungrounded model output is dropped. Empty pantry does not call Claude. AI entitlement matches F-075 (pro + stored user key). | Recipes without pantry/diary data cannot reduce waste. A fourth Next.js app would duplicate auth/BFF/theme for a feature that must write `nl_food_logs`. |
+| 2026-08-14 | D-067 | **Workout is a proposed fourth suite app** (`apps/workout`, schema prefix `wo_`, product theme `workout-forge`). First slice is strength session logging (exercises, sets, reps, optional load/RPE, history, volume chart). Default: **do not scaffold** until sign-off says build now. Do not model workouts as a LifeQuest skill. F-020 still deferred. | Matches D-037 hub boundaries (new domain, new prefix) but avoids another empty suite app before NutriLog’s food loop exists. |
+| 2026-08-14 | D-068 | **NutriLog information architecture:** Diary, Weight, Goals as first-class nav; Pantry and Recipes after those sessions. LifeQuest hub `/nutri` remains a placeholder until a later hub-link slice. NutriLog keeps `nutri-saas` theme (not LifeQuest’s three themes) in this program. | Weight-only dashboard cannot host diary/recipes. Hub replacement is not required to make NutriLog usable at its own URL. |
+
+
 ## Implementation Assumptions
 
 
@@ -158,4 +185,6 @@ Last updated: 2026-08-13 (D-063 added: pstack + cursor-team-kit replace repo-man
 
 ## Open Questions
 
-None. All open questions from the initial pass have been resolved as confirmed decisions (D-010, D-011, D-012) or implementation assumptions (A-001, now superseded by D-015). D-013 is resolved by D-014. D-017 through D-022 were added during UX refinement. D-033 and D-034 were added during progression/logging refinement. D-035-D-037 and D-041-D-043 were added during design-direction consolidation. D-044 through D-053 capture Cursor-first operations, quality onboarding baseline, docs cull decisions, dual-gated auto-fix policy, model-routed remediation with coverage enforcement, structured reviewer schema contract, auto-fix trigger/scanner coordination, branch-ref startup handling, Renovate action pinning, and compatibility-gated dependency refresh policy. D-054 adds the model-slug fallback policy for agent scripts. D-055 through D-059 adopt the Agentic Pipeline Brief v2 and lean documentation contract. D-063 retires the repo-managed development pack in favor of pstack and cursor-team-kit. Open questions carried from the brief (§8): Pillar C ticket source (GitHub Issues only vs Jira/ADO), metrics home (job summaries + issue vs static dashboard), and budget modelling for usage-based Bugbot + Automations runs.
+Program `2026-08-14-program-suite-completion` carries Q1–Q10 (defaults in `Documentation/delivery/2026-08-14-program-suite-completion/requirements.md`). They collapse to: confirm D-064 includes F-012 in the first wave; recipes inside NutriLog; workout deferred vs build now; kg storage; Mifflin–St Jeor with override; barcode after diary; recipe AI uses F-075 entitlement; gate reject is a real outcome; optional pantry expiry; workout first slice is strength.
+
+Older brief §8 operator questions (Pillar C ticket source, metrics home, Bugbot/Automations budget) remain open and are unrelated to this product program.
