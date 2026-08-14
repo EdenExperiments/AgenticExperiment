@@ -26,9 +26,10 @@ LifeQuest skins: `data-theme` Minimal / Retro / Modern; optional `data-mode` cle
 2. Put long plans in `docs/briefs/<slug>.md`. They are gitignored.
 3. Before you delete a brief (or merge the PR), copy any *lasting* rule into `docs/` (usually two sentences).
 4. `/poteto-mode` for implementation. Nested `AGENTS.md` for stack commands.
+5. When a product or AI-shape choice is unclear, do not pick silently. Fan out two or three options (`arena`, `how` critics, or `interrogate`) and have judges score them against `docs/product.md`: help the person, schema-held data, no training or chat-memory store, BYOK, draft not clinician, settings over one true path.
 
 New suite products on web are a route group with nested chrome plus a Go package and table prefix, not a new Next origin and not a LifeQuest tab. Apple is separate apps later. See `docs/architecture.md`.
 
 ## Health copy
 
-Training and nutrition AI is a draft. Mental health is not therapy. Crisis → human resources, not a longer chat.
+Training and nutrition AI is a draft. Mental health is not therapy. Crisis → human resources, not a longer chat. NutriLog meal drafts (when built) scale to household adults and children.

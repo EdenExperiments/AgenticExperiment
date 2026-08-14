@@ -8,7 +8,9 @@ Calorie and weight goals are `nl_*` routes. Do not reuse LifeQuest `public.goals
 
 ## Rough loop
 
-Set calorie/macro/weight goals → search or custom food (Open Food Facts, degrade to cache if down) → log a serving with **snapshot** macros → see remaining vs goal. Pantry holds on-hand items; AI recipes must use them (drop ungrounded; empty pantry does not call Claude). Cook writes diary rows.
+Set calorie/macro/weight goals → search or custom food (Open Food Facts, degrade to cache if down) → log a serving with **snapshot** macros → see remaining vs goal.
+
+Two meal loops (when built), same `nl_*` and `/nutri` chrome. **Use what I have:** pantry is the ground; drop ungrounded ingredients; do not claim a kitchen-use recipe from an empty pantry. **What should I cook:** follow `nl_goals`, a diet flag, and household servings (A adults at 1.0, C children at 0.5, round to pack sizes); prefer pantry when it has rows; if it is empty, still return a plan and a shopping list. Draft, not a dietitian. Cook writes diary rows. Do not scrape recipe sites or buy a recipe API for v1.
 
 ## Truth in code
 

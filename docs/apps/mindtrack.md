@@ -1,19 +1,13 @@
 # MindTrack
 
-Scaffold only (`apps/mental-health`, `mental-calm` theme). **No feature code until the questions below are answered in a human session** and a two-sentence outcome is written here.
+Human answers are written below. **No `mh_*` migrations or `/mind` feature UI in the current suite PR.** First code PR: `mh_mood_logs` + journal + disclaimer footer, **no** chatbot. Grounding timer is a v1 job and may be that PR or the next.
 
-When it ships on web it is `/mind` with MindTrack chrome, not a LifeQuest tab and not a second Next origin. Tables `mh_*`. Apple would be its own app. See `docs/architecture.md`.
+When it ships on web it is `/mind` with MindTrack chrome, not a LifeQuest tab and not a second Next origin. Tables `mh_*`. API `/api/v1/mindtrack`. Apple would be its own app. See `docs/architecture.md`.
 
 ## Stance
 
-Not therapy, not a diagnosis, not a crisis service. Bad weeks must not cost streaks or XP. Private by default. UK-first human resources on every screen (999 / 111 / Samaritans). Mood must not award LifeQuest XP in v1.
+MindTrack is for people 13+ who want private, therapy-adjacent tools (mood over time, journalling, CBT-style check-ins), not a diagnosis, crisis service, or chatbot. v1 is a 30-second mood check-in, a private journal, and a grounding timer, with UK crisis resources (999 / 111 / Samaritans) on every screen.
 
-## Answer before build
+When AI exists it must refuse diagnosis, medication changes, self-harm or harm-to-others help, and being steered into situational advice, escalating self-harm to a crisis panel and stopping the chat. Ship `mental-calm` first. Suite skins (minimal, retro, modern, calm) can come later and must not be written into `rpgt-theme`.
 
-1. Who is it for (generally well vs in-therapy adjunct vs acute distress)? Acute distress is probably out.
-2. Age floor?
-3. At most three v1 jobs (e.g. 30s mood check-in, private journal, grounding timer).
-4. AI red lines (refuse diagnosis, refuse med changes, escalate self-harm to a crisis panel and stop the chat).
-5. Theme: keep `mental-calm` only?
-
-First slice after that, if you still want one: `mh_mood_logs` + journal, disclaimer footer, **no** chatbot in the first PR.
+Bad weeks must not cost LifeQuest streaks or write `xp_events`. Private by default. Scaffold origin `apps/mental-health` is not the product; build `/mind` in the shell.

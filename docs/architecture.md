@@ -80,7 +80,7 @@ Lasting rules live here and in `docs/apps/<name>.md` (one page of rough logic). 
 |-----|------|------|------|
 | LifeQuest | `apps/rpg-tracker` | 3000 | Hub: skills, sessions, goals |
 | NutriLog | `apps/nutri-log` | 3002 | Weight shipped. Diary, pantry, recipes next |
-| MindTrack | `apps/mental-health` | 3003 | Scaffold until `docs/apps/mindtrack.md` is answered |
+| MindTrack | `apps/mental-health` | 3003 | Answers in `docs/apps/mindtrack.md`. `/mind` not built |
 | Landing | `apps/landing` | 3004 | Marketing |
 | API | `apps/api` | 8080 | All domain HTTP |
 | Workout | not created | - | Planned. `wo_` tables. Not a LifeQuest skill |
@@ -102,10 +102,12 @@ Frontends today are Next.js App Router with a per-app BFF. NutriLog and MindTrac
 
 User Claude key, AES-256-GCM at the Go layer, decrypt only at request time. Never in HTML, cookies, logs, or API responses. One key per user, Claude format today. Entitlement today: stored key + `pro` check (`GET /api/v1/account/ai-entitlement`). Only `POST /goals/plan` is server-gated.
 
+Do not add a conversation transcript table or embed user logs for memory. Prompts are assembled from that product’s tables for the request. We do not train on user logs or send them to a platform training corpus.
+
 ## Sharing
 
 Share packages, auth, and the Go API. Do not share domain tables.
 
 Keep: Supabase JWT in Go, `ensureUser`, prefixed tables, `LogXP` as LifeQuest, theme tokens, Nx.
 
-Leave for a later change: wire or hide gate clear, drop unused cookie-auth paths, one shared BFF module, drop decorative RLS policies, move NutriLog pages into `/nutri`.
+Leave for a later change: one shared BFF module, collapse leftover Next origins.

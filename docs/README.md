@@ -16,7 +16,7 @@ Keep this folder short. Lasting rules are a couple of sentences, not a tracker o
 
 | File | What |
 |------|------|
-| `product.md` | What we are building (suite, price, proof, rest) |
+| `product.md` | What we are building (suite, price, proof, rest, AI stance) |
 | `architecture.md` | Target vs today, how a product lands, auth, Go, web routes |
 | `monorepo.md` | Nx + pnpm, project names, how to add a product |
 | `practices.md` | Security, tests, UI tokens, agent rules |

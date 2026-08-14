@@ -10,3 +10,4 @@ alwaysApply: true
 - Keep CI baseline checks in `.github/workflows/ci.yml` separate from agent automation workflows.
 - For automation changes, prefer additive rollout: summarize findings first, then enable write/remediation.
 - For visual work, follow `docs/ui.md` and tokens in `packages/ui`.
+- When a product or AI-shape choice is unclear, do not pick silently. Fan out two or three options (`arena`, `how` critics, or `interrogate`) and have judges score them against `docs/product.md`: help the person, schema-held data, no training or chat-memory store, BYOK, draft not clinician, settings over one true path.
