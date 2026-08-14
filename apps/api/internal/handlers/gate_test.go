@@ -20,9 +20,10 @@ import (
 
 // stubGateStore implements handlers.GateStore for tests.
 type stubGateStore struct {
-	submission    *skills.GateSubmission
-	gateCleared   bool
-	err           error
+	submission     *skills.GateSubmission
+	gateCleared    bool
+	err            error
+	clearErr       error
 	cooldownActive bool
 	// Tracks whether a gate_submissions row was inserted.
 	rowInserted bool
@@ -60,6 +61,9 @@ func (s *stubGateStore) InsertSubmission(
 }
 
 func (s *stubGateStore) ClearGate(_ context.Context, _ uuid.UUID) error {
+	if s.clearErr != nil {
+		return s.clearErr
+	}
 	s.gateCleared = true
 	return nil
 }
@@ -74,13 +78,14 @@ func (s *stubRawClaude) CallRaw(_ context.Context, _, _, _ string) (string, erro
 	return s.response, s.err
 }
 
-func gateRequest(gateID uuid.UUID, values url.Values) *http.Request {
+func gateRequest(gateID uuid.UUID, body map[string]string) *http.Request {
+	raw, _ := json.Marshal(body)
 	req := httptest.NewRequest(
 		http.MethodPost,
 		"/api/v1/blocker-gates/"+gateID.String()+"/submit",
-		strings.NewReader(values.Encode()),
+		strings.NewReader(string(raw)),
 	)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", "application/json")
 	req = req.WithContext(auth.WithUserID(req.Context(), uuid.New()))
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("id", gateID.String())
@@ -116,12 +121,11 @@ func TestGateSubmitValidation(t *testing.T) {
 	}
 	h := handlers.NewGateHandlerWithStore(stub, nil)
 
-	form := url.Values{
-		"path":              {"self_report"},
-		"evidence_what":     {"too short"}, // < 50 chars — must fail
-		"evidence_how":      {minEvidenceHow()},
-		"evidence_feeling":  {minEvidenceFeeling()},
-		"self_confirm":      {"true"},
+	form := map[string]string{
+		"path":             "self_report",
+		"evidence_what":    "too short",
+		"evidence_how":     minEvidenceHow(),
+		"evidence_feeling": minEvidenceFeeling(),
 	}
 	req := gateRequest(gateID, form)
 	w := httptest.NewRecorder()
@@ -155,12 +159,11 @@ func TestGateSubmitCooldown(t *testing.T) {
 	}
 	h := handlers.NewGateHandlerWithStore(stub, nil)
 
-	form := url.Values{
-		"path":             {"self_report"},
-		"evidence_what":    {minEvidenceWhat()},
-		"evidence_how":     {minEvidenceHow()},
-		"evidence_feeling": {minEvidenceFeeling()},
-		"self_confirm":     {"true"},
+	form := map[string]string{
+		"path":             "self_report",
+		"evidence_what":    minEvidenceWhat(),
+		"evidence_how":     minEvidenceHow(),
+		"evidence_feeling": minEvidenceFeeling(),
 	}
 	req := gateRequest(gateID, form)
 	w := httptest.NewRecorder()
@@ -186,12 +189,11 @@ func TestGateSubmitSelfReport(t *testing.T) {
 	}
 	h := handlers.NewGateHandlerWithStore(stub, nil)
 
-	form := url.Values{
-		"path":             {"self_report"},
-		"evidence_what":    {minEvidenceWhat()},
-		"evidence_how":     {minEvidenceHow()},
-		"evidence_feeling": {minEvidenceFeeling()},
-		"self_confirm":     {"true"},
+	form := map[string]string{
+		"path":             "self_report",
+		"evidence_what":    minEvidenceWhat(),
+		"evidence_how":     minEvidenceHow(),
+		"evidence_feeling": minEvidenceFeeling(),
 	}
 	req := gateRequest(gateID, form)
 	w := httptest.NewRecorder()
@@ -241,11 +243,11 @@ func TestGateSubmitAIFailure(t *testing.T) {
 	failingClaude := &stubRawClaude{err: errors.New("claude api unavailable")}
 	h := handlers.NewGateHandlerWithStore(stub, failingClaude)
 
-	form := url.Values{
-		"path":             {"ai"},
-		"evidence_what":    {minEvidenceWhat()},
-		"evidence_how":     {minEvidenceHow()},
-		"evidence_feeling": {minEvidenceFeeling()},
+	form := map[string]string{
+		"path":             "ai",
+		"evidence_what":    minEvidenceWhat(),
+		"evidence_how":     minEvidenceHow(),
+		"evidence_feeling": minEvidenceFeeling(),
 	}
 	req := gateRequest(gateID, form)
 	w := httptest.NewRecorder()
@@ -258,6 +260,69 @@ func TestGateSubmitAIFailure(t *testing.T) {
 	// No gate_submissions row should be inserted on AI failure.
 	if stub.rowInserted {
 		t.Error("gate_submissions row must NOT be inserted when Claude API fails")
+	}
+}
+
+func TestGateSubmitAlreadyCleared(t *testing.T) {
+	gateID := uuid.New()
+	stub := &stubGateStore{gateCleared: true}
+	h := handlers.NewGateHandlerWithStore(stub, nil)
+
+	form := map[string]string{
+		"path":             "self_report",
+		"evidence_what":    minEvidenceWhat(),
+		"evidence_how":     minEvidenceHow(),
+		"evidence_feeling": minEvidenceFeeling(),
+	}
+	req := gateRequest(gateID, form)
+	w := httptest.NewRecorder()
+	h.HandlePostGateSubmit(w, req)
+
+	if w.Code != http.StatusConflict {
+		t.Fatalf("expected 409 for cleared gate, got %d: %s", w.Code, w.Body.String())
+	}
+	if stub.rowInserted {
+		t.Error("gate_submissions row must NOT be inserted for an already-cleared gate")
+	}
+}
+
+func TestGateSubmitAIClearFailure(t *testing.T) {
+	gateID := uuid.New()
+	submissionID := uuid.New()
+	stub := &stubGateStore{
+		submission: &skills.GateSubmission{
+			ID:            submissionID,
+			Verdict:       "[REDACTED]",
+			AttemptNumber: 1,
+		},
+		clearErr: errors.New("db down"),
+	}
+	h := handlers.NewGateHandlerWithKeyStore(
+		stub,
+		&stubRawClaude{response: "ok"},
+		&stubKeyStore{key: "sk-ant-test"},
+	)
+
+	form := map[string]string{
+		"path":             "ai",
+		"evidence_what":    minEvidenceWhat(),
+		"evidence_how":     minEvidenceHow(),
+		"evidence_feeling": minEvidenceFeeling(),
+	}
+	req := gateRequest(gateID, form)
+	w := httptest.NewRecorder()
+	h.HandlePostGateSubmit(w, req)
+
+	if w.Code != http.StatusInternalServerError {
+		t.Fatalf("expected 500 when ClearGate fails, got %d: %s", w.Code, w.Body.String())
+	}
+
+	var resp map[string]interface{}
+	if err := json.NewDecoder(w.Body).Decode(&resp); err != nil {
+		t.Fatalf("decode: %v", err)
+	}
+	if cleared, _ := resp["gate_cleared"].(bool); cleared {
+		t.Error("gate_cleared must not be true when ClearGate fails")
 	}
 }
 

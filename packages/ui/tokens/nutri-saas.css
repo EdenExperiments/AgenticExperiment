@@ -1,6 +1,5 @@
-/* packages/ui/tokens/nutri-saas.css */
-/* Light, professional, clinical greens */
-:root[data-theme="nutri-saas"] {
+/* Light, professional, clinical greens. Selector is not :root so a nested product layout can set data-theme. */
+[data-theme="nutri-saas"] {
   --color-bg: #f8fafc;
   --color-bg-surface: #ffffff;
   --color-bg-elevated: #f1f5f9;
@@ -10,6 +9,9 @@
   --color-text-secondary: #475569;
   --color-text-muted: #94a3b8;
   --color-text-inverse: #f8fafc;
+  --color-text: var(--color-text-primary);
+  --color-muted: var(--color-text-muted);
+  --color-surface: var(--color-bg-surface);
 
   --color-accent: #059669;
   --color-accent-hover: #047857;

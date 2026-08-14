@@ -10,7 +10,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math/big"
 	"net/http"
 	"sync"
@@ -263,60 +262,4 @@ func extractBearerToken(r *http.Request) string {
 		return h[7:]
 	}
 	return ""
-}
-
-// NewSessionMiddleware creates a chi-compatible middleware that validates Supabase JWTs
-// from the access_token cookie (not the Authorization header).
-// On missing or invalid token it redirects to /login with 302 instead of returning 401.
-func NewSessionMiddleware(supabaseProjectURL string) (func(http.Handler) http.Handler, error) {
-	cache := &jwksCache{
-		keys:       make(map[string]crypto.PublicKey),
-		ttl:        time.Hour,
-		jwksURL:    supabaseProjectURL + "/auth/v1/.well-known/jwks.json",
-		issuer:     supabaseProjectURL + "/auth/v1",
-		httpClient: &http.Client{Timeout: jwksFetchTimeout},
-	}
-	if err := cache.fetch(); err != nil {
-		return nil, fmt.Errorf("auth: initial JWKS fetch failed: %w", err)
-	}
-	return cache.sessionMiddleware, nil
-}
-
-// sessionMiddleware is the cookie-based session middleware function.
-func (c *jwksCache) sessionMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie("access_token")
-		if err != nil || cookie.Value == "" {
-			redirectToLogin(w, r)
-			return
-		}
-
-		userID, email, err := c.validateToken(cookie.Value)
-		if err != nil {
-			log.Printf("auth: JWT validation failed: %v", err)
-			redirectToLogin(w, r)
-			return
-		}
-
-		ctx := context.WithValue(r.Context(), userIDKey, userID)
-		ctx = context.WithValue(ctx, emailKey, email)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-// redirectToLogin clears auth cookies and redirects to /login.
-// Clearing cookies breaks the redirect loop that occurs when a stale or
-// invalid token causes sessionMiddleware to reject the request while
-// HandleGetLogin still sees the cookie and redirects back to /dashboard.
-// For HTMX requests it returns HX-Redirect so the client does a full-page
-// navigation rather than injecting the login page into the current swap target.
-func redirectToLogin(w http.ResponseWriter, r *http.Request) {
-	http.SetCookie(w, &http.Cookie{Name: "access_token", Value: "", MaxAge: -1, Path: "/"})
-	http.SetCookie(w, &http.Cookie{Name: "refresh_token", Value: "", MaxAge: -1, Path: "/"})
-	if r.Header.Get("HX-Request") == "true" {
-		w.Header().Set("HX-Redirect", "/login")
-		w.WriteHeader(http.StatusOK)
-		return
-	}
-	http.Redirect(w, r, "/login", http.StatusFound)
 }

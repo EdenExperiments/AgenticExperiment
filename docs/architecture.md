@@ -21,7 +21,7 @@ A slice is exactly one of product, feature of a product, LifeQuest preset, marke
 | LifeQuest | product (hub) | unprefixed | `/skills`, `/goals`, hub `/dashboard` | `docs/apps/lifequest.md` |
 | NutriLog | product | `nl_*`, `/api/v1/nutrilog` | `/nutri` | `docs/apps/nutrilog.md` |
 | Workout | product | `wo_*`, `/api/v1/workout` | `/workout` | `docs/apps/workout.md` |
-| MindTrack | product (blocked) | `mh_*` | `/mind` | `docs/apps/mindtrack.md` |
+| MindTrack | product (answers written; code later) | `mh_*`, `/api/v1/mindtrack` | `/mind` | `docs/apps/mindtrack.md` |
 | Sleep | LifeQuest preset | none. Do not create `sl_*` | Sleep Hygiene preset | `docs/apps/lifequest.md` |
 | Meditation | LifeQuest preset | none. Later `mh_*` | preset. Later `/mind/meditate` | `docs/apps/lifequest.md` |
 | Fasting, plate-photo confirm, restaurant lookup, household pantry | NutriLog features | `nl_*` when built | `/nutri` | `docs/apps/nutrilog.md` |
@@ -45,8 +45,8 @@ apps/rpg-tracker/app/
   (app)/account/*
   (app)/skills/*, goals/*  LifeQuest
   (app)/nutri/*            NutriLog
-  (app)/workout/*          when the first slice exists
-  (app)/mind/*             when MindTrack is unblocked
+  (app)/workout/*          Workout
+  (app)/mind/*             when the first MindTrack slice exists
   api/[...path]/route.ts   the only BFF
 ```
 
@@ -54,7 +54,7 @@ The product layout owns chrome and `data-theme`. Product identity is not the `rp
 
 `@rpgtracker/ui` stays dumb. Pass nav items as props. Do not put a product registry in the UI package.
 
-Move NutriLog's shipped pages when that product is next touched. New products start in this tree. Do not collapse four origins as a prerequisite for Workout.
+New products start in this tree. Do not collapse leftover Next origins as a prerequisite for the next slice.
 
 Landing is a marketing origin at `apps/landing` (:3004), not a product. It stays its own Next origin with no domain tables and no Apple binary. Sign In on `apps/landing/app/page.tsx` goes to `${appUrl}/login` on LifeQuest.
 
@@ -74,9 +74,9 @@ Shared suite routes stay under Auth below. Freeze an OpenAPI file when Apple wor
 
 Keep Supabase Auth. Email and password today. Apple Sign In later through the same project. Go verifies JWTs via JWKS (`NewJWTMiddleware`). `ensureUser` upserts `public.users`.
 
-Do not replace Supabase with home-grown sessions. Do not wire `NewSessionMiddleware` or the unmounted Go login and register handlers. Delete that cookie path when next in `internal/auth`. Password change that is already mounted can stay until the Next app owns it.
+Do not replace Supabase with home-grown sessions. The cookie session path (`NewSessionMiddleware`, Go login/register) is deleted. Password change that is already mounted can stay until the Next app owns it.
 
-Go `WHERE user_id = $1` is the ACL. Delete RLS rather than finish it. Policies use `app.current_user_id`. TxMiddleware sets `app.user_id`. The API role is table owner, and nothing is `FORCE`d. Do not copy `000015` policies onto `wo_` or `mh_`. MindTrack sensitivity is product rules (no XP, no log leakage, no therapy claims), not a second database.
+Go `WHERE user_id = $1` is the ACL. Delete RLS rather than finish it. Policies use `app.current_user_id`. TxMiddleware sets `app.user_id`. The API role is table owner, and nothing is `FORCE`d. Do not copy decorative RLS onto `wo_` or `mh_`. MindTrack sensitivity is product rules (no XP, no log leakage, no therapy claims), not a second database.
 
 Shared suite is `/account`, `/account/api-key`, and `GET /api/v1/account/ai-entitlement`. One `subscription_tier` (`free` or `pro`). Stripe is not wired. One Claude key per user, encrypted in Go. There is no `/account/ai-entitlement` page (`useAIEntitlement.ts` plus `PaywallCTA`). Native shared endpoints wait on mockups. Apple apps call the same `/api/v1/...` paths.
 
@@ -86,20 +86,23 @@ Lasting rules live here and in `docs/apps/<name>.md` (one page of rough logic). 
 
 ## Today
 
-Four Next origins exist (`apps/rpg-tracker` :3000, `apps/nutri-log` :3002, `apps/mental-health` :3003, `apps/landing` :3004). Target is one authenticated app plus landing.
+| App | Path | Port | Role |
+|-----|------|------|------|
+| LifeQuest | `apps/rpg-tracker` | 3000 | Hub: skills, sessions, goals |
+| NutriLog | `/nutri` in the shell; leftover origin `apps/nutri-log` | 3000 / 3002 | Weight, goals, diary shipped |
+| Workout | `/workout` in the shell | 3000 | Sessions, sets, volume |
+| MindTrack | `apps/mental-health` | 3003 | Answers in `docs/apps/mindtrack.md`. `/mind` not built |
+| Landing | `apps/landing` | 3004 | Marketing |
+| API | `apps/api` | 8080 | All domain HTTP |
 
-LifeQuest BFF `apps/rpg-tracker/app/api/[...path]/route.ts` forwards `${GO_API_URL}/api/${path}`. Test `apps/rpg-tracker/app/api/__tests__/bff-proxy.test.ts` asserts no double v1. NutriLog and MindTrack BFFs forward `${GO_API_URL}/api/v1/${path}` onto a client path that already includes `v1`, so those origins double-prefix. There is no NutriLog BFF test.
-
-Hub cards (`HubPlaceholderCard`) have no href. LifeQuest chrome hardcodes a NutriLog Soon row and omits Goals. `/nutri` is a Coming Soon stub under LifeQuest chrome. Weight UI still lives on `:3002`. NutriLog and MindTrack `proxy.ts` seed `rpgt-theme` with `nutri-saas` and `mental-calm`. Localhost ports share that cookie.
-
-JWT via `NewJWTMiddleware` is mounted. `NewSessionMiddleware` and Go login/register are not. No CORS. No `Routes()`. No `internal/workout` or `internal/mindtrack`. No Stripe. RLS policies read `app.current_user_id` while TxMiddleware sets `app.user_id`. `000015` copied that decorative policy onto `nl_weight_logs`.
+Four Next origins still exist. Target is one authenticated app plus landing. LifeQuest BFF `apps/rpg-tracker/app/api/[...path]/route.ts` forwards `${GO_API_URL}/api/${path}` with no double `v1`. Leftover NutriLog and MindTrack origins still double-prefix. Hub cards for NutriLog and Workout are live. Cookie session path is gone. Decorative RLS on `nl_weight_logs` is dropped. Localhost ports share cookies; real hosts would not.
 
 ## Data
 
 - Identity: Supabase Auth JWT, JWKS in Go. `public.users` mirrors `auth.users.id`.
 - LifeQuest: `skills`, `xp_events`, `blocker_gates`, goals tables, `training_sessions`. Levels from `xpcurve`. Max level 200.
-- NutriLog: `nl_*`. Weight: `nl_weight_logs`.
-- Workout when built: `wo_*`.
+- NutriLog: `nl_*`. Weight, goals, foods, diary.
+- Workout: `wo_*` sessions, exercises, sets.
 - MindTrack when built: `mh_*`. Extra sensitivity. No XP in v1.
 - Cross-app XP is a later integration layer, not a FK.
 
@@ -109,10 +112,12 @@ JWT via `NewJWTMiddleware` is mounted. `NewSessionMiddleware` and Go login/regis
 
 User Claude key, AES-256-GCM at the Go layer, decrypt only at request time. Never in HTML, cookies, logs, or API responses. One key per user, Claude format today. Entitlement today is a stored key plus a `pro` check (`GET /api/v1/account/ai-entitlement`). Only `POST /goals/plan` is server-gated.
 
+Do not add a conversation transcript table or embed user logs for memory. Prompts are assembled from that product’s tables for the request. We do not train on user logs or send them to a platform training corpus.
+
 ## Sharing
 
 Share packages, auth, and the Go API. Do not share domain tables.
 
 Keep Supabase JWT in Go, `ensureUser`, prefixed tables, `LogXP` as LifeQuest, theme tokens, and Nx.
 
-File-touch cleanups stay named on the owner pages, not here.
+Leave for a later change: one shared BFF module, collapse leftover Next origins. File-touch cleanups stay named on the owner pages, not here.

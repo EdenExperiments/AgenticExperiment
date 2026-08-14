@@ -334,3 +334,85 @@ export interface WeightChartResponse {
   unit: 'kg'
   data: WeightChartPoint[]
 }
+
+export interface WorkoutSet {
+  id: string
+  exercise_id: string
+  reps: number
+  load_kg: number | null
+  rpe: number | null
+  position: number
+}
+
+export interface WorkoutExercise {
+  id: string
+  session_id: string
+  name: string
+  position: number
+  sets: WorkoutSet[]
+}
+
+export interface WorkoutSession {
+  id: string
+  started_at: string
+  ended_at: string | null
+  status: 'in_progress' | 'completed' | 'abandoned'
+  volume_kg: number
+  exercises?: WorkoutExercise[]
+  created_at: string
+}
+
+export interface WorkoutVolumePoint {
+  date: string
+  volume_kg: number | null
+}
+
+export interface WorkoutVolumeChartResponse {
+  days: number
+  data: WorkoutVolumePoint[]
+}
+
+export interface NutriGoals {
+  user_id: string
+  calorie_goal: number
+  protein_g: number | null
+  carbs_g: number | null
+  fat_g: number | null
+  target_weight_kg: number | null
+  updated_at: string
+}
+
+export interface NutriFood {
+  id?: string
+  off_id?: string | null
+  name: string
+  calories: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+  serving_label: string
+}
+
+export interface NutriDiaryEntry {
+  id: string
+  eaten_at: string
+  serving_qty: number
+  name: string
+  calories: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+}
+
+export interface NutriRemaining {
+  date: string
+  calorie_goal: number
+  calories_eaten: number
+  calories_remaining: number
+  protein_g: number | null
+  protein_eaten: number
+  carbs_g: number | null
+  carbs_eaten: number
+  fat_g: number | null
+  fat_eaten: number
+}

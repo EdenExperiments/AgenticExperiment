@@ -20,9 +20,20 @@ function wrapper({ children }: { children: React.ReactNode }) {
   )
 }
 
-test('renders navigation', () => {
+test('renders LifeQuest navigation including Goals', () => {
   vi.mocked(usePathname).mockReturnValue('/dashboard')
   render(<AppLayout><div>content</div></AppLayout>, { wrapper })
-  // BottomTabBar is md:hidden; Sidebar is hidden md:flex — check nav links are present
   expect(screen.getAllByRole('link', { name: /dashboard/i }).length).toBeGreaterThan(0)
+  expect(screen.getAllByRole('link', { name: /skills/i }).length).toBeGreaterThan(0)
+  expect(screen.getAllByRole('link', { name: /goals/i }).length).toBeGreaterThan(0)
+  expect(screen.getAllByRole('link', { name: /account/i }).length).toBeGreaterThan(0)
+  expect(screen.queryByText(/nutrilog/i)).not.toBeInTheDocument()
+  expect(screen.queryByText(/coming soon/i)).not.toBeInTheDocument()
+})
+
+test('skips LifeQuest chrome on product routes', () => {
+  vi.mocked(usePathname).mockReturnValue('/nutri')
+  render(<AppLayout><div>content</div></AppLayout>, { wrapper })
+  expect(screen.queryByRole('link', { name: /skills/i })).not.toBeInTheDocument()
+  expect(screen.queryByRole('link', { name: /goals/i })).not.toBeInTheDocument()
 })

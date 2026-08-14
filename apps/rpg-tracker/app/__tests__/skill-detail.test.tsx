@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import SkillDetailPage from '../(app)/skills/[id]/page'
 
@@ -12,6 +12,8 @@ vi.mock('@rpgtracker/api-client', () => ({
   getActivity: (...args: unknown[]) => mockGetActivity(...args),
   getXPChart: (...args: unknown[]) => mockGetXPChart(...args),
   getAccount: vi.fn().mockResolvedValue({ primary_skill_id: null }),
+  getAIEntitlement: vi.fn().mockResolvedValue({ entitled: false, has_api_key: false }),
+  submitGate: vi.fn(),
   listTags: vi.fn().mockResolvedValue([]),
   logXP: vi.fn(),
   deleteSkill: vi.fn(),
@@ -126,6 +128,13 @@ test('shows BlockerGateSection instead of XPProgressBar when active gate exists 
   await screen.findByText('Prove Your Endurance')
   expect(screen.getByText(/gate locked/i)).toBeInTheDocument()
   expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+})
+
+test('Submit for Assessment opens the gate form', async () => {
+  mockGetSkill.mockResolvedValue(makeSkillWithActiveGate())
+  render(<SkillDetailPage />, { wrapper })
+  fireEvent.click(await screen.findByTestId('submit-gate-btn'))
+  expect(screen.getByLabelText(/what did you accomplish/i)).toBeInTheDocument()
 })
 
 test('shows XPProgressBar when no active gate (D-021)', async () => {

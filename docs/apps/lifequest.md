@@ -1,8 +1,8 @@
 # LifeQuest
 
-LifeQuest is the hub product. Unprefixed tables, first web slice `/skills` and `/goals`, hub `/dashboard`, LifeQuest chrome, Apple binary later. Wire gate clear or hide it. Do not award hub XP from other products yet. Strength Training is not Workout. Calorie Track is not NutriLog.
+LifeQuest is the hub product. Unprefixed tables, first web slice `/skills` and `/goals`, hub `/dashboard`, LifeQuest chrome, Apple binary later. Do not award hub XP from other products yet. Strength Training is not Workout. Calorie Track is not NutriLog.
 
-LifeQuest chrome stays dashboard, skills, goals, and account. Pass nav items as props. Do not put other products in the tab bar. Today `Sidebar` and `BottomTabBar` omit Goals and hardcode a NutriLog Soon row. See `docs/architecture.md`.
+LifeQuest chrome stays dashboard, skills, goals, and account. Pass nav items as props. Do not put other products in the tab bar. See `docs/architecture.md`.
 
 Practise real skills (sport, art, career). Optional XP/levels as a **private** gimmick. Shareable claims need evidence.
 
@@ -26,7 +26,7 @@ Create skill → optional AI calibration → log time (quick) or words → XP/le
 
 - XP curve: `apps/api/internal/xpcurve`
 - Atomic log: `apps/api/internal/skills` + handler tests
-- Gates: `apps/api/internal/handlers/gate.go`. `dbGateStore.GetGate` and `ClearGate` return nil. Handler `ParseForm`. Client `submitGate` uses `JSON.stringify`. Skill detail renders `BlockerGateSection` with no `onSubmitForAssessment`, so the submit button is a no-op. `GateSubmissionForm` is unused under `apps/rpg-tracker`. Wire the clear path or hide it.
+- Gates: `apps/api/internal/handlers/gate.go`. Submit is JSON (`POST /blocker-gates/{id}/submit`), matching `submitGate` in the api-client. Store `GetGate` / cooldown were stubs; wire or hide, never leave a dead button.
 - Presets in `000004_seed_skill_presets.up.sql` include Strength Training, Meditation, Sleep Hygiene, Calorie Track, Intermittent Fast, and Therapy. These are presets, not products. Therapy with XP is not MindTrack.
 - `training_sessions` is LifeQuest pomodoro and manual sessions (`internal/handlers/session.go`).
 - Quick log: `packages/ui` QuickLog* uses time chips, not XP chips.

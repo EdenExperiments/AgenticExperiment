@@ -1,26 +1,16 @@
 'use client'
 
 import Link from 'next/link'
+import { isNavItemActive, type NavItem } from './nav'
 
-interface NavTab {
-  label: string
-  href: string | null
-  icon: string
-  matchPrefix: string
-}
-
-const TABS: NavTab[] = [
-  { label: 'Dashboard', href: '/dashboard', icon: '🏠', matchPrefix: '/dashboard' },
-  { label: 'LifeQuest', href: '/skills',    icon: '⚔️', matchPrefix: '/skills' },
-  { label: 'NutriLog',  href: null,         icon: '🥗', matchPrefix: '/nutri' },
-  { label: 'Account',   href: '/account',   icon: '👤', matchPrefix: '/account' },
-]
+export type { NavItem }
 
 interface BottomTabBarProps {
   currentPath: string
+  items: NavItem[]
 }
 
-export function BottomTabBar({ currentPath }: BottomTabBarProps) {
+export function BottomTabBar({ currentPath, items }: BottomTabBarProps) {
   return (
     <nav
       aria-label="Main navigation"
@@ -28,11 +18,10 @@ export function BottomTabBar({ currentPath }: BottomTabBarProps) {
       style={{ background: 'var(--color-bg-elevated)', borderColor: 'var(--color-border)' }}
     >
       <div className="flex items-stretch h-16">
-        {TABS.map((tab) => {
-          const isActive = currentPath.startsWith(tab.matchPrefix)
-          const isComingSoon = tab.href === null
+        {items.map((tab) => {
+          const isActive = isNavItemActive(tab, currentPath, items)
 
-          if (isComingSoon) {
+          if (tab.href === null) {
             return (
               <div
                 key={tab.label}
@@ -49,7 +38,7 @@ export function BottomTabBar({ currentPath }: BottomTabBarProps) {
           return (
             <Link
               key={tab.label}
-              href={tab.href!}
+              href={tab.href}
               aria-label={tab.label}
               aria-current={isActive ? 'page' : undefined}
               className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors min-h-[44px]${isActive ? ' bottom-tabs__item--active' : ''}`}

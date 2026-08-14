@@ -1,4 +1,4 @@
-import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast, WeightLog, WeightChartResponse } from './types'
+import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast, WeightLog, WeightChartResponse, WorkoutSession, WorkoutExercise, WorkoutSet, WorkoutVolumeChartResponse, NutriGoals, NutriFood, NutriDiaryEntry, NutriRemaining } from './types'
 
 export class ApiRequestError extends Error {
   status: number
@@ -385,4 +385,116 @@ export function getWeightChart(days?: number): Promise<WeightChartResponse> {
 
 export function deleteWeightLog(id: string): Promise<void> {
   return request<void>(`/api/v1/nutrilog/weight-logs/${id}`, { method: 'DELETE' })
+}
+
+export function startWorkoutSession(): Promise<WorkoutSession> {
+  return request<WorkoutSession>('/api/v1/workout/sessions', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  })
+}
+
+export function listWorkoutSessions(params?: { limit?: number }): Promise<WorkoutSession[]> {
+  const qs = params?.limit ? `?limit=${params.limit}` : ''
+  return request<WorkoutSession[]>(`/api/v1/workout/sessions${qs}`)
+}
+
+export function getWorkoutSession(id: string): Promise<WorkoutSession> {
+  return request<WorkoutSession>(`/api/v1/workout/sessions/${id}`)
+}
+
+export function abandonWorkoutSession(id: string): Promise<WorkoutSession> {
+  return request<WorkoutSession>(`/api/v1/workout/sessions/${id}/abandon`, { method: 'POST' })
+}
+
+export function finishWorkoutSession(id: string): Promise<WorkoutSession> {
+  return request<WorkoutSession>(`/api/v1/workout/sessions/${id}/finish`, { method: 'POST' })
+}
+
+export function addWorkoutExercise(sessionId: string, name: string): Promise<WorkoutExercise> {
+  return request<WorkoutExercise>(`/api/v1/workout/sessions/${sessionId}/exercises`, {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  })
+}
+
+export function addWorkoutSet(
+  exerciseId: string,
+  data: { reps: number; load_kg?: number; rpe?: number },
+): Promise<WorkoutSet> {
+  return request<WorkoutSet>(`/api/v1/workout/exercises/${exerciseId}/sets`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function getWorkoutVolumeChart(days?: number): Promise<WorkoutVolumeChartResponse> {
+  const qs = days ? `?days=${days}` : ''
+  return request<WorkoutVolumeChartResponse>(`/api/v1/workout/volume-chart${qs}`)
+}
+
+export function getNutriGoals(): Promise<NutriGoals> {
+  return request<NutriGoals>('/api/v1/nutrilog/goals')
+}
+
+export function upsertNutriGoals(data: {
+  calorie_goal: number
+  protein_g?: number
+  carbs_g?: number
+  fat_g?: number
+  target_weight_kg?: number
+}): Promise<NutriGoals> {
+  return request<NutriGoals>('/api/v1/nutrilog/goals', {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  })
+}
+
+export function searchNutriFoods(q: string): Promise<{ source: 'off' | 'cache'; foods: NutriFood[] }> {
+  return request(`/api/v1/nutrilog/foods/search?q=${encodeURIComponent(q)}`)
+}
+
+export function createNutriFood(data: {
+  name: string
+  calories: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+  serving_label?: string
+}): Promise<NutriFood> {
+  return request<NutriFood>('/api/v1/nutrilog/foods', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function logNutriDiary(data: {
+  name: string
+  calories: number
+  protein_g: number
+  carbs_g: number
+  fat_g: number
+  serving_qty: number
+  eaten_at?: string
+  off_id?: string
+  serving_label?: string
+}): Promise<NutriDiaryEntry> {
+  return request<NutriDiaryEntry>('/api/v1/nutrilog/diary', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function listNutriDiary(date?: string): Promise<NutriDiaryEntry[]> {
+  const qs = date ? `?date=${date}` : ''
+  return request<NutriDiaryEntry[]>(`/api/v1/nutrilog/diary${qs}`)
+}
+
+export function deleteNutriDiary(id: string): Promise<void> {
+  return request<void>(`/api/v1/nutrilog/diary/${id}`, { method: 'DELETE' })
+}
+
+export function getNutriRemaining(date?: string): Promise<NutriRemaining> {
+  const qs = date ? `?date=${date}` : ''
+  return request<NutriRemaining>(`/api/v1/nutrilog/remaining${qs}`)
 }

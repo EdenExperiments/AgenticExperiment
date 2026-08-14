@@ -8,7 +8,7 @@ async function proxy(request: NextRequest, path: string): Promise<Response> {
   const supabase = await createSupabaseServerClient(responseHeaders)
   const { data: { session } } = await supabase.auth.getSession()
 
-  const url = `${GO_API_URL}/api/v1/${path}${request.nextUrl.search}`
+  const url = `${GO_API_URL}/api/${path}${request.nextUrl.search}`
   const isReadRequest = request.method === 'GET' || request.method === 'HEAD'
 
   const response = await fetch(url, {

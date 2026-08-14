@@ -6,9 +6,9 @@ Shared suite is `/account`, `/account/api-key`, and `GET /api/v1/account/ai-enti
 
 ## Rough layout
 
-`internal/handlers` is today's LifeQuest HTTP dump. Leave it until a file is touched. New domains are `internal/<name>/` with persistence and HTTP together, mounted at `/api/v1/<name>`. NutriLog persistence is already `internal/nutrilog`. Move its HTTP there when that file is next edited.
+`internal/handlers` is today's LifeQuest HTTP dump. Leave it until a file is touched. New domains are `internal/<name>/` with persistence and HTTP together, mounted at `/api/v1/<name>`. NutriLog HTTP and persistence live in `internal/nutrilog` (`Routes()`).
 
-Auth is Supabase JWTs via `internal/auth` (`NewJWTMiddleware`). App data is local Postgres. `NewSessionMiddleware`, `HandlePostLogin`, and `HandlePostRegister` are not mounted. Delete that cookie path when next in `internal/auth`. Password change that is already mounted can stay until the Next app owns it.
+Auth is Supabase JWTs via `internal/auth` (`NewJWTMiddleware`). App data is local Postgres. The cookie session path (`NewSessionMiddleware`, Go login/register) is deleted. Password change that is already mounted can stay until the Next app owns it.
 
 ## Run / test
 

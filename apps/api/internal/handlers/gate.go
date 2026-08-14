@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,9 +11,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/meden/rpgtracker/internal/api"
-	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/auth"
+	"github.com/meden/rpgtracker/internal/database"
 	"github.com/meden/rpgtracker/internal/skills"
 )
 
@@ -31,24 +34,34 @@ type GateStore interface {
 
 // GateHandler handles blocker gate submission endpoints.
 type GateHandler struct {
-	store  GateStore
-	claude RawClaudeCaller
+	store    GateStore
+	claude   RawClaudeCaller
+	keyStore KeyStore
 }
 
-// NewGateHandlerWithStore constructs a GateHandler with injected dependencies (for tests).
 func NewGateHandlerWithStore(s GateStore, claude RawClaudeCaller) *GateHandler {
 	return &GateHandler{store: s, claude: claude}
 }
 
-// NewGateHandler constructs a GateHandler (DB via database.Querier from context).
-func NewGateHandler() *GateHandler {
+func NewGateHandlerWithKeyStore(s GateStore, claude RawClaudeCaller, ks KeyStore) *GateHandler {
+	return &GateHandler{store: s, claude: claude, keyStore: ks}
+}
+
+func NewGateHandler(masterKey []byte) *GateHandler {
 	return &GateHandler{
-		store:  &dbGateStore{},
-		claude: &httpRawClaudeCaller{client: newHTTPClient()},
+		store:    &dbGateStore{},
+		claude:   &httpRawClaudeCaller{client: newHTTPClient()},
+		keyStore: &dbKeyStore{masterKey: masterKey},
 	}
 }
 
-// HandlePostGateSubmit handles POST /api/v1/blocker-gates/{id}/submit.
+type gateSubmitRequest struct {
+	Path            string `json:"path"`
+	EvidenceWhat    string `json:"evidence_what"`
+	EvidenceHow     string `json:"evidence_how"`
+	EvidenceFeeling string `json:"evidence_feeling"`
+}
+
 func (h *GateHandler) HandlePostGateSubmit(w http.ResponseWriter, r *http.Request) {
 	userID, ok := auth.UserIDFromContext(r.Context())
 	if !ok {
@@ -62,15 +75,31 @@ func (h *GateHandler) HandlePostGateSubmit(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if err := r.ParseForm(); err != nil {
-		api.RespondError(w, http.StatusBadRequest, "invalid request body")
+	gate, err := h.store.GetGate(r.Context(), userID, gateID)
+	if err != nil {
+		log.Printf("ERROR: GetGate gate=%s: %v", gateID, err)
+		api.RespondError(w, http.StatusInternalServerError, "failed to load gate")
+		return
+	}
+	if gate == nil {
+		api.RespondError(w, http.StatusNotFound, "gate not found")
+		return
+	}
+	if gate.IsCleared {
+		api.RespondError(w, http.StatusConflict, "gate already cleared")
 		return
 	}
 
-	path := r.FormValue("path")
-	evidenceWhat := r.FormValue("evidence_what")
-	evidenceHow := r.FormValue("evidence_how")
-	evidenceFeeling := r.FormValue("evidence_feeling")
+	var body gateSubmitRequest
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		api.RespondError(w, http.StatusBadRequest, "invalid JSON body")
+		return
+	}
+
+	path := body.Path
+	evidenceWhat := body.EvidenceWhat
+	evidenceHow := body.EvidenceHow
+	evidenceFeeling := body.EvidenceFeeling
 
 	// Validate evidence lengths (AC-G2).
 	validationErrors := map[string]string{}
@@ -157,10 +186,27 @@ func (h *GateHandler) handleAISubmission(
 		return
 	}
 
+	apiKey := ""
+	if h.keyStore != nil {
+		k, err := h.keyStore.GetDecryptedKey(r.Context(), userID)
+		if err != nil || k == "" {
+			if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+				log.Printf("ERROR: gate GetDecryptedKey user=%s: %v", userID, err)
+			}
+			api.RespondError(w, http.StatusBadGateway, "ai assessment unavailable")
+			return
+		}
+		apiKey = k
+	}
+	if apiKey == "" {
+		api.RespondError(w, http.StatusBadGateway, "ai assessment unavailable")
+		return
+	}
+
 	systemPrompt := "You are a strict but fair skill progression assessor."
 	userPrompt := "Evidence: " + evidenceWhat + "\n" + evidenceHow + "\n" + evidenceFeeling
 
-	_, err := h.claude.CallRaw(r.Context(), "", systemPrompt, userPrompt)
+	_, err := h.claude.CallRaw(r.Context(), apiKey, systemPrompt, userPrompt)
 	if err != nil {
 		log.Printf("ERROR: Claude CallRaw gate=%s: %v", gateID, err)
 		api.RespondError(w, http.StatusBadGateway, "ai assessment unavailable")
@@ -187,7 +233,9 @@ func (h *GateHandler) handleAISubmission(
 	}
 
 	if err := h.store.ClearGate(r.Context(), gateID); err != nil {
-		log.Printf("WARN: ClearGate gate=%s: %v", gateID, err)
+		log.Printf("ERROR: ClearGate gate=%s: %v", gateID, err)
+		api.RespondError(w, http.StatusInternalServerError, "failed to clear gate")
+		return
 	}
 
 	api.RespondJSON(w, http.StatusOK, map[string]interface{}{
@@ -199,12 +247,45 @@ func (h *GateHandler) handleAISubmission(
 // dbGateStore is the real DB-backed implementation of GateStore.
 type dbGateStore struct{}
 
-func (s *dbGateStore) GetGate(_ context.Context, _, _ uuid.UUID) (*skills.BlockerGate, error) {
-	return nil, nil
+func (s *dbGateStore) GetGate(ctx context.Context, userID, gateID uuid.UUID) (*skills.BlockerGate, error) {
+	var g skills.BlockerGate
+	err := database.MustQuerier(ctx).QueryRow(ctx, `
+		SELECT g.id, g.skill_id, g.gate_level, g.title, g.description,
+		       g.first_notified_at, g.is_cleared, g.cleared_at
+		FROM public.blocker_gates g
+		JOIN public.skills sk ON sk.id = g.skill_id
+		WHERE g.id = $1 AND sk.user_id = $2 AND sk.deleted_at IS NULL
+	`, gateID, userID).Scan(
+		&g.ID, &g.SkillID, &g.GateLevel, &g.Title, &g.Description,
+		&g.FirstNotifiedAt, &g.IsCleared, &g.ClearedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("gate: get: %w", err)
+	}
+	return &g, nil
 }
 
-func (s *dbGateStore) GetActiveCooldown(_ context.Context, _, _ uuid.UUID) (*time.Time, error) {
-	return nil, nil
+func (s *dbGateStore) GetActiveCooldown(ctx context.Context, userID, gateID uuid.UUID) (*time.Time, error) {
+	var next time.Time
+	err := database.MustQuerier(ctx).QueryRow(ctx, `
+		SELECT next_retry_at
+		FROM public.gate_submissions
+		WHERE gate_id = $1 AND user_id = $2
+		  AND next_retry_at IS NOT NULL
+		  AND next_retry_at > CURRENT_DATE
+		ORDER BY next_retry_at DESC
+		LIMIT 1
+	`, gateID, userID).Scan(&next)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("gate: cooldown: %w", err)
+	}
+	return &next, nil
 }
 
 // InsertSubmission inserts a gate_submissions row.
@@ -255,6 +336,17 @@ func (s *dbGateStore) InsertSubmission(ctx context.Context, req skills.CreateGat
 	return &sub, nil
 }
 
-func (s *dbGateStore) ClearGate(_ context.Context, _ uuid.UUID) error {
+func (s *dbGateStore) ClearGate(ctx context.Context, gateID uuid.UUID) error {
+	tag, err := database.MustQuerier(ctx).Exec(ctx, `
+		UPDATE public.blocker_gates
+		SET is_cleared = TRUE, cleared_at = now()
+		WHERE id = $1 AND is_cleared = FALSE
+	`, gateID)
+	if err != nil {
+		return fmt.Errorf("gate: clear: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return fmt.Errorf("gate: clear: not updated")
+	}
 	return nil
 }

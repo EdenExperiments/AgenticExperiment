@@ -337,10 +337,22 @@ export default function DashboardPage() {
           appName="NutriLog"
           tagline="Nutrition tracking, gamified"
           icon="🥗"
+          href="/nutri"
           metrics={[
             { label: 'Calories', value: '—' },
             { label: 'Streak', value: '—' },
             { label: 'Score', value: '—' },
+          ]}
+        />
+        <HubPlaceholderCard
+          appName="Workout"
+          tagline="Resistance sessions and volume"
+          icon="🏋️"
+          href="/workout"
+          metrics={[
+            { label: 'Volume', value: '—' },
+            { label: 'Sessions', value: '—' },
+            { label: 'Sets', value: '—' },
           ]}
         />
         <HubPlaceholderCard

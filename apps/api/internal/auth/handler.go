@@ -3,7 +3,6 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"time"
 
@@ -43,109 +42,6 @@ type loginRequest struct {
 type loginResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
-}
-
-// HandleGetLogin returns 200 if not authenticated, or 302 redirect if already logged in.
-func (h *AuthHandler) HandleGetLogin(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("access_token")
-	if err == nil && cookie.Value != "" {
-		api.RespondJSON(w, http.StatusOK, map[string]string{"redirect": "/api/v1/account"})
-		return
-	}
-	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "unauthenticated"})
-}
-
-// HandlePostLogin authenticates the user against the Supabase Auth REST API.
-// On success it sets HttpOnly cookies and returns JSON confirmation.
-// On failure it returns a JSON error.
-func (h *AuthHandler) HandlePostLogin(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		api.RespondError(w, http.StatusBadRequest, "bad request")
-		return
-	}
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-
-	tokenResp, err := h.supabaseTokenRequest(r, email, password)
-	if err != nil {
-		api.RespondError(w, http.StatusUnauthorized, "invalid email or password")
-		return
-	}
-
-	secure := r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     "access_token",
-		Value:    tokenResp.AccessToken,
-		HttpOnly: true,
-		Secure:   secure,
-		SameSite: http.SameSiteLaxMode,
-		Path:     "/",
-		MaxAge:   3600,
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     "refresh_token",
-		Value:    tokenResp.RefreshToken,
-		HttpOnly: true,
-		Secure:   secure,
-		SameSite: http.SameSiteLaxMode,
-		Path:     "/",
-		MaxAge:   60 * 60 * 24 * 30,
-	})
-
-	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "ok"})
-}
-
-// HandleGetRegister returns 200 (or redirect if already logged in).
-func (h *AuthHandler) HandleGetRegister(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("access_token")
-	if err == nil && cookie.Value != "" {
-		api.RespondJSON(w, http.StatusOK, map[string]string{"redirect": "/api/v1/account"})
-		return
-	}
-	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "unauthenticated"})
-}
-
-// HandlePostRegister registers a new user via the Supabase Auth REST API.
-// On success returns JSON confirmation. On failure returns a JSON error.
-func (h *AuthHandler) HandlePostRegister(w http.ResponseWriter, r *http.Request) {
-	if err := r.ParseForm(); err != nil {
-		api.RespondError(w, http.StatusBadRequest, "bad request")
-		return
-	}
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-
-	if r.FormValue("password") != r.FormValue("confirm_password") {
-		api.RespondError(w, http.StatusUnprocessableEntity, "passwords do not match")
-		return
-	}
-
-	body, _ := json.Marshal(loginRequest{Email: email, Password: password})
-	req, err := http.NewRequestWithContext(r.Context(), http.MethodPost,
-		h.supabaseProjectURL+"/auth/v1/signup", bytes.NewReader(body))
-	if err != nil {
-		api.RespondError(w, http.StatusInternalServerError, "registration failed")
-		return
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("apikey", h.supabasePublishableKey)
-
-	resp, err := h.httpClient.Do(req)
-	if err != nil || resp.StatusCode != http.StatusOK {
-		if resp != nil {
-			statusCode := resp.StatusCode
-			resp.Body.Close()
-			log.Printf("auth: supabase signup returned non-200 status: %d", statusCode)
-		} else {
-			log.Printf("auth: supabase signup request failed: %v", err)
-		}
-		api.RespondError(w, http.StatusUnprocessableEntity, "registration failed")
-		return
-	}
-	resp.Body.Close()
-
-	api.RespondJSON(w, http.StatusOK, map[string]string{"status": "check_email"})
 }
 
 // HandlePostSignout clears the auth cookies and returns JSON confirmation.
