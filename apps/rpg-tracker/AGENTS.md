@@ -1,8 +1,9 @@
 # TypeScript Frontend Stack Guide (Layer 2)
 
-Applies to work under `apps/rpg-tracker/` (and by extension the other Next.js apps —
-`apps/nutri-log/`, `apps/mental-health/`). Inherits the base layer; shared-package guidance lives
-in `packages/AGENTS.md`. Development uses pstack `/poteto-mode`; there is no repo-managed TS
+Applies to work under `apps/rpg-tracker/` (today also `apps/nutri-log/` and
+`apps/mental-health/`). Target is one web shell here. See `docs/architecture.md`.
+Inherits the base layer; shared-package guidance lives in `packages/AGENTS.md`.
+Development uses pstack `/poteto-mode`; there is no repo-managed TS
 test-writer/implementer agent (D-063).
 
 ## Toolchain

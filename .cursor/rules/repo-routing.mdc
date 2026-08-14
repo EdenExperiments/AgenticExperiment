@@ -7,7 +7,7 @@ alwaysApply: true
 
 **Entry points:** `AGENTS.md` · `docs/README.md` · `docs/CURSOR-AGENT-HANDBOOK.md` (CI/ops only).
 
-**Zones:** `apps/api/` (Go) · `apps/rpg-tracker/`, `apps/nutri-log/`, `apps/mental-health/` (frontends) · `packages/*` (shared).
+**Zones:** `apps/api/` (Go) · `apps/rpg-tracker/` (web shell) · `apps/nutri-log/`, `apps/mental-health/` (today's extra origins) · `packages/*` (shared). Target shape: `docs/architecture.md`.
 
 **Skills:** pstack (`/poteto-mode`) and cursor-team-kit. Models: `.cursor/rules/pstack-models.mdc`. LifeQuest browser: `.cursor/skills/verify-lifequest/`.
 

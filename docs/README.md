@@ -17,8 +17,8 @@ Keep this folder short. Lasting rules are a couple of sentences, not a tracker o
 | File | What |
 |------|------|
 | `product.md` | What we are building (suite, price, proof, rest) |
-| `architecture.md` | Stack, data, sharing, namespaces |
-| `monorepo.md` | Nx + pnpm, project names, how to add an app |
+| `architecture.md` | Target vs today, web shell, Apple apps, data, sharing |
+| `monorepo.md` | Nx + pnpm, project names, how to add a product |
 | `practices.md` | Security, tests, UI tokens, agent rules |
 | `apps/` | Rough logic per app |
 | `setup.md` | Local Supabase trigger notes |

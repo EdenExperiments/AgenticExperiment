@@ -1,6 +1,8 @@
 # RpgTracker Platform
 
-A self-improvement platform. Nx + pnpm monorepo. Apps share a Go API, auth, and UI package.
+A self-improvement platform. Nx + pnpm monorepo. Products share a Go API, auth, and UI package.
+
+Target: one authenticated web app (LifeQuest as the shell) plus an optional landing origin, and later separate Apple apps. The table below is how the repo runs today. See `docs/architecture.md`.
 
 | App | Path | Status |
 |-----|------|--------|

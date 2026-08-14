@@ -1,6 +1,6 @@
 # RpgTracker API
 
-Go REST API for the RpgTracker platform. Serves all three frontends (LifeQuest, NutriLog, MindTrack) via a BFF proxy in each Next.js app.
+Go REST API for the RpgTracker platform. Web clients reach it through a Next BFF. Native Apple clients (planned, stack TBC) call it with a Bearer JWT. See `docs/architecture.md`.
 
 ## Stack
 

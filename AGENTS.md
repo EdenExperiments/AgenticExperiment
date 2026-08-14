@@ -13,9 +13,9 @@ Entry-point routing also lives in `.cursor/rules/repo-routing.mdc`.
 | Zone | Paths |
 |------|-------|
 | Go API | `apps/api/` |
-| LifeQuest | `apps/rpg-tracker/` |
-| NutriLog | `apps/nutri-log/` |
-| MindTrack | `apps/mental-health/` |
+| LifeQuest (web shell; other products fold in here) | `apps/rpg-tracker/` |
+| NutriLog (today's origin; target is a route group) | `apps/nutri-log/` |
+| MindTrack (scaffold origin) | `apps/mental-health/` |
 | Shared UI / auth / API client | `packages/ui`, `packages/auth`, `packages/api-client` |
 | Agent CI scripts | `packages/cursor-agents/` |
 

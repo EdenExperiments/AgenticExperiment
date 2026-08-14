@@ -1,6 +1,8 @@
 # NutriLog
 
-Nutrition app. Weight logging is shipped (`nl_weight_logs`). Next: goals, food diary, pantry, recipes **in this app**.
+Nutrition product. Weight logging is shipped (`nl_weight_logs`). Next: goals, food diary, pantry, recipes here, not in LifeQuest.
+
+Web today is `apps/nutri-log`. Target is `/nutri` in the LifeQuest shell. Apple is a separate app later, stack TBC. See `docs/architecture.md`.
 
 ## Rough loop
 

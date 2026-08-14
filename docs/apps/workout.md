@@ -1,6 +1,8 @@
 # Workout
 
-Not in the repo yet. Own app (`apps/workout`), own prefix (`wo_`), own theme. Not a LifeQuest skill.
+Not in the repo yet. Own prefix (`wo_`), own theme. Not a LifeQuest skill.
+
+Web lives as a route group in the LifeQuest shell when the first slice exists. Do not create `apps/workout` as another Next origin. Apple is a separate native app later, stack TBC. See `docs/architecture.md`.
 
 ## Rough loop (first slice)
 

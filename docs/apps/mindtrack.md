@@ -2,6 +2,8 @@
 
 Scaffold only (`apps/mental-health`, `mental-calm` theme). **No feature code until the questions below are answered in a human session** and a two-sentence outcome is written here.
 
+When it ships on web it is a route group in the LifeQuest shell, not a reason to keep a second Next origin. Apple would be its own app. See `docs/architecture.md`.
+
 ## Stance
 
 Not therapy, not a diagnosis, not a crisis service. Bad weeks must not cost streaks or XP. Private by default. UK-first human resources on every screen (999 / 111 / Samaritans). Mood must not award LifeQuest XP in v1.

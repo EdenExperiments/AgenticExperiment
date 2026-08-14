@@ -27,6 +27,8 @@ LifeQuest: `data-theme` Minimal / Retro / Modern; optional `data-mode` clean/sty
 3. Before you delete a brief (or merge the PR), copy any *lasting* rule into `docs/` (usually two sentences).
 4. `/poteto-mode` for implementation. Nested `AGENTS.md` for stack commands.
 
+New suite products on web are a route group in LifeQuest plus a table prefix, not a new Next origin. Apple is separate apps later. See `docs/architecture.md`.
+
 ## Health copy
 
 Training and nutrition AI is a draft. Mental health is not therapy. Crisis → human resources, not a longer chat.
