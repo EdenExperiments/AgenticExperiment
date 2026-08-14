@@ -10,4 +10,4 @@ LifeQuest is the hub. Other products keep their own data. Cross-app XP is later 
 
 AI is a pace-aware coach grounded in *this user’s* logs. Keys stay server-side, encrypted. Never scrape third-party recipe sites for a “stock library.”
 
-Horizon (not a backlog to implement from this sentence): fasting, plate-photo *confirm*, restaurant lookup, five focus vibes, GPS/watches on native/PWA, sleep, household pantry. See git history if you need the long version; do not grow this file into a tracker.
+Horizon items have homes on the catalog in `docs/architecture.md`. Sleep, meditation, and five focus vibes are on `docs/apps/lifequest.md`, NutriLog features on `docs/apps/nutrilog.md`, and GPS and watches on `docs/apps/workout.md`.
