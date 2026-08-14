@@ -1,6 +1,6 @@
 # LifeQuest
 
-Hub on the web. Other products become route groups in this app, not extra Next processes. Apple LifeQuest is a separate binary later. See `docs/architecture.md`.
+Hub on the web. Other products get nested layouts with their own chrome. LifeQuest sidebar and tabs stay LifeQuest (dashboard, skills, goals, account). Apple LifeQuest is a separate binary later. See `docs/architecture.md`.
 
 Practise real skills (sport, art, career). Optional XP/levels as a **private** gimmick. Shareable claims need evidence.
 

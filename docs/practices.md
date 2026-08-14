@@ -18,7 +18,7 @@ If you change behaviour, change the test. Do not add a markdown AC table.
 
 ## UI
 
-LifeQuest: `data-theme` Minimal / Retro / Modern; optional `data-mode` clean/stylish. NutriLog: `nutri-saas`. MindTrack: `mental-calm`. Colours from CSS variables, never `bg-gray-800`.
+LifeQuest skins: `data-theme` Minimal / Retro / Modern; optional `data-mode` clean/stylish. Product identity is a nested-layout `data-theme` (`nutri-saas`, `mental-calm`) and must not overwrite `rpgt-theme`. Colours from CSS variables, never `bg-gray-800`.
 
 ## Agents
 
@@ -27,7 +27,7 @@ LifeQuest: `data-theme` Minimal / Retro / Modern; optional `data-mode` clean/sty
 3. Before you delete a brief (or merge the PR), copy any *lasting* rule into `docs/` (usually two sentences).
 4. `/poteto-mode` for implementation. Nested `AGENTS.md` for stack commands.
 
-New suite products on web are a route group in LifeQuest plus a table prefix, not a new Next origin. Apple is separate apps later. See `docs/architecture.md`.
+New suite products on web are a route group with nested chrome plus a Go package and table prefix, not a new Next origin and not a LifeQuest tab. Apple is separate apps later. See `docs/architecture.md`.
 
 ## Health copy
 

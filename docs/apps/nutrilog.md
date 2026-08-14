@@ -2,7 +2,9 @@
 
 Nutrition product. Weight logging is shipped (`nl_weight_logs`). Next: goals, food diary, pantry, recipes here, not in LifeQuest.
 
-Web today is `apps/nutri-log`. Target is `/nutri` in the LifeQuest shell. Apple is a separate app later, stack TBC. See `docs/architecture.md`.
+Web today is `apps/nutri-log`. Target is `/nutri` in the LifeQuest shell with NutriLog chrome, not a LifeQuest tab. Apple is a separate app later, stack TBC. See `docs/architecture.md`.
+
+Calorie and weight goals are `nl_*` routes. Do not reuse LifeQuest `public.goals`.
 
 ## Rough loop
 

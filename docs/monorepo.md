@@ -37,12 +37,12 @@ Nx uses the `name` field from `package.json` (or `project.json` for Go):
 
 ## Add a suite product
 
-Do not copy `apps/nutri-log` into a new Next origin. Four Next processes is leftover. Target is one authenticated web app. See `docs/architecture.md`.
+Do not copy `apps/nutri-log` into a new Next origin. See `docs/architecture.md` for the promotion test (loop, own tables, plausible Apple app).
 
-1. Add a route group in `apps/rpg-tracker` when the product has a first slice.
-2. Add a product theme in `packages/ui/tokens/` and `PRODUCT_THEMES` if needed.
-3. Add `docs/apps/<name>.md` with rough logic (one page).
-4. Reserve a table prefix in `docs/architecture.md` (`nl_`, `wo_`, `mh_`).
-5. Wire routes in `apps/api`. No LifeQuest table FKs.
+1. Add `docs/apps/<name>.md` with the rough loop (one page).
+2. Reserve a table prefix in `docs/architecture.md`. Unprefixed tables are LifeQuest. Nothing new is unprefixed.
+3. Add `apps/api/internal/<name>/` with persistence and HTTP (`Routes()`). Mount under `/api/v1/<name>`. Tables `<prefix>_*`, `user_id → public.users` only. No LifeQuest FKs. No RLS policies.
+4. Add a route group `apps/rpg-tracker/app/(app)/<name>/` with a nested layout that sets `data-theme` and product chrome. Hub card on `/dashboard`. Do not add a LifeQuest tab.
+5. Add a token file in `packages/ui/tokens/` and import it from `apps/rpg-tracker/tokens.css`. Pass nav items into UI components. Do not add a registry to `@rpgtracker/ui`.
 
-Apple apps are separate binaries later. Native stack is TBC. They call Go with a Bearer JWT. Do not add a Next app as a placeholder for that.
+Apple apps are separate binaries later. Native stack is TBC. They call Go with a Bearer JWT on the same `/api/v1/...` paths. Do not add a Next app as a placeholder for that.

@@ -1,12 +1,12 @@
 # API
 
-Shared Go service (`chi`, `pgx`). All suite apps call it through their Next.js BFF.
+Shared Go service (`chi`, `pgx`). Web reaches it through the LifeQuest BFF. Native Apple clients (planned) call it with a Bearer JWT. See `docs/architecture.md`.
 
 ## Rough layout
 
-`internal/handlers` HTTP · `internal/skills` LifeQuest persistence · `internal/nutrilog` · `internal/goals` · `internal/auth` JWKS · `internal/crypto` envelope encryption · `db/migrations` numbered SQL.
+`internal/handlers` is today's LifeQuest HTTP dump. Leave it until a file is touched. New domains are `internal/<name>/` with persistence and HTTP together, mounted at `/api/v1/<name>`. NutriLog persistence is already `internal/nutrilog`. Move its HTTP there when that file is next edited.
 
-New domains get a package (`internal/workout`) and `/api/v1/<area>/...` routes. Auth middleware on all of those.
+Auth is Supabase JWTs via `internal/auth` (`NewJWTMiddleware`). App data is local Postgres. Do not add a second session cookie path.
 
 ## Run / test
 
