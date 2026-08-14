@@ -24,3 +24,4 @@ Keep this folder short. Lasting rules are a couple of sentences, not a tracker o
 | `setup.md` | Local Supabase trigger notes |
 | `CURSOR-AGENT-HANDBOOK.md` | CI / Bugbot / SDK automation (ops, not product) |
 | `guides/` | Operator runbooks |
+| `themes-mockup-prompts.md` | Claude Code prompts for in-depth theme mockups |

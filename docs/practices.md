@@ -18,7 +18,7 @@ If you change behaviour, change the test. Do not add a markdown AC table.
 
 ## UI
 
-LifeQuest skins: `data-theme` Minimal / Retro / Modern; optional `data-mode` clean/stylish. Product identity is a nested-layout `data-theme` (`nutri-saas`, `mental-calm`) and must not overwrite `rpgt-theme`. Colours from CSS variables, never `bg-gray-800`.
+LifeQuest skins: `data-theme` Minimal / Retro / Modern; optional `data-mode` clean/stylish; optional `data-atmosphere` none / cinematic / horror / kawaii. Product identity is a nested-layout `data-theme` (`nutri-saas`, `workout-forge`, `mental-calm`) and must not overwrite `rpgt-theme`. Colours from CSS variables, never `bg-gray-800`.
 
 ## Agents
 

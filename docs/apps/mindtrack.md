@@ -1,21 +1,21 @@
 # MindTrack
 
-MindTrack is a blocked product. Scaffold `apps/mental-health` only, tables `mh_*`, web `/mind`, theme `mental-calm`, Apple binary later.
+MindTrack is a product for generally well adults 18+ who want a private record, including people already working with a professional between sessions. It is not for acute distress. Not therapy, not a diagnosis, not a crisis service. No mood XP. UK crisis resources on every screen. Theme is `mental-calm` only.
 
-No feature code until the questions below are answered in a human session and a two-sentence outcome is written here. Not therapy. No mood XP in v1. UK crisis resources. First slice after answers is `mh_mood_logs` plus journal, disclaimer, and no chatbot. Do not reuse `xp_events` or the Therapy preset.
+Overnight jobs are a 30-second mood check-in, a private journal, and a local grounding timer. There is no chatbot. `mh_*` data enters no AI prompt. Age is stated in copy. Date of birth is not stored.
 
 When it ships on web it is `/mind` with MindTrack chrome, not a LifeQuest tab and not a second Next origin. Meditation that outgrows the LifeQuest preset becomes `/mind/meditate` on `mh_*`, not `apps/meditation`. See `docs/architecture.md`.
 
 ## Stance
 
-Not therapy, not a diagnosis, not a crisis service. Bad weeks must not cost streaks or XP. Private by default. UK-first human resources on every screen (999 / 111 / Samaritans). Mood must not award LifeQuest XP in v1.
+Bad weeks must not cost streaks or XP. Private by default. Immediate danger: 999 or A&E. Urgent mental health help: NHS 111. Someone to talk to: Samaritans 116 123. The app does not scan notes for risk.
 
-## Answer before build
+## Overnight defaults (reversible)
 
-1. Who is it for (generally well vs in-therapy adjunct vs acute distress)? Acute distress is probably out.
-2. Age floor?
-3. At most three v1 jobs (e.g. 30s mood check-in, private journal, grounding timer).
-4. AI red lines (refuse diagnosis, refuse med changes, escalate self-harm to a crisis panel and stop the chat).
-5. Theme: keep `mental-calm` only?
+1. Who: generally well adults, plus an in-therapy adjunct who brings their own record. Acute distress is out.
+2. Age floor: 18, stated on `/mind`. No date of birth.
+3. Jobs: mood (valence 1–5, energy 1–3, optional 280-char note), journal, local 60/120s sit.
+4. AI: none in v1. `internal/mindtrack` must not import an AI client.
+5. Theme: `mental-calm` pinned. No cinematic, horror, or kawaii overlay.
 
-First slice after that, if you still want one: `mh_mood_logs` + journal, disclaimer footer, **no** chatbot in the first PR.
+First slice: `mh_mood_logs` plus `mh_journal_entries`, disclaimer footer, **no** chatbot. Do not reuse `xp_events` or the Therapy preset.

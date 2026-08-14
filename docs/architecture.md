@@ -21,7 +21,7 @@ A slice is exactly one of product, feature of a product, LifeQuest preset, marke
 | LifeQuest | product (hub) | unprefixed | `/skills`, `/goals`, hub `/dashboard` | `docs/apps/lifequest.md` |
 | NutriLog | product | `nl_*`, `/api/v1/nutrilog` | `/nutri` | `docs/apps/nutrilog.md` |
 | Workout | product | `wo_*`, `/api/v1/workout` | `/workout` | `docs/apps/workout.md` |
-| MindTrack | product (blocked) | `mh_*` | `/mind` | `docs/apps/mindtrack.md` |
+| MindTrack | product | `mh_*`, `/api/v1/mindtrack` | `/mind` | `docs/apps/mindtrack.md` |
 | Sleep | LifeQuest preset | none. Do not create `sl_*` | Sleep Hygiene preset | `docs/apps/lifequest.md` |
 | Meditation | LifeQuest preset | none. Later `mh_*` | preset. Later `/mind/meditate` | `docs/apps/lifequest.md` |
 | Fasting, plate-photo confirm, restaurant lookup, household pantry | NutriLog features | `nl_*` when built | `/nutri` | `docs/apps/nutrilog.md` |
@@ -45,12 +45,12 @@ apps/rpg-tracker/app/
   (app)/account/*
   (app)/skills/*, goals/*  LifeQuest
   (app)/nutri/*            NutriLog
-  (app)/workout/*          when the first slice exists
-  (app)/mind/*             when MindTrack is unblocked
+  (app)/workout/*          Workout
+  (app)/mind/*             MindTrack
   api/[...path]/route.ts   the only BFF
 ```
 
-The product layout owns chrome and `data-theme`. Product identity is not the `rpgt-theme` cookie. That cookie is the LifeQuest skin (minimal, retro, modern). Import the product token file in `apps/rpg-tracker/tokens.css` when the route group ships.
+The product layout owns chrome and `data-theme`. Product identity is not the `rpgt-theme` cookie. That cookie is the LifeQuest skin (minimal, retro, modern). Atmosphere is `rpgt-atmosphere` (`none`, `cinematic`, `horror`, `kawaii`) and never a product identity. Import the product token file in `apps/rpg-tracker/tokens.css` when the route group ships.
 
 `@rpgtracker/ui` stays dumb. Pass nav items as props. Do not put a product registry in the UI package.
 
@@ -90,17 +90,17 @@ Four Next origins exist (`apps/rpg-tracker` :3000, `apps/nutri-log` :3002, `apps
 
 LifeQuest BFF `apps/rpg-tracker/app/api/[...path]/route.ts` forwards `${GO_API_URL}/api/${path}`. Test `apps/rpg-tracker/app/api/__tests__/bff-proxy.test.ts` asserts no double v1. NutriLog and MindTrack BFFs forward `${GO_API_URL}/api/v1/${path}` onto a client path that already includes `v1`, so those origins double-prefix. There is no NutriLog BFF test.
 
-Hub cards (`HubPlaceholderCard`) have no href. LifeQuest chrome hardcodes a NutriLog Soon row and omits Goals. `/nutri` is a Coming Soon stub under LifeQuest chrome. Weight UI still lives on `:3002`. NutriLog and MindTrack `proxy.ts` seed `rpgt-theme` with `nutri-saas` and `mental-calm`. Localhost ports share that cookie.
+Hub cards link into `/nutri`, `/workout`, and `/mind`. LifeQuest chrome is dashboard, skills, goals, and account passed as props. `/nutri` owns NutriLog chrome and `nutri-saas`. Weight, fasting, pantry, and cook live there. The `:3002` origin is leftover. NutriLog and MindTrack `proxy.ts` still seed `rpgt-theme` on those leftover origins. Do not copy that pattern.
 
-JWT via `NewJWTMiddleware` is mounted. `NewSessionMiddleware` and Go login/register are not. No CORS. No `Routes()`. No `internal/workout` or `internal/mindtrack`. No Stripe. RLS policies read `app.current_user_id` while TxMiddleware sets `app.user_id`. `000015` copied that decorative policy onto `nl_weight_logs`.
+JWT via `NewJWTMiddleware` is mounted. `NewSessionMiddleware` and Go login/register are not. No CORS. `internal/nutrilog.Routes()`, `internal/workout.Routes()`, and `internal/mindtrack.Routes()` are mounted. Weight HTTP still lives in `handlers` beside those mounts. No Stripe. Do not copy `000015` RLS onto `wo_`, `mh_`, or new `nl_` tables.
 
 ## Data
 
 - Identity: Supabase Auth JWT, JWKS in Go. `public.users` mirrors `auth.users.id`.
 - LifeQuest: `skills`, `xp_events`, `blocker_gates`, goals tables, `training_sessions`. Levels from `xpcurve`. Max level 200.
-- NutriLog: `nl_*`. Weight: `nl_weight_logs`.
-- Workout when built: `wo_*`.
-- MindTrack when built: `mh_*`. Extra sensitivity. No XP in v1.
+- NutriLog: `nl_*`. Weight, fasts, pantry, recipes, diary.
+- Workout: `wo_sessions`, `wo_sets`.
+- MindTrack: `mh_mood_logs`, `mh_journal_entries`. Extra sensitivity. No XP.
 - Cross-app XP is a later integration layer, not a FK.
 
 `primary_skill_id` on `public.users` couples suite identity to LifeQuest. Leave it until a second product needs a thin users row.
