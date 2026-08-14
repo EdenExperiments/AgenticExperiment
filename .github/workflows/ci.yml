@@ -20,6 +20,7 @@ jobs:
     env:
       CI: true
       NEXT_TELEMETRY_DISABLED: 1
+      NX_NO_CLOUD: "true"
 
     steps:
       - name: Check out repository
@@ -36,13 +37,13 @@ jobs:
           node-version: 20.20.2
           cache: pnpm
 
-      - name: Restore Turbo cache
+      - name: Restore Nx cache
         uses: actions/cache@v5
         with:
-          path: .turbo
-          key: turbo-${{ runner.os }}-${{ github.sha }}
+          path: .nx/cache
+          key: nx-${{ runner.os }}-${{ github.sha }}
           restore-keys: |
-            turbo-${{ runner.os }}-
+            nx-${{ runner.os }}-
 
       - name: Install JS dependencies
         run: pnpm install --frozen-lockfile

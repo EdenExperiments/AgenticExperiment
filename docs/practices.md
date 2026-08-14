@@ -1,0 +1,33 @@
+# Practices
+
+## Tests are the spec
+
+- Go: `nx test api` or `cd apps/api && go test ./...`
+- JS: `nx run-many -t test` (CI uses `--parallel=1`)
+- Behaviour and API contracts need tests. Pure visual work uses tokens in `packages/ui`; do not faux-TDD CSS.
+
+If you change behaviour, change the test. Do not add a markdown AC table.
+
+## Security
+
+- No secrets in git, logs, or client bundles.
+- User isolation on every query (`user_id` from JWT). Other people’s IDs → 404, not 403 with leakage.
+- XP writes: `xp_events` + `skills.current_xp` + `skills.current_level` in one transaction.
+- Effective level is computed in Go, not trusted from the client.
+- Quick log stays time-primary (minutes → XP). Keep it few taps.
+
+## UI
+
+LifeQuest: `data-theme` Minimal / Retro / Modern; optional `data-mode` clean/stylish. NutriLog: `nutri-saas`. MindTrack: `mental-calm`. Colours from CSS variables, never `bg-gray-800`.
+
+## Agents
+
+1. Read `docs/README.md` + the one file under `docs/apps/` you are touching.
+2. Put long plans in `docs/briefs/<slug>.md`. They are gitignored.
+3. Before you delete a brief (or merge the PR), copy any *lasting* rule into `docs/` (usually two sentences).
+4. Do not revive `Documentation/`, feature trackers, or signed delivery folders.
+5. `/poteto-mode` for implementation. Nested `AGENTS.md` for stack commands.
+
+## Health copy
+
+Training and nutrition AI is a draft. Mental health is not therapy. Crisis → human resources, not a longer chat.

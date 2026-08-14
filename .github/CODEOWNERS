@@ -12,9 +12,8 @@
 # Bugbot review standards
 /BUGBOT.md                      @EdenExperiments
 
-# Canonical decisions and target architecture
-/Documentation/decision-log.md  @EdenExperiments
-/Documentation/agentic-pipeline/ @EdenExperiments
+# Canonical product docs
+/docs/                          @EdenExperiments
 
 # Agent automation package (review/fix/triage/queue entry points)
 /packages/cursor-agents/        @EdenExperiments

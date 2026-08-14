@@ -5,8 +5,7 @@
  * (human / cursor agent / dependency bot), merge rates, cycle time, Sonar issue
  * count, dependency freshness proxy (open dep PRs + their age). Output goes to
  * the Actions step summary and is upserted onto the metrics dashboard issue when
- * `CURSOR_METRICS_ISSUE_NUMBER` is set. Per-surface merged-unmodified tracking
- * feeds the future eval project via apps/cursor-lab.
+ * `CURSOR_METRICS_ISSUE_NUMBER` is set.
  */
 
 import { writeFileSync } from "node:fs";
@@ -196,7 +195,6 @@ ${rows.join("\n")}
 - ${sonarLine}
 
 > Surfaces: dependency-bot = Renovate/Dependabot/Mend; cursor-agent = cursor logins or \`cursor/\` branches; human = everything else.
-> Merged-unmodified rate by surface requires commit-level diff attribution and lands with the cursor-lab golden-PR work (F-061).
 
 _Workflow: cursor-weekly-metrics.yml · marker ${METRICS_MARKER}_
 `;

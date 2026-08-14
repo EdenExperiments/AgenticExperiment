@@ -1,3 +1,0 @@
-schema_version: "0.1"
-artifacts:
-  - skill:skills/core/safe-edit-and-verify

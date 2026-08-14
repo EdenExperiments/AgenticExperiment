@@ -48,7 +48,15 @@ static/css/app.css
 # SuperPower Skill brainstorming
 .superpowers/
 
-# Turbo (local cache and task logs)
+# Ephemeral agent briefs (README is tracked)
+docs/briefs/*
+!docs/briefs/README.md
+!docs/briefs/.gitignore
+
+# Nx
+.nx/
+
+# Turbo (removed; ignore leftover local cache)
 .turbo/
 
 # TDD lock sentinel (created by delivery orchestrator during implementation runs)

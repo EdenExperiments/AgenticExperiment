@@ -1,14 +1,15 @@
 # RpgTracker Platform
 
-A self-improvement platform built as a Turborepo monorepo. Three apps share a single Go API, auth layer, and React component library.
+A self-improvement platform. Nx + pnpm monorepo. Apps share a Go API, auth, and UI package.
 
+| App | Path | Status |
+|-----|------|--------|
+| **LifeQuest** | `apps/rpg-tracker` | Core loop shipped; gate *completion* still incomplete |
+| **NutriLog** | `apps/nutri-log` | Weight logging shipped |
+| **MindTrack** | `apps/mental-health` | Scaffold — read `docs/apps/mindtrack.md` before building |
+| **Go API** | `apps/api` | Shared backend |
 
-| App                                          | Path                 | Status            |
-| -------------------------------------------- | -------------------- | ----------------- |
-| **LifeQuest** — RPG-style skill/XP tracker   | `apps/rpg-tracker`   | Fully implemented |
-| **NutriLog** — Nutrition and weight tracking | `apps/nutri-log`     | Scaffolded        |
-| **MindTrack** — Mental wellness tracking     | `apps/mental-health` | Scaffolded        |
-| **Go API** — Shared REST backend             | `apps/api`           | Fully implemented |
+Product notes: `docs/README.md`.
 
 
 ## Stack
@@ -16,7 +17,7 @@ A self-improvement platform built as a Turborepo monorepo. Three apps share a si
 - **Frontend:** Next.js 15 App Router · React 19 · Tailwind v4 · TanStack Query · Framer Motion
 - **Backend:** Go · chi router · pgx v5 · Supabase JWT auth
 - **Shared packages:** `@rpgtracker/ui` · `@rpgtracker/auth` · `@rpgtracker/api-client`
-- **Monorepo:** Turborepo · pnpm workspaces
+- **Monorepo:** Nx · pnpm workspaces
 - **Database:** Local Docker PostgreSQL (application data) · golang-migrate
 - **Auth:** Supabase Auth (email/password + JWT validation) — auth only, not application data
 - **AI:** Claude API — user-supplied key, stored AES-256-GCM encrypted server-side
@@ -73,7 +74,7 @@ Landing **Sign In** links use `NEXT_PUBLIC_APP_URL` (default `http://localhost:3
 # Install JS dependencies first if needed
 pnpm install
 
-# JS workspace build and test checks (matches CI)
+# JS workspace build and test (Nx; matches CI)
 pnpm build
 pnpm test
 
@@ -100,15 +101,12 @@ packages/
   api-client/       Typed fetch client for the Go API
   tsconfig/         Shared TypeScript config
 docs/
-  CURSOR-AGENT-HANDBOOK.md Cursor-first workflow and CI/CD agent model
-  guides/           Operational guides for onboarding and runtime lanes
-  setup.md          One-time Supabase trigger setup
-  archive/          Historical planning docs (superseded; see README there)
-Documentation/
-  architecture.md   DB schema, domain model, integration contracts
-  decision-log.md   Confirmed product and architectural decisions
-  feature-tracker.md Per-feature status and deferred list
-  README.md         Canonical documentation index
+  README.md         Product/platform map (durable)
+  apps/             Rough logic per app
+  briefs/           Ephemeral agent plans (gitignored)
+  CURSOR-AGENT-HANDBOOK.md  CI / Bugbot / SDK
+  guides/           Operator runbooks
+  setup.md          Supabase trigger
 ```
 
 ## Design System
@@ -127,7 +125,7 @@ This project uses Cursor-first agentic workflows for feature development, review
 
 - Development: pstack (`/poteto-mode`) and cursor-team-kit plugins; models in `.cursor/rules/pstack-models.mdc`
 - Repository context directory: `AGENTS.md`
-- Canonical documentation map: `Documentation/README.md`
+- Canonical docs: `docs/README.md`
 - Operating workflow (IDE, cloud agent chat, CI/CD SDK agents): `docs/CURSOR-AGENT-HANDBOOK.md`
 
 ## CI/CD Agent Automation

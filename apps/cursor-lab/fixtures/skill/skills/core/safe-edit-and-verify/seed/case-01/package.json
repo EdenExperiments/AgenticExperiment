@@ -1,7 +1,0 @@
-{
-  "name": "case-01-rename-symbol",
-  "private": true,
-  "scripts": {
-    "test": "node -e \"const u=require('./src/util.ts'); console.log('ok')\""
-  }
-}

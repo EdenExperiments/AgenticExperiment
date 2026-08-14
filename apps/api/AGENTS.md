@@ -26,7 +26,7 @@ no repo-managed Go test-writer/implementer agent (D-063).
 
 1. `apps/api/cmd/server/main.go`, `apps/api/internal/server/server.go`
 2. `apps/api/internal/config/config.go`, `apps/api/internal/database/`
-3. `Documentation/architecture.md` and `Documentation/decision-log.md` for binding constraints
+3. `docs/architecture.md` and `docs/practices.md` for constraints; tests for behaviour
 
 ## Boundaries
 
@@ -34,5 +34,4 @@ no repo-managed Go test-writer/implementer agent (D-063).
   breakage in test output, or explicit cross-repo requests.
 - Keep migrations forward/backward compatible where possible.
 - Preserve user isolation and auth boundaries in every handler/repository change.
-- If behavior changes user-facing functionality, update `Documentation/feature-tracker.md` in the
-  same change.
+- If a lasting platform rule changed, update `docs/`. Behaviour changes belong in tests.

@@ -18,7 +18,7 @@ flowchart TD
 
 | Artifact | Purpose |
 |---|---|
-| `AGENTS.md` (root) | Repo map, working rules, doc-update obligations |
+| `AGENTS.md` (root) | Repo map; durable docs live in `docs/` |
 | `.cursor/rules/*.mdc` with `alwaysApply: true` | Security baseline, repo context, workflow rules, pstack model mapping |
 | `.cursor/hooks.json` + `.cursor/hooks/` | Enforcement: deny force-push and destructive shell patterns. Workflow-path denies temporarily relaxed during pipeline iteration (D-061). TDD lock retired (D-063). |
 | `.github/CODEOWNERS` + branch protection | The layer no agent can touch |
@@ -33,7 +33,6 @@ rule exists so agents understand why and do not waste iterations fighting it.
 | `apps/api/AGENTS.md` | Go (chi, pgx, migrations) | `go test ./...` from `apps/api` |
 | `apps/rpg-tracker/AGENTS.md` | TypeScript / Next.js frontends | `pnpm test:ci` (targeted first) |
 | `packages/AGENTS.md` | Shared TS packages | `pnpm --filter <pkg> test` |
-| `apps/cursor-lab/AGENTS.md` | Python tooling | `cursor-lab doctor`, pytest |
 
 This layer is the pattern library: agents pick these up based on where they work. On-demand
 procedure for development lives in the **pstack** and **cursor-team-kit** plugins, not in a
@@ -51,8 +50,7 @@ Per-role model choices are in `.cursor/rules/pstack-models.mdc`. Do not recreate
 `.cursor/agents/` or `.cursor/commands/` that compete with these plugins.
 
 **Anti-explosion rule:** a role earns a stack variant only when its mechanics differ (toolchain,
-runner, build commands). Pure knowledge differences belong in Layer 2 stack guides. Python tooling
-is Layer-2-only.
+runner, build commands). Pure knowledge differences belong in Layer 2 stack guides.
 
 ## Conflict Resolution
 

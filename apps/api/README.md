@@ -376,5 +376,5 @@ You can find the UUID in the **Supabase dashboard → Authentication → Users**
 
 - **User isolation:** enforced in the Go layer via `WHERE user_id = $userID` in every query. RLS is disabled (migration 000006) — the Go middleware is the access control boundary.
 - **Soft deletes:** skills use `deleted_at IS NULL` filter; XP history is preserved after deletion.
-- **XP curve:** defined in `internal/xpcurve/` — constants from decision-log D-014. Do not modify without a new decision-log entry.
+- **XP curve:** defined in `internal/xpcurve/` (tests in that package). Do not change constants without updating those tests.
 - **Blocker gates:** 10 per skill, created automatically on skill creation at levels 9, 19, ..., 99.

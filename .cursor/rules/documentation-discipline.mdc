@@ -1,18 +1,16 @@
 ---
-description: Lightweight documentation contract (2-tier)
+description: Durable docs live in docs/; tests own behaviour
 globs:
-  - Documentation/**/*.md
-alwaysApply: false
+  - docs/**/*.md
+alwaysApply: true
 ---
 
-# Documentation Discipline
+# Documentation
 
-Treat `Documentation/` as maintained source of truth. Keep confirmed requirements, assumptions, and open questions clearly separated.
+Permanent notes: `docs/` (architecture, practices, app split, rough logic).
 
-**Always (when applicable):**
-- Status/scope change → update `Documentation/feature-tracker.md`
-- Binding decision or new open question → update `Documentation/decision-log.md`
+Behaviour: code and tests. If a doc disagrees with a test, fix the doc.
 
-**Delivery work:** requirements live in signed artifacts under `Documentation/delivery/` — do not mirror per-feature into `product-requirements.md`. Update the PRD only when product scope or vision changes.
+Long agent plans: `docs/briefs/` (gitignored except README). Promote lasting rules into `docs/`, then delete the brief.
 
-**Visual work:** `Documentation/style-guide/` + `Documentation/page-guides/` (not faux-TDD).
+Do not add `Documentation/delivery/`, feature trackers, or decision logs.

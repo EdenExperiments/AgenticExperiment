@@ -1,16 +1,16 @@
 # Cursor Agent Handbook
 
-Workflow and CI reference for this repository. Entry points and zone map: `AGENTS.md` · canonical docs index: `Documentation/README.md`.
+Workflow and CI reference for this repository. Product docs: `docs/README.md`. Zone map: `AGENTS.md`.
 
 ## Target Architecture: Agentic Pipeline (D-055)
 
-`Documentation/agentic-pipeline/Agentic-Pipeline-Brief-v2.md` is the adopted target design for agentic operations:
+CI automation (deps, Bugbot, maintenance queue) is described below. Product notes live in `docs/`; long agent plans in `docs/briefs/` then promote or delete. Pillars in short:
 
 - **Pillar A** — dependency hygiene: Renovate baseline + assessment agent (`deps:safe` automerge behind CI+Sonar, `deps:breaking` research comments via SDK highlight-only).
 - **Pillar B** — review loop: native Bugbot Autofix tuned via `BUGBOT.md`, propose mode first, severity status check as the merge gate (D-056, D-060). No custom SDK pipeline reviewer.
 - **Pillar C** — maintenance queue: Sonar issues + `tech-debt` GitHub Issues normalised into one prioritised queue; dispatch via GitHub Actions artifact and/or Cursor Automations with a concurrent bot-PR cap.
-- **Pillar D** — **retired for IDE delivery (D-063).** Command pack (`/fix`, `/feature`, `/epic`, `/new-project`), repo skills, TDD subagents, and flows were removed. Development uses pstack (`/poteto-mode`) and cursor-team-kit. Historical artifacts remain under `Documentation/delivery/`.
-- **Skills (D-063):** pstack and cursor-team-kit plugins. Per-role models: `.cursor/rules/pstack-models.mdc`. The D-062 pack layout (`.cursor/skills/`, `.cursor/flows/`, `.cursor/agents/`) is superseded; the old guide is in `docs/archive/cursor-skills-and-orchestration.md`.
+- **Pillar D** — retired for IDE delivery. Development uses pstack (`/poteto-mode`) and cursor-team-kit. Product plans are ephemeral (`docs/briefs/`).
+- **Skills (D-063):** pstack and cursor-team-kit plugins. Per-role models: `.cursor/rules/pstack-models.mdc`. Do not recreate a repo-managed `.cursor/skills/` / `.cursor/flows/` / `.cursor/agents/` pack.
 - **Layered agent config (§4c):** base (root `AGENTS.md`, alwaysApply rules including `pstack-models.mdc`, hooks) → stack (nested `AGENTS.md` per zone) → role (pstack `poteto-agent` / Comment Sicko + Cursor built-ins). See `docs/guides/agent-composition-contract.md`.
 - Operator-side setup (Bugbot, Automations, branch protection, usage caps) is tracked in `docs/guides/agentic-pipeline-operator-checklist.md`.
 
@@ -34,7 +34,7 @@ Use `/poteto-mode` (pstack) for feature work, fixes, and refactors. cursor-team-
 | Path      | Flow                                                         | Gate                              |
 | --------- | ------------------------------------------------------------ | --------------------------------- |
 | Logic/API | spec -> tests -> implementation -> review                    | Tests must pass                   |
-| UI/Visual | style guide -> page guide -> implementation -> visual review | Token/theme/a11y review must pass |
+| UI/Visual | tokens in `packages/ui` → implement → visual review | Token/theme/a11y review must pass |
 
 
 Tests are required for business logic, API contracts, and component behavior.  
@@ -43,7 +43,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 ## Session And Handoff Expectations
 
 - Keep updates resumable: what changed, why, and what remains.
-- Documentation contract (D-059): tracker row on status change; decision-log entry on binding decisions; delivery requirements in `Documentation/delivery/` artifacts.
+- Documentation: lasting rules in `docs/`; behaviour in tests; long plans in `docs/briefs/` then delete.
 
 ## Cursor Usage Model
 
@@ -138,7 +138,7 @@ Pure visual composition work is validated by visual review and design-guide comp
 - Bugbot and SDK bot comments are **advisory**. **Merge gates** remain CI, Sonar, and Bugbot severity check.
 - SDK remediation requires both a global flag and an explicit PR allow label.
 - For cloud-created PRs, apply labels automatically on open so policy checks can evaluate immediately.
-- Use planner and executor model split for remediation to control cost (see archived `docs/archive/skills/review-driven-fix-routing.md` for the pattern).
+- Use planner and executor model split for remediation to control cost.
 - Keep generated comments concise; use marker comments for idempotent upserts.
 
 ## Operating Split

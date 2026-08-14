@@ -4,7 +4,7 @@ SDK automation in `packages/cursor-agents/` supports a **local vs cloud** runtim
 PR **review** is owned by **Bugbot** (`BUGBOT.md`); SDK scripts supplement with highlights and
 optional gated remediation.
 
-Full architecture: `docs/CURSOR-AGENT-HANDBOOK.md` · Brief: `Documentation/agentic-pipeline/`.
+Full architecture: `docs/CURSOR-AGENT-HANDBOOK.md`.
 
 ## Runtime selector
 
