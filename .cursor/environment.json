@@ -6,5 +6,12 @@
   "install": "pnpm install --frozen-lockfile && cd apps/api && go mod download",
   "start": "bash .cursor/start.sh",
   "terminals": [],
-  "ports": [3000, 3002, 3003, 3004, 8080, 5432]
+  "ports": [
+    { "name": "LifeQuest", "port": 3000 },
+    { "name": "NutriLog", "port": 3002 },
+    { "name": "MindTrack", "port": 3003 },
+    { "name": "Landing", "port": 3004 },
+    { "name": "Go API", "port": 8080 },
+    { "name": "Postgres", "port": 5432 }
+  ]
 }
