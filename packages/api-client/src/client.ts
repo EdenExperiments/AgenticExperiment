@@ -1,4 +1,4 @@
-import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast, WeightLog, WeightChartResponse } from './types'
+import type { Skill, SkillDetail, Preset, Account, AccountStats, APIKeyStatus, AIEntitlement, APIError, XPLogResponse, CalibrateRequest, CalibrateResponse, ActivityEvent, TrainingSession, GateSubmission, XPChartResponse, Tag, TagWithCount, SkillCategory, Goal, GoalStatus, Milestone, CheckIn, CreateGoalRequest, UpdateGoalRequest, CreateMilestoneRequest, UpdateMilestoneRequest, CreateCheckInRequest, PlanGoalRequest, PlanGoalResponse, GoalForecast, WeightLog, WeightChartResponse, Fast, PantryItem, Recipe, DiaryEntry, WorkoutSession, WorkoutSet, MoodLog, JournalEntry } from './types'
 
 export class ApiRequestError extends Error {
   status: number
@@ -410,4 +410,150 @@ export function getWeightChart(days?: number): Promise<WeightChartResponse> {
 
 export function deleteWeightLog(id: string): Promise<void> {
   return request<void>(`/api/v1/nutrilog/weight-logs/${id}`, { method: 'DELETE' })
+}
+
+export async function getCurrentFast(): Promise<Fast | null> {
+  const result = await request<Fast | undefined>('/api/v1/nutrilog/fasts/current')
+  return result ?? null
+}
+
+export function listFasts(): Promise<Fast[]> {
+  return request<Fast[]>('/api/v1/nutrilog/fasts')
+}
+
+export function startFast(targetHours?: number): Promise<Fast> {
+  return request<Fast>('/api/v1/nutrilog/fasts', {
+    method: 'POST',
+    body: JSON.stringify(targetHours ? { target_hours: targetHours } : {}),
+  })
+}
+
+export function closeFast(id: string, reason: 'completed' | 'stopped' = 'completed'): Promise<Fast> {
+  return request<Fast>(`/api/v1/nutrilog/fasts/${id}/close`, {
+    method: 'POST',
+    body: JSON.stringify({ reason }),
+  })
+}
+
+export function listPantry(): Promise<PantryItem[]> {
+  return request<PantryItem[]>('/api/v1/nutrilog/pantry')
+}
+
+export function addPantryItem(data: { name: string; amount_text?: string }): Promise<PantryItem> {
+  return request<PantryItem>('/api/v1/nutrilog/pantry', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function deletePantryItem(id: string): Promise<void> {
+  return request<void>(`/api/v1/nutrilog/pantry/${id}`, { method: 'DELETE' })
+}
+
+export function listRecipes(): Promise<Recipe[]> {
+  return request<Recipe[]>('/api/v1/nutrilog/recipes')
+}
+
+export function createRecipe(data: {
+  title: string
+  servings?: number
+  ingredients?: Recipe['ingredients']
+  steps?: string[]
+  calories_kcal?: number
+  protein_g?: number
+  carbs_g?: number
+  fat_g?: number
+}): Promise<Recipe> {
+  return request<Recipe>('/api/v1/nutrilog/recipes', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function deleteRecipe(id: string): Promise<void> {
+  return request<void>(`/api/v1/nutrilog/recipes/${id}`, { method: 'DELETE' })
+}
+
+export function listDiary(): Promise<DiaryEntry[]> {
+  return request<DiaryEntry[]>('/api/v1/nutrilog/diary')
+}
+
+export function cookRecipe(data: { recipe_id: string; servings?: number }): Promise<DiaryEntry> {
+  return request<DiaryEntry>('/api/v1/nutrilog/cook', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export async function getCurrentWorkout(): Promise<WorkoutSession | null> {
+  const result = await request<WorkoutSession | undefined>('/api/v1/workout/sessions/current')
+  return result ?? null
+}
+
+export function listWorkoutHistory(): Promise<WorkoutSession[]> {
+  return request<WorkoutSession[]>('/api/v1/workout/sessions')
+}
+
+export function startWorkout(title?: string): Promise<WorkoutSession> {
+  return request<WorkoutSession>('/api/v1/workout/sessions', {
+    method: 'POST',
+    body: JSON.stringify(title ? { title } : {}),
+  })
+}
+
+export function getWorkout(id: string): Promise<WorkoutSession> {
+  return request<WorkoutSession>(`/api/v1/workout/sessions/${id}`)
+}
+
+export function finishWorkout(id: string): Promise<WorkoutSession> {
+  return request<WorkoutSession>(`/api/v1/workout/sessions/${id}/finish`, { method: 'POST' })
+}
+
+export function addWorkoutSet(sessionId: string, data: {
+  exercise_name: string
+  reps: number
+  load_kg?: number
+  rpe?: number
+}): Promise<WorkoutSet> {
+  return request<WorkoutSet>(`/api/v1/workout/sessions/${sessionId}/sets`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function deleteWorkoutSet(id: string): Promise<void> {
+  return request<void>(`/api/v1/workout/sets/${id}`, { method: 'DELETE' })
+}
+
+export function listMoodLogs(): Promise<MoodLog[]> {
+  return request<MoodLog[]>('/api/v1/mindtrack/mood')
+}
+
+export function createMoodLog(data: { valence: number; energy: number; note?: string }): Promise<MoodLog> {
+  return request<MoodLog>('/api/v1/mindtrack/mood', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+}
+
+export function listJournalEntries(): Promise<JournalEntry[]> {
+  return request<JournalEntry[]>('/api/v1/mindtrack/journal')
+}
+
+export function createJournalEntry(body: string): Promise<JournalEntry> {
+  return request<JournalEntry>('/api/v1/mindtrack/journal', {
+    method: 'POST',
+    body: JSON.stringify({ body }),
+  })
+}
+
+export function updateJournalEntry(id: string, body: string): Promise<JournalEntry> {
+  return request<JournalEntry>(`/api/v1/mindtrack/journal/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify({ body }),
+  })
+}
+
+export function deleteJournalEntry(id: string): Promise<void> {
+  return request<void>(`/api/v1/mindtrack/journal/${id}`, { method: 'DELETE' })
 }

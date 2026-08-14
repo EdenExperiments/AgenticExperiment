@@ -334,3 +334,91 @@ export interface WeightChartResponse {
   unit: 'kg'
   data: WeightChartPoint[]
 }
+
+export interface Fast {
+  id: string
+  started_at: string
+  ended_at?: string | null
+  target_hours: number
+  end_reason?: string | null
+  duration_min?: number | null
+  created_at: string
+}
+
+export interface PantryItem {
+  id: string
+  name: string
+  amount_text: string
+  created_at: string
+}
+
+export interface RecipeIngredient {
+  name: string
+  amount_text: string
+}
+
+export interface Recipe {
+  id: string
+  title: string
+  servings: number
+  ingredients: RecipeIngredient[]
+  steps: string[]
+  calories_kcal?: number | null
+  protein_g?: number | null
+  carbs_g?: number | null
+  fat_g?: number | null
+  created_at: string
+  updated_at: string
+}
+
+export interface DiaryEntry {
+  id: string
+  eaten_at: string
+  source: string
+  recipe_id?: string | null
+  title: string
+  servings: number
+  calories_kcal?: number | null
+  protein_g?: number | null
+  carbs_g?: number | null
+  fat_g?: number | null
+  created_at: string
+}
+
+export interface WorkoutSet {
+  id: string
+  session_id: string
+  exercise_name: string
+  reps: number
+  load_kg?: number | null
+  rpe?: number | null
+  created_at: string
+}
+
+export interface WorkoutSession {
+  id: string
+  title: string
+  started_at: string
+  ended_at?: string | null
+  created_at: string
+  sets: WorkoutSet[]
+  set_count: number
+  rep_count: number
+  volume_kg: number
+}
+
+export interface MoodLog {
+  id: string
+  logged_at: string
+  valence: number
+  energy: number
+  note: string
+  created_at: string
+}
+
+export interface JournalEntry {
+  id: string
+  body: string
+  created_at: string
+  updated_at: string
+}

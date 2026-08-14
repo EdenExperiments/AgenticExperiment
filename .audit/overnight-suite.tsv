@@ -1,2 +1,7 @@
 ts	phase	decision	why	evidence	result
 2026-08-14T22:55:45Z	frame	counted the work: 5 product slices plus theme skins, one overnight session	wanted size before a long run so we ship first loops not a fake suite	docs/product.md, docs/architecture.md, apps/rpg-tracker Coming Soon /nutri	scope is first complete loops, not every horizon item
+2026-08-14T23:20:00Z	arena	base candidate-2, graft candidate-1 atmosphere overlay + three MindTrack jobs, graft candidate-4 36h fast cap and mind AI import ban	candidate-2 ships closed loops without origin collapse; candidate-1 three-axis theme keeps contrast; candidate-4 honest limits	/tmp/arena-suite/candidate-{1,2,3,4}	chrome/gates/weight first, then kitchen, workout, mind, atmospheres
+2026-08-14T23:21:00Z	mindtrack	generally well adults, 18+, mood+journal+grounding, no AI, mental-calm only	user asked for a great MindTrack state; defaults are narrower so morning can widen	docs/apps/mindtrack.md blocked questions	reversible overnight defaults
+2026-08-14T23:22:00Z	unit1	product chrome via nav props, ProductShell, gate JSON+ACL, NutriLog weight in /nutri	unblocks every later loop; existing UI lied about gates	gate.go GetGate/ClearGate, lib/nav.ts, nutri layout	commit chrome/gates/weight
+2026-08-14T23:30:00Z	unit-kitchen	ship fasting pantry cook workout mindtrack atmospheres and owner docs	morning predicate is closed loops plus docs plus mockup prompts	go test ./... ui/api-client/rpg-tracker vitest	keep
+
