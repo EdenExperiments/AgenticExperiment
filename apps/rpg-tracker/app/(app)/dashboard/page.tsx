@@ -344,6 +344,16 @@ export default function DashboardPage() {
           ]}
         />
         <HubPlaceholderCard
+          appName="Workout"
+          tagline="Resistance sessions and volume"
+          icon="🏋️"
+          metrics={[
+            { label: 'Volume', value: '—' },
+            { label: 'Sessions', value: '—' },
+            { label: 'Sets', value: '—' },
+          ]}
+        />
+        <HubPlaceholderCard
           appName="MindTrack"
           tagline="Mental health check-ins"
           icon="🧠"

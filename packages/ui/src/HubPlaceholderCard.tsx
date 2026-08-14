@@ -1,33 +1,32 @@
 'use client'
 
+import Link from 'next/link'
+
 interface HubPlaceholderCardProps {
   appName: string
   tagline: string
   icon: string
   metrics: { label: string; value: string }[]
+  href?: string
 }
 
-export function HubPlaceholderCard({ appName, tagline, icon, metrics }: HubPlaceholderCardProps) {
-  return (
-    <div
-      className="rounded-xl p-4 relative overflow-hidden opacity-75"
-      style={{
-        backgroundColor: 'var(--color-bg-elevated)',
-        border: '1px solid var(--color-border)',
-      }}
-    >
-      {/* Coming Soon badge */}
-      <div
-        className="absolute top-3 right-3 text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full"
-        style={{
-          backgroundColor: 'var(--color-surface)',
-          color: 'var(--color-muted)',
-        }}
-      >
-        Coming Soon
-      </div>
+export function HubPlaceholderCard({ appName, tagline, icon, metrics, href }: HubPlaceholderCardProps) {
+  const live = Boolean(href)
 
-      {/* Header */}
+  const inner = (
+    <>
+      {!live && (
+        <div
+          className="absolute top-3 right-3 text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            color: 'var(--color-muted)',
+          }}
+        >
+          Coming Soon
+        </div>
+      )}
+
       <div className="flex items-center gap-2 mb-3">
         <span className="text-xl" aria-hidden="true">{icon}</span>
         <div>
@@ -46,7 +45,6 @@ export function HubPlaceholderCard({ appName, tagline, icon, metrics }: HubPlace
         </div>
       </div>
 
-      {/* Metric previews */}
       <div className="flex gap-3">
         {metrics.map((m) => (
           <div key={m.label} className="flex-1 text-center">
@@ -65,6 +63,26 @@ export function HubPlaceholderCard({ appName, tagline, icon, metrics }: HubPlace
           </div>
         ))}
       </div>
+    </>
+  )
+
+  const className = `rounded-xl p-4 relative overflow-hidden${live ? '' : ' opacity-75'}`
+  const style = {
+    backgroundColor: 'var(--color-bg-elevated)',
+    border: '1px solid var(--color-border)',
+  }
+
+  if (href) {
+    return (
+      <Link href={href} className={`block ${className}`} style={style}>
+        {inner}
+      </Link>
+    )
+  }
+
+  return (
+    <div className={className} style={style}>
+      {inner}
     </div>
   )
 }
