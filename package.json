@@ -3,13 +3,12 @@
   "private": true,
   "scripts": {
     "build": "nx run-many -t build --exclude=api",
-    "dev": "nx run-many -t dev --parallel=8",
+    "dev": "nx run-many -t dev --projects=tag:type:app --parallel=8",
     "test": "nx run-many -t test --exclude=api",
     "test:ci": "nx run-many -t test --parallel=1 --exclude=api",
     "test:coverage": "nx run-many -t test:coverage --parallel=1 --exclude=api",
     "test:go": "nx test api",
     "lint": "nx run-many -t lint --exclude=api",
-    "format": "nx run-many -t format",
     "check:precommit": "pnpm lint && nx run-many -t test --parallel=1 --exclude=api",
     "prepare": "husky"
   },

@@ -2,23 +2,31 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "defaultBase": "main",
   "neverConnectToCloud": true,
+  "parallel": 3,
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
+    "production": [
+      "default",
+      "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
+      "!{projectRoot}/**/__tests__/**",
+      "!{projectRoot}/**/*.md"
+    ],
     "sharedGlobals": ["{workspaceRoot}/nx.json", "{workspaceRoot}/package.json", "{workspaceRoot}/pnpm-workspace.yaml"]
   },
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
       "cache": true,
-      "inputs": ["default", "^default"],
+      "inputs": ["production", "^production"],
       "outputs": ["{projectRoot}/.next/**", "!{projectRoot}/.next/cache/**", "{projectRoot}/dist/**"]
     },
     "test": {
       "cache": true,
-      "inputs": ["default", "^default"]
+      "inputs": ["default", "^production"]
     },
     "test:coverage": {
-      "cache": true
+      "cache": true,
+      "inputs": ["default", "^production"]
     },
     "lint": {
       "cache": true
@@ -26,9 +34,6 @@
     "dev": {
       "cache": false,
       "continuous": true
-    },
-    "format": {
-      "cache": false
     }
   }
 }

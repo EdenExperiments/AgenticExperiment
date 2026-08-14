@@ -20,7 +20,7 @@ Frontends: Next.js App Router, BFF `app/api/[...path]` → Go. Shared: `@rpgtrac
 - Identity: Supabase Auth JWT (JWKS in Go). `public.users` mirrors `auth.users.id`.
 - LifeQuest: `skills`, `xp_events`, `blocker_gates`, goals tables. Levels from `xpcurve` (not a levels table). Max level 200.
 - NutriLog: `nl_*`, always `user_id → public.users`. No FKs to LifeQuest. Weight: `nl_weight_logs`.
-- Workout (when built): `wo_*`, same FK/RLS pattern.
+- Workout (when built): `wo_*`, `user_id → public.users`, isolation in Go (RLS is off).
 - MindTrack (when built): `mh_*`, extra sensitivity, no XP in v1.
 - Cross-app XP is a later integration layer, not a FK.
 

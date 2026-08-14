@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
+  "nx": {
+    "tags": ["type:lib"]
+  },
   "exports": {
     "./base.json": "./base.json",
     "./nextjs.json": "./nextjs.json"

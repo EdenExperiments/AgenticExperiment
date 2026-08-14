@@ -38,7 +38,7 @@ Use `/poteto-mode` (pstack) for feature work, fixes, and refactors. cursor-team-
 
 
 Tests are required for business logic, API contracts, and component behavior.  
-Pure visual composition work is validated by visual review and design-guide compliance.
+Pure visual composition work is validated by visual review against `docs/ui.md` and tokens.
 
 ## Session And Handoff Expectations
 

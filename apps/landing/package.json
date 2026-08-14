@@ -2,6 +2,9 @@
   "name": "@rpgtracker/landing",
   "version": "0.1.0",
   "private": true,
+  "nx": {
+    "tags": ["type:app"]
+  },
   "scripts": {
     "dev": "next dev -p 3004",
     "build": "next build",

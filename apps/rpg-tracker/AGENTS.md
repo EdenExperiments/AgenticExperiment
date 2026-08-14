@@ -7,7 +7,7 @@ test-writer/implementer agent (D-063).
 
 ## Toolchain
 
-- Framework: Next.js 15 App Router + React 19, BFF proxy pattern, TanStack Query v5 for server
+- Framework: Next.js 16 App Router + React 19, BFF proxy pattern, TanStack Query v5 for server
   state, Tailwind CSS v4 tokens.
 - Test (the named verification command for TS tasks): `pnpm test:ci` (Vitest + React Testing
   Library); targeted runs via the package-level `test` script.

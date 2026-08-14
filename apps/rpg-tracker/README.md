@@ -1,10 +1,10 @@
 # LifeQuest (rpg-tracker)
 
-Next.js 15 App Router frontend for the LifeQuest application — the RPG-themed habit and skill tracker.
+Next.js 16 App Router frontend for the LifeQuest application — the RPG-themed habit and skill tracker.
 
 ## Stack
 
-- **Framework:** Next.js 15 (App Router)
+- **Framework:** Next.js 16 (App Router)
 - **UI library:** `@rpgtracker/ui` (shared components in `packages/ui/`)
 - **Auth:** Supabase via `@rpgtracker/auth` package
 - **Data fetching:** TanStack Query v5
@@ -14,7 +14,7 @@ Next.js 15 App Router frontend for the LifeQuest application — the RPG-themed 
 ## Running locally
 
 ```bash
-# From repo root (starts all apps + API via Turborepo)
+# From repo root (Nx starts the Next apps; run the Go API separately)
 pnpm dev
 
 # Or just this app

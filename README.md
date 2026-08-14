@@ -7,6 +7,7 @@ A self-improvement platform. Nx + pnpm monorepo. Apps share a Go API, auth, and 
 | **LifeQuest** | `apps/rpg-tracker` | Core loop shipped; gate *completion* still incomplete |
 | **NutriLog** | `apps/nutri-log` | Weight logging shipped |
 | **MindTrack** | `apps/mental-health` | Scaffold — read `docs/apps/mindtrack.md` before building |
+| **Landing** | `apps/landing` | Marketing site |
 | **Go API** | `apps/api` | Shared backend |
 
 Product notes: `docs/README.md`.
@@ -14,7 +15,7 @@ Product notes: `docs/README.md`.
 
 ## Stack
 
-- **Frontend:** Next.js 15 App Router · React 19 · Tailwind v4 · TanStack Query · Framer Motion
+- **Frontend:** Next.js 16 App Router · React 19 · Tailwind v4 · TanStack Query · Framer Motion
 - **Backend:** Go · chi router · pgx v5 · Supabase JWT auth
 - **Shared packages:** `@rpgtracker/ui` · `@rpgtracker/auth` · `@rpgtracker/api-client`
 - **Monorepo:** Nx · pnpm workspaces
@@ -50,8 +51,8 @@ docker compose up -d db
 # 4. Start the Go API (migrations run automatically on startup)
 cd apps/api && make run
 
-# 5. Start all Next.js apps (from repo root, separate terminal)
-cd ../.. && pnpm dev
+# 5. Start Next.js apps from repo root (separate terminal)
+pnpm dev
 ```
 
 Each app runs on its own port. The Next.js apps proxy API requests to the Go server at `http://localhost:8080`.
@@ -59,7 +60,7 @@ Each app runs on its own port. The Next.js apps proxy API requests to the Go ser
 | App | Port | URL |
 |-----|------|-----|
 | LifeQuest (`rpg-tracker`) | 3000 | http://localhost:3000 |
-| NutriLog (scaffold) | 3002 | http://localhost:3002 |
+| NutriLog | 3002 | http://localhost:3002 |
 | MindTrack (scaffold) | 3003 | http://localhost:3003 |
 | Landing | 3004 | http://localhost:3004 |
 | Go API | 8080 | http://localhost:8080 |
@@ -76,30 +77,33 @@ pnpm install
 
 # JS workspace build and test (Nx; matches CI)
 pnpm build
-pnpm test
+pnpm test:ci
 
 # Go API
-cd apps/api && go test ./...
+pnpm test:go
+# or: cd apps/api && go test ./...
 
 # Combined pre-commit quality gate
-cd ../.. && pnpm check:precommit
+pnpm check:precommit
 ```
 
-GitHub Actions runs the same practical checks on pull requests to `main` and pushes to `main` or `cursor/**`: `pnpm build`, `pnpm test`, and `go test ./...` in `apps/api`.
+GitHub Actions runs the same practical checks on pull requests to `main` and pushes to `main` or `cursor/**`: `pnpm build`, `pnpm test:ci`, and `go test ./...` in `apps/api`.
 
 ## Project Structure
 
 ```
 apps/
   api/              Go REST API (chi, pgx, Supabase JWT)
-  rpg-tracker/      LifeQuest — Next.js 15 App Router
-  nutri-log/        NutriLog  — Next.js 15 App Router (scaffolded)
-  mental-health/    MindTrack — Next.js 15 App Router (scaffolded)
+  rpg-tracker/      LifeQuest — Next.js 16 App Router
+  nutri-log/        NutriLog  — Next.js 16 App Router (weight shipped)
+  mental-health/    MindTrack — Next.js 16 App Router (scaffolded)
+  landing/          Marketing site
 packages/
   ui/               Shared React components + design tokens
   auth/             Supabase SSR helpers (browser + server)
   api-client/       Typed fetch client for the Go API
   tsconfig/         Shared TypeScript config
+  cursor-agents/    CI/CD SDK automation
 docs/
   README.md         Product/platform map (durable)
   apps/             Rough logic per app

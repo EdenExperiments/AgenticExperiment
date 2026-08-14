@@ -2,8 +2,8 @@
 
 ## Tests are the spec
 
-- Go: `nx test api` or `cd apps/api && go test ./...`
-- JS: `nx run-many -t test` (CI uses `--parallel=1`)
+- Go: `pnpm test:go` or `cd apps/api && go test ./...`
+- JS: `pnpm test` (CI / precommit: `pnpm test:ci`)
 - Behaviour and API contracts need tests. Pure visual work uses tokens in `packages/ui`; do not faux-TDD CSS.
 
 If you change behaviour, change the test. Do not add a markdown AC table.
@@ -25,8 +25,7 @@ LifeQuest: `data-theme` Minimal / Retro / Modern; optional `data-mode` clean/sty
 1. Read `docs/README.md` + the one file under `docs/apps/` you are touching.
 2. Put long plans in `docs/briefs/<slug>.md`. They are gitignored.
 3. Before you delete a brief (or merge the PR), copy any *lasting* rule into `docs/` (usually two sentences).
-4. Do not revive `Documentation/`, feature trackers, or signed delivery folders.
-5. `/poteto-mode` for implementation. Nested `AGENTS.md` for stack commands.
+4. `/poteto-mode` for implementation. Nested `AGENTS.md` for stack commands.
 
 ## Health copy
 

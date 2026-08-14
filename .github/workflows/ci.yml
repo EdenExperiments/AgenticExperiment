@@ -21,6 +21,7 @@ jobs:
       CI: true
       NEXT_TELEMETRY_DISABLED: 1
       NX_NO_CLOUD: "true"
+      NX_DAEMON: "false"
 
     steps:
       - name: Check out repository

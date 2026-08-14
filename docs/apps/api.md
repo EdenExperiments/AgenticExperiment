@@ -12,7 +12,7 @@ New domains get a package (`internal/workout`) and `/api/v1/<area>/...` routes. 
 
 ```bash
 cd apps/api && make run    # migrations on boot
-nx test api
+pnpm test:go               # or: nx test api
 ```
 
 See `apps/api/README.md` for env and local postgres. Do not duplicate that here.

@@ -53,13 +53,11 @@ docs/briefs/*
 !docs/briefs/README.md
 !docs/briefs/.gitignore
 
-# Nx
+# Local task caches
 .nx/
-
-# Turbo (removed; ignore leftover local cache)
 .turbo/
 
-# TDD lock sentinel (created by delivery orchestrator during implementation runs)
+# Retired TDD lock sentinel
 .cursor/tdd-lock
 
 # LifeQuest verification run state + proof screenshots (skill keeps .gitkeep)

@@ -6,4 +6,4 @@ NutriLog and MindTrack use product themes (`nutri-saas`, `mental-calm`), not the
 
 Tokens live in `packages/ui/tokens/`. Use `var(--color-*)`. Same behaviour in every LifeQuest theme.
 
-Read the CSS and components; do not restore page-guide novels.
+Read the CSS and components.

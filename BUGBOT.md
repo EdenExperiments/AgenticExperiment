@@ -6,7 +6,7 @@ the "no open medium+ findings" required status check.
 
 ## Repo context
 
-Monorepo: Go API (`apps/api`, chi + pgx), Next.js 15 / React 19 frontends (`apps/rpg-tracker`,
+Monorepo: Go API (`apps/api`, chi + pgx), Next.js 16 / React 19 frontends (`apps/rpg-tracker`,
 `apps/nutri-log`, `apps/mental-health`), shared TS packages (`packages/*`). Constraints:
 `docs/architecture.md` and `docs/practices.md`. Tests are the behaviour spec.
 
