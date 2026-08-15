@@ -10,6 +10,6 @@ Product layouts own their own chrome. Tokens live in `packages/ui/tokens/`. Use 
 
 Horror and kawaii are LifeQuest play. They never apply to `/mind`. NutriLog stays `nutri-saas` with atmosphere unset. Workout stays `workout-forge`.
 
-In-depth mockups wait for the prompts in `docs/themes-mockup-prompts.md`.
+In-depth mockups wait for the prompts in `docs/themes-mockup-prompts.md`. Run the suite bible and initial-look prompts first, then the five atmosphere prompts.
 
 Read the CSS and components.
